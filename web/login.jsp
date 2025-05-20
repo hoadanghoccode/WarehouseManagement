@@ -86,14 +86,14 @@
                             <h5 class="modal-title text_white">Log in</h5>
                         </div>
                         <div class="modal-body">
-                            <form>
+                            <form action="login" method="post">
                                 <div>
-                                    <input type="text" class="form-control" placeholder="Enter your email">
+                                    <input type="text" name="email" class="form-control" placeholder="Enter your email">
                                 </div>
                                 <div>
-                                    <input type="password" class="form-control" placeholder="Password">
-                                </div>
-                                <a href="#" class="btn_1 full_width text-center">Log in</a>
+                                    <input type="text" name="password" class="form-control" placeholder="Password">
+                                </div>                
+                                <button type="submit" class="btn_1 full_width text-center">Log in</button>
                                 <p class="text-center mt-3">Need an account? <a href="#"> Sign Up</a></p>
                                 <div class="text-center">
                                     <a href="#" class="pass_forget_btn">Forget Password?</a>
@@ -106,3 +106,14 @@
         </div>
     </div>
 </body>
+<% 
+    String error = (String) request.getAttribute("error");
+    if (error != null) {
+%>
+    <script>
+        alert("<%= error %>");
+    </script>
+<% 
+    }
+%>
+
