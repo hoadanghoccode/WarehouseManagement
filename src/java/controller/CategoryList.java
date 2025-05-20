@@ -1,6 +1,7 @@
 package controller;
 
 import dal.CategoryDAO;
+import dal.SubCategoryDAO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Category;
+import model.SubCategory;
 
 public class CategoryList extends HttpServlet {
 
@@ -17,6 +19,8 @@ public class CategoryList extends HttpServlet {
             throws ServletException, IOException {
         String search = request.getParameter("search");
         CategoryDAO dao = new CategoryDAO();
+        SubCategoryDAO subDao = new SubCategoryDAO();
+
         List<Category> list1;
 
         if (search != null && !search.trim().isEmpty()) {
@@ -25,7 +29,7 @@ public class CategoryList extends HttpServlet {
             list1 = dao.getAllCategory();
         }
 
-        int page, numperpage = 1;
+        int page, numperpage = 2;
         int size = list1.size();
         int num = (size % numperpage == 0) ? (size / numperpage) : (size / numperpage + 1);
 
@@ -38,6 +42,16 @@ public class CategoryList extends HttpServlet {
 
         int start = (page - 1) * numperpage;
         int end = Math.min(page * numperpage, size);
+
+//        for (Category c : list1) {
+//            int count = subDao.countSubCategoriesByCategoryId(c.getCategoryId());
+//            c.setSubCategoryCount(count);
+//        }
+        for (Category c : list1) {
+            List<SubCategory> subs = subDao.getSubCategoryByCategoryId(c.getCategoryId());
+            c.setSubCategoryCount(subs.size());
+            c.setSubCategories(subs);
+        }
 
         List<Category> list = dao.getListByPage((ArrayList<Category>) list1, start, end);
 
