@@ -95,7 +95,15 @@ public class CategoryDAO extends DBContext {
         }
         return list;
     }
-
+    
+    public List<Category> getListByPage(ArrayList<Category> list, int start, int end){
+        ArrayList<Category> arr = new ArrayList<>();
+        for (int i = start; i < end; i++) {
+            arr.add(list.get(i));
+        }
+        return arr;
+    }
+    
     public static void main(String[] args) {
 //        List<Category> list = new CategoryDAO().getAllCategory();
 //        Category list = new CategoryDAO().insertCategory('Khoan');
