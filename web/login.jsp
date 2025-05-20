@@ -96,7 +96,7 @@
                                 <button type="submit" class="btn_1 full_width text-center">Log in</button>
                                 <p class="text-center mt-3">Need an account? <a href="#"> Sign Up</a></p>
                                 <div class="text-center">
-                                    <a href="#" class="pass_forget_btn">Forget Password?</a>
+                                    <a href="resetpassword.jsp" class="pass_forget_btn">Reset Password?</a>
                                 </div>
                             </form>
                         </div>
