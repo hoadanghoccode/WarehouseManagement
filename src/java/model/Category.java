@@ -4,6 +4,8 @@
  */
 package model;
 
+import java.util.List;
+
 /**
  *
  * @author ADMIN
@@ -11,6 +13,8 @@ package model;
 public class Category {
     private int categoryId;
     private String name;
+    private int subCategoryCount;
+    private List<SubCategory> subCategories;
 
     public Category() {
     }
@@ -19,6 +23,40 @@ public class Category {
         this.categoryId = categoryId;
         this.name = name;
     }
+
+    public Category(int categoryId, String name, int subCategoryCount, List<SubCategory> subCategories) {
+        this.categoryId = categoryId;
+        this.name = name;
+        this.subCategoryCount = subCategoryCount;
+        this.subCategories = subCategories;
+    }
+    
+    
+    public Category(int categoryId, String name, int subCategoryCount) {
+        this.categoryId = categoryId;
+        this.name = name;
+        this.subCategoryCount = subCategoryCount;
+    }
+
+    public List<SubCategory> getSubCategories() {
+        return subCategories;
+    }
+
+    public void setSubCategories(List<SubCategory> subCategories) {
+        this.subCategories = subCategories;
+    }
+
+    
+    
+    public int getSubCategoryCount() {
+        return subCategoryCount;
+    }
+
+    public void setSubCategoryCount(int subCategoryCount) {
+        this.subCategoryCount = subCategoryCount;
+    }
+    
+    
 
     public int getCategoryId() {
         return categoryId;
@@ -38,8 +76,12 @@ public class Category {
 
     @Override
     public String toString() {
-        return "Category{" + "categoryId=" + categoryId + ", name=" + name + '}';
+        return "Category{" + "categoryId=" + categoryId + ", name=" + name + ", subCategoryCount=" + subCategoryCount + ", subCategories=" + subCategories + '}';
     }
+
+  
+
+  
     
     
 }
