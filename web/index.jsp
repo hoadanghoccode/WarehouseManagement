@@ -6,6 +6,14 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
+<%@ page import="model.Users" %>
+<%
+    Users u = (Users) session.getAttribute("user");
+    if (u == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
 <html lang="zxx">
 
 
@@ -57,6 +65,8 @@
 </head>
 <body class="crm_body_bg">
     
+    
+    
 
 
 <!-- main content part here -->
@@ -82,7 +92,9 @@
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="dashboard_header_title">
+                                    <p>Hi, <%= u.getFullName() %>!</p>
                                     <h3> Directory Dashboard</h3>
+                                    </p>
                                 </div>
                             </div>
                         </div>
