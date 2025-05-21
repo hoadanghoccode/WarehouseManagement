@@ -15,8 +15,8 @@
     <servlet-mapping>
         <servlet-name>UserListServlet</servlet-name>
         <url-pattern>/userlist</url-pattern>
-    </servlet-mapping>
-    <servlet>
+        </servlet-mapping>
+        <servlet>
         <servlet-name>java</servlet-name>
         <servlet-class>MaterialDAO.java</servlet-class>
     </servlet>
