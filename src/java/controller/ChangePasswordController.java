@@ -4,8 +4,7 @@
  */
 package controller;
 
-import dal.Logindao;
-import dal.Userdao;
+import dal.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -93,8 +92,8 @@ public class ChangePasswordController extends HttpServlet {
             return;
         }
 
-        Logindao loginDAO = new Logindao();
-        if (!loginDAO.checkLogin(u.getEmail(), current).getPassword().equals(current)) {
+        UserDAO userDAO = new UserDAO();
+        if (!userDAO.checkLogin(u.getEmail(), current).getPassword().equals(current)) {
             request.setAttribute("error", "Current password is wrong");
             request.getRequestDispatcher("changepassword.jsp").forward(request, response);
             return;
@@ -107,7 +106,6 @@ public class ChangePasswordController extends HttpServlet {
             return;
         }
 
-        Userdao userDAO = new Userdao();
         boolean updated = userDAO.updatePassword(u.getUserId(), newPass);
         if (updated) {
             // Nếu đổi mật khẩu thành công, xóa session để bắt login lại

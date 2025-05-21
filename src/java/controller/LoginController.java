@@ -4,7 +4,7 @@
  */
 package controller;
 
-import dal.Logindao;
+import dal.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -95,8 +95,8 @@ public class LoginController extends HttpServlet {
                 return;
             }
 
-            Logindao loginDAO = new Logindao();
-            Users u = loginDAO.checkLogin(email, pass);
+            UserDAO userDAO = new UserDAO();
+            Users u = userDAO.checkLogin(email, pass);
             if (u == null) {
                 request.setAttribute("error", "Email or password is wrong!");
                 request.setAttribute("email", email);
