@@ -25,22 +25,23 @@
             </ul>
 
         </li>
-<!--        <li class="">
-            <a   class="has-arrow" href="#" aria-expanded="false">
+       <li class="">
+            <!--class="has-arrow"-->
+            <a   href="/WarehouseManagement/authentication.jsp" aria-expanded="false">
                 <img src="img/menu-icon/2.svg" alt="">
                 <span>Pages</span>
             </a>
-            <ul>
+<!--            <ul>
                 <li><a href="login.html">Login</a></li>
                 <li><a href="resister.html">Register</a></li>
                 <li><a href="error_400.html">Error 404</a></li>
                 <li><a href="error_500.html">Error 500</a></li>
                 <li><a href="forgot_pass.html">Forgot Password</a></li>
                 <li><a href="gallery.html">Gallery</a></li>
-            </ul>
+            </ul>-->
         </li>
 
-        <li class="">
+<!--        <li class="">
             <a   class="has-arrow" href="#" aria-expanded="false">
                 <img src="img/menu-icon/3.svg" alt="">
                 <span>Applications</span>
