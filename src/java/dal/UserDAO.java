@@ -4,20 +4,17 @@
  */
 package dal;
 
+import model.Users;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import model.Users;
-
 /**
  *
  * @author duong
  */
 public class UserDAO {
-    Connection conn = null;
+   Connection conn = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
     
@@ -80,6 +77,5 @@ public class UserDAO {
             return false;
         }
 
-    }
-
+    } 
 }
