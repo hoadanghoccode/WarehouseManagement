@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class UserListServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
 
         int page = 1;
@@ -20,7 +20,11 @@ public class UserListServlet extends HttpServlet {
         String searchQuery = "";
 
         if (request.getParameter("page") != null) {
-            page = Integer.parseInt(request.getParameter("page"));
+            try {
+                page = Integer.parseInt(request.getParameter("page"));
+            } catch (NumberFormatException e) {
+                page = 1; // Default to page 1 on invalid input
+            }
         }
 
         if (request.getParameter("search") != null) {
@@ -36,20 +40,52 @@ public class UserListServlet extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("searchQuery", searchQuery);
+        request.setAttribute("roles", userDAO.getAllRoles());
+        request.setAttribute("branches", userDAO.getAllBranchIds());
 
         request.getRequestDispatcher("/userlist.jsp").forward(request, response);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        processRequest(request, response);
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+
+        if ("create".equals(request.getParameter("action"))) {
+            try {
+                String fullName = request.getParameter("fullName");
+                String email = request.getParameter("email");
+                String password = request.getParameter("password");
+                int gender = Integer.parseInt(request.getParameter("gender"));
+                String phoneNumber = request.getParameter("phoneNumber");
+                String address = request.getParameter("address");
+                String dob = request.getParameter("dob");
+                int branchId = Integer.parseInt(request.getParameter("branchId"));
+                int roleId = Integer.parseInt(request.getParameter("roleId"));
+                boolean status = Boolean.parseBoolean(request.getParameter("status"));
+
+                java.sql.Date dateOfBirth = java.sql.Date.valueOf(dob);
+
+                Users user = new Users(0, roleId, branchId, fullName, email, password, gender, phoneNumber, address,
+                        dateOfBirth, null, null, null, status, null, null);
+
+                UserDAO dao = new UserDAO();
+                dao.createUser(user);
+
+                response.sendRedirect(request.getContextPath() + "/userlist");
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Create user failed");
+            }
+        } else {
+            processRequest(request, response);
+        }
     }
 
     @Override
