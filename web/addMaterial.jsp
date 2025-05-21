@@ -71,6 +71,15 @@
                 </select>
             </div>
             <div class="mb-3">
+                <label for="unitId" class="form-label">Unit</label>
+                <select class="form-select" id="unitId" name="unitId" required>
+                    <option value="">Select Unit</option>
+                    <c:forEach var="unit" items="${units}">
+                        <option value="${unit.unitId}">${unit.name}</option>
+                    </c:forEach>
+                </select>
+            </div>
+            <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
                 <input type="text" class="form-control" id="name" name="name" required>
             </div>

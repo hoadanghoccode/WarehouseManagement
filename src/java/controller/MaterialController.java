@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
 import model.SubCategory;
+import model.Unit;
 
 @WebServlet(name = "MaterialController", urlPatterns = {"/material"})
 public class MaterialController extends HttpServlet {
@@ -52,22 +53,30 @@ public class MaterialController extends HttpServlet {
 
             case "add":
                 List<SubCategory> subCategories = materialDAO.getAllSubCategories();
+                List<Unit> units = materialDAO.getAllUnits();
                 request.setAttribute("subCategories", subCategories);
+                request.setAttribute("units", units);
                 request.getRequestDispatcher("/addMaterial.jsp").forward(request, response);
                 break;
 
             case "update":
-                materialId = Integer.parseInt(request.getParameter("id"));
-                material = materialDAO.getMaterialById(materialId);
-                subCategories = materialDAO.getAllSubCategories();
-                request.setAttribute("material", material);
-                request.setAttribute("subCategories", subCategories);
-                request.getRequestDispatcher("/updateMaterial.jsp").forward(request, response);
+                int updateMaterialId = Integer.parseInt(request.getParameter("id")); // New variable to avoid scope issue
+                Material updateMaterial = materialDAO.getMaterialById(updateMaterialId); // New variable
+                List<SubCategory> updateSubCategories = materialDAO.getAllSubCategories();
+                List<Unit> updateUnits = materialDAO.getAllUnits();
+                if (updateMaterial != null) {
+                    request.setAttribute("material", updateMaterial);
+                    request.setAttribute("subCategories", updateSubCategories);
+                    request.setAttribute("units", updateUnits);
+                    request.getRequestDispatcher("/updateMaterial.jsp").forward(request, response);
+                } else {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "Material not found");
+                }
                 break;
 
             case "delete":
-                materialId = Integer.parseInt(request.getParameter("id"));
-                materialDAO.deleteMaterial(materialId);
+                int deleteMaterialId = Integer.parseInt(request.getParameter("id"));
+                materialDAO.deleteMaterial(deleteMaterialId);
                 response.sendRedirect("material?action=list");
                 break;
 
@@ -87,6 +96,7 @@ public class MaterialController extends HttpServlet {
             case "add":
                 Material newMaterial = new Material();
                 newMaterial.setSubCategoryId(Integer.parseInt(request.getParameter("subCategoryId")));
+                newMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 newMaterial.setName(request.getParameter("name"));
                 newMaterial.setUnitOfCalculation(request.getParameter("unitOfCalculation"));
                 newMaterial.setInventoryQuantity(Integer.parseInt(request.getParameter("inventoryQuantity")));
@@ -98,6 +108,7 @@ public class MaterialController extends HttpServlet {
                 Material updatedMaterial = new Material();
                 updatedMaterial.setMaterialId(Integer.parseInt(request.getParameter("materialId")));
                 updatedMaterial.setSubCategoryId(Integer.parseInt(request.getParameter("subCategoryId")));
+                updatedMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 updatedMaterial.setName(request.getParameter("name"));
                 updatedMaterial.setUnitOfCalculation(request.getParameter("unitOfCalculation"));
                 updatedMaterial.setInventoryQuantity(Integer.parseInt(request.getParameter("inventoryQuantity")));

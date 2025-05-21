@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Material;
 import model.SubCategory;
+import model.Unit;
 
 public class MaterialDAO {
     private Connection connection;
@@ -32,10 +33,12 @@ public class MaterialDAO {
     public List<Material> getAllMaterials() {
         List<Material> materials = new ArrayList<>();
         String query = "SELECT m.Material_id, m.Name, m.Unit_of_calculation, m.Inventory_quantity, " +
-                      "m.Sub_category_id, s.Name AS Sub_category_name, c.Name AS Category_name " +
+                      "m.Sub_category_id, s.Name AS Sub_category_name, c.Name AS Category_name, " +
+                      "m.Unit_id, u.Name AS Unit_name " +
                       "FROM Material m " +
                       "JOIN Sub_category s ON m.Sub_category_id = s.Sub_category_id " +
-                      "JOIN Category c ON s.Category_id = c.Category_id";
+                      "JOIN Category c ON s.Category_id = c.Category_id " +
+                      "JOIN Unit u ON m.Unit_id = u.Unit_id";
         try (PreparedStatement ps = connection.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -47,6 +50,8 @@ public class MaterialDAO {
                 material.setSubCategoryId(rs.getInt("Sub_category_id"));
                 material.setSubCategoryName(rs.getString("Sub_category_name"));
                 material.setCategoryName(rs.getString("Category_name"));
+                material.setUnitId(rs.getInt("Unit_id"));
+                material.setUnitName(rs.getString("Unit_name"));
                 materials.add(material);
             }
         } catch (SQLException e) {
@@ -58,10 +63,12 @@ public class MaterialDAO {
     public Material getMaterialById(int materialId) {
         Material material = null;
         String query = "SELECT m.Material_id, m.Name, m.Unit_of_calculation, m.Inventory_quantity, " +
-                      "m.Sub_category_id, s.Name AS Sub_category_name, c.Name AS Category_name " +
+                      "m.Sub_category_id, s.Name AS Sub_category_name, c.Name AS Category_name, " +
+                      "m.Unit_id, u.Name AS Unit_name " +
                       "FROM Material m " +
                       "JOIN Sub_category s ON m.Sub_category_id = s.Sub_category_id " +
                       "JOIN Category c ON s.Category_id = c.Category_id " +
+                      "JOIN Unit u ON m.Unit_id = u.Unit_id " +
                       "WHERE m.Material_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, materialId);
@@ -75,6 +82,8 @@ public class MaterialDAO {
                     material.setSubCategoryId(rs.getInt("Sub_category_id"));
                     material.setSubCategoryName(rs.getString("Sub_category_name"));
                     material.setCategoryName(rs.getString("Category_name"));
+                    material.setUnitId(rs.getInt("Unit_id"));
+                    material.setUnitName(rs.getString("Unit_name"));
                 }
             }
         } catch (SQLException e) {
@@ -84,13 +93,14 @@ public class MaterialDAO {
     }
 
     public void addMaterial(Material material) {
-        String query = "INSERT INTO Material (Sub_category_id, Name, Unit_of_calculation, Inventory_quantity) " +
-                      "VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO Material (Sub_category_id, Unit_id, Name, Unit_of_calculation, Inventory_quantity) " +
+                      "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, material.getSubCategoryId());
-            ps.setString(2, material.getName());
-            ps.setString(3, material.getUnitOfCalculation());
-            ps.setInt(4, material.getInventoryQuantity());
+            ps.setInt(2, material.getUnitId());
+            ps.setString(3, material.getName());
+            ps.setString(4, material.getUnitOfCalculation());
+            ps.setInt(5, material.getInventoryQuantity());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -98,14 +108,15 @@ public class MaterialDAO {
     }
 
     public void updateMaterial(Material material) {
-        String query = "UPDATE Material SET Sub_category_id = ?, Name = ?, Unit_of_calculation = ?, " +
+        String query = "UPDATE Material SET Sub_category_id = ?, Unit_id = ?, Name = ?, Unit_of_calculation = ?, " +
                       "Inventory_quantity = ? WHERE Material_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, material.getSubCategoryId());
-            ps.setString(2, material.getName());
-            ps.setString(3, material.getUnitOfCalculation());
-            ps.setInt(4, material.getInventoryQuantity());
-            ps.setInt(5, material.getMaterialId());
+            ps.setInt(2, material.getUnitId());
+            ps.setString(3, material.getName());
+            ps.setString(4, material.getUnitOfCalculation());
+            ps.setInt(5, material.getInventoryQuantity());
+            ps.setInt(6, material.getMaterialId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -137,5 +148,22 @@ public class MaterialDAO {
             e.printStackTrace();
         }
         return subCategories;
+    }
+
+    public List<Unit> getAllUnits() {
+        List<Unit> units = new ArrayList<>();
+        String query = "SELECT Unit_id, Name FROM Unit";
+        try (PreparedStatement ps = connection.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Unit unit = new Unit();
+                unit.setUnitId(rs.getInt("Unit_id"));
+                unit.setName(rs.getString("Name"));
+                units.add(unit);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return units;
     }
 }

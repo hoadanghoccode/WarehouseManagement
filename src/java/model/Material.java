@@ -15,8 +15,10 @@ public class Material {
     private String unitOfCalculation;
     private int inventoryQuantity;
     private int subCategoryId;
+    private int unitId; 
     private transient String subCategoryName; 
-    private transient String categoryName;   
+    private transient String categoryName;    
+    private transient String unitName;        
 
     public Material() {
     }
@@ -61,6 +63,14 @@ public class Material {
         this.subCategoryId = subCategoryId;
     }
 
+    public int getUnitId() {
+        return unitId;
+    }
+
+    public void setUnitId(int unitId) {
+        this.unitId = unitId;
+    }
+
     public String getSubCategoryName() {
         return subCategoryName;
     }
@@ -75,5 +85,13 @@ public class Material {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
     }
 }

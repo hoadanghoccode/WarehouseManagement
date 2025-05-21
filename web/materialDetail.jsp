@@ -80,6 +80,7 @@
                 <p><strong>Name:</strong> ${material.name}</p>
                 <p><strong>Unit of Calculation:</strong> ${material.unitOfCalculation}</p>
                 <p><strong>Inventory Quantity:</strong> ${material.inventoryQuantity}</p>
+                <p><strong>Unit:</strong> ${material.unitName}</p>
                 <p><strong>Sub Category:</strong> ${material.subCategoryName}</p>
                 <p><strong>Category:</strong> ${material.categoryName}</p>
                 <a href="material?action=list" class="back-link">Back to Materials List</a>

@@ -95,6 +95,7 @@
                     <th>Name</th>
                     <th>Unit of Calculation</th>
                     <th>Inventory Quantity</th>
+                    <th>Unit</th>
                     <th>Sub Category</th>
                     <th>Category</th>
                     <th>Action</th>
@@ -107,6 +108,7 @@
                         <td><a href="material?action=detail&id=${material.materialId}">${material.name}</a></td>
                         <td>${material.unitOfCalculation}</td>
                         <td>${material.inventoryQuantity}</td>
+                        <td>${material.unitName}</td>
                         <td>${material.subCategoryName}</td>
                         <td>${material.categoryName}</td>
                         <td>
