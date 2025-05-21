@@ -116,6 +116,7 @@
                                 </div>
                                 <div class="profile_info_details">
                                     <a href="#">My Profile </a>
+                                    <a href="changepassword.jsp">Change Password </a>
                                     <a href="#">Settings</a>
                                     <a href="#">Log Out </a>
                                 </div>

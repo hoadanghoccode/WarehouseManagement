@@ -6,6 +6,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="jakarta.servlet.http.HttpSession" %>
 <!DOCTYPE html>
 <html lang="zxx">
 
@@ -77,6 +78,7 @@
             }
         </style>
     </head>
+
     <body class="crm_body_bg">
         <div class="login-container">
             <div class="container-fluid">
@@ -91,6 +93,14 @@
                                 <c:if test="${not empty error}">
                                     <p style="color: red;">${error}</p>
                                 </c:if>
+
+                                <c:if test="${not empty success}">
+                                    <p style="color: green;">${success}</p>
+                                </c:if>
+
+                                <%
+                                    session.removeAttribute("success"); // sau khi hiển thị thì xóa để tránh hiển thị lại
+                                %>
 
                                 <form action="login" method="post">
                                     <div>
