@@ -31,7 +31,7 @@ public class Userdao {
             rs = ps.executeQuery();
             return rs.next();
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); //a
         }
         return false;
     }
