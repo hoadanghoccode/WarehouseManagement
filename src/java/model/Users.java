@@ -1,16 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
 import java.util.Date;
 
-/**
- *
- * @author duong
- */
 public class Users {
+
     private int userId;
     private int roleId;
     private int branchId;
@@ -21,11 +14,20 @@ public class Users {
     private String phoneNumber;
     private String address;
     private Date dateOfBirth;
+    private String image;
+    private Date createdAt;
+    private Date updatedAt;
+    private boolean status;
+    private String resetPasswordToken;
+    private Date resetPasswordExpiry;
+    private String roleName; 
 
     public Users() {
     }
 
-    public Users(int userId, int roleId, int branchId, String fullName, String email, String password, int gender, String phoneNumber, String address, Date dateOfBirth) {
+    public Users(int userId, int roleId, int branchId, String fullName, String email, String password, int gender,
+            String phoneNumber, String address, Date dateOfBirth, String image, Date createdAt, Date updatedAt,
+            boolean status, String resetPasswordToken, Date resetPasswordExpiry) {
         this.userId = userId;
         this.roleId = roleId;
         this.branchId = branchId;
@@ -36,6 +38,12 @@ public class Users {
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.dateOfBirth = dateOfBirth;
+        this.image = image;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.status = status;
+        this.resetPasswordToken = resetPasswordToken;
+        this.resetPasswordExpiry = resetPasswordExpiry;
     }
 
     public int getUserId() {
@@ -117,6 +125,60 @@ public class Users {
     public void setDateOfBirth(Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
-    
-    
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
+    }
+
+    public Date getResetPasswordExpiry() {
+        return resetPasswordExpiry;
+    }
+
+    public void setResetPasswordExpiry(Date resetPasswordExpiry) {
+        this.resetPasswordExpiry = resetPasswordExpiry;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
 }

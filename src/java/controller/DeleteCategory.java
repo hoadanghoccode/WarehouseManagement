@@ -4,23 +4,19 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.CategoryDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Users;
 
 /**
  *
- * @author duong
+ * @author ADMIN
  */
-@WebServlet(name = "ChangePasswordController", urlPatterns = {"/changepassword"})
-public class ChangePasswordController extends HttpServlet {
+public class DeleteCategory extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +35,10 @@ public class ChangePasswordController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ChangePasswordController</title>");
+            out.println("<title>Servlet DeleteCategory</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ChangePasswordController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet DeleteCategory at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,7 +56,11 @@ public class ChangePasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        int cid = Integer.parseInt(request.getParameter("cid"));
+        
+        CategoryDAO dao = new CategoryDAO();
+        dao.deleteCategory(cid);
+        response.sendRedirect("categorylist");
     }
 
     /**
@@ -74,50 +74,7 @@ public class ChangePasswordController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        Users u = (Users) request.getSession().getAttribute("user");
-
-        if (u == null) {
-            response.sendRedirect("login.jsp");
-            return;
-        }
-
-        String current = request.getParameter("currentPassword");
-        String newPass = request.getParameter("newPassword");
-        String confirm = request.getParameter("confirmPassword");
-
-        if (!newPass.equals(confirm)) {
-            request.setAttribute("error", "New password does not match!!");
-            request.getRequestDispatcher("changepassword.jsp").forward(request, response);
-            return;
-        }
-
-        UserDAO userDAO = new UserDAO();
-        if (!userDAO.checkLogin(u.getEmail(), current).getPassword().equals(current)) {
-            request.setAttribute("error", "Current password is wrong");
-            request.getRequestDispatcher("changepassword.jsp").forward(request, response);
-            return;
-        }
-        // Lấy session hiện tại
-        HttpSession session = request.getSession(false); // false để không tạo session mới nếu chưa có
-
-        if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect("login.jsp");
-            return;
-        }
-
-        boolean updated = userDAO.updatePassword(u.getUserId(), newPass);
-        if (updated) {
-            // Nếu đổi mật khẩu thành công, xóa session để bắt login lại
-//            session.invalidate();
-            HttpSession newSession = request.getSession(true);
-            request.setAttribute("success", "Change password is successfully, please login again.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
-        } else {
-            request.setAttribute("error", "Error! Please try again");
-            request.getRequestDispatcher("changepassword.jsp").forward(request, response);
-        }
-        
+        processRequest(request, response);
     }
 
     /**
