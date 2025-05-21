@@ -111,7 +111,7 @@
                             <div class="mb-3">
                                 <label for="roleSelect" class="form-label">Chọn Role</label>
                                 <select class="form-control" id="roleSelect" multiple>
-                                    <!-- Options will be populated by JavaScript -->
+                                    <!-- Options will be populated by JavaScript -->     
                                 </select>
                             </div>
                             <button id="assignRolesBtn" class="btn btn-success" style="display: none;">Gán Role</button>
