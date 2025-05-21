@@ -11,6 +11,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import model.Category;
 
 /**
  *
@@ -56,6 +58,9 @@ public class AddCategory extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        CategoryDAO dao = new CategoryDAO();
+        List<Category> allCategories = dao.getAllCategory(); // hoặc getAllParentCategories()
+        request.setAttribute("allCategories", allCategories);
         request.getRequestDispatcher("addcategory.jsp").forward(request, response);
     }
 
@@ -71,6 +76,7 @@ public class AddCategory extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String categoryName = request.getParameter("categoryName");
+        String parentIdStr = request.getParameter("parentId"); // Nhận từ form
 
         if (categoryName == null || categoryName.trim().isEmpty()) {
             request.setAttribute("errorMessage", "Category name cannot be empty!");
@@ -78,10 +84,20 @@ public class AddCategory extends HttpServlet {
             return;
         }
 
-        CategoryDAO dao = new CategoryDAO();
-        dao.insertCategory(categoryName.trim());
+        Integer parentId = null;
+        if (parentIdStr != null && !parentIdStr.trim().isEmpty()) {
+            try {
+                parentId = Integer.parseInt(parentIdStr);
+            } catch (NumberFormatException e) {
+                request.setAttribute("errorMessage", "Invalid parent category ID.");
+                request.getRequestDispatcher("addcategory.jsp").forward(request, response);
+                return;
+            }
+        }
 
-        // Gửi dữ liệu về lại trang addcategory.jsp để hiển thị thông báo
+        CategoryDAO dao = new CategoryDAO();
+        dao.insertCategory(categoryName.trim(), parentId); // DAO mới có thêm parentId
+
         request.setAttribute("successMessage", "Category added successfully!");
         request.setAttribute("categoryName", categoryName.trim());
         request.getRequestDispatcher("addcategory.jsp").forward(request, response);

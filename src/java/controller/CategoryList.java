@@ -1,7 +1,7 @@
 package controller;
 
 import dal.CategoryDAO;
-import dal.SubCategoryDAO;
+//import dal.SubCategoryDAO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Category;
-import model.SubCategory;
+//import model.SubCategory;
 
 public class CategoryList extends HttpServlet {
 
@@ -19,18 +19,38 @@ public class CategoryList extends HttpServlet {
             throws ServletException, IOException {
         String search = request.getParameter("search");
         CategoryDAO dao = new CategoryDAO();
-        SubCategoryDAO subDao = new SubCategoryDAO();
 
-        List<Category> list1;
-
+        // Danh sách tất cả category (có thể lọc theo search)
+        List<Category> allCategories;
         if (search != null && !search.trim().isEmpty()) {
-            list1 = dao.searchCategoryByName(search);
+            allCategories = dao.searchCategoryByName(search);
         } else {
-            list1 = dao.getAllCategory();
+            allCategories = dao.getAllCategory();
         }
 
+        // Phân loại ra category cha (parentId == null)
+        List<Category> parentCategories = new ArrayList<>();
+        for (Category cat : allCategories) {
+            if (cat.getParentId() == null) {
+                parentCategories.add(cat);
+            }
+        }
+
+        // Gán sub-categories vào mỗi category cha
+        for (Category parent : parentCategories) {
+            List<Category> subList = new ArrayList<>();
+            for (Category cat : allCategories) {
+                if (cat.getParentId() != null && cat.getParentId().getCategoryId() == parent.getCategoryId()) {
+                    subList.add(cat);
+                }
+            }
+            parent.setSubCategories(subList);
+            parent.setSubCategoryCount(subList.size());
+        }
+
+        // Paging trên category cha
         int page, numperpage = 2;
-        int size = list1.size();
+        int size = parentCategories.size();
         int num = (size % numperpage == 0) ? (size / numperpage) : (size / numperpage + 1);
 
         String xpage = request.getParameter("page");
@@ -43,23 +63,14 @@ public class CategoryList extends HttpServlet {
         int start = (page - 1) * numperpage;
         int end = Math.min(page * numperpage, size);
 
-//        for (Category c : list1) {
-//            int count = subDao.countSubCategoriesByCategoryId(c.getCategoryId());
-//            c.setSubCategoryCount(count);
-//        }
-        for (Category c : list1) {
-            List<SubCategory> subs = subDao.getSubCategoryByCategoryId(c.getCategoryId());
-            c.setSubCategoryCount(subs.size());
-            c.setSubCategories(subs);
-        }
+        List<Category> pagedParentCategories = dao.getListByPage((ArrayList<Category>) parentCategories, start, end);
 
-        List<Category> list = dao.getListByPage((ArrayList<Category>) list1, start, end);
-
-        request.setAttribute("categoryList", list);
+        request.setAttribute("categoryList", pagedParentCategories); // chỉ chứa category cha (đã có danh sách con bên trong)
         request.setAttribute("search", search);
         request.setAttribute("page", page);
         request.setAttribute("num", num);
 
         request.getRequestDispatcher("categorylist.jsp").forward(request, response);
     }
+
 }
