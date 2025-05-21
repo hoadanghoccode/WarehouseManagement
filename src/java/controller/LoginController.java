@@ -12,6 +12,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import model.Users;
 
 /**
@@ -59,7 +60,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        request.getRequestDispatcher("/login.jsp").forward(request, response);
     }
 
     /**
@@ -75,19 +76,40 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
+
+        String email = request.getParameter("email");
+        String pass = request.getParameter("password");
+
         try {
-            String email = request.getParameter("email");
-            String pass = request.getParameter("password");
+            // Validate form
+            if (email == null || email.trim().isEmpty()) {
+                request.setAttribute("error", "Please enter email !!");
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+                return;
+            }
+
+            if (pass == null || pass.trim().isEmpty()) {
+                request.setAttribute("error", "Please enter password !!");
+                request.setAttribute("email", email);
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+                return;
+            }
+
             LoginDAO loginDAO = new LoginDAO();
             Users u = loginDAO.checkLogin(email, pass);
             if (u == null) {
-                request.setAttribute("error", "Email hoặc mật khẩu không đúng!");
+                request.setAttribute("error", "Email or password is wrong!");
+                request.setAttribute("email", email);
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             } else {
+                HttpSession session = request.getSession();
+                session.setAttribute("user", u);
                 response.sendRedirect("index.jsp");
             }
         } catch (Exception e) {
-
+            e.printStackTrace();
+            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
 
