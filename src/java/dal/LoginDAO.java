@@ -12,7 +12,7 @@ import model.Users;
  *
  * @author duong
  */
-public class LoginDAO {
+public class Logindao {
     Connection conn = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
