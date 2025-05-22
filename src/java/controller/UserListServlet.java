@@ -18,6 +18,8 @@ public class UserListServlet extends HttpServlet {
         int page = 1;
         int pageSize = 10;
         String searchQuery = "";
+        Integer branchId = null;
+        Integer roleId = null;
 
         if (request.getParameter("page") != null) {
             try {
@@ -30,10 +32,24 @@ public class UserListServlet extends HttpServlet {
         if (request.getParameter("search") != null) {
             searchQuery = request.getParameter("search");
         }
+        if (request.getParameter("branchId") != null && !request.getParameter("branchId").isEmpty()) {
+            try {
+                branchId = Integer.parseInt(request.getParameter("branchId"));
+            } catch (NumberFormatException e) {
+                branchId = null;
+            }
+        }
+        if (request.getParameter("roleId") != null && !request.getParameter("roleId").isEmpty()) {
+            try {
+                roleId = Integer.parseInt(request.getParameter("roleId"));
+            } catch (NumberFormatException e) {
+                roleId = null;
+            }
+        }
 
         UserDAO userDAO = new UserDAO();
-        List<Users> users = userDAO.getUsers(page, pageSize, searchQuery);
-        int totalUsers = userDAO.getTotalUsers(searchQuery);
+        List<Users> users = userDAO.getUsers(page, pageSize, searchQuery, branchId, roleId);
+        int totalUsers = userDAO.getTotalUsers(searchQuery, branchId, roleId);
         int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
 
         request.setAttribute("users", users);
@@ -41,7 +57,9 @@ public class UserListServlet extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("searchQuery", searchQuery);
         request.setAttribute("roles", userDAO.getAllRoles());
-        request.setAttribute("branches", userDAO.getAllBranchIds());
+        request.setAttribute("branches", userDAO.getAllBranches()); // Use getAllBranches instead
+        request.setAttribute("selectedBranchId", branchId);
+        request.setAttribute("selectedRoleId", roleId);
 
         request.getRequestDispatcher("/userlist.jsp").forward(request, response);
     }
@@ -57,7 +75,10 @@ public class UserListServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        if ("create".equals(request.getParameter("action"))) {
+        String action = request.getParameter("action");
+        UserDAO dao = new UserDAO();
+
+        if ("create".equals(action)) {
             try {
                 String fullName = request.getParameter("fullName");
                 String email = request.getParameter("email");
@@ -75,13 +96,26 @@ public class UserListServlet extends HttpServlet {
                 Users user = new Users(0, roleId, branchId, fullName, email, password, gender, phoneNumber, address,
                         dateOfBirth, null, null, null, status, null, null);
 
-                UserDAO dao = new UserDAO();
                 dao.createUser(user);
-
-                response.sendRedirect(request.getContextPath() + "/userlist");
+                response.sendRedirect(request.getContextPath() + "/userlist?page=1&search=" + 
+                    (request.getParameter("search") != null ? request.getParameter("search") : "") +
+                    "&branchId=" + (branchId != 0 ? branchId : "") +
+                    "&roleId=" + (roleId != 0 ? roleId : ""));
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Create user failed");
+            }
+        } else if ("delete".equals(action)) {
+            try {
+                int userId = Integer.parseInt(request.getParameter("userId"));
+                dao.deleteUser(userId);
+                response.sendRedirect(request.getContextPath() + "/userlist?page=1&search=" + 
+                    (request.getParameter("search") != null ? request.getParameter("search") : "") +
+                    "&branchId=" + (request.getParameter("branchId") != null ? request.getParameter("branchId") : "") +
+                    "&roleId=" + (request.getParameter("roleId") != null ? request.getParameter("roleId") : ""));
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Delete user failed");
             }
         } else {
             processRequest(request, response);
