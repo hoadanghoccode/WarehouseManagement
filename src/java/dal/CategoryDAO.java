@@ -77,6 +77,7 @@ public class CategoryDAO extends DBContext {
 //        }
 //        return list;
 //    }
+    
     public List<Category> getAllCategory() {
         List<Category> list = new ArrayList<>();
         String query = "SELECT * FROM Category ORDER BY Name";
@@ -336,7 +337,7 @@ public class CategoryDAO extends DBContext {
 //        List<Category> list = new CategoryDAO().getAllCategory();
 //        Category list = new CategoryDAO().insertCategory('Khoan');
         CategoryDAO cd = new CategoryDAO();
-        List<Category> list = cd.searchCategoryByName("");
+        List<Category> list = cd.getAllCategory();
         System.out.println(list);
 
 //        cd.deleteCategory(3);
