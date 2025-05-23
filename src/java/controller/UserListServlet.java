@@ -23,14 +23,12 @@ public class UserListServlet extends HttpServlet {
         UserDAO dao = new UserDAO();
         String action = request.getParameter("action");
 
-        // Handle fetching groups for a role via AJAX
         if ("getGroups".equals(action)) {
             String roleIdRaw = request.getParameter("roleId");
             response.setContentType("application/json");
             try {
                 int roleId = Integer.parseInt(roleIdRaw);
                 List<Group> groups = dao.getGroupsByRoleId(roleId);
-                // Manually build JSON string
                 StringBuilder json = new StringBuilder("[");
                 for (int i = 0; i < groups.size(); i++) {
                     Group group = groups.get(i);
@@ -52,7 +50,6 @@ public class UserListServlet extends HttpServlet {
             return;
         }
 
-        // Handle user listing and deletion
         String searchQuery = request.getParameter("search");
         String branchIdRaw = request.getParameter("branchId");
         String roleIdRaw = request.getParameter("roleId");
@@ -64,17 +61,41 @@ public class UserListServlet extends HttpServlet {
 
         if ("delete".equals(action)) {
             String idRaw = request.getParameter("id");
-            if (idRaw != null && !idRaw.isEmpty()) {
-                try {
+            try {
+                if (idRaw == null || idRaw.isEmpty()) {
+                    request.setAttribute("error", "User ID is missing.");
+                } else {
                     int userId = Integer.parseInt(idRaw);
-                    dao.deleteUser(userId);
-                    response.sendRedirect("userlist");
-                    return;
-                } catch (NumberFormatException e) {
-                    System.err.println("Invalid user ID format: " + idRaw);
-                    e.printStackTrace();
+                    Users user = dao.getUserById(userId);
+                    if (user == null) {
+                        request.setAttribute("error", "User with ID " + userId + " does not exist.");
+                    } else {
+                        dao.deleteUser(userId);
+                        request.setAttribute("success", "User with ID " + userId + " deleted successfully.");
+                    }
                 }
+            } catch (NumberFormatException e) {
+                request.setAttribute("error", "Invalid user ID format: " + idRaw);
+                System.err.println("Invalid user ID format: " + idRaw);
+                e.printStackTrace();
+            } catch (Exception e) {
+                request.setAttribute("error", "Error deleting user: " + e.getMessage());
+                System.err.println("Error deleting user: " + e.getMessage());
+                e.printStackTrace();
             }
+
+            StringBuilder redirectUrl = new StringBuilder("userlist?page=" + page);
+            if (searchQuery != null && !searchQuery.isEmpty()) {
+                redirectUrl.append("&search=").append(java.net.URLEncoder.encode(searchQuery, "UTF-8"));
+            }
+            if (branchId != null) {
+                redirectUrl.append("&branchId=").append(branchId);
+            }
+            if (roleId != null) {
+                redirectUrl.append("&roleId=").append(roleId);
+            }
+            response.sendRedirect(redirectUrl.toString());
+            return;
         }
 
         int totalUsers = dao.getTotalUsers(searchQuery, branchId, roleId);
@@ -100,7 +121,6 @@ public class UserListServlet extends HttpServlet {
         String action = request.getParameter("action");
         if ("create".equals(action)) {
             try {
-                // Validate and parse form data
                 String fullName = request.getParameter("fullName");
                 String password = request.getParameter("password");
                 int gender = Integer.parseInt(request.getParameter("gender"));
@@ -114,7 +134,6 @@ public class UserListServlet extends HttpServlet {
                 String image = request.getParameter("image");
                 boolean status = Boolean.parseBoolean(request.getParameter("status"));
 
-                // Basic input validation
                 if (fullName == null || fullName.trim().isEmpty() ||
                     email == null || email.trim().isEmpty() ||
                     password == null || password.trim().isEmpty()) {
@@ -137,7 +156,6 @@ public class UserListServlet extends HttpServlet {
                 java.sql.Date createdAt = new java.sql.Date(System.currentTimeMillis());
                 java.sql.Date updatedAt = new java.sql.Date(System.currentTimeMillis());
 
-                // Create user object
                 Users user = new Users(0, roleId, branchId, fullName, email, password, gender, phoneNumber, address,
                         dateOfBirth, image, createdAt, updatedAt, status, null, null);
 
@@ -151,7 +169,6 @@ public class UserListServlet extends HttpServlet {
                     return;
                 }
 
-                // Save user and assign to group
                 dao.createUser(user, groupId);
                 response.sendRedirect("userlist");
             } catch (Exception e) {
@@ -167,7 +184,6 @@ public class UserListServlet extends HttpServlet {
         }
     }
 
-    // Helper method to escape JSON strings (basic escaping for quotes and backslashes)
     private String escapeJson(String value) {
         if (value == null) {
             return "";

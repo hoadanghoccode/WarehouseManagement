@@ -80,7 +80,6 @@ public class UserDAO extends DBContext {
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {
                 user.setUserId(rs.getInt(1));
-                // Assign user to group
                 if (groupId > 0) {
                     assignUserToGroup(user.getUserId(), groupId);
                 }
@@ -109,7 +108,6 @@ public class UserDAO extends DBContext {
             stmt.setInt(12, user.getUserId());
             stmt.executeUpdate();
 
-            // Update group assignments
             removeUserFromAllGroups(user.getUserId());
             for (int groupId : groupIds) {
                 assignUserToGroup(user.getUserId(), groupId);
@@ -121,15 +119,54 @@ public class UserDAO extends DBContext {
     }
 
     public void deleteUser(int userId) {
-        String sql = "DELETE FROM Users WHERE User_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error deleting user with ID " + userId + ": " + e.getMessage());
-            e.printStackTrace();
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    try {
+        conn = connection;
+        conn.setAutoCommit(false); 
+
+        String sqlGroup = "DELETE FROM Group_has_User WHERE User_id = ?";
+        stmt = conn.prepareStatement(sqlGroup);
+        stmt.setInt(1, userId);
+        stmt.executeUpdate();
+        stmt.close();
+
+        String sqlUser = "DELETE FROM Users WHERE User_id = ?";
+        stmt = conn.prepareStatement(sqlUser);
+        stmt.setInt(1, userId);
+        stmt.executeUpdate();
+
+        conn.commit(); 
+    } catch (SQLException e) {
+        if (conn != null) {
+            try {
+                conn.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Error rolling back transaction: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+        System.err.println("Error deleting user with ID " + userId + ": " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing statement: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("Error resetting auto-commit: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
+}
 
     public List<Role> getAllRoles() {
         List<Role> list = new ArrayList<>();
