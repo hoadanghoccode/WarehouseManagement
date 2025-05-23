@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,54 +9,112 @@
     <title>User Detail</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles for compact layout */
         .form-container {
-            max-width: 48rem; /* 768px - wider to accommodate two columns */
+            max-width: 48rem;
         }
         .field-group {
-            margin-bottom: 0.75rem; /* 12px - reduced for compactness */
+            margin-bottom: 0.75rem;
         }
         .field-group label {
             font-weight: 600;
-            color: #4b5563; /* Gray-600 */
-            font-size: 0.875rem; /* 14px */
+            color: #4b5563;
+            font-size: 0.875rem;
         }
         .field-group input, .field-group select {
-            margin-top: 0.125rem; /* 2px - reduced */
-            border: 1px solid #d1d5db; /* Gray-300 */
-            border-radius: 0.375rem; /* 6px */
-            padding: 0.375rem 0.75rem; /* 6px 12px - smaller padding */
+            margin-top: 0.125rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
             width: 100%;
-            font-size: 0.875rem; /* 14px */
-            color: #1f2937; /* Gray-800 */
+            font-size: 0.875rem;
+            color: #1f2937;
+        }
+        .field-group .checkbox-group {
+            margin-top: 0.125rem;
+        }
+        .field-group .checkbox-group .form-check {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        .field-group .checkbox-group input[type="checkbox"] {
+            margin-right: 0.5rem;
         }
         .field-group input:focus, .field-group select:focus {
             outline: none;
-            border-color: #3b82f6; /* Blue-500 */
+            border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
         .field-group p {
-            color: #1f2937; /* Gray-800 */
-            margin-top: 0.125rem; /* 2px */
-            font-size: 0.875rem; /* 14px */
+            color: #1f2937;
+            margin-top: 0.125rem;
+            font-size: 0.875rem;
         }
         .form-actions {
             display: flex;
-            gap: 0.75rem; /* 12px */
-            margin-top: 1rem; /* 16px - reduced */
+            gap: 0.75rem;
+            margin-top: 1rem;
         }
         .avatar {
-            width: 2.5rem; /* 40px - slightly smaller */
-            height: 2.5rem; /* 40px */
+            width: 2.5rem;
+            height: 2.5rem;
             border-radius: 50%;
             object-fit: cover;
         }
         .grid-container {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Two columns */
-            gap: 1rem; /* 16px gap between columns */
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .error-message {
+            color: #e53935;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
         }
     </style>
+    <script>
+        function updateGroupCheckboxes() {
+            var roleId = document.getElementById("roleId").value;
+            var groupCheckboxesDiv = document.getElementById("groupCheckboxes");
+            groupCheckboxesDiv.innerHTML = ''; // Clear existing checkboxes
+
+            if (roleId) {
+                fetch('${pageContext.request.contextPath}/userlist?action=getGroups&roleId=' + roleId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(data.error);
+                            return;
+                        }
+                        const userGroupIds = [<c:forEach var="userGroupId" items="${userGroupIds}" varStatus="loop">${userGroupId}${loop.last ? '' : ','}</c:forEach>];
+                        data.forEach(group => {
+                            var checkboxDiv = document.createElement("div");
+                            checkboxDiv.className = "form-check";
+                            var checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkbox.className = "form-check-input";
+                            checkbox.name = "groupIds";
+                            checkbox.value = group.groupId;
+                            checkbox.id = "group_" + group.groupId;
+                            if (userGroupIds.includes(group.groupId)) {
+                                checkbox.checked = true;
+                            }
+                            var label = document.createElement("label");
+                            label.className = "form-check-label";
+                            label.htmlFor = "group_" + group.groupId;
+                            label.textContent = group.name;
+                            checkboxDiv.appendChild(checkbox);
+                            checkboxDiv.appendChild(label);
+                            groupCheckboxesDiv.appendChild(checkboxDiv);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching groups:', error));
+            }
+        }
+
+        // Call on page load to populate checkboxes based on the current role
+        document.addEventListener("DOMContentLoaded", updateGroupCheckboxes);
+    </script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-lg p-6 form-container">
@@ -68,10 +127,13 @@
             <a href="${pageContext.request.contextPath}/userlist" class="text-blue-600 hover:underline text-sm">Back to User List</a>
         </div>
 
+        <c:if test="${not empty error}">
+            <div class="error-message">${error}</div>
+        </c:if>
+
         <form action="userdetail" method="post">
             <input type="hidden" name="userId" value="${user.userId}" />
 
-            <!-- Two-column layout for related fields -->
             <div class="grid-container">
                 <div class="field-group">
                     <label for="fullName">Full Name</label>
@@ -91,8 +153,9 @@
                 </div>
 
                 <div class="field-group">
-                    <label for="dob">Date of Birth</label>
-                    <input type="date" name="dob" id="dob" value="${user.dateOfBirth}" required />
+                    <label for="dateOfBirth">Date of Birth</label>
+                    <input type="date" name="dateOfBirth" id="dateOfBirth"
+                           value="${not empty user.dateOfBirth ? user.dateOfBirth : ''}" />
                 </div>
             </div>
 
@@ -126,11 +189,18 @@
 
                 <div class="field-group">
                     <label for="roleId">Role</label>
-                    <select name="roleId" id="roleId">
+                    <select name="roleId" id="roleId" onchange="updateGroupCheckboxes()">
                         <c:forEach var="role" items="${roles}">
                             <option value="${role.roleId}" ${role.roleId == user.roleId ? 'selected' : ''}>${role.name}</option>
                         </c:forEach>
                     </select>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label for="groupIds">Groups</label>
+                <div class="checkbox-group" id="groupCheckboxes">
+                    <!-- Checkboxes will be populated dynamically via JavaScript -->
                 </div>
             </div>
 
@@ -152,7 +222,10 @@
 
                 <div class="field-group">
                     <label>Updated At</label>
-                    <p class="text-gray-800 font-medium">${user.updatedAt} <span class="text-gray-500 text-sm">(Read-only)</span></p>
+                    <p class="text-gray-800 font-medium">
+                        <fmt:formatDate value="${user.updatedAt}" pattern="yyyy-MM-dd HH:mm:ss" />
+                        <span class="text-gray-500 text-sm">(Read-only)</span>
+                    </p>
                 </div>
             </div>
 

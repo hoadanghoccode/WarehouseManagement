@@ -22,6 +22,7 @@ public class Users {
     private boolean status;
     private String resetPasswordToken;
     private Date resetPasswordExpiry;
+    private String groupNames;
 
     public Users() {
     }
@@ -190,5 +191,13 @@ public class Users {
 
     public void setResetPasswordExpiry(Date resetPasswordExpiry) {
         this.resetPasswordExpiry = resetPasswordExpiry;
+    }
+
+    public String getGroupNames() {
+        return groupNames;
+    }
+
+    public void setGroupNames(String groupNames) {
+        this.groupNames = groupNames;
     }
 }

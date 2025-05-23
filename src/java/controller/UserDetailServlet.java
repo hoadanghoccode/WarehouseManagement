@@ -4,6 +4,8 @@ import dal.UserDAO;
 import model.Users;
 import java.io.IOException;
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +21,7 @@ public class UserDetailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         String idRaw = request.getParameter("id");
         if (idRaw == null || idRaw.trim().isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing user ID");
@@ -41,13 +44,18 @@ public class UserDetailServlet extends HttpServlet {
             }
 
             request.setAttribute("user", user);
-            request.setAttribute("branches", dao.getAllBranches()); // Use getAllBranches
+            request.setAttribute("branches", dao.getAllBranches());
             request.setAttribute("roles", dao.getAllRoles());
+            request.setAttribute("groups", dao.getGroupsByRoleId(user.getRoleId()));
+            request.setAttribute("userGroupIds", dao.getUserGroupIds(userId));
             request.getRequestDispatcher("userdetail.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
+            System.err.println("Invalid user ID format: " + idRaw);
+            e.printStackTrace();
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid user ID format");
         } catch (Exception e) {
+            System.err.println("Error fetching user details for ID " + idRaw + ": " + e.getMessage());
             e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         }
@@ -90,11 +98,15 @@ public class UserDetailServlet extends HttpServlet {
                 address = "";
             }
 
-            String dobRaw = request.getParameter("dob");
-            if (dobRaw == null || dobRaw.trim().isEmpty()) {
-                throw new IllegalArgumentException("Date of birth is required");
+            String dobRaw = request.getParameter("dateOfBirth");
+            java.sql.Date dateOfBirth = null;
+            if (dobRaw != null && !dobRaw.trim().isEmpty()) {
+                try {
+                    dateOfBirth = java.sql.Date.valueOf(dobRaw);
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid date of birth format. Use YYYY-MM-DD.");
+                }
             }
-            java.sql.Date dateOfBirth = java.sql.Date.valueOf(dobRaw);
 
             String branchIdRaw = request.getParameter("branchId");
             if (branchIdRaw == null || branchIdRaw.trim().isEmpty()) {
@@ -108,6 +120,14 @@ public class UserDetailServlet extends HttpServlet {
             }
             int roleId = Integer.parseInt(roleIdRaw);
 
+            String[] groupIdsRaw = request.getParameterValues("groupIds");
+            List<Integer> groupIds = new ArrayList<>();
+            if (groupIdsRaw != null) {
+                for (String groupId : groupIdsRaw) {
+                    groupIds.add(Integer.parseInt(groupId));
+                }
+            }
+
             String image = request.getParameter("image");
             if (image == null) {
                 image = "";
@@ -119,18 +139,42 @@ public class UserDetailServlet extends HttpServlet {
             }
             boolean status = Boolean.parseBoolean(statusRaw);
 
-            Users user = new Users(userId, roleId, branchId, fullName, "", password, gender, phoneNumber, address,
-                    dateOfBirth, image, null, null, status, null, null);
-
             UserDAO dao = new UserDAO();
-            dao.updateUser(user);
+            Users existingUser = dao.getUserById(userId);
+            if (existingUser == null) {
+                throw new IllegalArgumentException("User not found");
+            }
+
+            Users user = new Users(userId, roleId, branchId, fullName, existingUser.getEmail(), password, gender,
+                    phoneNumber, address, dateOfBirth, image, null, new java.sql.Date(System.currentTimeMillis()),
+                    status, null, null);
+
+            dao.updateUser(user, groupIds);
 
             response.sendRedirect("userdetail?id=" + userId);
         } catch (IllegalArgumentException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            System.err.println("Validation error updating user: " + e.getMessage());
+            request.setAttribute("error", e.getMessage());
+            UserDAO dao = new UserDAO();
+            int userId = Integer.parseInt(request.getParameter("userId"));
+            request.setAttribute("user", dao.getUserById(userId));
+            request.setAttribute("branches", dao.getAllBranches());
+            request.setAttribute("roles", dao.getAllRoles());
+            request.setAttribute("groups", dao.getGroupsByRoleId(Integer.parseInt(request.getParameter("roleId"))));
+            request.setAttribute("userGroupIds", dao.getUserGroupIds(userId));
+            request.getRequestDispatcher("userdetail.jsp").forward(request, response);
         } catch (Exception e) {
+            System.err.println("Error updating user: " + e.getMessage());
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Update failed: " + e.getMessage());
+            request.setAttribute("error", "Update failed: " + e.getMessage());
+            UserDAO dao = new UserDAO();
+            int userId = Integer.parseInt(request.getParameter("userId"));
+            request.setAttribute("user", dao.getUserById(userId));
+            request.setAttribute("branches", dao.getAllBranches());
+            request.setAttribute("roles", dao.getAllRoles());
+            request.setAttribute("groups", dao.getGroupsByRoleId(Integer.parseInt(request.getParameter("roleId"))));
+            request.setAttribute("userGroupIds", dao.getUserGroupIds(userId));
+            request.getRequestDispatcher("userdetail.jsp").forward(request, response);
         }
     }
 
