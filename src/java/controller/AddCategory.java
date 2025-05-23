@@ -59,8 +59,8 @@ public class AddCategory extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         CategoryDAO dao = new CategoryDAO();
-        List<Category> allCategories = dao.getAllCategory(); // hoặc getAllParentCategories()
-        request.setAttribute("allCategories", allCategories);
+        List<Category> parentCategories = dao.getAllParentCategory(); // hoặc getAllParentCategories()
+        request.setAttribute("allCategories", parentCategories);
         request.getRequestDispatcher("addcategory.jsp").forward(request, response);
     }
 
