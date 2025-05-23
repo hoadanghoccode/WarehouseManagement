@@ -28,8 +28,6 @@
                     <file>${file.reference.jakarta.servlet.jsp.jstl-api-3.0.0.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-               
-               
             </web-module-libraries>
             <web-module-additional-libraries/>
             <source-roots>
