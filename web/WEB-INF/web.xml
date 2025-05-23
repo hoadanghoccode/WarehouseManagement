@@ -33,6 +33,31 @@
         <servlet-name>UserListServlet</servlet-name>
         <servlet-class>controller.UserListServlet</servlet-class>
     </servlet>
+    
+    <servlet>
+        <servlet-name>CategoryList</servlet-name>
+        <servlet-class>controller.CategoryList</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AddCategory</servlet-name>
+        <servlet-class>controller.AddCategory</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DeleteCategory</servlet-name>
+        <servlet-class>controller.DeleteCategory</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeleteCategory</servlet-name>
+        <url-pattern>/deletecategory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddCategory</servlet-name>
+        <url-pattern>/addcategory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CategoryList</servlet-name>
+        <url-pattern>/categorylist</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>UserDetailServlet</servlet-name>
         <url-pattern>/userdetail</url-pattern>
