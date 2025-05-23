@@ -1,31 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
     <servlet>
-        <servlet-name>CategoryList</servlet-name>
-        <servlet-class>controller.CategoryList</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>AddCategory</servlet-name>
-        <servlet-class>controller.AddCategory</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>DeleteCategory</servlet-name>
-        <servlet-class>controller.DeleteCategory</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>CategoryList</servlet-name>
-        <url-pattern>/categorylist</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AddCategory</servlet-name>
-        <url-pattern>/addcategory</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>DeleteCategory</servlet-name>
-        <url-pattern>/deletecategory</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
         <servlet-name>UserDetailServlet</servlet-name>
         <servlet-class>controller.UserDetailServlet</servlet-class>
     </servlet>

@@ -31,14 +31,24 @@
         }
         .field-group .checkbox-group {
             margin-top: 0.125rem;
+            display: flex;
+            flex-direction: column; /* Sắp xếp các checkbox theo cột */
         }
         .field-group .checkbox-group .form-check {
             display: flex;
-            align-items: center;
-            margin-bottom: 0.25rem;
+            align-items: center; /* Căn giữa theo chiều dọc */
+            gap: 0.5rem; /* Khoảng cách giữa label và checkbox */
+            margin-left: 1rem; /* Khoảng cách bên trái */
+            margin-bottom: 0.25rem; /* Khoảng cách giữa các hàng */
+        }
+        .field-group .checkbox-group .form-check-label {
+            order: -1; /* Đặt label trước checkbox */
         }
         .field-group .checkbox-group input[type="checkbox"] {
-            margin-right: 0.5rem;
+            margin: 0; /* Xóa margin mặc định của checkbox */
+            flex-shrink: 0; /* Đảm bảo checkbox không bị co lại */
+            width: 1rem; /* Đảm bảo kích thước checkbox đồng đều */
+            height: 1rem;
         }
         .field-group input:focus, .field-group select:focus {
             outline: none;
@@ -103,8 +113,9 @@
                             label.className = "form-check-label";
                             label.htmlFor = "group_" + group.groupId;
                             label.textContent = group.name;
-                            checkboxDiv.appendChild(checkbox);
+                            // Thêm label trước, sau đó mới thêm checkbox
                             checkboxDiv.appendChild(label);
+                            checkboxDiv.appendChild(checkbox);
                             groupCheckboxesDiv.appendChild(checkboxDiv);
                         });
                     })
