@@ -212,6 +212,11 @@
             font-size: 12px;
             margin-bottom: 10px;
         }
+        .success-message {
+            color: #43a047;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
     </style>
     <script>
         function toggleCreateForm() {
@@ -288,6 +293,9 @@
         <c:if test="${not empty error}">
             <div class="error-message">${error}</div>
         </c:if>
+        <c:if test="${not empty success}">
+            <div class="success-message">${success}</div>
+        </c:if>
         <div class="flex-1">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -337,15 +345,15 @@
         </div>
         <div class="pagination mt-2 flex justify-center">
             <c:if test="${currentPage > 1}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${search}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
+                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
                    class="px-1 py-0.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs">Previous</a>
             </c:if>
             <c:forEach var="i" begin="1" end="${totalPages}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${search}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
+                <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
                    class="px-1 py-0.5 ${i == currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} rounded-md hover:bg-gray-300 text-xs mx-0.5">${i}</a>
             </c:forEach>
             <c:if test="${currentPage < totalPages}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${search}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
+                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
                    class="px-1 py-0.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs">Next</a>
             </c:if>
         </div>
