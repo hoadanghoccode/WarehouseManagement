@@ -9,19 +9,19 @@ package model;
  * @author legia
  */
 
-public class SubCategory {
-    private int subCategoryId;
+public class Unit {
+    private int unitId;
     private String name;
 
-    public SubCategory() {
+    public Unit() {
     }
 
-    public int getSubCategoryId() {
-        return subCategoryId;
+    public int getUnitId() {
+        return unitId;
     }
 
-    public void setSubCategoryId(int subCategoryId) {
-        this.subCategoryId = subCategoryId;
+    public void setUnitId(int unitId) {
+        this.unitId = unitId;
     }
 
     public String getName() {
