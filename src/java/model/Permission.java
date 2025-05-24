@@ -97,4 +97,17 @@ public class Permission {
         this.canUpdate = canUpdate;
     }
 
+@Override
+public String toString() {
+    return "{"
+        + "id: " + id
+        + ", resourceName: \"" + resourceName + "\""    // <-- chú ý dấu \" ở đầu và cuối
+        + ", canCreate: " + canCreate
+        + ", canRead: "   + canRead
+        + ", canUpdate: " + canUpdate
+        + ", canDelete: " + canDelete
+        + "}";
+}
+
+
 }

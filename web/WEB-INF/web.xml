@@ -21,8 +21,8 @@
         <servlet-class>controller.DeleteCategory</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>Permission</servlet-name>
-        <servlet-class>controller.Permission</servlet-class>
+        <servlet-name>PermissionController</servlet-name>
+        <servlet-class>controller.PermissionController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
@@ -44,8 +44,16 @@
         <servlet-name>UserListServlet</servlet-name>
         <url-pattern>/userlist</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>java</servlet-name>
+        <servlet-class>MaterialDAO.java</servlet-class>
+    </servlet>
     <servlet-mapping>
-        <servlet-name>Permission</servlet-name>
+        <servlet-name>java</servlet-name>
+        <url-pattern>/java</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PermissionController</servlet-name>
         <url-pattern>/permission</url-pattern>
     </servlet-mapping>
 </web-app>
