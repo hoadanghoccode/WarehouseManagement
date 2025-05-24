@@ -11,67 +11,60 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Update Material</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="css/materiallist.css" />
     <style>
         .form-container {
-            margin: 20px;
             max-width: 600px;
+            margin: 24px auto;
+            padding: 24px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .form-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-control:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .btn-space {
+            margin-right: 8px;
         }
     </style>
     <link rel="icon" href="img/logo.png" type="image/png">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="css/bootstrap1.min.css" />
-    <!-- themefy CSS -->
-    <link rel="stylesheet" href="vendors/themefy_icon/themify-icons.css" />
-    <!-- swiper slider CSS -->
-    <link rel="stylesheet" href="vendors/swiper_slider/css/swiper.min.css" />
-    <!-- select2 CSS -->
-    <link rel="stylesheet" href="vendors/select2/css/select2.min.css" />
-    <!-- select2 CSS -->
-    <link rel="stylesheet" href="vendors/niceselect/css/nice-select.css" />
-    <!-- owl carousel CSS -->
-    <link rel="stylesheet" href="vendors/owl_carousel/css/owl.carousel.css" />
-    <!-- gijgo css -->
-    <link rel="stylesheet" href="vendors/gijgo/gijgo.min.css" />
-    <!-- font awesome CSS -->
-    <link rel="stylesheet" href="vendors/font_awesome/css/all.min.css" />
-    <link rel="stylesheet" href="vendors/tagsinput/tagsinput.css" />
-
-    <!-- date picker -->
-     <link rel="stylesheet" href="vendors/datepicker/date-picker.css" />
-
-    <!-- datatable CSS -->
-    <link rel="stylesheet" href="vendors/datatable/css/jquery.dataTables.min.css" />
-    <link rel="stylesheet" href="vendors/datatable/css/responsive.dataTables.min.css" />
-    <link rel="stylesheet" href="vendors/datatable/css/buttons.dataTables.min.css" />
-    <!-- text editor css -->
-    <link rel="stylesheet" href="vendors/text_editor/summernote-bs4.css" />
-    <!-- morris css -->
-    <link rel="stylesheet" href="vendors/morris/morris.css">
-    <!-- metarial icon css -->
-    <link rel="stylesheet" href="vendors/material_icon/material-icons.css" />
-
-    <!-- menu css  -->
-    <link rel="stylesheet" href="css/metisMenu.css">
-    <!-- style CSS -->
-    <link rel="stylesheet" href="css/style1.css" />
-    <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
 </head>
 <body>
     <div class="form-container">
-        <h2>Update Material</h2>
+        <h2 class="form-title">Update Material</h2>
         <form action="material?action=update" method="post">
             <input type="hidden" name="materialId" value="${material.materialId}">
-            <div class="mb-3">
-                <label for="subCategoryId" class="form-label">Sub Category</label>
-                <select class="form-select" id="subCategoryId" name="subCategoryId" required>
-                    <option value="">Select Sub Category</option>
-                    <c:forEach var="subCategory" items="${subCategories}">
-                        <option value="${subCategory.subCategoryId}" ${subCategory.subCategoryId == material.subCategoryId ? 'selected' : ''}>${subCategory.name}</option>
+            <div class="form-group">
+                <label for="categoryId" class="form-label">Category</label>
+                <select class="form-select" id="categoryId" name="categoryId" required>
+                    <option value="">Select Category</option>
+                    <c:forEach var="category" items="${categories}">
+                        <option value="${category.categoryId}" ${category.categoryId == material.categoryId ? 'selected' : ''}>${category.name}</option>
                     </c:forEach>
                 </select>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="unitId" class="form-label">Unit</label>
                 <select class="form-select" id="unitId" name="unitId" required>
                     <option value="">Select Unit</option>
@@ -80,20 +73,22 @@
                     </c:forEach>
                 </select>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="name" class="form-label">Name</label>
                 <input type="text" class="form-control" id="name" name="name" value="${material.name}" required>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="unitOfCalculation" class="form-label">Unit of Calculation</label>
                 <input type="text" class="form-control" id="unitOfCalculation" name="unitOfCalculation" value="${material.unitOfCalculation}" required>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="inventoryQuantity" class="form-label">Inventory Quantity</label>
                 <input type="number" class="form-control" id="inventoryQuantity" name="inventoryQuantity" value="${material.inventoryQuantity}" required>
             </div>
-            <button type="submit" class="btn btn-primary">Update Material</button>
-            <a href="material?action=list" class="btn btn-secondary">Cancel</a>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-space">Update Material</button>
+                <a href="material?action=list" class="btn btn-secondary">Cancel</a>
+            </div>
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>

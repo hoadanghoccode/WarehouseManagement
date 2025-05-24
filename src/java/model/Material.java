@@ -14,11 +14,11 @@ public class Material {
     private String name;
     private String unitOfCalculation;
     private int inventoryQuantity;
-    private int subCategoryId;
-    private int unitId; 
-    private transient String subCategoryName; 
-    private transient String categoryName;    
-    private transient String unitName;        
+    private int categoryId; 
+    private int unitId;
+    private transient String categoryName;   
+    private transient String parentCategoryName; 
+    private transient String unitName;       
 
     public Material() {
     }
@@ -55,12 +55,12 @@ public class Material {
         this.inventoryQuantity = inventoryQuantity;
     }
 
-    public int getSubCategoryId() {
-        return subCategoryId;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setSubCategoryId(int subCategoryId) {
-        this.subCategoryId = subCategoryId;
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
     }
 
     public int getUnitId() {
@@ -71,20 +71,20 @@ public class Material {
         this.unitId = unitId;
     }
 
-    public String getSubCategoryName() {
-        return subCategoryName;
-    }
-
-    public void setSubCategoryName(String subCategoryName) {
-        this.subCategoryName = subCategoryName;
-    }
-
     public String getCategoryName() {
         return categoryName;
     }
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getParentCategoryName() {
+        return parentCategoryName;
+    }
+
+    public void setParentCategoryName(String parentCategoryName) {
+        this.parentCategoryName = parentCategoryName;
     }
 
     public String getUnitName() {
