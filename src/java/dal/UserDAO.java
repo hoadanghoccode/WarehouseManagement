@@ -1,5 +1,5 @@
-
 package dal;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,6 +9,7 @@ import model.Users;
 import model.Role;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class UserDAO extends DBContext {
 
@@ -60,8 +61,8 @@ public class UserDAO extends DBContext {
             stmt.setString(8, user.getAddress());
             stmt.setDate(9, user.getDateOfBirth() != null ? new java.sql.Date(user.getDateOfBirth().getTime()) : null);
             stmt.setString(10, user.getImage());
-            stmt.setDate(11, new java.sql.Date(new java.util.Date().getTime())); 
-            stmt.setDate(12, new java.sql.Date(new java.util.Date().getTime())); 
+            stmt.setDate(11, new java.sql.Date(new java.util.Date().getTime()));
+            stmt.setDate(12, new java.sql.Date(new java.util.Date().getTime()));
             stmt.setBoolean(13, user.isStatus());
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -179,45 +180,49 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
-/**
- *
- * @author duong
- */
-   Connection conn = null;
+    /**
+     *
+     * @author duong
+     */
+    Connection conn = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
-    
-    public Users checkLogin(String email,String pass){
-        try{
-            String query = "select * from users where email = ? and password = ?";
+
+    public Users checkLogin(String email, String pass) {
+        try {
+            String query = "SELECT * FROM users WHERE email = ? AND password = ?";
             conn = new DBContext().getConnection();
-            
             ps = conn.prepareStatement(query);
             ps.setString(1, email);
             ps.setString(2, pass);
             rs = ps.executeQuery();
-            while(rs.next()){
+            while (rs.next()) {
                 Users u = new Users(
-                    rs.getInt("User_id"),
-                    rs.getInt("Role_id"),
-                    rs.getInt("Branch_id"),
-                    rs.getString("Full_name"),
-                    rs.getString("email"),
-                    rs.getString("password"),
-                    rs.getInt("gender"),
-                    rs.getString("phone_Number"),
-                    rs.getString("address"),
-                    rs.getDate("date_Of_Birth")
+                        rs.getInt("user_id"),
+                        rs.getInt("role_id"),
+                        rs.getInt("branch_id"),
+                        rs.getString("full_name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getInt("gender"),
+                        rs.getString("phone_number"),
+                        rs.getString("address"),
+                        rs.getDate("date_of_birth"),
+                        rs.getString("image"),
+                        rs.getDate("created_at"),
+                        rs.getDate("updated_at"),
+                        rs.getBoolean("status"),
+                        rs.getString("reset_password_token"),
+                        rs.getDate("reset_password_expiry")
                 );
                 return u;
             }
-        } catch (Exception e){
-             e.printStackTrace(); 
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        
         return null;
     }
-    
+
     public boolean checkUserByEmail(String email) {
         try {
             String query = "select * from users where email = ?";
@@ -246,6 +251,38 @@ public class UserDAO extends DBContext {
             return false;
         }
 
-    } 
-}
+    }
 
+    public void insertResetToken(String email) {
+        String token = UUID.randomUUID().toString();
+        Timestamp expiry = new Timestamp(System.currentTimeMillis() + 30 * 60 * 1000); // 30 phút
+        try {
+            String query = "UPDATE Users SET Reset_Password_Token = ?, Reset_Password_Expiry = ? WHERE Email = ?";
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, token);
+            ps.setTimestamp(2, expiry);
+            ps.setString(3, email);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public boolean updatePasswordbyEmail(String email, String newPassword) {
+        try {
+            String query = "UPDATE Users SET Password = ? WHERE Email = ?";
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, newPassword);
+            ps.setString(2, email);
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace(); //a
+            return false;
+        }
+
+    }
+    
+}
