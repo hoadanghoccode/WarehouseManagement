@@ -20,8 +20,8 @@
                                 <i class="fas fa-search search-icon"></i>
                                 <input type="text" name="search" value="${search}" placeholder="Search categories..." class="search-input" />
                             </div>
-                           
-                           
+
+
                         </form>
                     </div>
                     <a href="addcategory" class="btn btn-success">
@@ -82,15 +82,12 @@
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                <a href="categorydetail?cid=${category.categoryId}" class="btn btn-info">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="#" class="btn btn-primary">
+
+                                                <a href="updatecategory?cid=${category.categoryId}" class="btn btn-primary">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                                 <a href="deletecategory?cid=${category.categoryId}" 
-                                                   class="btn btn-danger"
-                                                   onclick="return confirm('Are you sure you want to delete this category?')">
+                                                   class="btn btn-danger">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
                                             </div>
@@ -111,10 +108,22 @@
                                                         <c:when test="${not empty category.subCategories}">
                                                             <ul class="subcat-list">
                                                                 <c:forEach var="sub" items="${category.subCategories}" varStatus="subStatus">
-                                                                    <li>
-                                                                        <i class="fas fa-chevron-right" style="color: #3b82f6; font-size: 10px;"></i>
-                                                                        <strong>${subStatus.index + 1}.</strong> 
-                                                                        <a href="categorydetail?cid=${sub.categoryId}">${sub.name}</a>
+                                                                    <li class="subcat-item">
+                                                                        <div class="subcat-left">
+                                                                            <i class="fas fa-chevron-right" style="color: #3b82f6; font-size: 10px;"></i>
+                                                                            <strong>${subStatus.index + 1}.</strong> 
+                                                                            <a href="materiallist?cid=${sub.categoryId}">${sub.name} (${sub.materialCount})</a>
+                                                                        </div>
+
+                                                                        <div class="action-buttons">
+                                                                            <a href="updatecategory?cid=${sub.categoryId}" class="btn btn-primary">
+                                                                                <i class="fas fa-edit" style="color: white;"></i>
+                                                                            </a>
+                                                                            <a href="deletecategory?cid=${sub.categoryId}" 
+                                                                               class="btn btn-danger">
+                                                                                <i class="fas fa-trash" style="color: white;"></i>
+                                                                            </a>
+                                                                        </div>
                                                                     </li>
                                                                 </c:forEach>
                                                             </ul>

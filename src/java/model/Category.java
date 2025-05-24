@@ -16,6 +16,7 @@ public class Category {
     private Category parentId;
     private int subCategoryCount;
     private List<Category> subCategories;
+    private int materialCount;
 
     public Category() {
     }
@@ -34,6 +35,16 @@ public class Category {
         this.subCategories = subCategories;
     }
 
+    public Category(int categoryId, String name, Category parentId, int subCategoryCount, List<Category> subCategories, int materialCount) {
+        this.categoryId = categoryId;
+        this.name = name;
+        this.parentId = parentId;
+        this.subCategoryCount = subCategoryCount;
+        this.subCategories = subCategories;
+        this.materialCount = materialCount;
+    }
+    
+    
     public int getCategoryId() {
         return categoryId;
     }
@@ -73,6 +84,16 @@ public class Category {
     public void setSubCategories(List<Category> subCategories) {
         this.subCategories = subCategories;
     }
+
+    public int getMaterialCount() {
+        return materialCount;
+    }
+
+    public void setMaterialCount(int materialCount) {
+        this.materialCount = materialCount;
+    }
+    
+    
 
     @Override
     public String toString() {
