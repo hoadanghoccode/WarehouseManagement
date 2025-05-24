@@ -2,265 +2,435 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>User List</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 20px;
-                background-color: #f5f7fa;
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f7fa;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin: 0;
+        }
+        .create-btn {
+            background-color: #1da1f2;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .create-btn:hover {
+            background-color: #1a91da;
+        }
+        .filter-form {
+            display: flex;
+            gap: 10px;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .filter-form input[type="text"],
+        .filter-form select,
+        .filter-form button {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .filter-form input[type="text"] {
+            width: 200px;
+        }
+        .filter-form select {
+            width: 150px;
+        }
+        .filter-form button {
+            background-color: #1da1f2;
+            color: white;
+            cursor: pointer;
+        }
+        .filter-form button:hover {
+            background-color: #1a91da;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 12px;
+        }
+        th {
+            background-color: #f5f7fa;
+            color: #5f6368;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            vertical-align: middle;
+        }
+        .delete-btn {
+            background-color: #e53935;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .status-inactive {
+            color: white;
+            background-color: #e53935;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .status-active {
+            color: white;
+            background-color: #43a047;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            gap: 5px;
+        }
+        .pagination a {
+            padding: 6px 10px;
+            background-color: #e0e0e0;
+            color: #1a1a1a;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .pagination a:hover {
+            background-color: #ccc;
+        }
+        .pagination a.active {
+            background-color: #1da1f2;
+            color: white;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 500;
+            color: #333;
+            font-size: 12px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .close-btn {
+            float: right;
+            font-size: 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .error-message {
+            color: #e53935;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .success-message {
+            color: #43a047;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        function toggleCreateForm() {
+            var modal = document.getElementById("createUserModal");
+            modal.style.display = modal.style.display === "none" ? "flex" : "none";
+            if (modal.style.display === "flex") {
+                document.getElementById("fullName").focus();
+                updateGroupOptions(); // Initialize group options
             }
-            h1 {
-                font-size: 24px;
-                color: #333;
-                margin-bottom: 20px;
+        }
+        function closeModal() {
+            var modal = document.getElementById("createUserModal");
+            modal.style.display = "none";
+        }
+        function confirmDelete(userId) {
+            if (confirm("Are you sure you want to delete this user?")) {
+                window.location.href = "${pageContext.request.contextPath}/userlist?action=delete&id=" + userId;
             }
-            .header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
+        }
+        window.onclick = function(event) {
+            var modal = document.getElementById("createUserModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
             }
-            .create-user-btn {
-                background-color: #1a73e8;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 14px;
+        }
+        function updateGroupOptions() {
+            var roleId = document.getElementById("roleId").value;
+            var groupSelect = document.getElementById("groupId");
+            groupSelect.innerHTML = '<option value="">Select Group</option>';
+
+            if (roleId) {
+                fetch('${pageContext.request.contextPath}/userlist?action=getGroups&roleId=' + roleId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(data.error);
+                            return;
+                        }
+                        data.forEach(group => {
+                            var option = document.createElement("option");
+                            option.value = group.groupId;
+                            option.text = group.name;
+                            groupSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching groups:', error));
             }
-            .create-user-btn:hover {
-                background-color: #1557b0;
-            }
-            .filter-btn {
-                background-color: #f1f3f4;
-                border: 1px solid #dadce0;
-                padding: 8px 16px;
-                border-radius: 5px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                font-size: 14px;
-            }
-            .search-bar {
-                margin-bottom: 20px;
-            }
-            .search-bar input {
-                padding: 8px;
-                width: 300px;
-                border: 1px solid #dadce0;
-                border-radius: 5px;
-                font-size: 14px;
-            }
-            .search-bar button {
-                padding: 8px 16px;
-                background-color: #1a73e8;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                margin-left: 10px;
-                cursor: pointer;
-            }
-            .search-bar button:hover {
-                background-color: #1557b0;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                background-color: white;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }
-            th, td {
-                padding: 12px 16px;
-                text-align: left;
-                font-size: 14px;
-            }
-            th {
-                background-color: #f8f9fa;
-                color: #5f6368;
-                font-weight: 500;
-                text-transform: uppercase;
-            }
-            td {
-                color: #202124;
-                border-bottom: 1px solid #dadce0;
-            }
-            td a {
-                color: #1a73e8;
-                text-decoration: none;
-            }
-            td a:hover {
-                text-decoration: underline;
-            }
-            .pagination {
-                margin-top: 20px;
-                text-align: center;
-            }
-            .pagination a {
-                margin: 0 5px;
-                padding: 8px 12px;
-                color: #1a73e8;
-                text-decoration: none;
-                border: 1px solid #dadce0;
-                border-radius: 5px;
-            }
-            .pagination a:hover {
-                background-color: #f1f3f4;
-            }
-            .create-form {
-                max-width: 600px;
-                background-color: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                margin-top: 20px;
-                display: none;
-            }
-            .create-form label {
-                display: block;
-                margin-top: 12px;
-                font-weight: bold;
-                color: #5f6368;
-            }
-            .create-form input, .create-form select {
-                width: 100%;
-                padding: 8px;
-                margin-top: 4px;
-                border: 1px solid #dadce0;
-                border-radius: 5px;
-                box-sizing: border-box;
-                font-size: 14px;
-            }
-            .create-form input[type="submit"] {
-                margin-top: 20px;
-                padding: 10px 20px;
-                background-color: #1a73e8;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            }
-            .create-form input[type="submit"]:hover {
-                background-color: #1557b0;
-            }
-            .avatar {
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                object-fit: cover;
-                vertical-align: middle;
-            }
-        </style>
-        <script>
-            function toggleCreateForm() {
-                var form = document.getElementById("createUserForm");
-                form.style.display = form.style.display === "none" ? "block" : "none";
-            }
-        </script>
-    </head>
-    <body>
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
         <div class="header">
             <h1>Users</h1>
-            <button class="create-user-btn" onclick="toggleCreateForm()">Create User</button>
+            <button class="create-btn" onclick="toggleCreateForm()">Create User</button>
         </div>
-
-        <div class="search-bar">
-            <form method="get" action="${pageContext.request.contextPath}/userlist">
-                <input type="text" name="search" placeholder="Search by name, email, phone, or address" value="${searchQuery}">
-                <button type="submit">Search</button>
-            </form>
-            <button class="filter-btn">Filters</button>
+        <form method="get" action="${pageContext.request.contextPath}/userlist" class="filter-form">
+            <input type="text" name="search" value="${search}" placeholder="Search by name, email, phone, ..."
+                   class="border border-gray-300 rounded-md p-1 w-full sm:w-1/3 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
+            <select name="branchId" class="border border-gray-300 rounded-md p-1 w-full sm:w-1/4 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
+                <option value="">All Branches</option>
+                <c:forEach var="branch" items="${branches}">
+                    <option value="${branch.branchId}" ${branch.branchId == selectedBranchId ? 'selected' : ''}>${branch.name}</option>
+                </c:forEach>
+            </select>
+            <select name="roleId" class="border border-gray-300 rounded-md p-1 w-full sm:w-1/4 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
+                <option value="">All Roles</option>
+                <c:forEach var="role" items="${roles}">
+                    <option value="${role.roleId}" ${role.roleId == selectedRoleId ? 'selected' : ''}>${role.name}</option>
+                </c:forEach>
+            </select>
+            <button type="submit" class="bg-blue-600 text-white px-2 py-1 rounded-md hover:bg-blue-700 w-full sm:w-auto text-xs">Search</button>
+        </form>
+        <c:if test="${not empty error}">
+            <div class="error-message">${error}</div>
+        </c:if>
+        <c:if test="${not empty success}">
+            <div class="success-message">${success}</div>
+        </c:if>
+        <div class="flex-1">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="w-6"></th>
+                        <th class="w-8">User ID</th>
+                        <th class="w-12">Email</th>
+                        <th class="w-12">Name</th>
+                        <th class="w-8">Gender</th>
+                        <th class="w-12">Phone</th>
+                        <th class="w-12">Address</th>
+                        <th class="w-12">Group(s)</th>
+                        <th class="w-12">Branch</th>
+                        <th class="w-12">Role</th>
+                        <th class="w-8">Status</th>
+                        <th class="w-12"></th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <c:forEach var="user" items="${users}">
+                        <tr>
+                            <td class="px-2 py-1 whitespace-nowrap">
+                                <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
+                                     alt="User Avatar" class="avatar">
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs">${user.userId}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.email}">${user.email}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs">
+                                <a href="${pageContext.request.contextPath}/userdetail?id=${user.userId}" class="text-blue-600 hover:underline" title="${user.fullName}">${user.fullName}</a>
+                            </td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs">${user.gender == 1 ? 'Male' : 'Female'}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.phoneNumber}">${user.phoneNumber}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.address}">${user.address}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${not empty user.groupNames ? user.groupNames : 'None'}">${not empty user.groupNames ? user.groupNames : 'None'}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.branchName}">${user.branchName}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.roleName}">${user.roleName}</td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs"><span class="${user.status ? 'status-active' : 'status-inactive'}">${user.status ? 'Active' : 'Inactive'}</span></td>
+                            <td class="px-2 py-1 whitespace-nowrap text-xs">
+                                <button class="delete-btn" onclick="confirmDelete(${user.userId})">
+                                    <span role="img" aria-label="Delete">🗑️</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
         </div>
-
-        <table>
-            <tr>
-                <th>Avatar</th>
-                <th>User ID</th>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Gender</th>
-                <th>Phone Number</th>
-                <th>Address</th>
-                <th>Date of Birth</th>
-                <th>Branch ID</th>
-                <th>Role</th>
-                <th>Updated At</th>
-            </tr>
-            <c:forEach var="user" items="${users}">
-                <tr>
-                    <td>
-                        <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
-                             alt="User Avatar" class="avatar">
-                    </td>
-                    <td>${user.userId}</td>
-                    <td>${user.email}</td>
-                    <td><a href="${pageContext.request.contextPath}/userdetail?id=${user.userId}">${user.fullName}</a></td>
-                    <td>${user.gender == 1 ? 'Male' : 'Female'}</td>
-                    <td>${user.phoneNumber}</td>
-                    <td>${user.address}</td>
-                    <td>${user.dateOfBirth}</td>
-                    <td>${user.branchId}</td>
-                    <td>${user.roleName}</td>
-                    <td>${user.updatedAt}</td>
-                </tr>
-            </c:forEach>
-        </table>
-
-        <div class="pagination">
+        <div class="pagination mt-2 flex justify-center">
             <c:if test="${currentPage > 1}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${searchQuery}">Previous</a>
+                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
+                   class="px-1 py-0.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs">Previous</a>
             </c:if>
             <c:forEach var="i" begin="1" end="${totalPages}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${searchQuery}">${i}</a>
+                <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
+                   class="px-1 py-0.5 ${i == currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} rounded-md hover:bg-gray-300 text-xs mx-0.5">${i}</a>
             </c:forEach>
             <c:if test="${currentPage < totalPages}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${searchQuery}">Next</a>
+                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
+                   class="px-1 py-0.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs">Next</a>
             </c:if>
         </div>
-
-        <div class="create-form" id="createUserForm">
-            <form action="${pageContext.request.contextPath}/userlist" method="post">
-                <input type="hidden" name="action" value="create" />
-                <label for="fullName">Full Name</label>
-                <input type="text" name="fullName" id="fullName" required />
-                <label for="email">Email</label>
-                <input type="email" name="email" id="email" required />
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password" required />
-                <label for="gender">Gender</label>
-                <select name="gender" id="gender" required>
-                    <option value="1">Male</option>
-                    <option value="0">Female</option>
-                </select>
-                <label for="phoneNumber">Phone Number</label>
-                <input type="text" name="phoneNumber" id="phoneNumber" />
-                <label for="address">Address</label>
-                <input type="text" name="address" id="address" />
-                <label for="dob">Date of Birth</label>
-                <input type="date" name="dob" id="dob" required />
-                <label for="branchId">Branch</label>
-                <select name="branchId" id="branchId" required>
-                    <c:forEach var="branch" items="${branches}">
-                        <option value="${branch}">Branch ${branch}</option>
-                    </c:forEach>
-                </select>
-                <label for="roleId">Role</label>
-                <select name="roleId" id="roleId" required>
-                    <c:forEach var="role" items="${roles}">
-                        <option value="${role.roleId}">${role.name}</option>
-                    </c:forEach>
-                </select>
-                <label for="status">Status</label>
-                <select name="status" id="status" required>
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
-                </select>
-                <input type="submit" value="Create User" />
-            </form>
+        <div id="createUserModal" class="modal">
+            <div class="modal-content">
+                <button class="close-btn" onclick="closeModal()">×</button>
+                <h2 class="text-md font-bold mb-3">Create New User</h2>
+                <c:if test="${not empty error}">
+                    <div class="error-message">${error}</div>
+                </c:if>
+                <form action="${pageContext.request.contextPath}/userlist" method="post">
+                    <input type="hidden" name="action" value="create" />
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" name="fullName" id="fullName" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select name="gender" id="gender" required>
+                            <option value="1">Male</option>
+                            <option value="0">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="text" name="phoneNumber" id="phoneNumber" />
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" name="address" id="address" />
+                    </div>
+                    <div class="form-group">
+                        <label for="dateOfBirth">Date of Birth</label>
+                        <input type="date" name="dateOfBirth" id="dateOfBirth" />
+                    </div>
+                    <div class="form-group">
+                        <label for="branchId">Branch</label>
+                        <select name="branchId" id="branchId" required>
+                            <c:forEach var="branch" items="${branches}">
+                                <option value="${branch.branchId}">${branch.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="roleId">Role</label>
+                        <select name="roleId" id="roleId" required onchange="updateGroupOptions()">
+                            <option value="">Select Role</option>
+                            <c:forEach var="role" items="${roles}">
+                                <option value="${role.roleId}">${role.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="groupId">Group</label>
+                        <select name="groupId" id="groupId">
+                            <option value="">Select Group</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" id="status" required>
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 text-sm">Create User</button>
+                </form>
+            </div>
         </div>
-    </body>
+    </div>
+</body>
 </html>
