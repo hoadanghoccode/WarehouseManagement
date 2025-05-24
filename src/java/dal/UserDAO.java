@@ -426,19 +426,19 @@ public class UserDAO extends DBContext {
             ps.setString(2, pass);
             rs = ps.executeQuery();
             while(rs.next()){
-                Users u = new Users(
-                    rs.getInt("User_id"),
-                    rs.getInt("Role_id"),
-                    rs.getInt("Branch_id"),
-                    rs.getString("Full_name"),
-                    rs.getString("email"),
-                    rs.getString("password"),
-                    rs.getInt("gender"),
-                    rs.getString("phone_Number"),
-                    rs.getString("address"),
-                    rs.getDate("date_Of_Birth")
-                );
-                return u;
+//                Users u = new Users(
+//                    rs.getInt("User_id"),
+//                    rs.getInt("Role_id"),
+//                    rs.getInt("Branch_id"),
+//                    rs.getString("Full_name"),
+//                    rs.getString("email"),
+//                    rs.getString("password"),
+//                    rs.getInt("gender"),
+//                    rs.getString("phone_Number"),
+//                    rs.getString("address"),
+//                    rs.getDate("date_Of_Birth")
+//                );
+//                return u;
             }
         } catch (Exception e){
              e.printStackTrace(); 
