@@ -3,13 +3,13 @@
     Created on : May 20, 2025, 11:56:54 PM
     Author     : PC
 --%>
-
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <title>Permission</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="icon" href="img/logo.png" type="image/png">
         <!-- Bootstrap CSS -->
@@ -83,22 +83,83 @@
                         <button id="addPermissionBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPermissionModal">Add Permission</button>
                     </div>
                 </div>
-                <table class="table table-bordered">
-                    <thead class="table-header">
-                        <tr>
-                            <th>Name</th>
-                            <th>CATALOGUE</th>
-                            <th>Read</th>
-                            <th>Write</th>
-                            <th>EDIT</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-                <div class="row mb-3">
-                    <div class="col d-flex justify-content-end">
-                        <button id="submitBtn" class="btn btn-primary">Submit</button>
-                    </div>
+                <!--                <table class="table table-bordered">
+                                    <thead class="table-header">
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>CATALOGUE</th>
+                                            <th>Read</th>
+                                            <th>Write</th>
+                                            <th>EDIT</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableBody"></tbody>
+                                    <tbody>
+                                         Duyệt thẳng List<Permission> từ request attribute 
+                <c:forEach var="p" items="${permissionsList}">
+                    <tr>
+                        <td>${p.resourceName}</td>
+                        <td><input type="checkbox" disabled ${p.canCreate ? 'checked' : ''}></td>
+                        <td><input type="checkbox" disabled ${p.canRead   ? 'checked' : ''}></td>
+                        <td><input type="checkbox" disabled ${p.canUpdate ? 'checked' : ''}></td>
+                        <td><input type="checkbox" disabled ${p.canDelete ? 'checked' : ''}></td>
+                    </tr>
+                </c:forEach>
+                </tbody>
+            </table>
+            <div class="row mb-3">
+                <div class="col d-flex justify-content-end">
+                    <button id="submitBtn" class="btn btn-primary">Submit</button>
+                </div>
+            </div>-->
+                <div class="container mt-4">
+                    <form action="permission" method="post">
+                        <!-- chuyền userId nếu cần -->
+                        <!--<input type="hidden" name="userId" value="${sessionScope.userId}" />-->
+
+                        <table class="table table-bordered">
+                            <thead class="table-header">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Create</th>
+                                    <th>Read</th>
+                                    <th>Update</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="p" items="${permissionsList}">
+                                    <tr>
+                                        <td>
+                                            ${p.resourceName}
+                                            <!-- giữ lại id để servlet biết đang cập nhật bản ghi nào -->
+                                            <input type="hidden" name="permId" value="${p.id}" />
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="canCreate" value="${p.id}"
+                                                   <c:if test="${p.canCreate}">checked</c:if> />
+                                            </td>
+                                            <td>
+                                                <input type="checkbox" name="canRead" value="${p.id}"
+                                                   <c:if test="${p.canRead}">checked</c:if> />
+                                            </td>
+                                            <td>
+                                                <input type="checkbox" name="canUpdate" value="${p.id}"
+                                                   <c:if test="${p.canUpdate}">checked</c:if> />
+                                            </td>
+                                            <td>
+                                                <input type="checkbox" name="canDelete" value="${p.id}"
+                                                   <c:if test="${p.canDelete}">checked</c:if> />
+                                            </td>
+                                        </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -164,6 +225,7 @@
                                         }, 3000);
                                     }
         </script>
+
         <script>
             let features = [
                 {name: "Add Product", catalogue: true, read: true, write: false, edit: true},
@@ -176,11 +238,11 @@
             ];
 
             const tableBody = document.getElementById('tableBody');
-            if (!tableBody) {
-                console.error('Table body element not found!');
-            } else {
-                renderTable();
-            }
+//            if (!tableBody) {
+//                console.error('Table body element not found!');
+//            } else {
+//                renderTable();
+//            }
 
             function renderTable() {
                 tableBody.innerHTML = ''; // Clear existing rows
