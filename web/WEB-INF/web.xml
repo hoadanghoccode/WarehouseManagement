@@ -8,6 +8,34 @@
         <servlet-name>UserListServlet</servlet-name>
         <servlet-class>controller.UserListServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>CategoryList</servlet-name>
+        <servlet-class>controller.CategoryList</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AddCategory</servlet-name>
+        <servlet-class>controller.AddCategory</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DeleteCategory</servlet-name>
+        <servlet-class>controller.DeleteCategory</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>PermissionController</servlet-name>
+        <servlet-class>controller.PermissionController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeleteCategory</servlet-name>
+        <url-pattern>/deletecategory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddCategory</servlet-name>
+        <url-pattern>/addcategory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CategoryList</servlet-name>
+        <url-pattern>/categorylist</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>UserDetailServlet</servlet-name>
         <url-pattern>/userdetail</url-pattern>
@@ -15,13 +43,17 @@
     <servlet-mapping>
         <servlet-name>UserListServlet</servlet-name>
         <url-pattern>/userlist</url-pattern>
-        </servlet-mapping>
-        <servlet>
+    </servlet-mapping>
+    <servlet>
         <servlet-name>java</servlet-name>
         <servlet-class>MaterialDAO.java</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>java</servlet-name>
         <url-pattern>/java</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PermissionController</servlet-name>
+        <url-pattern>/permission</url-pattern>
     </servlet-mapping>
 </web-app>

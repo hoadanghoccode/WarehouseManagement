@@ -6,7 +6,9 @@ public class Users {
 
     private int userId;
     private int roleId;
+    private String roleName;
     private int branchId;
+    private String branchName;
     private String fullName;
     private String email;
     private String password;
@@ -20,7 +22,7 @@ public class Users {
     private boolean status;
     private String resetPasswordToken;
     private Date resetPasswordExpiry;
-    private String roleName; 
+    private String groupNames;
 
     public Users() {
     }
@@ -46,6 +48,7 @@ public class Users {
         this.resetPasswordExpiry = resetPasswordExpiry;
     }
 
+    // Getters and Setters
     public int getUserId() {
         return userId;
     }
@@ -62,12 +65,28 @@ public class Users {
         this.roleId = roleId;
     }
 
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
     public int getBranchId() {
         return branchId;
     }
 
     public void setBranchId(int branchId) {
         this.branchId = branchId;
+    }
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
     }
 
     public String getFullName() {
@@ -174,11 +193,11 @@ public class Users {
         this.resetPasswordExpiry = resetPasswordExpiry;
     }
 
-    public String getRoleName() {
-        return roleName;
+    public String getGroupNames() {
+        return groupNames;
     }
 
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
+    public void setGroupNames(String groupNames) {
+        this.groupNames = groupNames;
     }
 }
