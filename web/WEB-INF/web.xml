@@ -8,7 +8,6 @@
         <servlet-name>UserListServlet</servlet-name>
         <servlet-class>controller.UserListServlet</servlet-class>
     </servlet>
-    
     <servlet>
         <servlet-name>CategoryList</servlet-name>
         <servlet-class>controller.CategoryList</servlet-class>
@@ -20,6 +19,10 @@
     <servlet>
         <servlet-name>DeleteCategory</servlet-name>
         <servlet-class>controller.DeleteCategory</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UpdateCategory</servlet-name>
+        <servlet-class>controller.UpdateCategory</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
@@ -48,5 +51,9 @@
     <servlet-mapping>
         <servlet-name>java</servlet-name>
         <url-pattern>/java</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateCategory</servlet-name>
+        <url-pattern>/updatecategory</url-pattern>
     </servlet-mapping>
 </web-app>
