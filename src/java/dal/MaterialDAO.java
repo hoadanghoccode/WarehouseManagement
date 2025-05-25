@@ -8,7 +8,6 @@ package dal;
  *
  * @author legia
  */
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,7 +18,9 @@ import model.Material;
 import model.Unit;
 import model.Category;
 
+
 public class MaterialDAO extends DBContext {
+
     private Connection connection;
 
     public MaterialDAO() {
@@ -158,6 +159,7 @@ public class MaterialDAO extends DBContext {
     }
 
     public void updateMaterial(Material material) {
+
         String query = "UPDATE Material SET Category_id = ?, Unit_id = ?, Name = ?, Unit_of_calculation = ?, " +
                       "Inventory_quantity = ? WHERE Material_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -182,6 +184,7 @@ public class MaterialDAO extends DBContext {
             e.printStackTrace();
         }
     }
+
 
     public List<Unit> getAllUnits() {
         List<Unit> units = new ArrayList<>();
@@ -210,5 +213,21 @@ public class MaterialDAO extends DBContext {
         allCategories.addAll(parentCategories);
         allCategories.addAll(subCategories);
         return allCategories;
+    }
+
+    public int countMaterialByCategoryId(int cid) {
+        String query = "SELECT COUNT(*) FROM Material WHERE Category_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, cid);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {                
+                return rs.getInt("COUNT(*)");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+        }
+        return 0;
     }
 }

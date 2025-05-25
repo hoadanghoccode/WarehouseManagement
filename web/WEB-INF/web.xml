@@ -24,6 +24,10 @@
         <servlet-name>PermissionController</servlet-name>
         <servlet-class>controller.PermissionController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>UpdateCategory</servlet-name>
+        <servlet-class>controller.UpdateCategory</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -55,5 +59,9 @@
     <servlet-mapping>
         <servlet-name>PermissionController</servlet-name>
         <url-pattern>/permission</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateCategory</servlet-name>
+        <url-pattern>/updatecategory</url-pattern>
     </servlet-mapping>
 </web-app>

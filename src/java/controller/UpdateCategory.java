@@ -18,7 +18,7 @@ import model.Category;
  *
  * @author ADMIN
  */
-public class AddCategory extends HttpServlet {
+public class UpdateCategory extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,10 +37,10 @@ public class AddCategory extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AddCategory</title>");
+            out.println("<title>Servlet UpdateCategory</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AddCategory at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet UpdateCategory at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,10 +58,18 @@ public class AddCategory extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Lấy category đang sửa
+        int id = Integer.parseInt(request.getParameter("cid"));
         CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory(); // hoặc getAllParentCategories()
-        request.setAttribute("allCategories", parentCategories);
-        request.getRequestDispatcher("addcategory.jsp").forward(request, response);
+        Category current = dao.getCategoryById(id);
+
+        // Lấy tất cả categories để hiển thị dropdown
+        List<Category> allCategories = dao.getIndentedCategories();
+
+        request.setAttribute("currentCategory", current);
+        request.setAttribute("allCategories", allCategories);
+        request.getRequestDispatcher("updatecategory.jsp").forward(request, response);
+
     }
 
     /**
@@ -75,52 +83,39 @@ public class AddCategory extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String categoryName = request.getParameter("categoryName");
-        String parentIdStr = request.getParameter("parentId");
+        int id = Integer.parseInt(request.getParameter("id"));
+        String name = request.getParameter("name");
+        int parentId = request.getParameter("parentId") != null ? Integer.parseInt(request.getParameter("parentId")) : 0;
 
-        if (categoryName != null) {
-            categoryName = categoryName.trim();
-        }
+        // Lấy DAO
+        CategoryDAO dao = new CategoryDAO();
 
-        if (categoryName == null || categoryName.isEmpty()) {
-            request.setAttribute("errorMessage", "Category name cannot be empty!");
-            forwardWithData(request, response);
+        if (parentId != 0 && dao.isCircularParent(id, parentId)) {
+            request.getSession().setAttribute("error", "Không thể cập nhật: vòng lặp phân cấp!");
+            response.sendRedirect("updatecategory?cid=" + id);
             return;
         }
 
-        
-        if (!categoryName.matches("^[\\p{L}\\s]+$")) {
-            request.setAttribute("errorMessage", "Category name must only contain letters and spaces (no numbers or symbols).");
-            forwardWithData(request, response);
+        Category parentCategory = parentId == 0 ? null : dao.getCategoryById(parentId);
+        if (parentCategory != null && parentCategory.getParentId() != null) {
+            request.getSession().setAttribute("error", "Không thể cập nhật: vượt quá 2 cấp phân loại (chỉ cha và con).");
+            response.sendRedirect("updatecategory?cid=" + id);
             return;
         }
 
-        Integer parentId = null;
-        if (parentIdStr != null && !parentIdStr.trim().isEmpty()) {
-            try {
-                parentId = Integer.parseInt(parentIdStr);
-            } catch (NumberFormatException e) {
-                request.setAttribute("errorMessage", "Invalid parent category ID.");
-                forwardWithData(request, response);
-                return;
-            }
+        // Nếu hợp lệ → tiếp tục cập nhật
+        Category updated = new Category();
+        updated.setCategoryId(id);
+        updated.setName(name);
+        if (parentId == 0) {
+            updated.setParentId(null);
+        } else {
+            updated.setParentId(dao.getCategoryById(parentId));
         }
-
-        CategoryDAO dao = new CategoryDAO();
-        dao.insertCategory(categoryName, parentId);
-
-        request.setAttribute("successMessage", "Category added successfully!");
-        request.setAttribute("categoryName", categoryName);
-        forwardWithData(request, response);
-    }
-
-    private void forwardWithData(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory();
-        request.setAttribute("allCategories", parentCategories);
-
-        request.getRequestDispatcher("addcategory.jsp").forward(request, response);
+        dao.updateCategory(updated);
+        request.setAttribute("successMessage", true);
+        request.setAttribute("categoryName", name);
+        request.getRequestDispatcher("updatecategory.jsp").forward(request, response);
     }
 
     /**

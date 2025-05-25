@@ -1,6 +1,7 @@
 package controller;
 
 import dal.CategoryDAO;
+import dal.MaterialDAO;
 //import dal.SubCategoryDAO;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class CategoryList extends HttpServlet {
 
         String search = request.getParameter("search");
         CategoryDAO dao = new CategoryDAO();
+        MaterialDAO mDao = new MaterialDAO();
 
         List<Category> parentCategories = dao.getAllParentCategory();
         List<Category> filterCategories;
@@ -29,6 +31,11 @@ public class CategoryList extends HttpServlet {
             filterCategories = dao.searchCategoryByName((ArrayList<Category>) parentCategories, search.trim());
         } else {
             filterCategories = parentCategories;
+        }
+        for (Category pcate : filterCategories) {
+            for (Category subCate : pcate.getSubCategories()) {
+                subCate.setMaterialCount(mDao.countMaterialByCategoryId(subCate.getCategoryId()));
+            }
         }
 
         // Phân trang
