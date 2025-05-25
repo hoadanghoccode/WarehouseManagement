@@ -284,5 +284,38 @@ public class UserDAO extends DBContext {
         }
 
     }
+    public Users getUserByEmail(String email) {
+        try {
+             String query = "SELECT * FROM users WHERE email = ?";
+        conn = new DBContext().getConnection();
+        ps = conn.prepareStatement(query);
+        ps.setString(1, email);
+        rs = ps.executeQuery();
+        if (rs.next()) {
+            return new Users(
+                rs.getInt("user_id"),
+                rs.getInt("role_id"),
+                rs.getInt("branch_id"),
+                rs.getString("full_name"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getInt("gender"),
+                rs.getString("phone_number"),
+                rs.getString("address"),
+                rs.getDate("date_of_birth"),
+                rs.getString("image"),
+                rs.getDate("created_at"),
+                rs.getDate("updated_at"),
+                rs.getBoolean("status"),
+                rs.getString("reset_password_token"),
+                rs.getDate("reset_password_expiry")
+            );
+        }
+    } catch (Exception e) {
+        e.printStackTrace(); 
+    }
+    return null;
+            
+    }
     
 }
