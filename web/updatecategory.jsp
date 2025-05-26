@@ -1,10 +1,8 @@
-
-
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
     <head>
-        <title>Add New Category</title>
+        <title>Update Category</title>
         <style>
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -107,51 +105,62 @@
                 text-align: center;
             }
         </style>
-
     </head>
     <body>
-        <div class="container">
-            <h2>Add New Category</h2>
 
-            <!-- Hiển thị lỗi nếu có -->
-            <c:if test="${not empty errorMessage}">
-                <div class="error-message">
-                    ${errorMessage}
-                </div>
+        <div class="container">
+            <h2>Update Category</h2>
+
+            <c:if test="${not empty sessionScope.error}">
+                <script>alert("${sessionScope.error}");</script>
+                <c:remove var="error" scope="session"/>
             </c:if>
 
-            <!-- Hiển thị thông báo thành công rồi redirect -->
             <c:if test="${not empty successMessage}">
                 <script>
-                    alert("'${categoryName}' has been added successfully!");
+                    alert("'${categoryName}' đã được cập nhật thành công!");
                     window.location.href = "categorylist";
                 </script>
             </c:if>
 
-            <!-- Form nhập dữ liệu -->
-            <c:if test="${empty successMessage}">
-                <form action="addcategory" method="post">
-                    <div class="form-group">
-                        <label for="categoryName">Category Name:</label>
-                        <input type="text" id="categoryName" name="categoryName" value="${categoryName}" required>
-                    </div>
+            <form action="updatecategory" method="post">
+                <input type="hidden" name="id" value="${currentCategory.categoryId}" />
 
-                    <div class="form-group">
-                        <label for="parentId">Parent Category (optional):</label>
-                        <select name="parentId" id="parentId">
-                            <option value="">-- None --</option>
-                            <c:forEach var="cat" items="${allCategories}">
-                                <option value="${cat.categoryId}">${cat.name}</option>
-                            </c:forEach>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="name">Category Name:</label>
+                    <input type="text" id="name" name="name" value="${currentCategory.name}" required />
+                </div>
 
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Save Category</button>
-                        <a href="categorylist" class="btn btn-cancel">Cancel</a>
-                    </div>
-                </form>
-            </c:if>
+                <div class="form-group">
+                    <label for="parent">Parent Category (optional):</label>
+                    <select name="parentId" id="parent">
+                        <option value="0">-- None --</option>
+
+                        <c:forEach var="cat" items="${allCategories}">
+                            <c:if test="${cat.categoryId != currentCategory.categoryId}">
+                                <option value="${cat.categoryId}"
+                                        <c:if test="${currentCategory.parentId != null && cat.categoryId == currentCategory.parentId.categoryId}">selected</c:if>>
+                                    <c:choose>
+                                        <c:when test="${cat.parentId != null}">
+                                            ├── ${cat.name}
+                                        </c:when>
+                                        <c:otherwise>
+                                            ${cat.name}
+                                        </c:otherwise>
+                                    </c:choose>
+                                </option>
+                            </c:if>
+                        </c:forEach>
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Save Category</button>
+                    <a href="categorylist" class="btn btn-cancel">Cancel</a>
+                </div>
+            </form>
         </div>
+
     </body>
 </html>
