@@ -67,57 +67,117 @@
             .is-invalid ~ .invalid-feedback {
                 display: block;
             }
+            /* Kéo rộng nút Previous */
+            #permissionsTable_paginate .paginate_button.previous {
+                /* Cho nút hiển thị dưới dạng inline-block để width có tác dụng */
+                display: inline-block;
+                /* Đặt chiều rộng tối thiểu */
+                min-width: 100px;
+                /* Căn giữa text */
+                text-align: center;
+                /* Tăng padding nếu muốn */
+                padding: 0.4em 1em;
+            }
+
+            /* (Tuỳ chọn) Đồng bộ style cho tất cả paginate_button */
+            #permissionsTable_paginate .paginate_button {
+                padding: 0.4em 1em;
+            }
         </style>
     </head>
     <body>
         <%@ include file="sidebar.jsp" %>
         <section class="main_content dashboard_part">
             <%@ include file="navbar.jsp" %>
-            <div id="successAlert" class="alert alert-success alert-dismissible fade alert-fixed" role="alert">
-                <strong>Thành công!</strong> Bạn đã nhấn submit.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
             <div class="container mt-4">
-                <div class="row mb-3">                
-                    <div class="col d-flex justify-content-end">
-                        <button id="addPermissionBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPermissionModal">Add Permission</button>
+
+                <!-- Nút mở modal -->
+                <button id="addPermissionBtn"
+                        class="btn btn-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addPermissionModal">
+                    Add Permission
+                </button>
+
+                <!-- Modal for Adding Permission -->
+                <div class="modal fade" id="addPermissionModal" tabindex="-1"
+                     aria-labelledby="addPermissionModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form id="addPermissionForm"
+                                  action="${pageContext.request.contextPath}/permission"
+                                  method="post">
+                                <!-- Nếu cần userId để lấy roleId -->
+                                <input type="hidden" name="userId" value="${sessionScope.userId}" />
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addPermissionModalLabel">
+                                        Add New Resource & Permission
+                                    </h5>
+                                    <button type="button" class="btn-close"
+                                            data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <!-- Người dùng nhập tên resource mới -->
+                                    <div class="mb-3">
+                                        <label for="resourceName" class="form-label">
+                                            Resource Name
+                                        </label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="resourceName"
+                                               name="resourceName"
+                                               placeholder="Enter new resource name"
+                                               required>
+                                    </div>
+
+                                    <!-- Các quyền cho resource -->
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="canCreate" name="canCreate" />
+                                        <label class="form-check-label" for="canCreate">
+                                            Can Create
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="canRead" name="canRead" />
+                                        <label class="form-check-label" for="canRead">
+                                            Can Read
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="canUpdate" name="canUpdate" />
+                                        <label class="form-check-label" for="canUpdate">
+                                            Can Update
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="canDelete" name="canDelete" />
+                                        <label class="form-check-label" for="canDelete">
+                                            Can Delete
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        Save Permission
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-                <!--                <table class="table table-bordered">
-                                    <thead class="table-header">
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>CATALOGUE</th>
-                                            <th>Read</th>
-                                            <th>Write</th>
-                                            <th>EDIT</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tableBody"></tbody>
-                                    <tbody>
-                                         Duyệt thẳng List<Permission> từ request attribute 
-                <c:forEach var="p" items="${permissionsList}">
-                    <tr>
-                        <td>${p.resourceName}</td>
-                        <td><input type="checkbox" disabled ${p.canCreate ? 'checked' : ''}></td>
-                        <td><input type="checkbox" disabled ${p.canRead   ? 'checked' : ''}></td>
-                        <td><input type="checkbox" disabled ${p.canUpdate ? 'checked' : ''}></td>
-                        <td><input type="checkbox" disabled ${p.canDelete ? 'checked' : ''}></td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-            <div class="row mb-3">
-                <div class="col d-flex justify-content-end">
-                    <button id="submitBtn" class="btn btn-primary">Submit</button>
-                </div>
-            </div>-->
+
                 <div class="container mt-4">
                     <form action="permission" method="post">
-                        <!-- chuyền userId nếu cần -->
-                        <!--<input type="hidden" name="userId" value="${sessionScope.userId}" />-->
-
-                        <table class="table table-bordered">
+                        <table id="permissionsTable" class="table table-bordered display responsive nowrap" style="width:100%">
                             <thead class="table-header">
                                 <tr>
                                     <th>Name</th>
@@ -125,6 +185,7 @@
                                     <th>Read</th>
                                     <th>Update</th>
                                     <th>Delete</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -134,6 +195,7 @@
                                             ${p.resourceName}
                                             <!-- giữ lại id để servlet biết đang cập nhật bản ghi nào -->
                                             <input type="hidden" name="permId" value="${p.id}" />
+                                            <input type="hidden" name="resourceId" value="${p.resourceId}" />
                                         </td>
                                         <td>
                                             <input type="checkbox" name="canCreate" value="${p.id}"
@@ -151,228 +213,77 @@
                                                 <input type="checkbox" name="canDelete" value="${p.id}"
                                                    <c:if test="${p.canDelete}">checked</c:if> />
                                             </td>
-                                        </tr>
+                                            <td>
+                                                <form method="post" action="${pageContext.request.contextPath}/deletepermission" onsubmit="return confirm('Are you sure you want to delete this permission?');">
+                                                <input type="hidden" name="permId" value="${p.id}" />
+                                                <button type="submit" class="btn btn-link text-danger" style="padding:0; border:none;">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+
+                                    </tr>
                                 </c:forEach>
                             </tbody>
                         </table>
 
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="submit" class="btn btn-primary">Save Change</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Modal for Adding Permission -->
-            <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-labelledby="addPermissionModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addPermissionModalLabel">Add New Permission</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form id="addPermissionForm">
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="permissionName" class="form-label">Permission Name</label>
-                                    <input type="text" class="form-control" id="permissionName" placeholder="Enter permission name" required>
-                                    <!--<div class="invalid-feedback">Vui lòng nhập tên quyền.</div>-->
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="catalogueCheck">
-                                    <label class="form-check-label" for="catalogueCheck">Catalogue</label>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="readCheck">
-                                    <label class="form-check-label" for="readCheck">Read</label>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="writeCheck">
-                                    <label class="form-check-label" for="writeCheck">Write</label>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="editCheck">
-                                    <label class="form-check-label" for="editCheck">Edit</label>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary" id="savePermissionBtn" onclick="showAlert()">Save Permission</button>
-                            </div>
-                            <!-- Alert xuất hiện ở góc phải -->
-
-                        </form>        
-
-                    </div>
-
-                </div>
-            </div>
-
         </section>
-
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-                                    function showAlert() {
-                                        const alert = document.getElementById('successAlert');
-                                        alert.style.display = 'block'; // Hiển thị alert
-                                        // Tự động ẩn sau 3 giây
-                                        setTimeout(() => {
-                                            alert.classList.remove('show');
-                                            setTimeout(() => {
-                                                alert.style.display = 'none';
-                                                alert.classList.add('show'); // Khôi phục trạng thái show cho lần sau
-                                            }, 150); // Đợi hiệu ứng fade hoàn tất
-                                        }, 3000);
-                                    }
-        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="vendors/datatable/js/jquery.dataTables.min.js"></script>
+        <script src="vendors/datatable/js/dataTables.responsive.min.js"></script>
 
         <script>
-            let features = [
-                {name: "Add Product", catalogue: true, read: true, write: false, edit: true},
-                {name: "Add Product via upload", catalogue: true, read: false, write: false, edit: true},
-                {name: "Complete Drafts", catalogue: true, read: true, write: false, edit: true},
-                {name: "View Listing Applications", catalogue: true, read: false, write: false, edit: true},
-                {name: "Improve Listing Quality", catalogue: true, read: true, write: false, edit: true},
-                {name: "Upload & Manage Videos", catalogue: true, read: true, write: false, edit: true},
-                {name: "Manage Product Videos", catalogue: true, read: true, write: false, edit: true}
-            ];
+                                                    $(function () {
+                                                        // 1) Initialize DataTable
+                                                        $('#permissionsTable').DataTable({
+                                                            paging: true,
+                                                            pageLength: 5,
+                                                            lengthChange: false,
+                                                            searching: false,
+                                                            info: false,
+                                                            responsive: true
+                                                        });
 
-            const tableBody = document.getElementById('tableBody');
-//            if (!tableBody) {
-//                console.error('Table body element not found!');
-//            } else {
-//                renderTable();
-//            }
+                                                        // 2) AJAX Add Permission (giữ nguyên)
+                                                        const url = '${pageContext.request.contextPath}/addpermission';
+                                                        const modalEl = document.getElementById('addPermissionModal');
+                                                        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-            function renderTable() {
-                tableBody.innerHTML = ''; // Clear existing rows
-                features.forEach((feature, index) => {
-                    const row = document.createElement('tr');
-
-                    // Name column
-                    const nameCell = document.createElement('td');
-                    nameCell.textContent = feature.name || 'Unnamed';
-                    row.appendChild(nameCell);
-
-                    // Catalogue checkbox
-                    const catalogueCell = document.createElement('td');
-                    const catalogueCheckbox = document.createElement('input');
-                    catalogueCheckbox.type = 'checkbox';
-                    catalogueCheckbox.className = 'form-check-input';
-                    catalogueCheckbox.checked = feature.catalogue;
-                    catalogueCheckbox.dataset.index = index;
-                    catalogueCheckbox.dataset.field = 'catalogue';
-                    catalogueCell.appendChild(catalogueCheckbox);
-                    row.appendChild(catalogueCell);
-
-                    // Read checkbox
-                    const readCell = document.createElement('td');
-                    const readCheckbox = document.createElement('input');
-                    readCheckbox.type = 'checkbox';
-                    readCheckbox.className = 'form-check-input';
-                    readCheckbox.checked = feature.read;
-                    readCheckbox.dataset.index = index;
-                    readCheckbox.dataset.field = 'read';
-                    readCell.appendChild(readCheckbox);
-                    row.appendChild(readCell);
-
-                    // Write checkbox
-                    const writeCell = document.createElement('td');
-                    const writeCheckbox = document.createElement('input');
-                    writeCheckbox.type = 'checkbox';
-                    writeCheckbox.className = 'form-check-input';
-                    writeCheckbox.checked = feature.write;
-                    writeCheckbox.dataset.index = index;
-                    writeCheckbox.dataset.field = 'write';
-                    writeCell.appendChild(writeCheckbox);
-                    row.appendChild(writeCell);
-
-                    // Edit checkbox
-                    const editCell = document.createElement('td');
-                    const editCheckbox = document.createElement('input');
-                    editCheckbox.type = 'checkbox';
-                    editCheckbox.className = 'form-check-input';
-                    editCheckbox.checked = feature.edit;
-                    editCheckbox.dataset.index = index;
-                    editCheckbox.dataset.field = 'edit';
-                    editCell.appendChild(editCheckbox);
-                    row.appendChild(editCell);
-
-                    tableBody.appendChild(row);
-                });
-            }
-
-            // Submit button event listener
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.addEventListener('click', () => {
-                const checkboxes = document.querySelectorAll('input[type="checkbox"][data-index]');
-                checkboxes.forEach(checkbox => {
-                    const index = checkbox.dataset.index;
-                    const field = checkbox.dataset.field;
-                    features[index][field] = checkbox.checked;
-                });
-                console.log('Updated features:', features);
-                alert('Features updated! Check the console for the updated array.');
-            });
-
-            // Add Permission Modal - Form submission handler
-            const addPermissionForm = document.getElementById('addPermissionForm');
-            addPermissionForm.addEventListener('submit', (e) => {
-                e.preventDefault(); // Prevent default form submission
-
-                const permissionNameInput = document.getElementById('permissionName');
-                const permissionName = permissionNameInput.value.trim();
-                const catalogueCheck = document.getElementById('catalogueCheck').checked;
-                const readCheck = document.getElementById('readCheck').checked;
-                const writeCheck = document.getElementById('writeCheck').checked;
-                const editCheck = document.getElementById('editCheck').checked;
-
-                // Validate permission name
-                if (permissionName === '') {
-                    permissionNameInput.classList.add('is-invalid');
-                    return;
-                } else {
-                    permissionNameInput.classList.remove('is-invalid');
-                    permissionNameInput.classList.add('is-valid');
-                }
-
-                // Add new permission to features array
-                features.push({
-                    name: permissionName,
-                    catalogue: catalogueCheck,
-                    read: readCheck,
-                    write: writeCheck,
-                    edit: editCheck
-                });
-
-                // Re-render the table
-                renderTable();
-
-                // Clear modal inputs
-                permissionNameInput.value = '';
-                permissionNameInput.classList.remove('is-valid');
-                document.getElementById('catalogueCheck').checked = false;
-                document.getElementById('readCheck').checked = false;
-                document.getElementById('writeCheck').checked = false;
-                document.getElementById('editCheck').checked = false;
-
-                // Close the modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'));
-                modal.hide();
-
-
-                showAlert()
-            });
-
-            // Clear validation feedback on input
-            document.getElementById('permissionName').addEventListener('input', function () {
-                if (this.value.trim() !== '') {
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                } else {
-                    this.classList.remove('is-valid');
-                }
-            });
+                                                        $('#addPermissionForm').on('submit', function (e) {
+                                                            e.preventDefault();
+                                                            const data = {
+                                                                resourceName: $('#resourceName').val().trim(),
+                                                                description: $('#description').val().trim(),
+                                                                roleId: $('#roleId').val(),
+                                                                canCreate: $('#canCreate').is(':checked'),
+                                                                canRead: $('#canRead').is(':checked'),
+                                                                canUpdate: $('#canUpdate').is(':checked'),
+                                                                canDelete: $('#canDelete').is(':checked')
+                                                            };
+                                                            $.post(url, data, function (resp) {
+                                                                if (!resp.success) {
+                                                                    return alert('Error: ' + resp.error);
+                                                                }
+                                                                // reload page
+                                                                window.location.reload();
+                                                            }, 'json')
+                                                                    .fail(function (xhr) {
+                                                                        console.error('AJAX error:', xhr.responseText);
+                                                                        alert('Có lỗi khi thêm permission mới');
+                                                                    });
+                                                        });
+                                                    });
         </script>
+
+
     </body>
 </html>
