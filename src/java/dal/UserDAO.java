@@ -32,30 +32,31 @@ public class UserDAO extends DBContext {
                      "GROUP BY u.User_id";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Users user = new Users(
-                    rs.getInt("User_id"),
-                    rs.getInt("Role_id"),
-                    rs.getInt("Branch_id"),
-                    rs.getString("Full_name"),
-                    rs.getString("Email"),
-                    rs.getString("Password"),
-                    rs.getInt("Gender"),
-                    rs.getString("Phone_number"),
-                    rs.getString("Address"),
-                    rs.getDate("Date_of_birth"),
-                    rs.getString("Image"),
-                    rs.getDate("Created_at"),
-                    rs.getDate("Updated_at"),
-                    rs.getBoolean("Status"),
-                    rs.getString("Reset_Password_Token"),
-                    rs.getTimestamp("Reset_Password_Expiry")
-                );
-                user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
-                user.setBranchName(rs.getString("Branch_name") != null ? rs.getString("Branch_name") : "");
-                user.setGroupNames(rs.getString("Group_names") != null ? rs.getString("Group_names") : "");
-                return user;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Users user = new Users(
+                        rs.getInt("User_id"),
+                        rs.getInt("Role_id"),
+                        rs.getInt("Branch_id"),
+                        rs.getString("Full_name"),
+                        rs.getString("Email"),
+                        rs.getString("Password"),
+                        rs.getInt("Gender"),
+                        rs.getString("Phone_number"),
+                        rs.getString("Address"),
+                        rs.getDate("Date_of_birth"),
+                        rs.getString("Image"),
+                        rs.getDate("Created_at"),
+                        rs.getDate("Updated_at"),
+                        rs.getBoolean("Status"),
+                        rs.getString("Reset_Password_Token"),
+                        rs.getTimestamp("Reset_Password_Expiry")
+                    );
+                    user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
+                    user.setBranchName(rs.getString("Branch_name") != null ? rs.getString("Branch_name") : "");
+                    user.setGroupNames(rs.getString("Group_names") != null ? rs.getString("Group_names") : "");
+                    return user;
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error fetching user with ID " + userId + ": " + e.getMessage());
@@ -68,6 +69,8 @@ public class UserDAO extends DBContext {
         String sql = "INSERT INTO Users (Role_id, Branch_id, Full_name, Email, Password, Gender, Phone_number, Address, Date_of_birth, Image, Created_at, Updated_at, Status) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            java.sql.Date currentDate = new java.sql.Date(System.currentTimeMillis());
+
             stmt.setInt(1, user.getRoleId());
             stmt.setInt(2, user.getBranchId());
             stmt.setString(3, user.getFullName());
@@ -78,21 +81,18 @@ public class UserDAO extends DBContext {
             stmt.setString(8, user.getAddress());
             stmt.setDate(9, user.getDateOfBirth() != null ? new java.sql.Date(user.getDateOfBirth().getTime()) : null);
             stmt.setString(10, user.getImage());
-
-            stmt.setDate(11, new java.sql.Date(new java.util.Date().getTime()));
-            stmt.setDate(12, new java.sql.Date(new java.util.Date().getTime()));
-
-            java.sql.Date currentDate = new java.sql.Date(System.currentTimeMillis());
             stmt.setDate(11, currentDate);
             stmt.setDate(12, currentDate);
-
             stmt.setBoolean(13, user.isStatus());
+
             stmt.executeUpdate();
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                user.setUserId(rs.getInt(1));
-                if (groupId > 0) {
-                    assignUserToGroup(user.getUserId(), groupId);
+
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    user.setUserId(rs.getInt(1));
+                    if (groupId > 0) {
+                        assignUserToGroup(user.getUserId(), groupId);
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -117,11 +117,16 @@ public class UserDAO extends DBContext {
             stmt.setBoolean(10, user.isStatus());
             stmt.setInt(11, user.getRoleId());
             stmt.setInt(12, user.getUserId());
+
             stmt.executeUpdate();
 
             removeUserFromAllGroups(user.getUserId());
-            for (int groupId : groupIds) {
-                assignUserToGroup(user.getUserId(), groupId);
+            if (groupIds != null) {
+                for (int groupId : groupIds) {
+                    if (groupId > 0) {
+                        assignUserToGroup(user.getUserId(), groupId);
+                    }
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error updating user with ID " + user.getUserId() + ": " + e.getMessage());
@@ -130,59 +135,60 @@ public class UserDAO extends DBContext {
     }
 
     public void deleteUser(int userId) {
-    Connection conn = null;
-    PreparedStatement stmt = null;
-    try {
-        conn = connection;
-        conn.setAutoCommit(false); 
+        PreparedStatement stmt = null;
+        try {
+            connection.setAutoCommit(false);
 
-        String sqlGroup = "DELETE FROM Group_has_User WHERE User_id = ?";
-        stmt = conn.prepareStatement(sqlGroup);
-        stmt.setInt(1, userId);
-        stmt.executeUpdate();
-        stmt.close();
+            // Delete from Group_has_User
+            String sqlGroup = "DELETE FROM Group_has_User WHERE User_id = ?";
+            stmt = connection.prepareStatement(sqlGroup);
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
+            stmt.close();
 
-        String sqlUser = "DELETE FROM Users WHERE User_id = ?";
-        stmt = conn.prepareStatement(sqlUser);
-        stmt.setInt(1, userId);
-        stmt.executeUpdate();
+            // Delete from Users
+            String sqlUser = "DELETE FROM Users WHERE User_id = ?";
+            stmt = connection.prepareStatement(sqlUser);
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
 
-        conn.commit(); 
-    } catch (SQLException e) {
-        if (conn != null) {
+            connection.commit();
+        } catch (SQLException e) {
             try {
-                conn.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (SQLException ex) {
                 System.err.println("Error rolling back transaction: " + ex.getMessage());
                 ex.printStackTrace();
             }
-        }
-        System.err.println("Error deleting user with ID " + userId + ": " + e.getMessage());
-        e.printStackTrace();
-    } finally {
-        if (stmt != null) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing statement: " + e.getMessage());
-                e.printStackTrace();
+            System.err.println("Error deleting user with ID " + userId + ": " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    System.err.println("Error closing statement: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
-        }
-        if (conn != null) {
             try {
-                conn.setAutoCommit(true);
+                if (connection != null) {
+                    connection.setAutoCommit(true);
+                }
             } catch (SQLException e) {
                 System.err.println("Error resetting auto-commit: " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
-}
 
     public List<Role> getAllRoles() {
         List<Role> list = new ArrayList<>();
         String sql = "SELECT Role_id, Name, Description FROM Role";
-        try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new Role(
                     rs.getInt("Role_id"),
@@ -200,7 +206,8 @@ public class UserDAO extends DBContext {
     public List<Branch> getAllBranches() {
         List<Branch> list = new ArrayList<>();
         String sql = "SELECT Branch_id, Name FROM Branch";
-        try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new Branch(
                     rs.getInt("Branch_id"),
@@ -214,12 +221,11 @@ public class UserDAO extends DBContext {
         return list;
     }
 
-    public List<Group> getGroupsByRoleId(int roleId) {
+    public List<Group> getAllGroups() {
         List<Group> list = new ArrayList<>();
-        String sql = "SELECT Group_id, Name, Role_id FROM `Group` WHERE Role_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, roleId);
-            ResultSet rs = stmt.executeQuery();
+        String sql = "SELECT Group_id, Name, Role_id FROM `Group`";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new Group(
                     rs.getInt("Group_id"),
@@ -228,56 +234,84 @@ public class UserDAO extends DBContext {
                 ));
             }
         } catch (SQLException e) {
+            System.err.println("Error fetching all groups: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Group> getGroupsByRoleId(int roleId) {
+        List<Group> list = new ArrayList<>();
+        String sql = "SELECT Group_id, Name, Role_id FROM `Group` WHERE Role_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, roleId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Group(
+                        rs.getInt("Group_id"),
+                        rs.getString("Name"),
+                        rs.getInt("Role_id")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
             System.err.println("Error fetching groups for Role_id " + roleId + ": " + e.getMessage());
             e.printStackTrace();
         }
         return list;
     }
 
-    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer branchId, Integer roleId) {
-        List<Users> users = new ArrayList<>();
-        StringBuilder sql = new StringBuilder(
-            "SELECT u.*, r.Name AS Role_name, b.Name AS Branch_name, " +
-            "GROUP_CONCAT(g.Name SEPARATOR ', ') AS Group_names " +
-            "FROM Users u " +
-            "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
-            "LEFT JOIN Branch b ON u.Branch_id = b.Branch_id " +
-            "LEFT JOIN Group_has_User gu ON u.User_id = gu.User_id " +
-            "LEFT JOIN `Group` g ON gu.Group_id = g.Group_id " +
-            "WHERE 1=1"
-        );
+    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer branchId, Integer roleId, Integer groupId, String sortOrder) {
+    List<Users> users = new ArrayList<>();
+    StringBuilder sql = new StringBuilder(
+        "SELECT u.*, r.Name AS Role_name, b.Name AS Branch_name, " +
+        "GROUP_CONCAT(g.Name SEPARATOR ', ') AS Group_names " +
+        "FROM Users u " +
+        "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
+        "LEFT JOIN Branch b ON u.Branch_id = b.Branch_id " +
+        "LEFT JOIN Group_has_User gu ON u.User_id = gu.User_id " +
+        "LEFT JOIN `Group` g ON gu.Group_id = g.Group_id " +
+        "WHERE 1=1"
+    );
+    if (searchQuery != null && !searchQuery.isEmpty()) {
+        sql.append(" AND (u.Full_name LIKE ? OR u.Email LIKE ? OR u.Phone_number LIKE ? OR u.Address LIKE ?)");
+    }
+    if (branchId != null) {
+        sql.append(" AND u.Branch_id = ?");
+    }
+    if (roleId != null) {
+        sql.append(" AND u.Role_id = ?");
+    }
+    if (groupId != null) {
+        sql.append(" AND u.User_id IN (SELECT User_id FROM Group_has_User WHERE Group_id = ?)");
+    }
+    sql.append(" GROUP BY u.User_id, u.Role_id, u.Branch_id, u.Full_name, u.Email, u.Password, u.Gender, " +
+               "u.Phone_number, u.Address, u.Date_of_birth, u.Image, u.Created_at, u.Updated_at, u.Status, " +
+               "u.Reset_Password_Token, u.Reset_Password_Expiry, r.Name, b.Name " +
+               "ORDER BY u.Updated_at ").append(sortOrder != null && sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC").append(" LIMIT ? OFFSET ?");
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+        int paramIndex = 1;
         if (searchQuery != null && !searchQuery.isEmpty()) {
-            sql.append(" AND (u.Full_name LIKE ? OR u.Email LIKE ? OR u.Phone_number LIKE ? OR u.Address LIKE ?)");
+            String searchPattern = "%" + searchQuery + "%";
+            stmt.setString(paramIndex++, searchPattern);
+            stmt.setString(paramIndex++, searchPattern);
+            stmt.setString(paramIndex++, searchPattern);
+            stmt.setString(paramIndex++, searchPattern);
         }
         if (branchId != null) {
-            sql.append(" AND u.Branch_id = ?");
+            stmt.setInt(paramIndex++, branchId);
         }
         if (roleId != null) {
-            sql.append(" AND u.Role_id = ?");
+            stmt.setInt(paramIndex++, roleId);
         }
-        sql.append(" GROUP BY u.User_id, u.Role_id, u.Branch_id, u.Full_name, u.Email, u.Password, u.Gender, " +
-                   "u.Phone_number, u.Address, u.Date_of_birth, u.Image, u.Created_at, u.Updated_at, u.Status, " +
-                   "u.Reset_Password_Token, u.Reset_Password_Expiry, r.Name, b.Name " +
-                   "ORDER BY u.Updated_at DESC LIMIT ? OFFSET ?");
+        if (groupId != null) {
+            stmt.setInt(paramIndex++, groupId);
+        }
+        stmt.setInt(paramIndex++, pageSize);
+        stmt.setInt(paramIndex++, (page - 1) * pageSize);
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
-            int paramIndex = 1;
-            if (searchQuery != null && !searchQuery.isEmpty()) {
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
-            }
-            if (branchId != null) {
-                stmt.setInt(paramIndex++, branchId);
-            }
-            if (roleId != null) {
-                stmt.setInt(paramIndex++, roleId);
-            }
-            stmt.setInt(paramIndex++, pageSize);
-            stmt.setInt(paramIndex++, (page - 1) * pageSize);
-
-            ResultSet rs = stmt.executeQuery();
+        try (ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Users user = new Users(
                     rs.getInt("User_id"),
@@ -302,32 +336,41 @@ public class UserDAO extends DBContext {
                 user.setGroupNames(rs.getString("Group_names") != null ? rs.getString("Group_names") : "");
                 users.add(user);
             }
-        } catch (SQLException e) {
-            System.err.println("Error fetching users: " + e.getMessage());
-            e.printStackTrace();
         }
-        return users;
+    } catch (SQLException e) {
+        System.err.println("Error fetching users: " + e.getMessage());
+        e.printStackTrace();
     }
+    return users;
+}
 
-    public int getTotalUsers(String searchQuery, Integer branchId, Integer roleId) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Users WHERE 1=1");
+    public int getTotalUsers(String searchQuery, Integer branchId, Integer roleId, Integer groupId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(DISTINCT u.User_id) FROM Users u");
+        if (groupId != null) {
+            sql.append(" JOIN Group_has_User gu ON u.User_id = gu.User_id");
+        }
+        sql.append(" WHERE 1=1");
         if (searchQuery != null && !searchQuery.isEmpty()) {
-            sql.append(" AND (Full_name LIKE ? OR Email LIKE ? OR Phone...");
+            sql.append(" AND (u.Full_name LIKE ? OR u.Email LIKE ? OR u.Phone_number LIKE ? OR u.Address LIKE ?)");
         }
         if (branchId != null) {
-            sql.append(" AND Branch_id = ?");
+            sql.append(" AND u.Branch_id = ?");
         }
         if (roleId != null) {
-            sql.append(" AND Role_id = ?");
+            sql.append(" AND u.Role_id = ?");
+        }
+        if (groupId != null) {
+            sql.append(" AND gu.Group_id = ?");
         }
 
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             if (searchQuery != null && !searchQuery.isEmpty()) {
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
-                stmt.setString(paramIndex++, "%" + searchQuery + "%");
+                String searchPattern = "%" + searchQuery + "%";
+                stmt.setString(paramIndex++, searchPattern);
+                stmt.setString(paramIndex++, searchPattern);
+                stmt.setString(paramIndex++, searchPattern);
+                stmt.setString(paramIndex++, searchPattern);
             }
             if (branchId != null) {
                 stmt.setInt(paramIndex++, branchId);
@@ -335,9 +378,14 @@ public class UserDAO extends DBContext {
             if (roleId != null) {
                 stmt.setInt(paramIndex++, roleId);
             }
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
+            if (groupId != null) {
+                stmt.setInt(paramIndex++, groupId);
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error counting users: " + e.getMessage());
@@ -346,20 +394,15 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
-
-    /**
-     *
-     * @author duong
-     */
-    Connection conn = null;
     public boolean emailExists(String email, int excludeUserId) {
         String sql = "SELECT COUNT(*) FROM Users WHERE Email = ? AND User_id != ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
             stmt.setInt(2, excludeUserId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error checking email existence for " + email + ": " + e.getMessage());
@@ -376,9 +419,13 @@ public class UserDAO extends DBContext {
                      "WHERE gu.User_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                groups.add(rs.getString("Name"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String groupName = rs.getString("Name");
+                    if (groupName != null) {
+                        groups.add(groupName);
+                    }
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error fetching groups for user ID " + userId + ": " + e.getMessage());
@@ -392,9 +439,10 @@ public class UserDAO extends DBContext {
         String sql = "SELECT Group_id FROM Group_has_User WHERE User_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                groupIds.add(rs.getInt("Group_id"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    groupIds.add(rs.getInt("Group_id"));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error fetching group IDs for user ID " + userId + ": " + e.getMessage());
@@ -429,7 +477,7 @@ public class UserDAO extends DBContext {
  *
  * @author duong
  */
-    
+    Connection conn = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
 

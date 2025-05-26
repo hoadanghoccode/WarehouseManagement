@@ -53,11 +53,29 @@ public class UserListServlet extends HttpServlet {
         String searchQuery = request.getParameter("search");
         String branchIdRaw = request.getParameter("branchId");
         String roleIdRaw = request.getParameter("roleId");
+        String groupIdRaw = request.getParameter("groupId");
         String pageRaw = request.getParameter("page");
-        Integer branchId = (branchIdRaw != null && !branchIdRaw.isEmpty()) ? Integer.parseInt(branchIdRaw) : null;
-        Integer roleId = (roleIdRaw != null && !roleIdRaw.isEmpty()) ? Integer.parseInt(roleIdRaw) : null;
-        int page = (pageRaw != null && !pageRaw.isEmpty()) ? Integer.parseInt(pageRaw) : 1;
+        String sortOrder = request.getParameter("sortOrder");
+
+        // Validate sortOrder to prevent SQL injection
+        if (sortOrder != null && !sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
+            sortOrder = "desc"; // Default to descending if invalid
+        }
+
+        Integer branchId = null;
+        Integer roleId = null;
+        Integer groupId = null;
+        int page = 1;
         int pageSize = 5;
+
+        try {
+            branchId = (branchIdRaw != null && !branchIdRaw.isEmpty()) ? Integer.parseInt(branchIdRaw) : null;
+            roleId = (roleIdRaw != null && !roleIdRaw.isEmpty()) ? Integer.parseInt(roleIdRaw) : null;
+            groupId = (groupIdRaw != null && !groupIdRaw.isEmpty()) ? Integer.parseInt(groupIdRaw) : null;
+            page = (pageRaw != null && !pageRaw.isEmpty()) ? Integer.parseInt(pageRaw) : 1;
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Invalid filter parameters.");
+        }
 
         if ("delete".equals(action)) {
             String idRaw = request.getParameter("id");
@@ -94,13 +112,19 @@ public class UserListServlet extends HttpServlet {
             if (roleId != null) {
                 redirectUrl.append("&roleId=").append(roleId);
             }
+            if (groupId != null) {
+                redirectUrl.append("&groupId=").append(groupId);
+            }
+            if (sortOrder != null) {
+                redirectUrl.append("&sortOrder=").append(sortOrder);
+            }
             response.sendRedirect(redirectUrl.toString());
             return;
         }
 
-        int totalUsers = dao.getTotalUsers(searchQuery, branchId, roleId);
+        int totalUsers = dao.getTotalUsers(searchQuery, branchId, roleId, groupId);
         int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
-        List<Users> users = dao.getUsers(page, pageSize, searchQuery, branchId, roleId);
+        List<Users> users = dao.getUsers(page, pageSize, searchQuery, branchId, roleId, groupId, sortOrder);
 
         request.setAttribute("users", users);
         request.setAttribute("totalPages", totalPages);
@@ -108,8 +132,11 @@ public class UserListServlet extends HttpServlet {
         request.setAttribute("search", searchQuery);
         request.setAttribute("selectedBranchId", branchId);
         request.setAttribute("selectedRoleId", roleId);
+        request.setAttribute("selectedGroupId", groupId);
+        request.setAttribute("sortOrder", sortOrder);
         request.setAttribute("branches", dao.getAllBranches());
         request.setAttribute("roles", dao.getAllRoles());
+        request.setAttribute("allGroups", dao.getAllGroups());
 
         request.getRequestDispatcher("userlist.jsp").forward(request, response);
     }
@@ -119,6 +146,8 @@ public class UserListServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
+        UserDAO dao = new UserDAO();
+
         if ("create".equals(action)) {
             try {
                 String fullName = request.getParameter("fullName");
@@ -134,11 +163,14 @@ public class UserListServlet extends HttpServlet {
                 String image = request.getParameter("image");
                 boolean status = Boolean.parseBoolean(request.getParameter("status"));
 
+                // Validate required fields
                 if (fullName == null || fullName.trim().isEmpty() ||
                     email == null || email.trim().isEmpty() ||
                     password == null || password.trim().isEmpty()) {
                     throw new ServletException("Full name, email, and password are required.");
                 }
+
+                // Validate email format
                 if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
                     throw new ServletException("Invalid email format.");
                 }
@@ -159,12 +191,12 @@ public class UserListServlet extends HttpServlet {
                 Users user = new Users(0, roleId, branchId, fullName, email, password, gender, phoneNumber, address,
                         dateOfBirth, image, createdAt, updatedAt, status, null, null);
 
-                UserDAO dao = new UserDAO();
                 if (dao.emailExists(email, 0)) {
                     request.setAttribute("error", "Email already exists.");
-                    request.setAttribute("users", dao.getUsers(1, 5, null, null, null));
+                    request.setAttribute("users", dao.getUsers(1, 5, null, null, null, null, "desc"));
                     request.setAttribute("branches", dao.getAllBranches());
                     request.setAttribute("roles", dao.getAllRoles());
+                    request.setAttribute("allGroups", dao.getAllGroups());
                     request.getRequestDispatcher("userlist.jsp").forward(request, response);
                     return;
                 }
@@ -175,10 +207,10 @@ public class UserListServlet extends HttpServlet {
                 System.err.println("Error creating user: " + e.getMessage());
                 e.printStackTrace();
                 request.setAttribute("error", e.getMessage() != null ? e.getMessage() : "Creation failed. Please check the input data.");
-                UserDAO dao = new UserDAO();
-                request.setAttribute("users", dao.getUsers(1, 5, null, null, null));
+                request.setAttribute("users", dao.getUsers(1, 5, null, null, null, null, "desc"));
                 request.setAttribute("branches", dao.getAllBranches());
                 request.setAttribute("roles", dao.getAllRoles());
+                request.setAttribute("allGroups", dao.getAllGroups());
                 request.getRequestDispatcher("userlist.jsp").forward(request, response);
             }
         }
