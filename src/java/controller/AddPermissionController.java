@@ -4,21 +4,22 @@
  */
 package controller;
 
-import dal.CategoryDAO;
+import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
+import java.sql.SQLException;
+import org.json.JSONObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import model.Category;
+import model.Permission;
 
 /**
  *
- * @author ADMIN
+ * @author PC
  */
-public class AddCategory extends HttpServlet {
+public class AddPermissionController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,10 +38,10 @@ public class AddCategory extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AddCategory</title>");
+            out.println("<title>Servlet AddPermissionController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AddCategory at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet AddPermissionController at " + "hello get" + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,10 +59,7 @@ public class AddCategory extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory(); // hoặc getAllParentCategories()
-        request.setAttribute("allCategories", parentCategories);
-        request.getRequestDispatcher("addcategory.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -73,54 +71,55 @@ public class AddCategory extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String categoryName = request.getParameter("categoryName");
-        String parentIdStr = request.getParameter("parentId");
+        resp.setContentType("application/json;charset=UTF-8");
+        JSONObject json = new JSONObject();
+        try {
+            // 1) Đọc params (form-encoded hoặc AJAX gửi)
+            String resourceName = req.getParameter("resourceName");
+            String description = req.getParameter("description");
+//            int roleId = Integer.parseInt(req.getParameter("roleId"));
 
-        if (categoryName != null) {
-            categoryName = categoryName.trim();
+            boolean canCreate = "true".equals(req.getParameter("canCreate"));
+            boolean canRead = "true".equals(req.getParameter("canRead"));
+            boolean canUpdate = "true".equals(req.getParameter("canUpdate"));
+            boolean canDelete = "true".equals(req.getParameter("canDelete"));
+
+            // 2) Tạo Resource mới
+            AuthenDAO dao = new AuthenDAO();
+            int resourceId = dao.insertAndGetId(resourceName, description);
+
+            // 3) Tạo Permission mới
+            Permission p = new Permission();
+            p.setResourceId(resourceId);
+//            p.setRoleId(roleId);
+            p.setRoleId(1);
+
+            p.setCanCreate(canCreate);
+            p.setCanRead(canRead);
+            p.setCanUpdate(canUpdate);
+            p.setCanDelete(canDelete);
+            int permissionId = dao.insertAndGetId(p);
+
+            // 4) Build JSON response
+            json.put("success", true);
+            json.put("permissionId", permissionId);
+            json.put("resourceId", resourceId);
+            json.put("resourceName", resourceName);
+            json.put("canCreate", canCreate);
+            json.put("canRead", canRead);
+            json.put("canUpdate", canUpdate);
+            json.put("canDelete", canDelete);
+
+            resp.getWriter().write(json.toString());
+
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            json.put("success", false);
+            json.put("error", e.getMessage());
+            resp.getWriter().write(json.toString());
         }
-
-        if (categoryName == null || categoryName.isEmpty()) {
-            request.setAttribute("errorMessage", "Category name cannot be empty!");
-            forwardWithData(request, response);
-            return;
-        }
-
-        
-        if (!categoryName.matches("^[\\p{L}\\s]+$")) {
-            request.setAttribute("errorMessage", "Category name must only contain letters and spaces (no numbers or symbols).");
-            forwardWithData(request, response);
-            return;
-        }
-
-        Integer parentId = null;
-        if (parentIdStr != null && !parentIdStr.trim().isEmpty()) {
-            try {
-                parentId = Integer.parseInt(parentIdStr);
-            } catch (NumberFormatException e) {
-                request.setAttribute("errorMessage", "Invalid parent category ID.");
-                forwardWithData(request, response);
-                return;
-            }
-        }
-
-        CategoryDAO dao = new CategoryDAO();
-        dao.insertCategory(categoryName, parentId);
-
-        request.setAttribute("successMessage", "Category added successfully!");
-        request.setAttribute("categoryName", categoryName);
-        forwardWithData(request, response);
-    }
-
-    private void forwardWithData(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory();
-        request.setAttribute("allCategories", parentCategories);
-
-        request.getRequestDispatcher("addcategory.jsp").forward(request, response);
     }
 
     /**
