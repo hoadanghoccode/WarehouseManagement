@@ -3,11 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.xml</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.properties</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/ChangePasswordController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddCategory.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/AdminResetPasswordController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/nbproject/build-impl.xml</file>
         </group>
     </open-files>
 </project-private>
