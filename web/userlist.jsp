@@ -364,7 +364,7 @@
                 <c:if test="${not empty error}">
                     <div class="error-message">${error}</div>
                 </c:if>
-                <form action="${pageContext.request.contextPath}/userlist" method="post">
+                    <form action="${pageContext.request.contextPath}/userlist" method="post">
                     <input type="hidden" name="action" value="create" />
                     <div class="form-group">
                         <label for="fullName">Full Name</label>

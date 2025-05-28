@@ -4,8 +4,11 @@
     <head>
         <title>Category List</title>
         <!--        file css-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="css/categorylist.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
     </head>
 
     <body>
@@ -21,12 +24,18 @@
                                 <input type="text" name="search" value="${search}" placeholder="Search categories..." class="search-input" />
                             </div>
 
+                            <select class="form-select" id="statusFilter" name="status" onchange="this.form.submit()">
+                                <option value="">All Status</option>
+                                <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
 
                         </form>
                     </div>
-                    <a href="addcategory" class="btn btn-success">
+                    <button type="button" class="btn btn-success" onclick="openAddModal()">
                         <i class="fas fa-plus"></i> Add Category
-                    </a>
+                    </button>
+
                 </div>
             </div>
 
@@ -52,9 +61,10 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th style="width: 60px;">#</th>
-                                    <th>Name</th>
-                                    <th style="width: 200px;">Action</th>
+                                    <th class="col-md-1">#</th>
+                                    <th class="col-md-5">Name</th>
+                                    <th class="col-md-2">Status</th>
+                                    <th class="col-md-2">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -81,8 +91,25 @@
                                             </c:choose>
                                         </td>
                                         <td>
-                                            <div class="action-buttons">
+                                            <!-- Switch button -->
+                                            <form action="categorylist" method="post" style="display:inline;">
+                                                <input type="hidden" name="action" value="updateStatus" />
+                                                <input type="hidden" name="categoryId" value="${category.categoryId}" />
+                                                <input type="hidden" name="page" value="${page}" />
+                                                <input type="hidden" name="search" value="${search}" />
+                                                <input type="hidden" name="statusFilter" value="${param.status}" />
 
+                                                <label class="switch">
+                                                    <input type="checkbox" name="statusParam"
+                                                           onchange="this.form.submit()"
+                                                           ${category.status == 'active' ? 'checked' : ''}>
+                                                    <span class="slider"></span>
+                                                </label>
+                                            </form>
+                                        </td>
+
+                                        <td>
+                                            <div class="action-buttons">
                                                 <a href="updatecategory?cid=${category.categoryId}" class="btn btn-primary">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -94,10 +121,10 @@
                                         </td>
                                     </tr>
 
-                                    <!-- Sub-category row -->
+                                    <!-- Sub-category row with table format -->
                                     <c:if test="${category.subCategoryCount > 0}">
                                         <tr class="subcat-row" id="tooltip-${status.index}" style="display: none;">
-                                            <td colspan="3">
+                                            <td colspan="4">
                                                 <div class="subcat-content">
                                                     <div class="subcat-title">
                                                         <i class="fas fa-list-ul"></i> 
@@ -106,27 +133,51 @@
 
                                                     <c:choose>
                                                         <c:when test="${not empty category.subCategories}">
-                                                            <ul class="subcat-list">
-                                                                <c:forEach var="sub" items="${category.subCategories}" varStatus="subStatus">
-                                                                    <li class="subcat-item">
-                                                                        <div class="subcat-left">
-                                                                            <i class="fas fa-chevron-right" style="color: #3b82f6; font-size: 10px;"></i>
-                                                                            <strong>${subStatus.index + 1}.</strong> 
-                                                                            <a href="materiallist?cid=${sub.categoryId}">${sub.name} (${sub.materialCount})</a>
-                                                                        </div>
+                                                            <table class="subcat-table">
 
-                                                                        <div class="action-buttons">
-                                                                            <a href="updatecategory?cid=${sub.categoryId}" class="btn btn-primary">
-                                                                                <i class="fas fa-edit" style="color: white;"></i>
-                                                                            </a>
-                                                                            <a href="deletecategory?cid=${sub.categoryId}" 
-                                                                               class="btn btn-danger">
-                                                                                <i class="fas fa-trash" style="color: white;"></i>
-                                                                            </a>
-                                                                        </div>
-                                                                    </li>
-                                                                </c:forEach>
-                                                            </ul>
+                                                                <tbody>
+                                                                    <c:forEach var="sub" items="${category.subCategories}" varStatus="subStatus">
+                                                                        <tr>
+                                                                            <td>
+                                                                                <span class="subcat-number">${subStatus.index + 1}.</span>
+                                                                            </td>
+                                                                            <td style="width: 583px">
+                                                                                <div class="subcat-name">
+
+                                                                                    <a href="material?cid=${sub.categoryId}">${sub.name}</a>
+                                                                                    <span class="material-count" style="font-size: 12px">(${sub.materialCount})</span>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td style="width: 235px">
+                                                                                <form action="categorylist" method="post" style="display:inline;">
+                                                                                    <input type="hidden" name="action" value="updateStatus" />
+                                                                                    <input type="hidden" name="categoryId" value="${sub.categoryId}" />
+                                                                                    <input type="hidden" name="page" value="${page}" />
+                                                                                    <input type="hidden" name="search" value="${search}" />
+                                                                                    <input type="hidden" name="statusFilter" value="${param.status}" />
+
+                                                                                    <label class="switch">
+                                                                                        <input type="checkbox" name="statusParam"
+                                                                                               onchange="this.form.submit()"
+                                                                                               ${sub.status == 'active' ? 'checked' : ''}>
+                                                                                        <span class="slider"></span>
+                                                                                    </label>
+                                                                                </form>
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="action-buttons">
+                                                                                    <a href="updatecategory?cid=${sub.categoryId}" class="btn btn-primary">
+                                                                                        <i class="fas fa-edit"></i>
+                                                                                    </a>
+                                                                                    <a href="deletecategory?cid=${sub.categoryId}" class="btn btn-danger">
+                                                                                        <i class="fas fa-trash"></i>
+                                                                                    </a>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </c:forEach>
+                                                                </tbody>
+                                                            </table>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <p style="color: #6b7280; font-style: italic;">
@@ -290,6 +341,104 @@
             </c:if>
         </div>
 
+        <!-- Add Category Modal -->
+
+        <div id="addModal" class="modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Add New Category</h2>
+                    <span class="close" onclick="closeModal('addModal')">&times;</span>
+                </div>
+                <form action="categorylist" method="post">
+                    <input type="hidden" name="action" value="add"/>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="addCategoryName">Category Name:</label>
+                            <input type="text" id="addCategoryName" name="categoryName" placeholder="Enter category name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="addParentId">Parent Category (optional):</label>
+                            <select id="addParentId" name="parentId">
+                                <option value="0">-- None --</option>
+                                <c:forEach var="cat" items="${parentCategories}">
+                                    <option value="${cat.categoryId}">${cat.name}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-blue">Save Category</button>
+                        <button type="button" class="btn btn-gray" onclick="closeModal('addModal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+
         <script src="js/categorylist.js"></script>
+
+        <script>
+//                            function openAddModal() {
+//                                document.getElementById('addModal').style.display = 'flex';
+//                                document.getElementById('addCategoryName').focus();
+//                            }
+//
+//                            function closeModal(id) {
+//                                document.getElementById(id).style.display = 'none';
+//                            }
+
+                            const status = new URLSearchParams(window.location.search).get("status");
+                            if (status === "success") {
+                                alert("Thêm danh mục thành công!");
+                            } else if (status === "fail") {
+                                alert("Thêm danh mục thất bại!");
+                            }
+
+                            function openAddModal() {
+                                console.log("Opening modal..."); // Debug
+                                document.getElementById('addModal').style.display = 'flex';
+                                document.getElementById('addCategoryName').focus();
+                            }
+
+                            function closeModal(id) {
+                                document.getElementById(id).style.display = 'none';
+                                // Clear form khi đóng modal
+                                document.getElementById('addCategoryName').value = '';
+                                document.getElementById('addParentId').value = '0';
+                            }
+
+                            // Tự động hiển thị modal khi có lỗi validation
+                            document.addEventListener('DOMContentLoaded', function () {
+            <c:if test="${showAddModal}">
+                                console.log("Auto showing modal due to validation error");
+                                openAddModal();
+
+                                // Restore form values
+                <c:if test="${not empty categoryName}">
+                                document.getElementById('addCategoryName').value = '${categoryName}';
+                </c:if>
+                <c:if test="${not empty parentId}">
+                                document.getElementById('addParentId').value = '${parentId}';
+                </c:if>
+            </c:if>
+
+                                // Hiển thị success message nếu có
+            <c:if test="${not empty successMessage}">
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    alert('${successMessage}');
+                                });
+            </c:if>
+                            });
+
+                            // Hiển thị error message nếu có
+            <c:if test="${not empty errorMessage}">
+                            document.addEventListener('DOMContentLoaded', function () {
+                                alert('${errorMessage}');
+                            });
+            </c:if>
+        </script>
+
     </body>
 </html>

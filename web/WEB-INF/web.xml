@@ -30,7 +30,9 @@
     </servlet>
     <servlet>
         <servlet-name>DeletePermissionController</servlet-name>
-        <servlet-class>controller.DeletePermissionController</servlet-class>
+        <servlet-class>controller.DeletePermissionController</servlet-class>\
+    </servlet>
+    <servlet>
         <servlet-name>UpdateCategory</servlet-name>
         <servlet-class>controller.UpdateCategory</servlet-class>
     </servlet>
@@ -73,6 +75,8 @@
     <servlet-mapping>
         <servlet-name>DeletePermissionController</servlet-name>
         <url-pattern>/deletepermission</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>UpdateCategory</servlet-name>
         <url-pattern>/updatecategory</url-pattern>
     </servlet-mapping>
