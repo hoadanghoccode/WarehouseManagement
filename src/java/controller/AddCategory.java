@@ -59,7 +59,7 @@ public class AddCategory extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory(); // hoặc getAllParentCategories()
+        List<Category> parentCategories = dao.getAllParentCategory(null); // hoặc getAllParentCategories()
         request.setAttribute("allCategories", parentCategories);
         request.getRequestDispatcher("addcategory.jsp").forward(request, response);
     }
@@ -76,11 +76,22 @@ public class AddCategory extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String categoryName = request.getParameter("categoryName");
-        String parentIdStr = request.getParameter("parentId"); // Nhận từ form
+        String parentIdStr = request.getParameter("parentId");
 
-        if (categoryName == null || categoryName.trim().isEmpty()) {
+        if (categoryName != null) {
+            categoryName = categoryName.trim();
+        }
+
+        if (categoryName == null || categoryName.isEmpty()) {
             request.setAttribute("errorMessage", "Category name cannot be empty!");
-            request.getRequestDispatcher("addcategory.jsp").forward(request, response);
+            forwardWithData(request, response);
+            return;
+        }
+
+        
+        if (!categoryName.matches("^[\\p{L}\\s]+$")) {
+            request.setAttribute("errorMessage", "Category name must only contain letters and spaces (no numbers or symbols).");
+            forwardWithData(request, response);
             return;
         }
 
@@ -90,16 +101,25 @@ public class AddCategory extends HttpServlet {
                 parentId = Integer.parseInt(parentIdStr);
             } catch (NumberFormatException e) {
                 request.setAttribute("errorMessage", "Invalid parent category ID.");
-                request.getRequestDispatcher("addcategory.jsp").forward(request, response);
+                forwardWithData(request, response);
                 return;
             }
         }
 
         CategoryDAO dao = new CategoryDAO();
-        dao.insertCategory(categoryName.trim(), parentId); // DAO mới có thêm parentId
+        dao.insertCategory(categoryName, parentId);
 
         request.setAttribute("successMessage", "Category added successfully!");
-        request.setAttribute("categoryName", categoryName.trim());
+        request.setAttribute("categoryName", categoryName);
+        forwardWithData(request, response);
+    }
+
+    private void forwardWithData(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        CategoryDAO dao = new CategoryDAO();
+        List<Category> parentCategories = dao.getAllParentCategory(null);
+        request.setAttribute("allCategories", parentCategories);
+
         request.getRequestDispatcher("addcategory.jsp").forward(request, response);
     }
 

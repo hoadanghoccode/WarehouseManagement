@@ -5,12 +5,14 @@
 package controller;
 
 import dal.CategoryDAO;
+import dal.MaterialDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Category;
 
 /**
  *
@@ -57,10 +59,29 @@ public class DeleteCategory extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int cid = Integer.parseInt(request.getParameter("cid"));
-        
-        CategoryDAO dao = new CategoryDAO();
-        dao.deleteCategory(cid);
-        response.sendRedirect("categorylist");
+
+        CategoryDAO cDao = new CategoryDAO();
+        MaterialDAO mDao = new MaterialDAO();
+
+        Category cate = cDao.getCategoryById(cid);
+        int countMaterials = 0;
+
+        if (cate.getParentId() == null) {
+            Category parentCate = cDao.getParentCategoryById(cate.getCategoryId());
+            for (Category subCate : parentCate.getSubCategories()) {
+                countMaterials += mDao.countMaterialByCategoryId(subCate.getCategoryId());
+            }
+            request.setAttribute("countMaterial", countMaterials);
+            request.setAttribute("countSub", parentCate.getSubCategoryCount());
+            request.getRequestDispatcher("deletecategory.jsp").forward(request, response);
+        } else {
+            cate.setMaterialCount(mDao.countMaterialByCategoryId(cate.getCategoryId()));
+            countMaterials = cate.getMaterialCount();
+            request.setAttribute("countMaterial", countMaterials);
+
+            request.getRequestDispatcher("deletecategory.jsp").forward(request, response);
+        }
+
     }
 
     /**
@@ -74,7 +95,12 @@ public class DeleteCategory extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        int cid = Integer.parseInt(request.getParameter("cid"));
+
+        CategoryDAO dao = new CategoryDAO();
+        dao.deleteCategory(cid);
+        request.setAttribute("successMessage", "Category delete successfully!");
+        response.sendRedirect("categorylist");
     }
 
     /**

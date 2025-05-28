@@ -4,23 +4,22 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
+import java.sql.SQLException;
+import org.json.JSONObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Users;
+import model.Permission;
 
 /**
  *
- * @author duong
+ * @author PC
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
-public class LoginController extends HttpServlet {
+public class AddPermissionController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +38,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ResetPassword</title>");
+            out.println("<title>Servlet AddPermissionController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ResetPassword at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet AddPermissionController at " + "hello get" + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,7 +59,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -72,31 +71,54 @@ public class LoginController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
-
-        String email = request.getParameter("email");
-        String pass = request.getParameter("password");
-
+        resp.setContentType("application/json;charset=UTF-8");
+        JSONObject json = new JSONObject();
         try {
+            // 1) Đọc params (form-encoded hoặc AJAX gửi)
+            String resourceName = req.getParameter("resourceName");
+            String description = req.getParameter("description");
+//            int roleId = Integer.parseInt(req.getParameter("roleId"));
 
-            UserDAO userDAO = new UserDAO();
-            Users u = userDAO.checkLogin(email, pass);
-            if (u == null) {
-                request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-            } else {
-                HttpSession session = request.getSession();
-                session.setAttribute("user", u);
-                response.sendRedirect("index.jsp");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            boolean canCreate = "true".equals(req.getParameter("canCreate"));
+            boolean canRead = "true".equals(req.getParameter("canRead"));
+            boolean canUpdate = "true".equals(req.getParameter("canUpdate"));
+            boolean canDelete = "true".equals(req.getParameter("canDelete"));
+
+            // 2) Tạo Resource mới
+            AuthenDAO dao = new AuthenDAO();
+            int resourceId = dao.insertAndGetId(resourceName, description);
+
+            // 3) Tạo Permission mới
+            Permission p = new Permission();
+            p.setResourceId(resourceId);
+//            p.setRoleId(roleId);
+            p.setRoleId(1);
+
+            p.setCanCreate(canCreate);
+            p.setCanRead(canRead);
+            p.setCanUpdate(canUpdate);
+            p.setCanDelete(canDelete);
+            int permissionId = dao.insertAndGetId(p);
+
+            // 4) Build JSON response
+            json.put("success", true);
+            json.put("permissionId", permissionId);
+            json.put("resourceId", resourceId);
+            json.put("resourceName", resourceName);
+            json.put("canCreate", canCreate);
+            json.put("canRead", canRead);
+            json.put("canUpdate", canUpdate);
+            json.put("canDelete", canDelete);
+
+            resp.getWriter().write(json.toString());
+
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            json.put("success", false);
+            json.put("error", e.getMessage());
+            resp.getWriter().write(json.toString());
         }
     }
 

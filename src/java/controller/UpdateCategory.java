@@ -4,23 +4,21 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.CategoryDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Users;
+import java.util.List;
+import model.Category;
 
 /**
  *
- * @author duong
+ * @author ADMIN
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
-public class LoginController extends HttpServlet {
+public class UpdateCategory extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +37,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ResetPassword</title>");
+            out.println("<title>Servlet UpdateCategory</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ResetPassword at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet UpdateCategory at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,7 +58,18 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        // Lấy category đang sửa
+        int id = Integer.parseInt(request.getParameter("cid"));
+        CategoryDAO dao = new CategoryDAO();
+        Category current = dao.getCategoryById(id);
+
+        // Lấy tất cả categories để hiển thị dropdown
+        List<Category> allCategories = dao.getIndentedCategories();
+
+        request.setAttribute("currentCategory", current);
+        request.setAttribute("allCategories", allCategories);
+        request.getRequestDispatcher("updatecategory.jsp").forward(request, response);
+
     }
 
     /**
@@ -74,30 +83,39 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
+        int id = Integer.parseInt(request.getParameter("id"));
+        String name = request.getParameter("name");
+        int parentId = request.getParameter("parentId") != null ? Integer.parseInt(request.getParameter("parentId")) : 0;
 
-        String email = request.getParameter("email");
-        String pass = request.getParameter("password");
+        // Lấy DAO
+        CategoryDAO dao = new CategoryDAO();
 
-        try {
-
-            UserDAO userDAO = new UserDAO();
-            Users u = userDAO.checkLogin(email, pass);
-            if (u == null) {
-                request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-            } else {
-                HttpSession session = request.getSession();
-                session.setAttribute("user", u);
-                response.sendRedirect("index.jsp");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+        if (parentId != 0 && dao.isCircularParent(id, parentId)) {
+            request.getSession().setAttribute("error", "Không thể cập nhật: vòng lặp phân cấp!");
+            response.sendRedirect("updatecategory?cid=" + id);
+            return;
         }
+
+        Category parentCategory = parentId == 0 ? null : dao.getCategoryById(parentId);
+        if (parentCategory != null && parentCategory.getParentId() != null) {
+            request.getSession().setAttribute("error", "Không thể cập nhật: vượt quá 2 cấp phân loại (chỉ cha và con).");
+            response.sendRedirect("updatecategory?cid=" + id);
+            return;
+        }
+
+        // Nếu hợp lệ → tiếp tục cập nhật
+        Category updated = new Category();
+        updated.setCategoryId(id);
+        updated.setName(name);
+        if (parentId == 0) {
+            updated.setParentId(null);
+        } else {
+            updated.setParentId(dao.getCategoryById(parentId));
+        }
+        dao.updateCategory(updated);
+        request.setAttribute("successMessage", true);
+        request.setAttribute("categoryName", name);
+        request.getRequestDispatcher("updatecategory.jsp").forward(request, response);
     }
 
     /**

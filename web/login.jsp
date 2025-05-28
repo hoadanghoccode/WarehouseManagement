@@ -107,12 +107,15 @@
                                         <input type="text" name="email" class="form-control" placeholder="Enter your email" required>
                                     </div>
                                     <div>
-                                        <input type="text" name="password" class="form-control" placeholder="Password" required>
+                                        <input type="password" name="password" class="form-control" placeholder="Password" required>
                                     </div>                
                                     <button type="submit" class="btn_1 full_width text-center">Log in</button>
                                     <div class="text-center">
                                         <a href="resetpassword.jsp" class="pass_forget_btn">Reset Password?</a>
                                     </div>
+                                    <a href="https://accounts.google.com/o/oauth2/auth?scope=email%20profile&access_type=online&redirect_uri=http://localhost:8080/WarehouseManagement/login-google&response_type=code&client_id=1016583625353-9670o6t0bql62u5cf43sjvc31d9r6dcr.apps.googleusercontent.com">
+                                        <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" alt="Login with Google"/>
+                                    </a>
                                 </form>
                             </div>
                         </div>

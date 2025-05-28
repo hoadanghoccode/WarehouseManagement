@@ -4,23 +4,20 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Users;
+import java.sql.SQLException;
 
 /**
  *
- * @author duong
+ * @author PC
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
-public class LoginController extends HttpServlet {
+public class DeletePermissionController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +36,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ResetPassword</title>");
+            out.println("<title>Servlet DeletePermissionController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ResetPassword at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet DeletePermissionController at hello " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,7 +57,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -74,29 +71,24 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
 
-        String email = request.getParameter("email");
-        String pass = request.getParameter("password");
+        int permId = Integer.parseInt(request.getParameter("permId"));
+        AuthenDAO dao = new AuthenDAO();
 
         try {
-
-            UserDAO userDAO = new UserDAO();
-            Users u = userDAO.checkLogin(email, pass);
-            if (u == null) {
-                request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("login.jsp").forward(request, response);
+            boolean deleted = dao.deleteResourceById(permId);
+            if (deleted) {
+                // Nếu xoá thành công, chuyển về trang danh sách hoặc thông báo thành công
+//                response.sendRedirect("resource-list.jsp?status=deleted");
             } else {
-                HttpSession session = request.getSession();
-                session.setAttribute("user", u);
-                response.sendRedirect("index.jsp");
+                // Nếu xoá không thành công (vd: không tồn tại ID), có thể hiển thị lỗi
+                request.setAttribute("error", "Không thể xóa resource.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            request.setAttribute("error", "Lỗi hệ thống khi xóa resource.");
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
     }
 

@@ -6,16 +6,10 @@
             <name>WarehouseManagement</name>
             <minimum-ant-version>1.6.5</minimum-ant-version>
             <web-module-libraries>
-
-                <library dirs="200">
-                    <file>${file.reference.jaxb-api-2.3.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
                 <library dirs="200">
                     <file>${file.reference.mysql-connector-java-8.0.30.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-
                 <library dirs="200">
                     <file>${file.reference.jakarta.servlet.jsp-api-3.1.1.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
@@ -29,11 +23,43 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.jaxb-api-2.3.1.jar}</file>
+                    <file>${file.reference.mysql-connector-java-8.0.30.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.mysql-connector-java-8.0.30.jar}</file>
+                    <file>${file.reference.json-20230227.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.jakarta.activation-2.0.1.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.jakarta.mail-2.0.1.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+<<<<<<< HEAD
+                    <file>${file.reference.fluent-hc-4.5.13.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.httpclient-4.5.13.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.httpcore-4.4.13.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.json-20210307.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.commons-logging-1.2.jar}</file>
+=======
+                    <file>${file.reference.json-20230227.jar-1}</file>
+>>>>>>> minh
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>

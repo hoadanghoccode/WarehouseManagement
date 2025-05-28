@@ -6,11 +6,8 @@ import model.Category;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CategoryDAO extends DBContext {
-
 
     public Category getCategoryById(int id) {
         String query = "SELECT * FROM Category WHERE Category_id = ?";
@@ -23,6 +20,7 @@ public class CategoryDAO extends DBContext {
                 cate.setCategoryId(rs.getInt("Category_id"));
                 cate.setName(rs.getString("Name"));
                 cate.setParentId(getCategoryById(rs.getInt("Parent_id")));
+                cate.setStatus(rs.getString("Status"));
                 return cate;
             }
         } catch (SQLException e) {
@@ -43,6 +41,7 @@ public class CategoryDAO extends DBContext {
                 cate.setCategoryId(rs.getInt("Category_id"));
                 cate.setName(rs.getString("Name"));
                 cate.setParentId(getCategoryById(rs.getInt("Parent_id")));
+                cate.setStatus(rs.getString("Status"));
                 list.add(cate);
             }
         } catch (SQLException e) {
@@ -51,30 +50,73 @@ public class CategoryDAO extends DBContext {
         return list;
     }
 
-    public List<Category> getAllParentCategory() {
+    public List<Category> getAllParentCategory(String status) {
         List<Category> list = new ArrayList<>();
-        String query = "SELECT c.Category_id AS Parent_id, c.Name AS Parent_Name, \n"
-                + "    COUNT(sc.Category_id) AS SubCateNum FROM Category c \n"
-                + "    LEFT JOIN Category sc ON sc.Parent_id = c.Category_id \n"
-                + "    WHERE c.Parent_id IS NULL GROUP BY c.Category_id, c.Name";
+        String query = "SELECT c.Category_id AS Parent_id, c.Name AS Parent_Name, c.Status, "
+                + "COUNT(sc.Category_id) AS SubCateNum "
+                + "FROM Category c "
+                + "LEFT JOIN Category sc ON sc.Parent_id = c.Category_id "
+                + "WHERE c.Parent_id IS NULL ";
+
+        // Nếu có truyền filter status thì thêm điều kiện
+        if (status != null && !status.isEmpty()) {
+            query += " AND c.Status = ? ";
+        }
+
+        query += "GROUP BY c.Category_id, c.Name, c.Status";
 
         try {
             PreparedStatement ps = connection.prepareStatement(query);
+
+            if (status != null && !status.isEmpty()) {
+                ps.setString(1, status);
+            }
+
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-
                 Category cate = new Category();
                 cate.setCategoryId(rs.getInt("Parent_id"));
                 cate.setName(rs.getString("Parent_Name"));
                 cate.setParentId(null);
                 cate.setSubCategories(getSubCategoryByParentId(rs.getInt("Parent_id")));
                 cate.setSubCategoryCount(rs.getInt("SubCateNum"));
+                cate.setStatus(rs.getString("Status"));
                 list.add(cate);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            System.out.println("getAllParentCategory error: " + e.getMessage());
         }
         return list;
+    }
+
+    public Category getParentCategoryById(int categoryId) {
+        String query = "SELECT c.Category_id AS Parent_id, c.Name AS Parent_Name, c.Status,"
+                + " COUNT(sc.Category_id) AS SubCateNum "
+                + "FROM Category c "
+                + "LEFT JOIN Category sc ON sc.Parent_id = c.Category_id "
+                + "WHERE c.Parent_id IS NULL AND c.Category_id = ? "
+                + "GROUP BY c.Category_id, c.Name, c.Status";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, categoryId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Category cate = new Category();
+                cate.setCategoryId(rs.getInt("Parent_id"));
+                cate.setName(rs.getString("Parent_Name"));
+                cate.setParentId(null);
+                cate.setSubCategories(getSubCategoryByParentId(rs.getInt("Parent_id")));
+                cate.setSubCategoryCount(rs.getInt("SubCateNum"));
+                cate.setStatus(rs.getString("Status"));
+                return cate;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public List<Category> getAllSubCategory() {
@@ -88,6 +130,7 @@ public class CategoryDAO extends DBContext {
                 cate.setCategoryId(rs.getInt("Category_id"));
                 cate.setName(rs.getString("Name"));
                 cate.setParentId(getCategoryById(rs.getInt("Parent_id")));
+                cate.setStatus(rs.getString("Status"));
                 list.add(cate);
             }
         } catch (SQLException e) {
@@ -125,7 +168,7 @@ public class CategoryDAO extends DBContext {
     }
 
     public void updateCategory(Category category) {
-        String query = "UPDATE Category SET Name = ?, Parent_id = ? WHERE Category_id = ?";
+        String query = "UPDATE Category SET Name = ?, Parent_id = ?, Status = ? WHERE Category_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, category.getName());
@@ -136,7 +179,9 @@ public class CategoryDAO extends DBContext {
                 ps.setInt(2, category.getParentId().getCategoryId());
             }
 
-            ps.setInt(3, category.getCategoryId());
+            ps.setString(3, category.getStatus());
+            ps.setInt(4, category.getCategoryId());
+
             ps.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Update category error: " + e.getMessage());
@@ -165,12 +210,92 @@ public class CategoryDAO extends DBContext {
         return arr;
     }
 
+    public boolean isCircularParent(int categoryId, int newParentId) {
+        String sql = """
+        WITH RECURSIVE sub_tree AS (
+            SELECT Category_id FROM Category WHERE Category_id = ?
+            UNION ALL
+            SELECT c.Category_id
+            FROM Category c
+            INNER JOIN sub_tree st ON c.Parent_id = st.Category_id
+        )
+        SELECT * FROM sub_tree WHERE Category_id = ?;
+    """;
+
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, categoryId);     // category đang sửa
+            st.setInt(2, newParentId);    // parent mới muốn gán
+
+            ResultSet rs = st.executeQuery();
+            return rs.next(); // Nếu có dòng nào → là vòng lặp
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    
+    public List<Category> getAllCategories() {
+        List<Category> list = new ArrayList<>();
+        String sql = "SELECT * FROM Category WHERE Status = 'active'";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Category cate = new Category();
+                cate.setCategoryId(rs.getInt("Category_id"));
+                cate.setName(rs.getString("Name"));
+                cate.setStatus(rs.getString("Status"));
+                int parentId = rs.getInt("Parent_id");
+                if (!rs.wasNull()) {
+                    cate.setParentId(getCategoryById(parentId));
+                } else {
+                    cate.setParentId(null);
+                }
+                list.add(cate);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Category> getIndentedCategories() {
+        List<Category> all = getAllCategories();
+
+        // Lọc chỉ những category active
+        List<Category> activeOnly = new ArrayList<>();
+        for (Category c : all) {
+            if ("active".equalsIgnoreCase(c.getStatus())) {
+                activeOnly.add(c);
+            }
+        }
+
+        List<Category> result = new ArrayList<>();
+        buildHierarchy(null, activeOnly, result);
+        return result;
+    }
+
+    private void buildHierarchy(Category parent, List<Category> all, List<Category> result) {
+        for (Category cat : all) {
+            boolean isTop = (parent == null && cat.getParentId() == null);
+            boolean isChild = (parent != null && cat.getParentId() != null /*Loại ra category cha*/
+                    && cat.getParentId().getCategoryId() == parent.getCategoryId());
+
+            if (isTop || isChild) {
+                result.add(cat); // giữ nguyên tên gốc
+
+                buildHierarchy(cat, all, result); // đệ quy con
+            }
+        }
+    }
+
     public static void main(String[] args) {
 
 //        List<Category> list = new CategoryDAO().getAllCategory();
 //        Category list = new CategoryDAO().insertCategory('Khoan');
         CategoryDAO dao = new CategoryDAO();
-        System.out.println("" + dao.getAllParentCategory().size());
+        System.out.println("");
 
     }
 }
