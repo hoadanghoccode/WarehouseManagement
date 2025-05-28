@@ -3,34 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-<<<<<<< HEAD
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Group.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Users.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/UserDetailServlet.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/AddCategory.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/userlist.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/UserListServlet.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/UserDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/LoginController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/util/GoogleUtils.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/Users.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/index.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/login.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/LoginGoogleController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/constant/IConstant.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/UserDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/filter/LoginValidationFilter.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/AdminResetPasswordController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/util/ResetService.java</file>
-=======
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/css/categorylist.css</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/categorylist.jsp</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/categorylist.js</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
->>>>>>> minh
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/UpdateCategory.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
         </group>
     </open-files>
 </project-private>
