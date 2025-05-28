@@ -81,19 +81,6 @@ public class LoginController extends HttpServlet {
         String pass = request.getParameter("password");
 
         try {
-            // Validate form
-            if (email == null || email.trim().isEmpty()) {
-                request.setAttribute("error", "Please enter email !!");
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-                return;
-            }
-
-            if (pass == null || pass.trim().isEmpty()) {
-                request.setAttribute("error", "Please enter password !!");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-                return;
-            }
 
             UserDAO userDAO = new UserDAO();
             Users u = userDAO.checkLogin(email, pass);
