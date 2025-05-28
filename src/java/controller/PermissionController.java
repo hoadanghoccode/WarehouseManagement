@@ -86,7 +86,7 @@ public class PermissionController extends HttpServlet {
 //            request.setAttribute("permissions", permissions);
 //            request.getRequestDispatcher("/authentication.jsp").forward(request, response);
             // Lấy list permission
-            List<Permission> list = dao.getPermission(1);
+            List<Permission> list = dao.getPermission();
 // Đẩy thẳng List<Permission> vào request
             request.setAttribute("permissionsList", list);
             System.out.println("DEBUG: permissions count = " + list.size());

@@ -1,15 +1,12 @@
-<%--
-    Document   : test
-    Created on : May 20, 2025, 11:56:54 PM
-    Author     : PC
---%>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Permission</title>
+        <meta charset="UTF-8">
+        <title>Permission List</title>
+        <link rel="stylesheet" type="text/css" href="css/permissionlist.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="icon" href="img/logo.png" type="image/png">
         <!-- Bootstrap CSS -->
@@ -46,244 +43,237 @@
         <!-- style CSS -->
         <link rel="stylesheet" href="css/style1.css" />
         <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
-        <style>
-            .custom-switch .form-check-input {
-                width: 2.5em;
-                height: 1.5em;
-            }
-            .custom-switch .form-check-input:checked {
-                background-color: #198754;
-            }
-            .table-bordered th, .table-bordered td {
-                border: 1px solid #dee2e6;
-            }
-            .table-header {
-                background-color: #f8f9fa;
-                border-bottom: 2px solid #dee2e6;
-            }
-            .invalid-feedback {
-                display: none;
-            }
-            .is-invalid ~ .invalid-feedback {
-                display: block;
-            }
-            /* Kéo rộng nút Previous */
-            #permissionsTable_paginate .paginate_button.previous {
-                /* Cho nút hiển thị dưới dạng inline-block để width có tác dụng */
-                display: inline-block;
-                /* Đặt chiều rộng tối thiểu */
-                min-width: 100px;
-                /* Căn giữa text */
-                text-align: center;
-                /* Tăng padding nếu muốn */
-                padding: 0.4em 1em;
-            }
-
-            /* (Tuỳ chọn) Đồng bộ style cho tất cả paginate_button */
-            #permissionsTable_paginate .paginate_button {
-                padding: 0.4em 1em;
-            }
-        </style>
     </head>
     <body>
-        <%@ include file="sidebar.jsp" %>
+        <%--<%@ include file="sidebar.jsp" %>--%>
+        <jsp:include page="sidebar.jsp" flush="true"/>
+        <!-- … đã include sidebar & navbar … -->
         <section class="main_content dashboard_part">
             <%@ include file="navbar.jsp" %>
-            <div class="container mt-4">
-
-                <!-- Nút mở modal -->
-                <button id="addPermissionBtn"
-                        class="btn btn-success"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addPermissionModal">
-                    Add Permission
-                </button>
+            <div class="container">
+                <!-- Header + Search + Add -->
+                <div class="header">
+                    <h1 class="title">Resource List</h1>
+                    <div class="header-actions">
+                        <form action="resource" method="get" class="search-form">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" name="search" value="${search}"
+                                   placeholder="Search resources..." class="search-input"/>
+                        </form>
+                        <button id="addPermissionBtn"
+                                class="btn btn-success"
+                                data-bs-toggle="modal"
+                                data-bs-target="#addPermissionModal">
+                            Add Permission
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Modal for Adding Permission -->
-                <div class="modal fade" id="addPermissionModal" tabindex="-1"
-                     aria-labelledby="addPermissionModalLabel" aria-hidden="true">
+                <!-- Modal -->
+                <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                            <form id="addPermissionForm"
-                                  action="${pageContext.request.contextPath}/permission"
-                                  method="post">
-                                <!-- Nếu cần userId để lấy roleId -->
-                                <input type="hidden" name="userId" value="${sessionScope.userId}" />
-
+                            <form id="addPermissionForm">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="addPermissionModalLabel">
-                                        Add New Resource & Permission
-                                    </h5>
-                                    <button type="button" class="btn-close"
-                                            data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <h5 class="modal-title">Add New Permission</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-
                                 <div class="modal-body">
-                                    <!-- Người dùng nhập tên resource mới -->
                                     <div class="mb-3">
-                                        <label for="resourceName" class="form-label">
-                                            Resource Name
-                                        </label>
-                                        <input type="text"
-                                               class="form-control"
-                                               id="resourceName"
-                                               name="resourceName"
-                                               placeholder="Enter new resource name"
-                                               required>
+                                        <label for="resourceName" class="form-label">Resource Name</label>
+                                        <input type="text" id="resourceName" name="resourceName"
+                                               class="form-control" required>
                                     </div>
-
-                                    <!-- Các quyền cho resource -->
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox"
-                                               id="canCreate" name="canCreate" />
-                                        <label class="form-check-label" for="canCreate">
-                                            Can Create
-                                        </label>
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Description</label>
+                                        <input type="text" id="description" name="description"
+                                               class="form-control" required>
                                     </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox"
-                                               id="canRead" name="canRead" />
-                                        <label class="form-check-label" for="canRead">
-                                            Can Read
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox"
-                                               id="canUpdate" name="canUpdate" />
-                                        <label class="form-check-label" for="canUpdate">
-                                            Can Update
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox"
-                                               id="canDelete" name="canDelete" />
-                                        <label class="form-check-label" for="canDelete">
-                                            Can Delete
-                                        </label>
-                                    </div>
+                                    <div id="addError" class="text-danger" style="display:none;"></div>
                                 </div>
-
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-primary">
-                                        Save Permission
-                                    </button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save</button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                <div class="container mt-4">
-                    <form action="permission" method="post">
-                        <table id="permissionsTable" class="table table-bordered display responsive nowrap" style="width:100%">
-                            <thead class="table-header">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Create</th>
-                                    <th>Read</th>
-                                    <th>Update</th>
-                                    <th>Delete</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="p" items="${permissionsList}">
+
+                <!-- Stats -->
+                <c:if test="${not empty resourceList}">
+                    <div class="stats-info">
+                        <i class="fas fa-info-circle"></i>
+                        <c:choose>
+                            <c:when test="${not empty search}">
+                                Found <strong>${totalResources}</strong> for "<strong>${search}</strong>"
+                            </c:when>
+                            <c:otherwise>
+                                Showing <strong>${resourceList.size()}</strong>
+                                / <strong>${totalResources}</strong> resources
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </c:if>
+
+                <!-- Table -->
+                <c:choose>
+                    <c:when test="${not empty resourceList}">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            ${p.resourceName}
-                                            <!-- giữ lại id để servlet biết đang cập nhật bản ghi nào -->
-                                            <input type="hidden" name="permId" value="${p.id}" />
-                                            <input type="hidden" name="resourceId" value="${p.resourceId}" />
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="canCreate" value="${p.id}"
-                                                   <c:if test="${p.canCreate}">checked</c:if> />
-                                            </td>
-                                            <td>
-                                                <input type="checkbox" name="canRead" value="${p.id}"
-                                                   <c:if test="${p.canRead}">checked</c:if> />
-                                            </td>
-                                            <td>
-                                                <input type="checkbox" name="canUpdate" value="${p.id}"
-                                                   <c:if test="${p.canUpdate}">checked</c:if> />
-                                            </td>
-                                            <td>
-                                                <input type="checkbox" name="canDelete" value="${p.id}"
-                                                   <c:if test="${p.canDelete}">checked</c:if> />
-                                            </td>
-                                            <td>
-                                                <form method="post" action="${pageContext.request.contextPath}/deletepermission" onsubmit="return confirm('Are you sure you want to delete this permission?');">
-                                                <input type="hidden" name="permId" value="${p.id}" />
-                                                <button type="submit" class="btn btn-link text-danger" style="padding:0; border:none;">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Action</th>
                                     </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="res" items="${resourceList}" varStatus="st">
+                                        <tr>
+                                            <td><strong>${(page-1)*pageSize + st.index + 1}</strong></td>
+                                            <td>${res.name}</td>
+                                            <td>${res.description}</td>
 
-                        <div class="d-flex justify-content-end mt-3">
-                            <button type="submit" class="btn btn-primary">Save Change</button>
+                                            <td class="action-buttons">                                               
+                                                <!-- Delete -->
+                                                <form method="post"
+                                                      action="${pageContext.request.contextPath}/deleteresource"
+                                                      style="display:inline;"
+                                                      onsubmit="return confirm('Bạn có chắc muốn xóa resource này không?');">
+                                                    <input type="hidden" name="resourceId" value="${res.resourceId}"/>
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+
+                                </tbody>
+                            </table>
                         </div>
-                    </form>
-                </div>
-            </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="no-data">
+                            <i class="fas fa-folder-open fa-3x"></i>
+                            <h3>No resources found</h3>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
 
+                <!-- Pagination -->
+                <c:if test="${numPages > 1}">
+                    <div class="pagination">
+                        <!-- First / Prev -->
+                        <c:url var="firstUrl" value="/resource">
+                            <c:param name="page" value="1"/>
+                            <c:if test="${not empty search}">
+                                <c:param name="search" value="${search}"/>
+                            </c:if>
+                        </c:url>
+                        <c:url var="prevUrl" value="/resource">
+                            <c:param name="page" value="${page-1}"/>
+                            <c:if test="${not empty search}">
+                                <c:param name="search" value="${search}"/>
+                            </c:if>
+                        </c:url>
+
+                        <c:choose>
+                            <c:when test="${page > 1}">
+                                <a href="${firstUrl}" title="First"><i class="fas fa-angle-double-left"></i></a>
+                                <a href="${prevUrl}"  title="Prev" ><i class="fas fa-angle-left"></i></a>
+                                </c:when>
+                                <c:otherwise>
+                                <span class="disabled"><i class="fas fa-angle-double-left"></i></span>
+                                <span class="disabled"><i class="fas fa-angle-left"></i></span>
+                                </c:otherwise>
+                            </c:choose>
+
+                        <!-- Page numbers -->
+                        <c:forEach begin="1" end="${numPages}" var="i">
+                            <c:url var="pageUrl" value="/resource">
+                                <c:param name="page" value="${i}"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <c:choose>
+                                <c:when test="${i == page}">
+                                    <span class="current">${i}</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <a href="${pageUrl}">${i}</a>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:forEach>
+
+                        <!-- Next / Last -->
+                        <c:url var="nextUrl" value="/resource">
+                            <c:param name="page" value="${page+1}"/>
+                            <c:if test="${not empty search}">
+                                <c:param name="search" value="${search}"/>
+                            </c:if>
+                        </c:url>
+                        <c:url var="lastUrl" value="/resource">
+                            <c:param name="page" value="${numPages}"/>
+                            <c:if test="${not empty search}">
+                                <c:param name="search" value="${search}"/>
+                            </c:if>
+                        </c:url>
+
+                        <c:choose>
+                            <c:when test="${page < numPages}">
+                                <a href="${nextUrl}" title="Next"><i class="fas fa-angle-right"></i></a>
+                                <a href="${lastUrl}" title="Last"><i class="fas fa-angle-double-right"></i></a>
+                                </c:when>
+                                <c:otherwise>
+                                <span class="disabled"><i class="fas fa-angle-right"></i></span>
+                                <span class="disabled"><i class="fas fa-angle-double-right"></i></span>
+                                </c:otherwise>
+                            </c:choose>
+                    </div>
+
+                    <div class="page-info">
+                        Page ${page} of ${numPages} (${totalResources} total)
+                    </div>
+                </c:if>
+
+            </div>
         </section>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="vendors/datatable/js/jquery.dataTables.min.js"></script>
-        <script src="vendors/datatable/js/dataTables.responsive.min.js"></script>
-
         <script>
-                                                    $(function () {
-                                                        // 1) Initialize DataTable
-                                                        $('#permissionsTable').DataTable({
-                                                            paging: true,
-                                                            pageLength: 5,
-                                                            lengthChange: false,
-                                                            searching: false,
-                                                            info: false,
-                                                            responsive: true
-                                                        });
+                                                          document.getElementById('addPermissionForm').addEventListener('submit', function (e) {
+                                                              e.preventDefault();
+                                                              const form = e.target;
+                                                              const data = new URLSearchParams(new FormData(form));
 
-                                                        // 2) AJAX Add Permission (giữ nguyên)
-                                                        const url = '${pageContext.request.contextPath}/addpermission';
-                                                        const modalEl = document.getElementById('addPermissionModal');
-                                                        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-                                                        $('#addPermissionForm').on('submit', function (e) {
-                                                            e.preventDefault();
-                                                            const data = {
-                                                                resourceName: $('#resourceName').val().trim(),
-                                                                description: $('#description').val().trim(),
-                                                                roleId: $('#roleId').val(),
-                                                                canCreate: $('#canCreate').is(':checked'),
-                                                                canRead: $('#canRead').is(':checked'),
-                                                                canUpdate: $('#canUpdate').is(':checked'),
-                                                                canDelete: $('#canDelete').is(':checked')
-                                                            };
-                                                            $.post(url, data, function (resp) {
-                                                                if (!resp.success) {
-                                                                    return alert('Error: ' + resp.error);
-                                                                }
-                                                                // reload page
-                                                                window.location.reload();
-                                                            }, 'json')
-                                                                    .fail(function (xhr) {
-                                                                        console.error('AJAX error:', xhr.responseText);
-                                                                        alert('Có lỗi khi thêm permission mới');
-                                                                    });
-                                                        });
-                                                    });
+                                                              fetch(form.getAttribute('action') || '${pageContext.request.contextPath}/resource', {
+                                                                  method: 'POST',
+                                                                  headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                                                  body: data
+                                                              })
+                                                                      .then(res => res.json())
+                                                                      .then(json => {
+                                                                          if (json.success) {
+                                                                              // Close modal
+                                                                              var modal = bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'));
+                                                                              modal.hide();
+                                                                              // Reload trang hoặc cập nhật table
+                                                                              location.reload();
+                                                                          } else {
+                                                                              const err = document.getElementById('addError');
+                                                                              err.textContent = json.message;
+                                                                              err.style.display = 'block';
+                                                                          }
+                                                                      });
+                                                          });
         </script>
-
-
     </body>
 </html>

@@ -1,27 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
-        <file>
-            <url>src/java/dal/CategoryDAO.java</url>
-            <bookmark id="1">
-                <name/>
-                <line>0</line>
-                <key/>
-            </bookmark>
-        </file>
-    </editor-bookmarks>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/MaterialController.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Category.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/ChangePasswordController.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/util/GoogleUtils.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.xml</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.properties</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/ChangePasswordController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddCategory.java</file>
         </group>
     </open-files>
 </project-private>
