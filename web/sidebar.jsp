@@ -4,7 +4,7 @@
     Author     : legia
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%--<%@page contentType="text/html" pageEncoding="UTF-8"%>--%>
 <nav class="sidebar">
     <div class="logo d-flex justify-content-between">
         <a href="index.jsp"><img src="img/logo.png" alt=""></a>
@@ -25,8 +25,8 @@
                 <span>Authentication</span>
             </a>
             <ul>
-                <li><a href="/WarehouseManagement/permission">Permission</a></li>
-                <li><a href="role.jsp">Role</a></li>
+                <li><a href="/WarehouseManagement/resource">Permission</a></li>
+                <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
                 <li><a href="authorization.jsp">Authorization</a></li>
             </ul>
         </li>

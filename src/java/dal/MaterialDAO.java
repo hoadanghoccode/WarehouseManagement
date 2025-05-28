@@ -19,6 +19,7 @@ import model.Unit;
 import model.Category;
 
 public class MaterialDAO extends DBContext {
+
     private Connection connection;
 
     public MaterialDAO() {
@@ -31,17 +32,18 @@ public class MaterialDAO extends DBContext {
 
     public List<Material> getAllMaterials() {
         List<Material> materials = new ArrayList<>();
-        String query = "SELECT m.Material_id, m.Category_id, m.Unit_id, m.Name, m.Description, m.Inventory_quantity, " +
-                      "m.Price, m.Image, m.Quality, m.Status, m.Created_at, m.Updated_at, " +
-                      "c.Name AS Category_name, p.Name AS Parent_category_name, " +
-                      "u.Name AS Unit_name " +
-                      "FROM Material m " +
-                      "JOIN Category c ON m.Category_id = c.Category_id " +
-                      "LEFT JOIN Category p ON c.Parent_id = p.Category_id " +
-                      "JOIN Unit u ON m.Unit_id = u.Unit_id " +
-                      "WHERE m.Status = 'active' AND c.Status = 'active'";
-        try (PreparedStatement ps = connection.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
+
+        String query = "SELECT m.Material_id, m.Category_id, m.Unit_id, m.Name, m.Description, m.Inventory_quantity, "
+                + "m.Price, m.Image, m.Quality, m.Status, m.Created_at, m.Updated_at, "
+                + "c.Name AS Category_name, p.Name AS Parent_category_name, "
+                + "u.Name AS Unit_name "
+                + "FROM Material m "
+                + "JOIN Category c ON m.Category_id = c.Category_id "
+                + "LEFT JOIN Category p ON c.Parent_id = p.Category_id "
+                + "JOIN Unit u ON m.Unit_id = u.Unit_id "
+                + "WHERE m.Status = 'active' AND c.Status = 'active'";
+        try (PreparedStatement ps = connection.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 Material material = new Material();
                 material.setMaterialId(rs.getInt("Material_id"));
@@ -69,20 +71,20 @@ public class MaterialDAO extends DBContext {
 
     public List<Material> getMaterialsByPage(int page, int pageSize, String search, String categoryFilter, Integer quantityMin, Integer quantityMax) {
         List<Material> materials = new ArrayList<>();
-        String query = "SELECT m.Material_id, m.Category_id, m.Unit_id, m.Name, m.Description, m.Inventory_quantity, " +
-                      "m.Price, m.Image, m.Quality, m.Status, m.Created_at, m.Updated_at, " +
-                      "c.Name AS Category_name, p.Name AS Parent_category_name, " +
-                      "u.Name AS Unit_name " +
-                      "FROM Material m " +
-                      "JOIN Category c ON m.Category_id = c.Category_id " +
-                      "LEFT JOIN Category p ON c.Parent_id = p.Category_id " +
-                      "JOIN Unit u ON m.Unit_id = u.Unit_id " +
-                      "WHERE m.Status = 'active' AND c.Status = 'active' " +
-                      "AND (? IS NULL OR m.Name LIKE ? OR u.Name LIKE ? OR c.Name LIKE ? OR (p.Name LIKE ?)) " +
-                      "AND (? IS NULL OR c.Name = ? OR (p.Name = ?)) " +
-                      "AND (? IS NULL OR m.Inventory_quantity >= ?) " +
-                      "AND (? IS NULL OR m.Inventory_quantity <= ?) " +
-                      "LIMIT ? OFFSET ?";
+        String query = "SELECT m.Material_id, m.Category_id, m.Unit_id, m.Name, m.Description, m.Inventory_quantity, "
+                + "m.Price, m.Image, m.Quality, m.Status, m.Created_at, m.Updated_at, "
+                + "c.Name AS Category_name, p.Name AS Parent_category_name, "
+                + "u.Name AS Unit_name "
+                + "FROM Material m "
+                + "JOIN Category c ON m.Category_id = c.Category_id "
+                + "LEFT JOIN Category p ON c.Parent_id = p.Category_id "
+                + "JOIN Unit u ON m.Unit_id = u.Unit_id "
+                + "WHERE m.Status = 'active' AND c.Status = 'active' "
+                + "AND (? IS NULL OR m.Name LIKE ? OR u.Name LIKE ? OR c.Name LIKE ? OR (p.Name LIKE ?)) "
+                + "AND (? IS NULL OR c.Name = ? OR (p.Name = ?)) "
+                + "AND (? IS NULL OR m.Inventory_quantity >= ?) "
+                + "AND (? IS NULL OR m.Inventory_quantity <= ?) "
+                + "LIMIT ? OFFSET ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, search);
             ps.setString(2, "%" + search + "%");
@@ -126,15 +128,15 @@ public class MaterialDAO extends DBContext {
     }
 
     public int getTotalMaterials(String search, String categoryFilter, Integer quantityMin, Integer quantityMax) {
-        String query = "SELECT COUNT(*) FROM Material m " +
-                      "JOIN Category c ON m.Category_id = c.Category_id " +
-                      "LEFT JOIN Category p ON c.Parent_id = p.Category_id " +
-                      "JOIN Unit u ON m.Unit_id = u.Unit_id " +
-                      "WHERE m.Status = 'active' AND c.Status = 'active' " +
-                      "AND (? IS NULL OR m.Name LIKE ? OR u.Name LIKE ? OR c.Name LIKE ? OR (p.Name LIKE ?)) " +
-                      "AND (? IS NULL OR c.Name = ? OR (p.Name = ?)) " +
-                      "AND (? IS NULL OR m.Inventory_quantity >= ?) " +
-                      "AND (? IS NULL OR m.Inventory_quantity <= ?)";
+        String query = "SELECT COUNT(*) FROM Material m "
+                + "JOIN Category c ON m.Category_id = c.Category_id "
+                + "LEFT JOIN Category p ON c.Parent_id = p.Category_id "
+                + "JOIN Unit u ON m.Unit_id = u.Unit_id "
+                + "WHERE m.Status = 'active' AND c.Status = 'active' "
+                + "AND (? IS NULL OR m.Name LIKE ? OR u.Name LIKE ? OR c.Name LIKE ? OR (p.Name LIKE ?)) "
+                + "AND (? IS NULL OR c.Name = ? OR (p.Name = ?)) "
+                + "AND (? IS NULL OR m.Inventory_quantity >= ?) "
+                + "AND (? IS NULL OR m.Inventory_quantity <= ?)";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, search);
             ps.setString(2, "%" + search + "%");
@@ -161,15 +163,16 @@ public class MaterialDAO extends DBContext {
 
     public Material getMaterialById(int materialId) {
         Material material = null;
-        String query = "SELECT m.Material_id, m.Category_id, m.Unit_id, m.Name, m.Description, m.Inventory_quantity, " +
-                      "m.Price, m.Image, m.Quality, m.Status, m.Created_at, m.Updated_at, " +
-                      "c.Name AS Category_name, p.Name AS Parent_category_name, " +
-                      "u.Name AS Unit_name " +
-                      "FROM Material m " +
-                      "JOIN Category c ON m.Category_id = c.Category_id " +
-                      "LEFT JOIN Category p ON c.Parent_id = p.Category_id " +
-                      "JOIN Unit u ON m.Unit_id = u.Unit_id " +
-                      "WHERE m.Material_id = ? AND m.Status = 'active' AND c.Status = 'active'";
+        String query = "SELECT m.Material_id, m.Category_id, m.Unit_id, m.Name, m.Description, m.Inventory_quantity, "
+                + "m.Price, m.Image, m.Quality, m.Status, m.Created_at, m.Updated_at, "
+                + "c.Name AS Category_name, p.Name AS Parent_category_name, "
+                + "u.Name AS Unit_name "
+                + "FROM Material m "
+                + "JOIN Category c ON m.Category_id = c.Category_id "
+                + "LEFT JOIN Category p ON c.Parent_id = p.Category_id "
+                + "JOIN Unit u ON m.Unit_id = u.Unit_id "
+                + "WHERE m.Material_id = ? AND m.Status = 'active' AND c.Status = 'active'";
+
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, materialId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -199,8 +202,9 @@ public class MaterialDAO extends DBContext {
     }
 
     public void addMaterial(Material material) {
-        String query = "INSERT INTO Material (Category_id, Unit_id, Name, Description, Inventory_quantity, Price, Image, Quality, Status, Created_at, Updated_at) " +
-                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        String query = "INSERT INTO Material (Category_id, Unit_id, Name, Description, Inventory_quantity, Price, Image, Quality, Status, Created_at, Updated_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, material.getCategoryId());
             ps.setInt(2, material.getUnitId());
@@ -218,8 +222,9 @@ public class MaterialDAO extends DBContext {
     }
 
     public void updateMaterial(Material material) {
-        String query = "UPDATE Material SET Category_id = ?, Unit_id = ?, Name = ?, Description = ?, Inventory_quantity = ?, " +
-                      "Price = ?, Image = ?, Quality = ?, Status = ?, Updated_at = NOW() WHERE Material_id = ?";
+        String query = "UPDATE Material SET Category_id = ?, Unit_id = ?, Name = ?, Description = ?, Inventory_quantity = ?, "
+                + "Price = ?, Image = ?, Quality = ?, Status = ?, Updated_at = NOW() WHERE Material_id = ?";
+
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, material.getCategoryId());
             ps.setInt(2, material.getUnitId());
@@ -250,8 +255,7 @@ public class MaterialDAO extends DBContext {
     public List<Unit> getAllUnits() {
         List<Unit> units = new ArrayList<>();
         String query = "SELECT Unit_id, Name FROM Unit";
-        try (PreparedStatement ps = connection.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(query); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Unit unit = new Unit();
                 unit.setUnitId(rs.getInt("Unit_id"));
@@ -265,20 +269,83 @@ public class MaterialDAO extends DBContext {
     }
 
     public List<Category> getAllCategories() {
-        List<Category> categories = new ArrayList<>();
-        String query = "SELECT Category_id, Name, Parent_id FROM Category WHERE Status = 'active'";
-        try (PreparedStatement ps = connection.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Category category = new Category();
-                category.setCategoryId(rs.getInt("Category_id"));
-                category.setName(rs.getString("Name"));
-//                category.setParentId(rs.getInt("Parent_id"));
-                categories.add(category);
-            }
+        CategoryDAO categoryDAO = new CategoryDAO();
+        List<Category> allCategories = new ArrayList<>();
+
+        List<Category> parentCategories = categoryDAO.getAllParentCategory(null);
+        List<Category> subCategories = categoryDAO.getAllSubCategory();
+
+        allCategories.addAll(parentCategories);
+        allCategories.addAll(subCategories);
+        return allCategories;
+    }
+
+    public boolean isMaterialInOrderWithStatus(int materialId, String status) {
+        String query = "SELECT 1 FROM Order_detail od "
+                + "JOIN Orders o ON od.Order_id = o.Order_id "
+                + "WHERE od.Material_id = ? AND o.Status = ? LIMIT 1";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, materialId);
+            ps.setString(2, status);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return categories;
+
+        return false;
     }
+
+    public boolean isMaterialInPendingImport(int materialId) {
+        String query = "SELECT 1 FROM Import_note_detail ind "
+                + "JOIN Import_note i ON ind.Import_note_id = i.Import_note_id "
+                + "WHERE ind.Material_id = ? AND i.Status = 'pending' LIMIT 1";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, materialId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false; // Nếu có lỗi hoặc không có kết quả nào
+    }
+
+    public boolean isMaterialInPendingExport(int materialId) {
+        String query = "SELECT 1 FROM Export_note_detail endt "
+                + "JOIN Export_note en ON endt.Export_note_id = en.Export_note_id "
+                + "WHERE endt.Material_id = ? AND en.Status = 'pending' LIMIT 1";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+
+            ps.setInt(1, materialId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public int countMaterialByCategoryId(int cid) {
+        String query = "SELECT COUNT(*) FROM Material WHERE Category_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, cid);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getInt("COUNT(*)");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+        }
+        return 0;
+    }
+
 }
