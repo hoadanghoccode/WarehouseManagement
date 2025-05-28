@@ -12,10 +12,11 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/MaterialController.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml~</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/util/GoogleUtils.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/DBContext.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
         </group>
     </open-files>

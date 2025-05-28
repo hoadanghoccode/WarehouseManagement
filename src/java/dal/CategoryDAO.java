@@ -295,7 +295,7 @@ public class CategoryDAO extends DBContext {
 //        List<Category> list = new CategoryDAO().getAllCategory();
 //        Category list = new CategoryDAO().insertCategory('Khoan');
         CategoryDAO dao = new CategoryDAO();
-        System.out.println("");
+        System.out.println(dao.getAllParentCategory("active"));
 
     }
 }

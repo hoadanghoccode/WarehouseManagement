@@ -4,23 +4,21 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Users;
+import java.sql.SQLException;
+import model.Role;
 
 /**
  *
- * @author duong
+ * @author PC
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
-public class LoginController extends HttpServlet {
+public class AddRoleController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +37,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ResetPassword</title>");
+            out.println("<title>Servlet AddRoleController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ResetPassword at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet AddRoleController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,7 +58,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -74,30 +72,40 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+         // Charset
         request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
+        
+        // Lấy input
+        String name        = request.getParameter("name");
+        String description = request.getParameter("description");
 
-        String email = request.getParameter("email");
-        String pass = request.getParameter("password");
+        Role role = new Role();
+        role.setName(name);
+        role.setDescription(description);
+        AuthenDAO dao = new AuthenDAO();
 
-        try {
-
-            UserDAO userDAO = new UserDAO();
-            Users u = userDAO.checkLogin(email, pass);
-            if (u == null) {
-                request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-            } else {
-                HttpSession session = request.getSession();
-                session.setAttribute("user", u);
-                response.sendRedirect("index.jsp");
+        try (PrintWriter out = response.getWriter()) {
+            dao.insertRole(role);
+            // Trả về JSON thành công, kèm roleId nếu cần
+            out.print("{"
+                    + "\"success\":true,"
+                    + "\"roleId\":" + role.getRoleId()
+                    + "}");
+            out.flush();
+        } catch (SQLException ex) {
+            // Nếu có lỗi, trả status 500 và JSON error
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{"
+                        + "\"success\":false,"
+                        + "\"message\":\"" + ex.getMessage().replace("\"", "\\\"") + "\""
+                        + "}");
+                out.flush();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
         }
+
+       
     }
 
     /**

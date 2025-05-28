@@ -4,23 +4,19 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Users;
 
 /**
  *
- * @author duong
+ * @author PC
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
-public class LoginController extends HttpServlet {
+public class DeleteRoleController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +35,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ResetPassword</title>");
+            out.println("<title>Servlet DeleteRoleController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ResetPassword at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet DeleteRoleController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,7 +56,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -74,29 +70,31 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
+        String roleIdStr = request.getParameter("roleId");
 
-        String email = request.getParameter("email");
-        String pass = request.getParameter("password");
-
-        try {
-
-            UserDAO userDAO = new UserDAO();
-            Users u = userDAO.checkLogin(email, pass);
-            if (u == null) {
-                request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-            } else {
-                HttpSession session = request.getSession();
-                session.setAttribute("user", u);
-                response.sendRedirect("index.jsp");
+        try (PrintWriter out = response.getWriter()) {
+            if (roleIdStr == null || roleIdStr.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("{\"status\":\"error\",\"msg\":\"Missing roleId\"}");
+                return;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            int roleId = Integer.parseInt(roleIdStr);
+            AuthenDAO dao = new AuthenDAO();
+
+            // Gọi DAO xoá role và các liên quan
+            dao.deleteRole(roleId);
+
+            // Trả về kết quả thành công
+            out.write("{\"status\":\"ok\"}");
+        } catch (NumberFormatException ex) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"status\":\"error\",\"msg\":\"roleId phải là số\"}");
+        } catch (Exception ex) {
+            // Nếu có lỗi trong DAO
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            String msg = ex.getMessage().replace("\"", "\\\"");
+            response.getWriter().write("{\"status\":\"error\",\"msg\":\"" + msg + "\"}");
         }
     }
 

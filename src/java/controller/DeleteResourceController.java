@@ -4,23 +4,19 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Users;
 
 /**
  *
- * @author duong
+ * @author PC
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
-public class LoginController extends HttpServlet {
+public class DeleteResourceController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +35,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ResetPassword</title>");
+            out.println("<title>Servlet DeleteResourceController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ResetPassword at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet DeleteResourceController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,7 +56,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -74,30 +70,22 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
-
-        String email = request.getParameter("email");
-        String pass = request.getParameter("password");
-
-        try {
-
-            UserDAO userDAO = new UserDAO();
-            Users u = userDAO.checkLogin(email, pass);
-            if (u == null) {
-                request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-            } else {
-                HttpSession session = request.getSession();
-                session.setAttribute("user", u);
-                response.sendRedirect("index.jsp");
+        String idRaw = request.getParameter("resourceId");
+        if (idRaw != null) {
+            try {
+                int id = Integer.parseInt(idRaw.trim());
+                AuthenDAO dao = new AuthenDAO();
+                dao.deleteResource(id);
+            } catch (NumberFormatException e) {
+                // Ghi log nếu cần
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
         }
+        // Redirect về trang danh sách, giữ nguyên page nếu có
+        String page = request.getParameter("page");
+        String url = request.getContextPath() + "/resource" + (page != null ? "?page=" + page : "");
+        response.sendRedirect(url);
+
     }
 
     /**

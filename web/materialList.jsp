@@ -37,7 +37,7 @@
                         </select>
                         <!-- Quantity Filter -->
                         <div class="quantity-filter">
-                            <input type="number" class="form-control" id="quantityFilterMin" placeholder="Min" oninput="filterTable()">
+                            <input type="number" class="form-control" id="quantityFilterMin" placeholder="Min" oninput="filterTable()" min="0">
                             <input type="number" class="form-control" id="quantityFilterMax" placeholder="Max" oninput="filterTable()">
                         </div>
                     </div>
