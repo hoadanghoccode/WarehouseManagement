@@ -3,6 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+<<<<<<< HEAD
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Group.java</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Users.java</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/UserDetailServlet.java</file>
@@ -21,6 +22,15 @@
             <file>file:/E:/SWP392/WarehouseManagement/src/java/filter/LoginValidationFilter.java</file>
             <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/AdminResetPasswordController.java</file>
             <file>file:/E:/SWP392/WarehouseManagement/src/java/util/ResetService.java</file>
+=======
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/css/categorylist.css</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/categorylist.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/categorylist.js</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
+>>>>>>> minh
         </group>
     </open-files>
 </project-private>

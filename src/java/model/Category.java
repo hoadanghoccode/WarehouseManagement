@@ -11,40 +11,36 @@ import java.util.List;
  * @author ADMIN
  */
 public class Category {
-     private int categoryId;
+
+    private int categoryId;
     private String name;
     private Category parentId;
+    private String status;
     private int subCategoryCount;
     private List<Category> subCategories;
     private int materialCount;
 
     public Category() {
     }
-    
-     public Category(int categoryId, String name, Category parentId) {
+
+    public Category(int categoryId, String name, Category parentId, String status) {
         this.categoryId = categoryId;
         this.name = name;
         this.parentId = parentId;
+        this.status = status;
+
     }
 
-    public Category(int categoryId, String name, Category parentId, int subCategoryCount, List<Category> subCategories) {
+    public Category(int categoryId, String name, Category parentId, String status, int subCategoryCount, List<Category> subCategories, int materialCount) {
         this.categoryId = categoryId;
         this.name = name;
         this.parentId = parentId;
-        this.subCategoryCount = subCategoryCount;
-        this.subCategories = subCategories;
-    }
-
-    public Category(int categoryId, String name, Category parentId, int subCategoryCount, List<Category> subCategories, int materialCount) {
-        this.categoryId = categoryId;
-        this.name = name;
-        this.parentId = parentId;
+        this.status = status;
         this.subCategoryCount = subCategoryCount;
         this.subCategories = subCategories;
         this.materialCount = materialCount;
     }
-    
-    
+
     public int getCategoryId() {
         return categoryId;
     }
@@ -92,13 +88,19 @@ public class Category {
     public void setMaterialCount(int materialCount) {
         this.materialCount = materialCount;
     }
-    
-    
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     @Override
     public String toString() {
-        return "Category{" + "categoryId=" + categoryId + ", name=" + name + ", parentId=" + parentId + ", subCategoryCount=" + subCategoryCount + ", subCategories=" + subCategories + '}';
+        return "Category{" + "categoryId=" + categoryId + ", name=" + name + ", parentId=" + parentId + ", status=" + status + ", subCategoryCount=" + subCategoryCount + ", subCategories=" + subCategories + ", materialCount=" + materialCount + '}';
     }
 
-
+    
 }
