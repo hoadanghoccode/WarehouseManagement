@@ -273,7 +273,7 @@ public class MaterialDAO extends DBContext {
                 Category category = new Category();
                 category.setCategoryId(rs.getInt("Category_id"));
                 category.setName(rs.getString("Name"));
-                category.setParentId(rs.getInt("Parent_id"));
+//                category.setParentId(rs.getInt("Parent_id"));
                 categories.add(category);
             }
         } catch (SQLException e) {
