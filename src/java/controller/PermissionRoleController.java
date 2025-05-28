@@ -4,8 +4,8 @@
  */
 package controller;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+//import com.google.gson.Gson;
+//import com.google.gson.reflect.TypeToken;
 import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -31,7 +31,7 @@ public class PermissionRoleController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private final AuthenDAO dao = new AuthenDAO();
-    private final Gson gson = new Gson();
+//    private final Gson gson = new Gson();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -68,13 +68,13 @@ public class PermissionRoleController extends HttpServlet {
 
                 // Chuyển sang List
                 List<RoleData> nested = new ArrayList<>(map.values());
-                resp.getWriter().write(gson.toJson(nested));
+//                resp.getWriter().write(gson.toJson(nested));
 
             } catch (SQLException e) {
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                resp.getWriter().write(
-                        gson.toJson(new ErrorResponse("Database error: " + e.getMessage()))
-                );
+//                resp.getWriter().write(
+//                        gson.toJson(new ErrorResponse("Database error: " + e.getMessage()))
+//                );
             }
 
         } else {
@@ -101,11 +101,11 @@ public class PermissionRoleController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
          // parse JSON body thành List<RolePayload>
-        List<RolePayload> roles = new Gson()
-            .fromJson(request.getReader(), new TypeToken<List<RolePayload>>(){}.getType());
+//        List<RolePayload> roles = new Gson()
+//            .fromJson(request.getReader(), new TypeToken<List<RolePayload>>(){}.getType());
 
         try {
-            new AuthenDAO().upsertRolePermissions(roles);
+//            new AuthenDAO().upsertRolePermissions(roles);
             response.setStatus(200);
             response.getWriter().write("{\"status\":\"ok\"}");
         } catch (Exception e) {

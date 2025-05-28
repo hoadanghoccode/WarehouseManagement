@@ -1,11 +1,9 @@
-package controller;
-
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 
-
+package controller;
 
 import dal.UserDAO;
 import java.io.IOException;
@@ -15,16 +13,19 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.LocalDateTime;
-import util.ResetService;
+import jakarta.servlet.http.HttpSession;
+import java.io.InputStream;
+import java.net.URL;
 import model.Users;
+import org.json.JSONObject;
+import util.GoogleUtils;
 
 /**
  *
  * @author duong
  */
-@WebServlet(name = "ResetPasswordController", urlPatterns={"/resetpassword"})
-public class ResetPasswordController extends HttpServlet {
+@WebServlet(name="LoginGoogleController", urlPatterns={"/login-google"})
+public class LoginGoogleController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -41,10 +42,10 @@ public class ResetPasswordController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ResetPasswordController</title>");  
+            out.println("<title>Servlet LoginGoogleController</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ResetPasswordController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet LoginGoogleController at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -61,8 +62,51 @@ public class ResetPasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        request.getRequestDispatcher("resetpassword.jsp").forward(request, response);
-    } 
+        String code = request.getParameter("code");
+        if (code == null || code.isEmpty()) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        try {
+            // Lấy access token từ code
+            String accessToken = GoogleUtils.getToken(code);
+             System.out.println("ACCESS TOKEN = " + accessToken);
+            // Lấy thông tin user từ Google
+            String link = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + accessToken;
+            InputStream is = new URL(link).openStream();
+            StringBuilder sb = new StringBuilder();
+            int i;
+            while ((i = is.read()) != -1) {
+                sb.append((char) i);
+            }
+
+            JSONObject userInfo = new JSONObject(sb.toString());
+            String email = userInfo.getString("email").trim().toLowerCase();;
+            System.out.println("EMAIL FROM GOOGLE = " + email);
+            // Kiểm tra email có tồn tại trong hệ thống không
+            UserDAO dao = new UserDAO();
+            Users user = dao.getUserByEmail(email);
+            
+
+            if (user == null) {
+                // ❌ Không tồn tại trong DB → báo lỗi
+                request.setAttribute("error", "Email not registered. Please contact admin.");
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+                return;
+            }
+
+            // ✅ Tồn tại → login
+            HttpSession session = request.getSession();
+            session.setAttribute("user", user);
+            response.sendRedirect("index.jsp");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("login.jsp");
+        }
+    }
+    
 
     /** 
      * Handles the HTTP <code>POST</code> method.
@@ -74,50 +118,8 @@ public class ResetPasswordController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-         request.setCharacterEncoding("UTF-8");
-    String email = request.getParameter("email");
-
-    UserDAO userDAO = new UserDAO();
-    Users user = userDAO.getUserByEmail(email);
-
-    if (user == null) {
-        request.setAttribute("message", "Email not exist");
-        request.getRequestDispatcher("resetpassword.jsp").forward(request, response);
-        return;
+        processRequest(request, response);
     }
-
-    ResetService service = new ResetService();
-    String token = service.generateToken();
-    LocalDateTime expiryTime = service.expireDateTime();
-System.out.println("Token created = " + token);
-System.out.println("Saved token for userId = " + user.getUserId());
-    // 💾 Lưu token và thời gian hết hạn vào bảng users
-    boolean updated = userDAO.saveResetToken(user.getUserId(), token, expiryTime);
-    if (!updated) {
-        request.setAttribute("message", "Error saving token. Please try again.");
-        request.getRequestDispatcher("resetpassword.jsp").forward(request, response);
-        return;
-    }
-
-    // 📩 Gửi email
-    String link = "http://localhost:8080/WarehouseManagement/adminresetpassword?token=" + token;
-    String content = "<h1>Xin chào " + user.getFullName() + "</h1>"
-                   + "<p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng click vào link bên dưới để tiếp tục:</p>"
-                   + "<a href='" + link + "'>Click here to reset password</a>";
-
-    boolean isSent = service.sendEmail(user.getEmail(), content, user.getFullName());
-    if (!isSent) {
-        request.setAttribute("message", "Cannot send reset email.");
-        request.getRequestDispatcher("resetpassword.jsp").forward(request, response);
-        return;
-    }
-
-    request.setAttribute("message", "Reset link sent successfully. Please check your email.");
-    request.getRequestDispatcher("resetpassword.jsp").forward(request, response);
-    }
-    
-
-    
 
     /** 
      * Returns a short description of the servlet.

@@ -59,7 +59,7 @@ public class AddCategory extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory(); // hoặc getAllParentCategories()
+        List<Category> parentCategories = dao.getAllParentCategory(null); // hoặc getAllParentCategories()
         request.setAttribute("allCategories", parentCategories);
         request.getRequestDispatcher("addcategory.jsp").forward(request, response);
     }
@@ -117,7 +117,7 @@ public class AddCategory extends HttpServlet {
     private void forwardWithData(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory();
+        List<Category> parentCategories = dao.getAllParentCategory(null);
         request.setAttribute("allCategories", parentCategories);
 
         request.getRequestDispatcher("addcategory.jsp").forward(request, response);
