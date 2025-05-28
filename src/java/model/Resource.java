@@ -9,28 +9,29 @@ package model;
  * @author PC
  */
 public class Resource {
-    private int resource_id;
+    private int resourceId;
     private String name;
     private String description;
+    
 
     public Resource() {
     }
 
     
-    public Resource(int resource_id, String name, String description) {
-        this.resource_id = resource_id;
+    public Resource(int resourceId, String name, String description) {
+        this.resourceId = resourceId;
         this.name = name;
         this.description = description;
     }
     
     
 
-    public int getResource_id() {
-        return resource_id;
+    public int getresourceId() {
+        return resourceId;
     }
 
-    public void setResource_id(int resource_id) {
-        this.resource_id = resource_id;
+    public void setresourceId(int resourceId) {
+        this.resourceId = resourceId;
     }
 
     public String getName() {
