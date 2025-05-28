@@ -4,21 +4,20 @@
  */
 package controller;
 
-import dal.CategoryDAO;
+import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import model.Category;
+import java.sql.SQLException;
 
 /**
  *
- * @author ADMIN
+ * @author PC
  */
-public class AddCategory extends HttpServlet {
+public class DeletePermissionController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,10 +36,10 @@ public class AddCategory extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AddCategory</title>");
+            out.println("<title>Servlet DeletePermissionController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AddCategory at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet DeletePermissionController at hello " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,10 +57,7 @@ public class AddCategory extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory(null); // hoặc getAllParentCategories()
-        request.setAttribute("allCategories", parentCategories);
-        request.getRequestDispatcher("addcategory.jsp").forward(request, response);
+        processRequest(request, response);
     }
 
     /**
@@ -75,52 +71,25 @@ public class AddCategory extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String categoryName = request.getParameter("categoryName");
-        String parentIdStr = request.getParameter("parentId");
 
-        if (categoryName != null) {
-            categoryName = categoryName.trim();
-        }
+        int permId = Integer.parseInt(request.getParameter("permId"));
+        AuthenDAO dao = new AuthenDAO();
 
-        if (categoryName == null || categoryName.isEmpty()) {
-            request.setAttribute("errorMessage", "Category name cannot be empty!");
-            forwardWithData(request, response);
-            return;
-        }
-
-        
-        if (!categoryName.matches("^[\\p{L}\\s]+$")) {
-            request.setAttribute("errorMessage", "Category name must only contain letters and spaces (no numbers or symbols).");
-            forwardWithData(request, response);
-            return;
-        }
-
-        Integer parentId = null;
-        if (parentIdStr != null && !parentIdStr.trim().isEmpty()) {
-            try {
-                parentId = Integer.parseInt(parentIdStr);
-            } catch (NumberFormatException e) {
-                request.setAttribute("errorMessage", "Invalid parent category ID.");
-                forwardWithData(request, response);
-                return;
+        try {
+            boolean deleted = dao.deleteResourceById(permId);
+            if (deleted) {
+                // Nếu xoá thành công, chuyển về trang danh sách hoặc thông báo thành công
+//                response.sendRedirect("resource-list.jsp?status=deleted");
+            } else {
+                // Nếu xoá không thành công (vd: không tồn tại ID), có thể hiển thị lỗi
+                request.setAttribute("error", "Không thể xóa resource.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Lỗi hệ thống khi xóa resource.");
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
-
-        CategoryDAO dao = new CategoryDAO();
-        dao.insertCategory(categoryName, parentId);
-
-        request.setAttribute("successMessage", "Category added successfully!");
-        request.setAttribute("categoryName", categoryName);
-        forwardWithData(request, response);
-    }
-
-    private void forwardWithData(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        CategoryDAO dao = new CategoryDAO();
-        List<Category> parentCategories = dao.getAllParentCategory(null);
-        request.setAttribute("allCategories", parentCategories);
-
-        request.getRequestDispatcher("addcategory.jsp").forward(request, response);
     }
 
     /**

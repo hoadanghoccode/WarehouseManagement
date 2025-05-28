@@ -1,5 +1,5 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -9,157 +9,226 @@
     <title>User List</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f5f7fa;
-            font-family: Arial, sans-serif;
+            box-sizing: border-box;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
         .container {
-            width: 100%;
             max-width: 1200px;
-            height: 100%;
-            padding: 0.5rem;
-            background-color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
+            margin: 0 auto;
+            padding: 24px;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 15px;
-            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 24px;
         }
-        .header h1 {
-            font-size: 18px;
-            font-weight: bold;
-            color: #1a1a1a;
-            margin: 0;
-        }
-        .create-btn {
-            background-color: #1da1f2;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .create-btn:hover {
-            background-color: #1a91da;
-        }
-        .filter-form {
-            display: flex;
-            gap: 10px;
-            padding: 10px 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .filter-form input[type="text"],
-        .filter-form select,
-        .filter-form button {
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        .filter-form input[type="text"] {
-            width: 200px;
-        }
-        .filter-form select {
-            width: 150px;
-        }
-        .filter-form button {
-            background-color: #1da1f2;
-            color: white;
-            cursor: pointer;
-        }
-        .filter-form button:hover {
-            background-color: #1a91da;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 12px;
-        }
-        th {
-            background-color: #f5f7fa;
-            color: #5f6368;
+
+        .title {
+            font-size: 24px;
             font-weight: 600;
-            text-transform: uppercase;
-            padding: 8px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: left;
+            color: #1e293b;
         }
-        td {
-            padding: 8px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: left;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
-        .avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            object-fit: cover;
-            vertical-align: middle;
+
+        .search-container {
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto 12px;
         }
-        .delete-btn {
-            background-color: #e53935;
-            color: white;
-            border: none;
-            padding: 2px 6px;
-            border-radius: 4px;
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
             font-size: 14px;
+            background-color: white;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
         }
-        .delete-btn:hover {
-            background-color: #d32f2f;
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
         }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .table-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 24px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background-color: #f8fafc;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table td {
+            padding: 16px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        .table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-name {
+            font-weight: 500;
+            color: #1e293b;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .category-name:hover {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+
         .status-inactive {
-            color: white;
-            background-color: #e53935;
-            padding: 2px 6px;
-            border-radius: 4px;
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #fef2f2;
+            color: #dc2626;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
         }
+
         .status-active {
-            color: white;
-            background-color: #43a047;
-            padding: 2px 6px;
-            border-radius: 4px;
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #ecfdf5;
+            color: #059669;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
         }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-buttons .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
-            padding: 10px;
-            gap: 5px;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
         }
-        .pagination a {
-            padding: 6px 10px;
-            background-color: #e0e0e0;
-            color: #1a1a1a;
+
+        .pagination a,
+        .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
             text-decoration: none;
-            border-radius: 4px;
+            color: #374151;
+            font-size: 14px;
+            transition: all 0.2s;
         }
+
         .pagination a:hover {
-            background-color: #ccc;
+            background-color: #f3f4f6;
         }
-        .pagination a.active {
-            background-color: #1da1f2;
+
+        .pagination .current {
+            background-color: #3b82f6;
             color: white;
+            border-color: #3b82f6;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -172,50 +241,155 @@
             justify-content: center;
             z-index: 1000;
         }
+
         .modal-content {
             background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 90%;
-            max-width: 400px;
+            max-width: 500px;
             max-height: 80vh;
             overflow-y: auto;
         }
-        .form-group {
-            margin-bottom: 10px;
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
         }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .close-btn {
+            font-size: 24px;
+            color: #6b7280;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
         .form-group label {
             display: block;
-            margin-bottom: 3px;
+            margin-bottom: 8px;
             font-weight: 500;
-            color: #333;
-            font-size: 12px;
+            color: #374151;
+            font-size: 14px;
         }
+
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: white;
+            transition: all 0.2s;
         }
-        .close-btn {
-            float: right;
-            font-size: 20px;
-            border: none;
-            background: none;
-            cursor: pointer;
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
+
         .error-message {
-            color: #e53935;
+            color: #dc2626;
             font-size: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
         }
+
         .success-message {
-            color: #43a047;
+            color: #059669;
             font-size: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-form select {
+            flex: 1;
+            min-width: 150px;
+            max-width: 200px;
+        }
+
+        .filter-form .btn {
+            flex: 0;
+            min-width: 100px;
+        }
+
+        .stats-info {
+            background-color: #eff6ff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            color: #1e40af;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .sort-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+
+            .filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-form select,
+            .filter-form .btn {
+                width: 100%;
+                max-width: none;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .sort-controls {
+                justify-content: center;
+            }
         }
     </style>
     <script>
@@ -224,24 +398,29 @@
             modal.style.display = modal.style.display === "none" ? "flex" : "none";
             if (modal.style.display === "flex") {
                 document.getElementById("fullName").focus();
-                updateGroupOptions(); // Initialize group options
+                updateGroupOptions();
             }
         }
+
         function closeModal() {
             var modal = document.getElementById("createUserModal");
             modal.style.display = "none";
         }
+
         function confirmDelete(userId) {
             if (confirm("Are you sure you want to delete this user?")) {
-                window.location.href = "${pageContext.request.contextPath}/userlist?action=delete&id=" + userId;
+                window.location.href = "${pageContext.request.contextPath}/userlist?action=delete&id=" + userId
+                    + "&page=${currentPage}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}&groupId=${selectedGroupId}&sortOrder=${sortOrder}";
             }
         }
+
         window.onclick = function(event) {
             var modal = document.getElementById("createUserModal");
             if (event.target == modal) {
                 modal.style.display = "none";
             }
         }
+
         function updateGroupOptions() {
             var roleId = document.getElementById("roleId").value;
             var groupSelect = document.getElementById("groupId");
@@ -265,106 +444,197 @@
                     .catch(error => console.error('Error fetching groups:', error));
             }
         }
+
+        function updateFilterGroupOptions() {
+            var roleId = document.getElementById("filterRoleId").value;
+            var groupSelect = document.getElementById("filterGroupId");
+            groupSelect.innerHTML = '<option value="">All Groups</option>';
+
+            if (roleId) {
+                fetch('${pageContext.request.contextPath}/userlist?action=getGroups&roleId=' + roleId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(data.error);
+                            return;
+                        }
+                        data.forEach(group => {
+                            var option = document.createElement("option");
+                            option.value = group.groupId;
+                            option.text = group.name;
+                            if (group.groupId == '${selectedGroupId}') {
+                                option.selected = true;
+                            }
+                            groupSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching groups:', error));
+            } else {
+                <c:forEach var="group" items="${allGroups}">
+                    var option = document.createElement("option");
+                    option.value = "${group.groupId}";
+                    option.text = "${group.name}";
+                    if ("${group.groupId}" == "${selectedGroupId}") {
+                        option.selected = true;
+                    }
+                    groupSelect.appendChild(option);
+                </c:forEach>
+            }
+        }
+
+        function toggleSortOrder() {
+            var currentSort = '${sortOrder}';
+            var newSort = currentSort === 'asc' ? 'desc' : 'asc';
+            var url = "${pageContext.request.contextPath}/userlist?page=${currentPage}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}&groupId=${selectedGroupId}&sortOrder=" + newSort;
+            window.location.href = url;
+        }
+
+        window.onload = function() {
+            updateFilterGroupOptions();
+            if (document.getElementById("roleId") && document.getElementById("roleId").value) {
+                updateGroupOptions();
+            }
+        };
     </script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Users</h1>
-            <button class="create-btn" onclick="toggleCreateForm()">Create User</button>
+            <h1 class="title">Users</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="toggleCreateForm()">Create User</button>
+            </div>
         </div>
-        <form method="get" action="${pageContext.request.contextPath}/userlist" class="filter-form">
-            <input type="text" name="search" value="${search}" placeholder="Search by name, email, phone, ..."
-                   class="border border-gray-300 rounded-md p-1 w-full sm:w-1/3 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
-            <select name="branchId" class="border border-gray-300 rounded-md p-1 w-full sm:w-1/4 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
+
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="search" value="${fn:escapeXml(search)}" placeholder="Search by name, email, phone..."
+                   class="search-input" form="filterForm">
+        </div>
+
+        <form id="filterForm" method="get" action="${pageContext.request.contextPath}/userlist" class="filter-form">
+            <input type="hidden" name="sortOrder" value="${sortOrder}">
+            <select name="branchId" class="border border-gray-300 rounded-md">
                 <option value="">All Branches</option>
                 <c:forEach var="branch" items="${branches}">
                     <option value="${branch.branchId}" ${branch.branchId == selectedBranchId ? 'selected' : ''}>${branch.name}</option>
                 </c:forEach>
             </select>
-            <select name="roleId" class="border border-gray-300 rounded-md p-1 w-full sm:w-1/4 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
+            <select name="roleId" id="filterRoleId" class="border border-gray-300 rounded-md" onchange="updateFilterGroupOptions()">
                 <option value="">All Roles</option>
                 <c:forEach var="role" items="${roles}">
                     <option value="${role.roleId}" ${role.roleId == selectedRoleId ? 'selected' : ''}>${role.name}</option>
                 </c:forEach>
             </select>
-            <button type="submit" class="bg-blue-600 text-white px-2 py-1 rounded-md hover:bg-blue-700 w-full sm:w-auto text-xs">Search</button>
+            <select name="groupId" id="filterGroupId" class="border border-gray-300 rounded-md">
+                <option value="">All Groups</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
         </form>
-        <c:if test="${not empty error}">
-            <div class="error-message">${error}</div>
-        </c:if>
+
         <c:if test="${not empty success}">
             <div class="success-message">${success}</div>
         </c:if>
-        <div class="flex-1">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <c:if test="${not empty error}">
+            <div class="error-message">${error}</div>
+        </c:if>
+
+        <div class="stats-info">
+            Showing ${fn:length(users)} of ${totalUsers} users
+        </div>
+
+        <!-- Sort Controls -->
+        <div class="sort-controls">
+            <button class="btn btn-primary" onclick="toggleSortOrder()">Sort by updated(${sortOrder == 'asc' ? 'Ascending' : 'Descending'})</button>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
                     <tr>
-                        <th class="w-6"></th>
-                        <th class="w-8">User ID</th>
-                        <th class="w-12">Email</th>
-                        <th class="w-12">Name</th>
-                        <th class="w-8">Gender</th>
-                        <th class="w-12">Phone</th>
-                        <th class="w-12">Address</th>
-                        <th class="w-12">Group(s)</th>
-                        <th class="w-12">Branch</th>
-                        <th class="w-12">Role</th>
-                        <th class="w-8">Status</th>
-                        <th class="w-12"></th>
+                        <th style="width: 60px;">Avatar</th>
+                        <th>User ID</th>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Group(s)</th>
+                        <th>Branch</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
+                    <c:if test="${empty users}">
+                        <tr>
+                            <td colspan="12" class="no-data">
+                                <div class="no-data-icon">📭</div>
+                                No users found
+                            </td>
+                        </tr>
+                    </c:if>
                     <c:forEach var="user" items="${users}">
                         <tr>
-                            <td class="px-2 py-1 whitespace-nowrap">
+                            <td>
                                 <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
                                      alt="User Avatar" class="avatar">
                             </td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs">${user.userId}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.email}">${user.email}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs">
-                                <a href="${pageContext.request.contextPath}/userdetail?id=${user.userId}" class="text-blue-600 hover:underline" title="${user.fullName}">${user.fullName}</a>
+                            <td>${user.userId}</td>
+                            <td title="${user.email}">${fn:escapeXml(user.email)}</td>
+                            <td>
+                                <a href="${pageContext.request.contextPath}/userdetail?id=${user.userId}" class="category-name" title="${user.fullName}">${fn:escapeXml(user.fullName)}</a>
                             </td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs">${user.gender == 1 ? 'Male' : 'Female'}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.phoneNumber}">${user.phoneNumber}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.address}">${user.address}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${not empty user.groupNames ? user.groupNames : 'None'}">${not empty user.groupNames ? user.groupNames : 'None'}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.branchName}">${user.branchName}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs" title="${user.roleName}">${user.roleName}</td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs"><span class="${user.status ? 'status-active' : 'status-inactive'}">${user.status ? 'Active' : 'Inactive'}</span></td>
-                            <td class="px-2 py-1 whitespace-nowrap text-xs">
-                                <button class="delete-btn" onclick="confirmDelete(${user.userId})">
-                                    <span role="img" aria-label="Delete">🗑️</span>
-                                </button>
+                            <td>${user.gender == 1 ? 'Male' : 'Female'}</td>
+                            <td title="${user.phoneNumber}">${fn:escapeXml(user.phoneNumber)}</td>
+                            <td title="${user.address}">${fn:escapeXml(user.address)}</td>
+                            <td title="${not empty user.groupNames ? user.groupNames : 'None'}">${not empty user.groupNames ? fn:escapeXml(user.groupNames) : 'None'}</td>
+                            <td title="${user.branchName}">${fn:escapeXml(user.branchName)}</td>
+                            <td title="${user.roleName}">${fn:escapeXml(user.roleName)}</td>
+                            <td>
+                                <span class="${user.status ? 'status-active' : 'status-inactive'}">${user.status ? 'Active' : 'Inactive'}</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-danger" onclick="confirmDelete(${user.userId})">Delete</button>
+                                </div>
                             </td>
                         </tr>
                     </c:forEach>
                 </tbody>
             </table>
         </div>
-        <div class="pagination mt-2 flex justify-center">
+
+        <div class="pagination">
             <c:if test="${currentPage > 1}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
-                   class="px-1 py-0.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs">Previous</a>
+                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}&groupId=${selectedGroupId}&sortOrder=${sortOrder}">Previous</a>
             </c:if>
             <c:forEach var="i" begin="1" end="${totalPages}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
-                   class="px-1 py-0.5 ${i == currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} rounded-md hover:bg-gray-300 text-xs mx-0.5">${i}</a>
+                <c:choose>
+                    <c:when test="${i == currentPage}">
+                        <span class="current">${i}</span>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}&groupId=${selectedGroupId}&sortOrder=${sortOrder}">${i}</a>
+                    </c:otherwise>
+                </c:choose>
             </c:forEach>
             <c:if test="${currentPage < totalPages}">
-                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}"
-                   class="px-1 py-0.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs">Next</a>
+                <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&branchId=${selectedBranchId}&roleId=${selectedRoleId}&groupId=${selectedGroupId}&sortOrder=${sortOrder}">Next</a>
             </c:if>
         </div>
+
         <div id="createUserModal" class="modal">
             <div class="modal-content">
-                <button class="close-btn" onclick="closeModal()">×</button>
-                <h2 class="text-md font-bold mb-3">Create New User</h2>
+                <div class="modal-header">
+                    <h2 class="modal-title">Create New User</h2>
+                    <button class="close-btn" onclick="closeModal()">×</button>
+                </div>
                 <c:if test="${not empty error}">
                     <div class="error-message">${error}</div>
                 </c:if>
-                <form action="${pageContext.request.contextPath}/userlist" method="post">
+                    <form action="${pageContext.request.contextPath}/userlist" method="post">
                     <input type="hidden" name="action" value="create" />
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
@@ -427,7 +697,7 @@
                             <option value="false">Inactive</option>
                         </select>
                     </div>
-                    <button type="submit" class="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 text-sm">Create User</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
                 </form>
             </div>
         </div>

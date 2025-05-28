@@ -25,7 +25,7 @@
                 <span>Authentication</span>
             </a>
             <ul>
-                <li><a href="authentication.jsp">Permission</a></li>
+                <li><a href="/WarehouseManagement/permission">Permission</a></li>
                 <li><a href="role.jsp">Role</a></li>
                 <li><a href="authorization.jsp">Authorization</a></li>
             </ul>
