@@ -12,6 +12,7 @@ package controller;
 import dal.MaterialDAO;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -48,23 +49,46 @@ public class MaterialController extends HttpServlet {
                     }
                 }
 
-                // Lấy tổng số bản ghi và tính tổng số trang
-                int totalMaterials = materialDAO.getTotalMaterials();
+                String search = request.getParameter("search");
+                String categoryFilter = request.getParameter("categoryFilter");
+                String quantityMinParam = request.getParameter("quantityMin");
+                String quantityMaxParam = request.getParameter("quantityMax");
+
+                Integer quantityMin = null;
+                Integer quantityMax = null;
+                if (quantityMinParam != null && !quantityMinParam.isEmpty()) {
+                    try {
+                        quantityMin = Integer.parseInt(quantityMinParam);
+                    } catch (NumberFormatException e) {
+                        quantityMin = null;
+                    }
+                }
+                if (quantityMaxParam != null && !quantityMaxParam.isEmpty()) {
+                    try {
+                        quantityMax = Integer.parseInt(quantityMaxParam);
+                    } catch (NumberFormatException e) {
+                        quantityMax = null;
+                    }
+                }
+
+                List<Material> materials = materialDAO.getMaterialsByPage(page, pageSize, search, categoryFilter, quantityMin, quantityMax);
+                int totalMaterials = materialDAO.getTotalMaterials(search, categoryFilter, quantityMin, quantityMax);
                 int totalPages = (int) Math.ceil((double) totalMaterials / pageSize);
                 if (totalPages == 0) totalPages = 1;
                 if (page > totalPages) page = totalPages;
 
-                // Lấy danh sách Material cho trang hiện tại
-                List<Material> materials = materialDAO.getMaterialsByPage(page, pageSize);
                 List<Category> categories = materialDAO.getAllCategories();
 
-                // Truyền dữ liệu cho JSP
                 request.setAttribute("materials", materials);
                 request.setAttribute("categories", categories);
                 request.setAttribute("currentPage", page);
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("pageSize", pageSize);
                 request.setAttribute("totalMaterials", totalMaterials);
+                request.setAttribute("search", search);
+                request.setAttribute("categoryFilter", categoryFilter);
+                request.setAttribute("quantityMin", quantityMinParam);
+                request.setAttribute("quantityMax", quantityMaxParam);
                 request.getRequestDispatcher("/materialList.jsp").forward(request, response);
                 break;
 
@@ -126,8 +150,12 @@ public class MaterialController extends HttpServlet {
                 newMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
                 newMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 newMaterial.setName(request.getParameter("name"));
-                newMaterial.setUnitOfCalculation(request.getParameter("unitOfCalculation"));
+                newMaterial.setDescription(request.getParameter("description"));
                 newMaterial.setInventoryQuantity(Integer.parseInt(request.getParameter("inventoryQuantity")));
+                newMaterial.setPrice(Double.parseDouble(request.getParameter("price")));
+                newMaterial.setImage(request.getParameter("image"));
+                newMaterial.setQuality(request.getParameter("quality"));
+                newMaterial.setStatus("active"); // Default status
                 materialDAO.addMaterial(newMaterial);
                 response.sendRedirect("material?action=list");
                 break;
@@ -138,8 +166,12 @@ public class MaterialController extends HttpServlet {
                 updatedMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
                 updatedMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 updatedMaterial.setName(request.getParameter("name"));
-                updatedMaterial.setUnitOfCalculation(request.getParameter("unitOfCalculation"));
+                updatedMaterial.setDescription(request.getParameter("description"));
                 updatedMaterial.setInventoryQuantity(Integer.parseInt(request.getParameter("inventoryQuantity")));
+                updatedMaterial.setPrice(Double.parseDouble(request.getParameter("price")));
+                updatedMaterial.setImage(request.getParameter("image"));
+                updatedMaterial.setQuality(request.getParameter("quality"));
+                updatedMaterial.setStatus(request.getParameter("status"));
                 materialDAO.updateMaterial(updatedMaterial);
                 response.sendRedirect("material?action=list");
                 break;

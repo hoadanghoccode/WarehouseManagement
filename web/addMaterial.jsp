@@ -82,7 +82,7 @@
             </div>
             <div class="form-group">
                 <label for="inventoryQuantity" class="form-label">Inventory Quantity</label>
-                <input type="number" class="form-control" id="inventoryQuantity" name="inventoryQuantity" required>
+                <input type="number" class="form-control" id="inventoryQuantity" name="inventoryQuantity" min="0" required>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-primary btn-space">Add Material</button>
