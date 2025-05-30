@@ -332,9 +332,6 @@ public class MaterialDAO extends DBContext {
         return false;
     }
 
-
-
-
     public int countMaterialByCategoryId(int cid) {
         String query = "SELECT COUNT(*) FROM Material WHERE Category_id = ?";
         try {
@@ -351,5 +348,39 @@ public class MaterialDAO extends DBContext {
         return 0;
     }
 
-}
+    public List<Material> getAllMaterialsByCategoryId(int categoryId) {
+        List<Material> materials = new ArrayList<>();
+        String query = "SELECT * FROM Material WHERE Category_id = ?";
 
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, categoryId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Material material = new Material();
+                    material.setMaterialId(rs.getInt("Material_id"));
+                    material.setCategoryId(rs.getInt("Category_id"));
+                    material.setUnitId(rs.getInt("Unit_id"));
+                    material.setName(rs.getString("Name"));
+                    material.setDescription(rs.getString("Description"));
+                    material.setInventoryQuantity(rs.getInt("Inventory_quantity"));
+                    material.setPrice(rs.getDouble("Price"));
+                    material.setImage(rs.getString("Image"));
+                    material.setQuality(rs.getString("Quality"));
+                    material.setStatus(rs.getString("Status"));
+                    material.setCreatedAt(rs.getTimestamp("Created_at"));
+                    material.setUpdatedAt(rs.getTimestamp("Updated_at"));
+                    materials.add(material);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return materials;
+    }
+
+    public static void main(String[] args) {
+        MaterialDAO dao = new MaterialDAO();
+        System.out.println(dao.getAllMaterialsByCategoryId(1) == null);
+    }
+}

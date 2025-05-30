@@ -140,7 +140,7 @@ public class CategoryDAO extends DBContext {
         return list;
     }
 
-    public void insertCategory(String name, Integer parentId) {
+    public boolean insertCategory(String name, Integer parentId) {
         String query = "INSERT INTO Category (Name, Parent_id) VALUES (?, ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
@@ -150,9 +150,11 @@ public class CategoryDAO extends DBContext {
             } else {
                 ps.setNull(2, java.sql.Types.INTEGER);
             }
-            ps.executeUpdate();
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0; // Trả về true nếu có ít nhất 1 dòng được thêm
         } catch (SQLException e) {
-            System.out.println(e);
+            System.out.println("Error inserting category: " + e.getMessage());
+            return false; // Trả về false nếu có lỗi xảy ra
         }
     }
 
@@ -234,10 +236,9 @@ public class CategoryDAO extends DBContext {
         return false;
     }
 
-    
     public List<Category> getAllCategories() {
         List<Category> list = new ArrayList<>();
-        String sql = "SELECT * FROM Category WHERE Status = 'active'";
+        String sql = "SELECT * FROM Category";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -264,15 +265,15 @@ public class CategoryDAO extends DBContext {
         List<Category> all = getAllCategories();
 
         // Lọc chỉ những category active
-        List<Category> activeOnly = new ArrayList<>();
-        for (Category c : all) {
-            if ("active".equalsIgnoreCase(c.getStatus())) {
-                activeOnly.add(c);
-            }
-        }
+//        List<Category> activeOnly = new ArrayList<>();
+//        for (Category c : all) {
+//            if ("active".equalsIgnoreCase(c.getStatus())) {
+//                activeOnly.add(c);
+//            }
+//        }
 
         List<Category> result = new ArrayList<>();
-        buildHierarchy(null, activeOnly, result);
+        buildHierarchy(null, all, result);
         return result;
     }
 
