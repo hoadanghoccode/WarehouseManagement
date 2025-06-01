@@ -17,21 +17,38 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
+import com.google.gson.Gson;
 
 @WebServlet(name = "DetailMaterialController", urlPatterns = {"/detail-material"})
 public class DetailMaterialController extends HttpServlet {
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         MaterialDAO materialDAO = new MaterialDAO();
-        int materialId = Integer.parseInt(request.getParameter("id"));
-        Material material = materialDAO.getMaterialById(materialId);
-        if (material != null) {
-            request.setAttribute("material", material);
-            request.getRequestDispatcher("/materialDetail.jsp").forward(request, response);
-        } else {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Material not found");
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing material ID");
+            return;
+        }
+
+        try {
+            int materialId = Integer.parseInt(idParam);
+            Material material = materialDAO.getMaterialByIdWithDetails(materialId);
+            if (material != null) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                Gson gson = new Gson();
+                String json = gson.toJson(material);
+                response.getWriter().write(json);
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Material not found");
+            }
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid material ID");
+        } catch (Exception ex) {
+            // Nếu có lỗi SQL, NullPointer, ...
+            ex.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error");
         }
     }
 }

@@ -18,9 +18,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
-import model.Unit;
 import model.Category;
 import model.Supplier;
+import model.Unit;
 
 @WebServlet(name = "ListMaterialController", urlPatterns = {"/list-material"})
 public class ListMaterialController extends HttpServlet {
@@ -42,48 +42,29 @@ public class ListMaterialController extends HttpServlet {
             }
         }
 
-        String search = request.getParameter("search");
-        String categoryFilter = request.getParameter("categoryFilter");
-        String quantityMinParam = request.getParameter("quantityMin");
-        String quantityMaxParam = request.getParameter("quantityMax");
-
-        Double quantityMin = null;
-        Double quantityMax = null;
-        if (quantityMinParam != null && !quantityMinParam.isEmpty()) {
-            try {
-                quantityMin = Double.parseDouble(quantityMinParam);
-            } catch (NumberFormatException e) {
-                quantityMin = null;
-            }
-        }
-        if (quantityMaxParam != null && !quantityMaxParam.isEmpty()) {
-            try {
-                quantityMax = Double.parseDouble(quantityMaxParam);
-            } catch (NumberFormatException e) {
-                quantityMax = null;
-            }
-        }
-
-        List<Material> materials = materialDAO.getMaterialsByPage(page, pageSize, search, categoryFilter, quantityMin, quantityMax);
-        int totalMaterials = materialDAO.getTotalMaterials(search, categoryFilter, quantityMin, quantityMax);
+        // Lấy danh sách material của trang hiện tại (có phân trang)
+        List<Material> materials = materialDAO.getMaterialsByPage(page, pageSize, null, null, null, null);
+        int totalMaterials = materialDAO.getTotalMaterials(null, null, null, null);
         int totalPages = (int) Math.ceil((double) totalMaterials / pageSize);
         if (totalPages == 0) totalPages = 1;
         if (page > totalPages) page = totalPages;
 
+        // Lấy danh sách Category, Unit, Supplier
         List<Category> categories = materialDAO.getAllCategories();
+        List<Unit> units = materialDAO.getAllUnits();          
         List<Supplier> suppliers = materialDAO.getAllSuppliers();
 
+        // Đưa vào request
         request.setAttribute("materials", materials);
         request.setAttribute("categories", categories);
+        request.setAttribute("units", units);                  
         request.setAttribute("suppliers", suppliers);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("pageSize", pageSize);
         request.setAttribute("totalMaterials", totalMaterials);
-        request.setAttribute("search", search);
-        request.setAttribute("categoryFilter", categoryFilter);
-        request.setAttribute("quantityMin", quantityMinParam);
-        request.setAttribute("quantityMax", quantityMaxParam);
+
+        // Forward sang JSP
         request.getRequestDispatcher("/materialList.jsp").forward(request, response);
     }
 }

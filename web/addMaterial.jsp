@@ -52,6 +52,27 @@
         }
         .form-container .btn {
             margin-right: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-primary {
+            background-color: #6366f1;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5;
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #9ca3af;
+            color: #374151;
+        }
+        .btn-outline:hover {
+            background-color: #f3f4f6;
         }
     </style>
 </head>
@@ -59,7 +80,7 @@
     <div class="container">
         <div class="form-container">
             <h2>Add New Material</h2>
-            <form action="material?action=add" method="post">
+            <form action="add-material" method="post">
                 <div class="form-group">
                     <label for="categoryId">Category</label>
                     <select class="form-select" id="categoryId" name="categoryId" required>
@@ -100,7 +121,7 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Add Material</button>
-                <a href="material?action=list" class="btn btn-outline">Cancel</a>
+                <a href="list-material" class="btn btn-outline">Cancel</a>
             </form>
         </div>
     </div>

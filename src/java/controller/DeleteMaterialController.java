@@ -16,9 +16,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @WebServlet(name = "DeleteMaterialController", urlPatterns = {"/delete-material"})
 public class DeleteMaterialController extends HttpServlet {
@@ -28,11 +25,7 @@ public class DeleteMaterialController extends HttpServlet {
             throws ServletException, IOException {
         MaterialDAO materialDAO = new MaterialDAO();
         int materialId = Integer.parseInt(request.getParameter("id"));
-        try {
-            materialDAO.deleteMaterial(materialId);
-        } catch (SQLException ex) {
-            Logger.getLogger(DeleteMaterialController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        materialDAO.deleteMaterial(materialId);
         response.sendRedirect("list-material");
     }
 }

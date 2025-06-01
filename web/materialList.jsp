@@ -1,62 +1,102 @@
-<%-- 
-    Document   : materialList
-    Created on : May 21, 2025, 12:55:17 AM
-    Author     : legia
---%>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
     <title>Materials List</title>
+
+    <!-- Font Awesome cho icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- CSS chính (nếu cần thêm) -->
     <link rel="stylesheet" type="text/css" href="css/materiallist.css" />
+
     <style>
+        /* ================= Reset & Layout chung ================= */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0; 
+            padding: 0;
+            color: #374151;
+        }
         .container {
-            padding: 24px;
+            padding: 24px 16px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
             margin-bottom: 24px;
         }
         .title {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 600;
-            color: #1e293b;
+            color: #1f2937;
+            margin: 0 0 12px 0;
         }
         .header-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 12px;
             align-items: center;
         }
+
+        /* ================= Filter Controls ================= */
         .search-container {
-            position: relative;
-            width: 300px;
-        }
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
         }
         .search-input {
-            width: 100%;
-            padding: 8px 12px 8px 36px;
+            width: 220px;
+            padding: 8px 32px 8px 32px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 14px;
+            color: #374151;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjOWNhM2FmIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTYuNSAxMGM0LjA4IDAgNy41LTMuNDIgNy41LTcuNUMxNCAxLjg2IDEwLjA4IDAgNi41IDAgMi42MiAwIDAgMi42MiAwIDYuNUMwIDEwLjA4IDMuNDIgMTMuNSA3LjUgMTMuNXM3LjUtMy40MiA3LjUtNy41YzAtMy42My0zLjEyLTYuNS02LjUtNi41LTQuMDggMC03LjUgMy40Mi03LjUgNy41IDAgMy42MyAzLjEyIDYuNSA2LjUgNi41em0xNC43MSAxMC42MS0yLjgxIDIuODEtNS4wMDUtNS4wMDVhOC41MjIgOC41MjIgMCAwIDAgMS4wNDYtMS4wNDVsNS4wMDUgNS4wMDV6Ii8+PC9zdmc+');
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            background-size: 16px 16px;
         }
-        .form-select, .form-control {
-            padding: 8px;
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+        .form-select {
+            padding: 8px 12px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 14px;
+            background-color: white;
+            color: #374151;
+            cursor: pointer;
+            min-width: 140px;
         }
+        .form-select option {
+            color: #1f2937;
+        }
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+            min-width: 80px;
+        }
+
+        /* ================= Buttons ================= */
         .btn {
             padding: 8px 16px;
             border-radius: 8px;
@@ -64,7 +104,11 @@
             color: white;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+            transition: background-color 0.2s;
         }
         .btn-success {
             background-color: #10b981;
@@ -79,34 +123,6 @@
         }
         .btn-outline:hover {
             background-color: #f3f4f6;
-        }
-        .stats-info {
-            margin-bottom: 16px;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .table-container {
-            overflow-x: auto;
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .table th, .table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .table th {
-            background-color: #f3f4f6;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 8px;
         }
         .btn-info {
             background-color: #3b82f6;
@@ -126,193 +142,328 @@
         .btn-danger:hover {
             background-color: #dc2626;
         }
+
+        /* ================= Stats Info ================= */
+        .stats-info {
+            margin-bottom: 16px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #dbeafe;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .stats-info i {
+            color: #3b82f6;
+        }
+        .stats-info strong {
+            color: #1f2937;
+        }
+
+        /* ================= Table ================= */
+        .table-container {
+            overflow-x: auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        table.table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        table.table th,
+        table.table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        table.table th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            color: #1f2937;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        table.table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        table.table tbody tr:hover {
+            background-color: #eef2ff;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
         .no-data {
             text-align: center;
             padding: 24px;
             background-color: #f3f4f6;
             border-radius: 12px;
-        }
-        .no-data-icon {
-            font-size: 48px;
+            font-size: 16px;
             color: #9ca3af;
-            margin-bottom: 16px;
         }
+
+        /* ================= Pagination ================= */
         .pagination {
             display: flex;
             justify-content: center;
             gap: 8px;
-            margin-top: 24px;
+            margin: 24px 0;
         }
-        .pagination a, .pagination span {
-            padding: 8px 12px;
+        .pagination a,
+        .pagination span {
+            padding: 8px 14px;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             color: #374151;
             text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .pagination a:hover {
+            background-color: #e5e7eb;
         }
         .pagination .current {
             background-color: #3b82f6;
             color: white;
             border-color: #3b82f6;
         }
+
+        /* ================= Modal ================= */
         .modal {
-            display: none;
+            display: none; /* Ẩn mặc định, JS sẽ show khi cần */
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            z-index: 999;
         }
         .modal-content {
             background-color: white;
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 70%;
-            max-width: 500px;
+            margin: 6% auto;
+            padding: 24px 32px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 480px;
             position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 14px;
         }
-        .close {
+        .modal .close {
             position: absolute;
-            top: 10px;
-            right: 15px;
+            top: 12px;
+            right: 18px;
             font-size: 24px;
             cursor: pointer;
             color: #9ca3af;
+            transition: color 0.2s;
         }
-        .close:hover {
+        .modal .close:hover {
             color: #374151;
+        }
+        .detail-item {
+            margin-bottom: 14px;
+            display: flex;
+            gap: 8px;
+        }
+        .detail-item strong {
+            color: #1f2937;
+            width: 110px;
+        }
+
+        /* ================= Responsive ================= */
+        @media (max-width: 768px) {
+            .search-input {
+                width: 160px;
+            }
+            .form-select, .form-control {
+                min-width: 100px;
+                font-size: 13px;
+            }
+            table.table {
+                min-width: 600px;
+            }
+            .title {
+                font-size: 24px;
+            }
+            .modal-content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-------------------------------------- HEADER + FILTER -------------------------------------->
         <div class="header">
             <h1 class="title">Materials List</h1>
             <div class="header-actions">
                 <div class="search-container">
-                    <form action="material" method="get" id="filterForm">
-                        <input type="hidden" name="action" value="list">
-                        <input type="hidden" name="page" value="${currentPage}">
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <div style="position: relative;">
-                                <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="searchInput" name="search" value="${search}" placeholder="Search materials..." class="search-input" oninput="submitForm()" />
-                            </div>
-                            <select class="form-select" id="categoryFilter" name="categoryFilter" onchange="submitForm()">
-                                <option value="">All Categories</option>
-                                <c:forEach var="category" items="${categories}">
-                                    <option value="${category.name}" ${categoryFilter == category.name ? 'selected' : ''}>${category.name}</option>
-                                </c:forEach>
-                            </select>
-                            <div class="quantity-filter">
-                                <input type="number" step="0.01" class="form-control" id="quantityFilterMin" name="quantityMin" placeholder="Min" value="${quantityMin}" oninput="submitForm()">
-                                <input type="number" step="0.01" class="form-control" id="quantityFilterMax" name="quantityMax" placeholder="Max" value="${quantityMax}" oninput="submitForm()">
-                            </div>
-                        </div>
-                    </form>
+                    <!-- SEARCH TEXT -->
+                    <!--<i class="fas fa-search" style="position: absolute; margin-left: 12px; color: #9ca3af;"></i>-->
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search materials..."
+                        class="search-input"
+                        oninput="filterMaterials()"
+                    />
+
+                    <!-- CATEGORY FILTER -->
+                    <select class="form-select" id="categoryFilter" onchange="filterMaterials()">
+                        <option value="">All Categories</option>
+                        <c:forEach var="category" items="${categories}">
+                            <option value="${category.name}">${category.name}</option>
+                        </c:forEach>
+                    </select>
+
+                    <!-- UNIT FILTER -->
+                    <select class="form-select" id="unitFilter" onchange="filterMaterials()">
+                        <option value="">All Units</option>
+                        <c:forEach var="unit" items="${units}">
+                            <option value="${unit.name}">${unit.name}</option>
+                        </c:forEach>
+                    </select>
+
+                    <!-- SUPPLIER FILTER -->
+                    <select class="form-select" id="supplierFilter" onchange="filterMaterials()">
+                        <option value="">All Suppliers</option>
+                        <c:forEach var="supplier" items="${suppliers}">
+                            <option value="${supplier.name}">${supplier.name}</option>
+                        </c:forEach>
+                    </select>
+
+                    <!-- STATUS FILTER -->
+                    <select class="form-select" id="activeFilter" onchange="filterMaterials()">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+
+                    <!-- QUANTITY MIN/MAX -->
+                    <input
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        id="quantityFilterMin"
+                        placeholder="Min"
+                        oninput="filterMaterials()"
+                    />
+                    <input
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        id="quantityFilterMax"
+                        placeholder="Max"
+                        oninput="filterMaterials()"
+                    />
                 </div>
-                <a href="material?action=add" class="btn btn-success">
+
+                <!-- NÚT ADD MATERIAL -->
+                <a href="add-material" class="btn btn-success">
                     <i class="fas fa-plus"></i> Add Material
                 </a>
             </div>
         </div>
 
+        <!-------------------------------------- STATS INFO -------------------------------------->
         <c:if test="${not empty materials}">
             <div class="stats-info">
                 <i class="fas fa-info-circle"></i>
-                <c:choose>
-                    <c:when test="${not empty search || not empty categoryFilter || not empty quantityMin || not empty quantityMax}">
-                        Found <strong>${totalMaterials}</strong> materials matching your filters
-                    </c:when>
-                    <c:otherwise>
-                        Showing <strong>${materials.size()}</strong> / <strong>${totalMaterials}</strong> materials
-                    </c:otherwise>
-                </c:choose>
+                Showing <strong>${materials.size()}</strong> / <strong>${totalMaterials}</strong> materials
             </div>
         </c:if>
 
-        <c:choose>
-            <c:when test="${not empty materials}">
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Name</th>
-                                <th>Unit</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Supplier</th>
-                                <th>Category</th>
-                                <th>Parent Category</th>
-                                <th>Active</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach var="material" items="${materials}" varStatus="status">
-                                <tr>
-                                    <td><strong>${(currentPage - 1) * pageSize + status.index + 1}</strong></td>
-                                    <td>${material.name}</td>
-                                    <td>${material.unitName != null ? material.unitName : '-'}</td>
-                                    <td>${material.price != 0 ? material.price : '-'}</td>
-                                    <td>${material.quantity != 0 ? material.quantity : '-'}</td>
-                                    <td>${material.supplierName != null ? material.supplierName : '-'}</td>
-                                    <td>${material.categoryName}</td>
-                                    <td>${material.parentCategoryName != null ? material.parentCategoryName : '-'}</td>
-                                    <td>${material.status == 'active' ? 'true' : 'false'}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <a href="#" class="btn btn-info view-detail" data-id="${material.materialId}" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="material?action=update&id=${material.materialId}" class="btn btn-primary" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="material?action=delete&id=${material.materialId}" class="btn btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this material?')">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </c:when>
-            <c:otherwise>
-                <div class="no-data">
-                    <div class="no-data-icon">
-                        <i class="fas fa-folder-open"></i>
-                    </div>
-                    <h3>No materials found</h3>
-                    <c:choose>
-                        <c:when test="${not empty search || not empty categoryFilter || not empty quantityMin || not empty quantityMax}">
-                            <p>No materials match your filters</p>
-                            <a href="material?action=list" class="btn btn-primary">View all materials</a>
-                        </c:when>
-                        <c:otherwise>
-                            <p>No materials in the system yet</p>
-                            <a href="material?action=add" class="btn btn-success">Add first material</a>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-            </c:otherwise>
-        </c:choose>
+        <!-------------------------------------- BẢNG DỮ LIỆU -------------------------------------->
+        <div class="table-container">
+            <table class="table" id="materialsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>Name</th>
+                        <th>Unit</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Supplier</th>
+                        <th>Category</th>
+                        <th>Parent Category</th>
+                        <th>Active</th>
+                        <th style="width: 140px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- JSP render mỗi row server‐side -->
+                    <c:forEach var="material" items="${materials}" varStatus="status">
+                        <c:set var="parentCategoryName" value="N/A" />
+                        <c:forEach var="category" items="${categories}">
+                            <c:if test="${category.categoryId == material.parentCategoryId}">
+                                <c:set var="parentCategoryName" value="${category.name}" />
+                            </c:if>
+                        </c:forEach>
+                        <tr>
+                            <td><strong>${(currentPage - 1) * pageSize + status.index + 1}</strong></td>
+                            <td>${material.name}</td>
+                            <td>${material.unitName != null ? material.unitName : '-'}</td>
+                            <td><fmt:formatNumber value="${material.price}" type="number" minFractionDigits="2" /></td>
+                            <td><fmt:formatNumber value="${material.quantity}" type="number" minFractionDigits="2" /></td>
+                            <td>${material.supplierName != null ? material.supplierName : '-'}</td>
+                            <td>${material.categoryName}</td>
+                            <td>${parentCategoryName}</td>
+                            <td>
+                                <span style="
+                                    display:inline-block;
+                                    padding:4px 8px;
+                                    border-radius:4px;
+                                    font-size:13px;
+                                    font-weight:500;
+                                    color: ${material.status == 'active' ? '#065f46' : '#991b1b'};
+                                    background-color: ${material.status == 'active' ? '#d1fae5' : '#fee2e2'};
+                                ">
+                                    ${material.status == 'active' ? 'Active' : 'Inactive'}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <!-- VIEW BUTTON -->
+                                    <button class="btn btn-info view-detail"
+                                            data-id="${material.materialId}"
+                                            title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <!-- EDIT BUTTON -->
+                                    <a href="update-material?id=${material.materialId}"
+                                       class="btn btn-primary"
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <!-- DELETE BUTTON -->
+                                    <a href="delete-material?id=${material.materialId}"
+                                       class="btn btn-danger"
+                                       title="Delete"
+                                       onclick="return confirm('Are you sure you want to deactivate this material?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </div>
 
+        <!-------------------------------------- PAGINATION SERVER‐SIDE (giữ nguyên) -------------------------------------->
         <c:if test="${totalPages > 1}">
             <div class="pagination">
                 <c:choose>
                     <c:when test="${currentPage > 1}">
-                        <a href="material?action=list&page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">
-                            <i class="fas fa-angle-double-left"></i>
-                        </a>
-                        <a href="material?action=list&page=${currentPage-1}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">
-                            <i class="fas fa-angle-left"></i>
-                        </a>
+                        <a href="list-material?page=1"><i class="fas fa-angle-double-left"></i></a>
+                        <a href="list-material?page=${currentPage-1}"><i class="fas fa-angle-left"></i></a>
                     </c:when>
                     <c:otherwise>
                         <span style="opacity: 0.3; cursor: not-allowed;">
@@ -332,7 +483,7 @@
                                     <span class="current">${i}</span>
                                 </c:when>
                                 <c:otherwise>
-                                    <a href="material?action=list&page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">${i}</a>
+                                    <a href="list-material?page=${i}">${i}</a>
                                 </c:otherwise>
                             </c:choose>
                         </c:forEach>
@@ -346,17 +497,17 @@
                                             <span class="current">${i}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="material?action=list&page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">${i}</a>
+                                            <a href="list-material?page=${i}">${i}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
                                 <c:if test="${totalPages > 6}">
                                     <span style="padding: 8px 4px;">...</span>
-                                    <a href="material?action=list&page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">${totalPages}</a>
+                                    <a href="list-material?page=${totalPages}">${totalPages}</a>
                                 </c:if>
                             </c:when>
                             <c:when test="${currentPage >= totalPages - 3}">
-                                <a href="material?action=list&page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">1</a>
+                                <a href="list-material?page=1">1</a>
                                 <c:if test="${totalPages > 6}">
                                     <span style="padding: 8px 4px;">...</span>
                                 </c:if>
@@ -366,13 +517,13 @@
                                             <span class="current">${i}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="material?action=list&page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">${i}</a>
+                                            <a href="list-material?page=${i}">${i}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
-                                <a href="material?action=list&page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">1</a>
+                                <a href="list-material?page=1">1</a>
                                 <span style="padding: 8px 4px;">...</span>
                                 <c:forEach begin="${currentPage - 1}" end="${currentPage + 1}" var="i">
                                     <c:choose>
@@ -380,12 +531,12 @@
                                             <span class="current">${i}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="material?action=list&page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">${i}</a>
+                                            <a href="list-material?page=${i}">${i}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
                                 <span style="padding: 8px 4px;">...</span>
-                                <a href="material?action=list&page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">${totalPages}</a>
+                                <a href="list-material?page=${totalPages}">${totalPages}</a>
                             </c:otherwise>
                         </c:choose>
                     </c:otherwise>
@@ -393,83 +544,153 @@
 
                 <c:choose>
                     <c:when test="${currentPage < totalPages}">
-                        <a href="material?action=list&page=${currentPage+1}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                        <a href="material?action=list&page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty categoryFilter}'>&categoryFilter=${categoryFilter}</c:if><c:if test='${not empty quantityMin}'>&quantityMin=${quantityMin}</c:if><c:if test='${not empty quantityMax}'>&quantityMax=${quantityMax}</c:if>">
-                            <i class="fas fa-angle-double-right"></i>
-                        </a>
+                        <a href="list-material?page=${currentPage+1}"><i class="fas fa-angle-right"></i></a>
+                        <a href="list-material?page=${totalPages}"><i class="fas fa-angle-double-right"></i></a>
                     </c:when>
                     <c:otherwise>
-                        <span style="opacity: 0.3; cursor: not-allowed;">
-                            <i class="fas fa-angle-right"></i>
-                        </span>
-                        <span style="opacity: 0.3; cursor: not-allowed;">
-                            <i class="fas fa-angle-double-right"></i>
-                        </span>
+                        <span style="opacity: 0.3; cursor: not-allowed;"><i class="fas fa-angle-right"></i></span>
+                        <span style="opacity: 0.3; cursor: not-allowed;"><i class="fas fa-angle-double-right"></i></span>
                     </c:otherwise>
                 </c:choose>
             </div>
         </c:if>
     </div>
 
+    <!-------------------------------------- MODAL CHI TIẾT -------------------------------------->
     <div id="materialModal" class="modal">
         <div class="modal-content">
-            <span class="close">×</span>
-            <h2>Material Details</h2>
-            <p><strong>ID:</strong> <span id="modalMaterialId"></span></p>
-            <p><strong>Name:</strong> <span id="modalName"></span></p>
-            <p><strong>Unit:</strong> <span id="modalUnitName"></span></p>
-            <p><strong>Price:</strong> <span id="modalPrice"></span></p>
-            <p><strong>Quantity:</strong> <span id="modalQuantity"></span></p>
-            <p><strong>Supplier:</strong> <span id="modalSupplierName"></span></p>
-            <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-            <p><strong>Category:</strong> <span id="modalCategoryName"></span></p>
-            <p><strong>Parent Category:</strong> <span id="modalParentCategoryName"></span></p>
+            <span class="close" onclick="closeModal()">×</span>
+            <h2 style="font-size: 20px; margin-bottom: 16px; color: #1f2937;">Material Details</h2>
+            <div class="detail-item"><strong>ID:</strong> <span id="modalMaterialId"></span></div>
+            <div class="detail-item"><strong>Name:</strong> <span id="modalName"></span></div>
+            <div class="detail-item"><strong>Unit:</strong> <span id="modalUnitName"></span></div>
+            <div class="detail-item"><strong>Price:</strong> <span id="modalPrice"></span></div>
+            <div class="detail-item"><strong>Quantity:</strong> <span id="modalQuantity"></span></div>
+            <div class="detail-item"><strong>Supplier:</strong> <span id="modalSupplierName"></span></div>
+            <div class="detail-item"><strong>Status:</strong> <span id="modalStatus"></span></div>
+            <div class="detail-item"><strong>Category:</strong> <span id="modalCategoryName"></span></div>
+            <div class="detail-item"><strong>Parent Category:</strong> <span id="modalParentCategoryName"></span></div>
+            <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 16px;">Close</button>
         </div>
     </div>
 
+    <!-------------------------------------- JAVASCRIPT CUỐI FILE -------------------------------------->
     <script>
-        function submitForm() {
-            document.getElementsByName("page")[0].value = 1;
-            document.getElementById("filterForm").submit();
+        /**
+         * Hàm filterMaterials() sẽ:
+         *   1. Lấy tất cả các <tr> trong #materialsTable tbody.
+         *   2. Với mỗi row, đọc giá trị từ từng <td> dựa trên index cột.
+         *   3. So sánh với điều kiện: search, category, unit, supplier, status, min/max quantity.
+         *   4. Nếu thỏa, row.style.display = ''; nếu không thỏa, row.style.display = 'none';
+         */
+        function filterMaterials() {
+            // Lấy giá trị từ input/dropdown
+            let searchText      = document.getElementById('searchInput').value.trim().toLowerCase();
+            let categoryValue   = document.getElementById('categoryFilter').value.trim().toLowerCase();
+            let unitValue       = document.getElementById('unitFilter').value.trim().toLowerCase();
+            let supplierValue   = document.getElementById('supplierFilter').value.trim().toLowerCase();
+            let statusValue     = document.getElementById('activeFilter').value.trim().toLowerCase();
+            let qtyMinRaw       = document.getElementById('quantityFilterMin').value;
+            let qtyMaxRaw       = document.getElementById('quantityFilterMax').value;
+            let qtyMin          = qtyMinRaw === '' ? -Infinity : parseFloat(qtyMinRaw);
+            let qtyMax          = qtyMaxRaw === '' ? Infinity  : parseFloat(qtyMaxRaw);
+
+            // Lấy tất cả các row trong tbody
+            let tbody           = document.querySelector('#materialsTable tbody');
+            let allRows         = tbody.querySelectorAll('tr');
+
+            allRows.forEach(row => {
+                // Lấy text từng cột (chú ý index cột)
+                let nameText       = row.cells[1].textContent.trim().toLowerCase();      // cột Name
+                let unitText       = row.cells[2].textContent.trim().toLowerCase();      // cột Unit
+                let qtyText        = row.cells[4].textContent.trim().replace(/,/g, '');  // cột Quantity
+                let supplierText   = row.cells[5].textContent.trim().toLowerCase();      // cột Supplier
+                let categoryText   = row.cells[6].textContent.trim().toLowerCase();      // cột Category
+                let statusText     = row.cells[8].textContent.trim().toLowerCase();      // cột Active
+
+                // Chuyển số lượng (quantity) sang số
+                let qtyValue       = parseFloat(qtyText);
+                if (isNaN(qtyValue)) { 
+                    qtyValue = 0; 
+                }
+
+                // Kiểm tra điều kiện:
+                let isMatchName     = !searchText || nameText.includes(searchText);
+                let isMatchCat      = !categoryValue || categoryText === categoryValue;
+                let isMatchUnit     = !unitValue     || unitText === unitValue;
+                let isMatchSupplier = !supplierValue || supplierText === supplierValue;
+                let isMatchStatus   = !statusValue   || statusText === statusValue;
+                let isMatchQty      = (qtyValue >= qtyMin) && (qtyValue <= qtyMax);
+
+                // Nếu tất cả điều kiện đều true thì show, ngược lại hide
+                if (isMatchName && isMatchCat && isMatchUnit && isMatchSupplier && isMatchStatus && isMatchQty) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
 
-        document.querySelectorAll('.view-detail').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const materialId = this.getAttribute('data-id');
-                fetch('material?action=detail&id=' + materialId, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('modalMaterialId').textContent = data.materialId;
-                    document.getElementById('modalName').textContent = data.name;
-                    document.getElementById('modalUnitName').textContent = data.unitName ? data.unitName : '-';
-                    document.getElementById('modalPrice').textContent = data.price != 0 ? data.price : '-';
-                    document.getElementById('modalQuantity').textContent = data.quantity != 0 ? data.quantity : '-';
-                    document.getElementById('modalSupplierName').textContent = data.supplierName ? data.supplierName : 'No Supplier';
-                    document.getElementById('modalStatus').textContent = data.status;
-                    document.getElementById('modalCategoryName').textContent = data.categoryName;
-                    document.getElementById('modalParentCategoryName').textContent = data.parentCategoryName ? data.parentCategoryName : '-';
-                    document.getElementById('materialModal').style.display = 'block';
-                })
-                .catch(error => console.error('Error:', error));
-            });
-        });
-
-        document.querySelector('.close').addEventListener('click', function() {
-            document.getElementById('materialModal').style.display = 'none';
-        });
-
-        window.addEventListener('click', function(event) {
-            if (event.target == document.getElementById('materialModal')) {
-                document.getElementById('materialModal').style.display = 'none';
+        // ====== Modal Detail ======
+        function showMaterialDetail(materialId) {
+            if (!materialId) {
+                alert('Material ID is missing.');
+                return;
             }
+            // Tự động build URL (không hardcode)
+            const base = window.location.origin
+                       + window.location.pathname.replace(/\/list-material.*$/, '');
+            const url = base + '/detail-material?id=' + materialId;
+
+            fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(resp => {
+                if (!resp.ok) throw new Error('HTTP status ' + resp.status);
+                return resp.json();
+            })
+            .then(data => {
+                document.getElementById('modalMaterialId').textContent           = data.materialId;
+                document.getElementById('modalName').textContent                 = data.name;
+                document.getElementById('modalUnitName').textContent             = data.unitName || '-';
+                document.getElementById('modalPrice').textContent                = data.price != null 
+                    ? parseFloat(data.price).toFixed(2).replace('.', ',') : '-';
+                document.getElementById('modalQuantity').textContent             = data.quantity != null 
+                    ? parseFloat(data.quantity).toFixed(2).replace('.', ',') : '-';
+                document.getElementById('modalSupplierName').textContent         = data.supplierName || 'No Supplier';
+                document.getElementById('modalStatus').textContent               = data.status;
+                document.getElementById('modalCategoryName').textContent         = data.categoryName;
+                document.getElementById('modalParentCategoryName').textContent   = data.parentCategoryName ? data.parentCategoryName : 'N/A';
+
+                document.getElementById('materialModal').style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Error fetching material detail:', err);
+                alert('Cannot load material details.');
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('materialModal').style.display = 'none';
+        }
+
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('materialModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // ====== Gắn sự kiện cho nút VIEW ban đầu ======
+        window.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.view-detail').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let mid = this.getAttribute('data-id');
+                    showMaterialDetail(mid);
+                });
+            });
         });
     </script>
 </body>

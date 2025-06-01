@@ -4,65 +4,122 @@
  */
 package model;
 
-/**
- *
- * @author legia
- */
+import java.math.BigDecimal;
 
 public class Material {
+
     private int materialId;
     private int categoryId;
     private String name;
     private String status;
-    private String categoryName;
-    private String parentCategoryName;
     private int unitId;
     private String unitName;
-    private double price;
-    private double quantity;
-    private int supplierId;
+    private BigDecimal price;
+    private BigDecimal quantity;
     private String supplierName;
+    private String categoryName;
+    private Integer parentCategoryId;
 
-    public Material() {}
+    public Material() {
+    }
 
-    public Material(int materialId, int categoryId, String name, String status, String categoryName, String parentCategoryName, 
-                    int unitId, String unitName, double price, double quantity, int supplierId, String supplierName) {
+    public Material(int materialId, int categoryId, String name, String status) {
         this.materialId = materialId;
         this.categoryId = categoryId;
         this.name = name;
         this.status = status;
-        this.categoryName = categoryName;
-        this.parentCategoryName = parentCategoryName;
+    }
+
+    public int getMaterialId() {
+        return materialId;
+    }
+
+    public void setMaterialId(int materialId) {
+        this.materialId = materialId;
+    }
+
+    public int getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getUnitId() {
+        return unitId;
+    }
+
+    public void setUnitId(int unitId) {
         this.unitId = unitId;
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
         this.unitName = unitName;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public BigDecimal getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
-        this.supplierId = supplierId;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
         this.supplierName = supplierName;
     }
 
-    public int getMaterialId() { return materialId; }
-    public void setMaterialId(int materialId) { this.materialId = materialId; }
-    public int getCategoryId() { return categoryId; }
-    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public String getCategoryName() { return categoryName; }
-    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
-    public String getParentCategoryName() { return parentCategoryName; }
-    public void setParentCategoryName(String parentCategoryName) { this.parentCategoryName = parentCategoryName; }
-    public int getUnitId() { return unitId; }
-    public void setUnitId(int unitId) { this.unitId = unitId; }
-    public String getUnitName() { return unitName; }
-    public void setUnitName(String unitName) { this.unitName = unitName; }
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
-    public double getQuantity() { return quantity; }
-    public void setQuantity(double quantity) { this.quantity = quantity; }
-    public int getSupplierId() { return supplierId; }
-    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
-    public String getSupplierName() { return supplierName; }
-    public void setSupplierName(String supplierName) { this.supplierName = supplierName; }
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public Integer getParentCategoryId() {
+        return parentCategoryId;
+    }
+
+    public void setParentCategoryId(Integer parentCategoryId) {
+        this.parentCategoryId = parentCategoryId;
+    }
+
+    @Override
+    public String toString() {
+        return "Material{" + "materialId=" + materialId + ", categoryId=" + categoryId + ", name=" + name + ", status=" + status + ", unitId=" + unitId + ", unitName=" + unitName + ", price=" + price + ", quantity=" + quantity + ", supplierName=" + supplierName + ", categoryName=" + categoryName + ", parentCategoryId=" + parentCategoryId + '}';
+    }
 }

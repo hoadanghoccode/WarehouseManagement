@@ -11,6 +11,7 @@ package controller;
 
 import dal.MaterialDAO;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -45,13 +46,27 @@ public class AddMaterialController extends HttpServlet {
         Material newMaterial = new Material();
         newMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
         newMaterial.setName(request.getParameter("name"));
-        newMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
-        newMaterial.setPrice(Double.parseDouble(request.getParameter("price")));
-        newMaterial.setQuantity(Double.parseDouble(request.getParameter("quantity")));
-        String supplierIdStr = request.getParameter("supplierId");
-        newMaterial.setSupplierId(supplierIdStr != null && !supplierIdStr.isEmpty() ? Integer.parseInt(supplierIdStr) : 0);
         newMaterial.setStatus("active");
-        materialDAO.addMaterial(newMaterial);
+
+        // Thêm vào Material
+        int materialId = materialDAO.addMaterial(newMaterial);
+
+        // Thêm giá và đơn vị
+        int unitId = Integer.parseInt(request.getParameter("unitId"));
+        BigDecimal price = new BigDecimal(request.getParameter("price"));
+        materialDAO.addMaterialUnitPrice(materialId, unitId, price);
+
+        // Thêm số lượng vào MaterialInventory
+        BigDecimal quantity = new BigDecimal(request.getParameter("quantity"));
+        materialDAO.addMaterialInventory(materialId, unitId, quantity);
+
+        // Liên kết với Supplier (nếu có)
+        String supplierIdStr = request.getParameter("supplierId");
+        if (supplierIdStr != null && !supplierIdStr.isEmpty() && !supplierIdStr.equals("0")) {
+            int supplierId = Integer.parseInt(supplierIdStr);
+            materialDAO.addSupplierMaterial(supplierId, materialId);
+        }
+
         response.sendRedirect("list-material");
     }
 }

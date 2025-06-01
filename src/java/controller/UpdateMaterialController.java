@@ -11,6 +11,7 @@ package controller;
 
 import dal.MaterialDAO;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -22,7 +23,7 @@ import model.Unit;
 import model.Category;
 import model.Supplier;
 
-@WebServlet(name = "UpdateMaterialController", urlPatterns = {"/update-material"})
+@WebServlet(name = "UpdateMaterialController", urlPatterns = {"/update-material", "/update-material-status"})
 public class UpdateMaterialController extends HttpServlet {
 
     @Override
@@ -30,7 +31,7 @@ public class UpdateMaterialController extends HttpServlet {
             throws ServletException, IOException {
         MaterialDAO materialDAO = new MaterialDAO();
         int materialId = Integer.parseInt(request.getParameter("id"));
-        Material material = materialDAO.getMaterialById(materialId);
+        Material material = materialDAO.getMaterialByIdWithDetails(materialId);
         List<Category> categories = materialDAO.getAllCategories();
         List<Unit> units = materialDAO.getAllUnits();
         List<Supplier> suppliers = materialDAO.getAllSuppliers();
@@ -49,17 +50,40 @@ public class UpdateMaterialController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         MaterialDAO materialDAO = new MaterialDAO();
-        Material updatedMaterial = new Material();
-        updatedMaterial.setMaterialId(Integer.parseInt(request.getParameter("materialId")));
-        updatedMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
-        updatedMaterial.setName(request.getParameter("name"));
-        updatedMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
-        updatedMaterial.setPrice(Double.parseDouble(request.getParameter("price")));
-        updatedMaterial.setQuantity(Double.parseDouble(request.getParameter("quantity")));
-        String supplierIdStr = request.getParameter("supplierId");
-        updatedMaterial.setSupplierId(supplierIdStr != null && !supplierIdStr.isEmpty() ? Integer.parseInt(supplierIdStr) : 0);
-        updatedMaterial.setStatus(request.getParameter("status"));
-        materialDAO.updateMaterial(updatedMaterial);
+        String action = request.getParameter("action");
+        if ("update".equals(action)) {
+            int materialId = Integer.parseInt(request.getParameter("materialId"));
+            Material updatedMaterial = materialDAO.getMaterialByIdWithDetails(materialId);
+            if (updatedMaterial != null) {
+                updatedMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
+                updatedMaterial.setName(request.getParameter("name"));
+                updatedMaterial.setStatus(request.getParameter("status"));
+
+                materialDAO.updateMaterial(updatedMaterial);
+
+                int unitId = Integer.parseInt(request.getParameter("unitId"));
+                BigDecimal price = new BigDecimal(request.getParameter("price"));
+                materialDAO.updateMaterialUnitPrice(materialId, unitId, price);
+
+                BigDecimal quantity = new BigDecimal(request.getParameter("quantity"));
+                materialDAO.updateMaterialInventory(materialId, unitId, quantity);
+
+                materialDAO.deleteSupplierMaterial(materialId);
+                String supplierIdStr = request.getParameter("supplierId");
+                if (supplierIdStr != null && !supplierIdStr.isEmpty() && !supplierIdStr.equals("0")) {
+                    int supplierId = Integer.parseInt(supplierIdStr);
+                    materialDAO.addSupplierMaterial(supplierId, materialId);
+                }
+            }
+        } else if ("status".equals(action)) {
+            int materialId = Integer.parseInt(request.getParameter("materialId"));
+            String status = request.getParameter("status");
+            Material material = materialDAO.getMaterialByIdWithDetails(materialId);
+            if (material != null) {
+                material.setStatus(status);
+                materialDAO.updateMaterial(material);
+            }
+        }
         response.sendRedirect("list-material");
     }
 }
