@@ -19,6 +19,8 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeleteCategory.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/deletecategory.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
         </group>
     </open-files>
 </project-private>

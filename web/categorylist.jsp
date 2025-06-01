@@ -508,7 +508,7 @@
         <div id="errorModal" class="modal">
             <div class="modal-card">
                 <div class="modal-header">
-                    <h2>Update Status Failed</h2>
+                    <h2>Update Failed</h2>
                     <button type="button" class="modal-close" onclick="closeErrorModal()">
                         <i class="fas fa-times"></i>
                     </button>

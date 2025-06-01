@@ -24,17 +24,22 @@ function openUpdateModal(categoryId, categoryName, parentId, status) {
     console.log("Opening update modal...", {categoryId, categoryName, parentId, status});
     const modal = document.getElementById('updateModal');
     if (modal) {
+        // Chỉ lưu original data nếu KHÔNG phải từ validation fail
+        if (!window.showUpdateModal) {
+            modal.dataset.originalName = categoryName;
+            modal.dataset.originalParentId = (parentId && parentId !== 'null' && parentId !== 'undefined') ? parentId.toString() : '0';
+            modal.dataset.originalStatus = status;
+            modal.dataset.originalCategoryId = categoryId;
+        }
+
         // Set form values
         const categoryIdInput = document.getElementById('updateCategoryId');
         const categoryNameInput = document.getElementById('updateCategoryName');
         const parentSelect = document.getElementById('updateParentId');
         const statusSelect = document.getElementById('updateStatus');
 
-        // Check if elements exist before setting values
         if (categoryIdInput) {
             categoryIdInput.value = categoryId;
-        } else {
-            console.error("Element 'updateCategoryId' not found!");
         }
 
         if (categoryNameInput) {
@@ -52,7 +57,6 @@ function openUpdateModal(categoryId, categoryName, parentId, status) {
                 }
             });
 
-            // Set parent value, ensure it's a valid number or 0
             const parentValue = (parentId && parentId !== 'null' && parentId !== 'undefined') ? parentId.toString() : '0';
             parentSelect.value = parentValue;
         }
@@ -65,12 +69,10 @@ function openUpdateModal(categoryId, categoryName, parentId, status) {
         if (categoryNameInput) {
             categoryNameInput.focus();
         }
-        // Prevent body scroll when modal is open
         document.body.style.overflow = 'hidden';
-    } else {
-        console.error("Modal 'updateModal' not found!");
     }
 }
+
 function closeModal(id) {
     const modal = document.getElementById(id);
     if (modal) {
@@ -86,11 +88,19 @@ function closeModal(id) {
                 nameInput.value = '';
             if (parentSelect)
                 parentSelect.value = '0';
+
+            // Hoàn toàn xóa tất cả window variables liên quan đến add modal
+            clearAddModalData();
         } else if (id === 'updateModal') {
+            // KHÔNG restore original values nữa, mà clear hết
+            clearAllModalData();
+
+            // Clear form input fields
             const nameInput = document.getElementById('updateCategoryName');
             const parentSelect = document.getElementById('updateParentId');
             const statusSelect = document.getElementById('updateStatus');
             const idInput = document.getElementById('updateCategoryId');
+
             if (nameInput)
                 nameInput.value = '';
             if (parentSelect)
@@ -99,8 +109,69 @@ function closeModal(id) {
                 statusSelect.value = 'active';
             if (idInput)
                 idInput.value = '';
+
+            // Clear dataset của modal
+            delete modal.dataset.originalName;
+            delete modal.dataset.originalParentId;
+            delete modal.dataset.originalStatus;
+            delete modal.dataset.originalCategoryId;
+        } else if (id === 'confirmModal') {
+            clearConfirmModalData();
         }
     }
+}
+
+function clearUpdateModalData() {
+    window.showUpdateModal = false;
+    window.updateCategoryId = '';
+    window.categoryName = '';
+    window.parentId = '';
+    window.categoryStatus = '';
+
+    // Xóa hoàn toàn các properties khỏi window object
+    delete window.showUpdateModal;
+    delete window.updateCategoryId;
+    delete window.categoryName;
+    delete window.parentId;
+    delete window.categoryStatus;
+}
+
+function clearAddModalData() {
+    window.showAddModal = false;
+    window.categoryName = '';
+    window.parentId = '';
+    delete window.showAddModal;
+    delete window.categoryName;
+    delete window.parentId;
+}
+
+function clearAllModalFlags() {
+    window.showAddModal = false;
+    window.showUpdateModal = false;
+    window.showConfirmModal = false;
+    window.errorMessage = '';
+    window.successMessage = '';
+    window.categoryName = '';
+    window.parentId = '';
+    window.updateCategoryId = '';
+    window.categoryStatus = '';
+}
+
+function clearAllModalData() {
+    clearAddModalData();
+    clearUpdateModalData();
+    clearConfirmModalData();
+
+    // Clear error và success messages
+    window.errorMessage = '';
+    window.successMessage = '';
+    delete window.errorMessage;
+    delete window.successMessage;
+}
+
+function clearConfirmModalData() {
+    window.showConfirmModal = false;
+    delete window.showConfirmModal;
 }
 
 function showErrorModal(message) {
@@ -208,20 +279,15 @@ document.head.appendChild(style);
 // DOM Content Loaded Event
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM Content Loaded - Setting up subcategory toggles and modal handlers");
-
     // Debug functions availability
     debugModals();
-
     const buttons = document.querySelectorAll(".sub-count-btn");
     const visibleTooltips = new Set();
-
     buttons.forEach(btn => {
         const id = btn.dataset.id;
         const tooltipRow = document.getElementById("tooltip-" + id);
-
         // Kiểm tra xem button có subcategories không
         const hasSubCategories = !btn.classList.contains('zero-count');
-
         if (!tooltipRow || !hasSubCategories) {
             return; // Bỏ qua nếu không có tooltip hoặc không có subcategories
         }
@@ -233,7 +299,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 tooltipRow.style.animation = "fadeIn 0.3s ease";
             }
         });
-
         btn.addEventListener("mouseleave", () => {
             if (!visibleTooltips.has(id)) {
                 setTimeout(() => {
@@ -243,14 +308,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 }, 300);
             }
         });
-
         // Keep tooltip visible when hovering over it
         tooltipRow.addEventListener("mouseenter", () => {
             if (!visibleTooltips.has(id)) {
                 tooltipRow.style.display = "table-row";
             }
         });
-
         tooltipRow.addEventListener("mouseleave", () => {
             if (!visibleTooltips.has(id)) {
                 setTimeout(() => {
@@ -260,7 +323,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }, 300);
             }
         });
-
         // Click to toggle persistent visibility
         btn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -275,11 +337,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-
     // Auto show modals based on server-side conditions with a slight delay
     setTimeout(function () {
         console.log("Checking for auto-show modals...");
-
         // Check for showAddModal flag from server
         if (window.showAddModal) {
             console.log("Auto showing add modal due to validation error");
@@ -297,6 +357,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     parentSelect.value = window.parentId;
                 }
             }
+            // KHÔNG clear flag ở đây, để closeModal xử lý
         }
 
         // Check for showUpdateModal flag from server
@@ -308,22 +369,28 @@ document.addEventListener("DOMContentLoaded", function () {
                     window.parentId || '0',
                     window.categoryStatus || 'active'
                     );
+            // KHÔNG clear flag ở đây, để closeModal xử lý
         }
 
         if (window.showConfirmModal) {
             console.log("Auto showing confirm modal");
             openConfirmModal();
+            // KHÔNG clear flag ở đây, để closeModal xử lý
         }
 
         // Show error modal if there's an error message
         if (window.errorMessage && window.errorMessage.trim() !== '') {
             console.log("Auto showing error modal:", window.errorMessage);
             showErrorModal(window.errorMessage);
+            // Clear the error message after showing
+            window.errorMessage = '';
         }
 
         // Show success message if exists
         if (window.successMessage) {
             alert(window.successMessage);
+            // Clear the success message after showing
+            window.successMessage = '';
         }
 
         // Handle URL parameters for status messages
@@ -331,17 +398,41 @@ document.addEventListener("DOMContentLoaded", function () {
         const status = urlParams.get("status");
         if (status === "success") {
             alert("Thêm danh mục thành công!");
+            // Clear URL parameter để tránh hiện lại khi refresh
+            if (window.history.replaceState) {
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
         } else if (status === "fail") {
             alert("Thêm danh mục thất bại!");
+            // Clear URL parameter để tránh hiện lại khi refresh
+            if (window.history.replaceState) {
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
         }
     }, 100);
+// Thêm event listener để clear flags khi user navigate đi
+//    window.addEventListener('beforeunload', function () {
+//        clearAllModalFlags();
+//    });
 
-    // Final debug check
-    setTimeout(() => {
-        console.log("Final function check:", {
-            openAddModal: typeof window.openAddModal,
-            openUpdateModal: typeof window.openUpdateModal,
-            closeModal: typeof window.closeModal
+    window.addEventListener('beforeunload', function () {
+        clearAllModalData();
+    });
+// Thêm event listener để clear flags khi trang được load
+    window.addEventListener('pageshow', function (event) {
+        // Nếu trang được load từ bfcache (back/forward cache)
+        if (event.persisted) {
+            clearAllModalData();
+        }
+    });
+
+    const cancelUpdateBtn = document.getElementById('cancelUpdateBtn');
+    if (cancelUpdateBtn) {
+        cancelUpdateBtn.addEventListener('click', function () {
+            closeModal('updateModal');
+            clearAllModalData(); // Đảm bảo xoá hoàn toàn các biến lưu
         });
-    }, 200);
+    }
 });

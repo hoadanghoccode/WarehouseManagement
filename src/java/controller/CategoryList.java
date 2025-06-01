@@ -21,6 +21,26 @@ public class CategoryList extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Xử lý error parameter từ redirect
+        String error = request.getParameter("error");
+        if (error != null && !error.trim().isEmpty()) {
+            request.setAttribute("errorMessage", error);
+
+            // Kiểm tra loại modal cần hiển thị
+            String modalType = request.getParameter("modalType");
+            if ("add".equals(modalType)) {
+                request.setAttribute("showAddModal", true);
+                request.setAttribute("categoryName", request.getParameter("categoryName"));
+                request.setAttribute("parentId", request.getParameter("parentId"));
+            } else if ("update".equals(modalType)) {
+                request.setAttribute("showUpdateModal", true);
+                request.setAttribute("updateCategoryId", request.getParameter("categoryId"));
+                request.setAttribute("categoryName", request.getParameter("categoryName"));
+                request.setAttribute("parentId", request.getParameter("parentId"));
+                request.setAttribute("categoryStatus", request.getParameter("categoryStatus"));
+            }
+        }
+
         String search = request.getParameter("search");
         String status = request.getParameter("status");
 
@@ -75,7 +95,7 @@ public class CategoryList extends HttpServlet {
             // Log lỗi và hiển thị trang lỗi
             e.printStackTrace();
             request.setAttribute("errorMessage", "An error occurred while loading categories.");
-            request.getRequestDispatcher("error.jsp").forward(request, response);
+//            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
     }
 
@@ -117,13 +137,28 @@ public class CategoryList extends HttpServlet {
         String errorMessage = validateCategoryInput(categoryName, parentIdStr);
 
         if (errorMessage != null) {
-            // Hiển thị lỗi và modal
-            request.setAttribute("errorMessage", errorMessage);
-            request.setAttribute("showAddModal", true);
-            request.setAttribute("categoryName", categoryName);
-            request.setAttribute("parentId", parentIdStr);
-            doGet(request, response);
-            return;
+            try {
+                String redirectUrl = buildRedirectUrl(request);
+                StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                if (redirectUrl.contains("?")) {
+                    finalUrl.append("&");
+                } else {
+                    finalUrl.append("?");
+                }
+
+                finalUrl.append("error=").append(java.net.URLEncoder.encode(errorMessage, "UTF-8"));
+                finalUrl.append("&modalType=add");
+                finalUrl.append("&categoryName=").append(java.net.URLEncoder.encode(categoryName != null ? categoryName : "", "UTF-8"));
+                finalUrl.append("&parentId=").append(java.net.URLEncoder.encode(parentIdStr != null ? parentIdStr : "", "UTF-8"));
+
+                response.sendRedirect(finalUrl.toString());
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+                return;
+            }
         }
 
         // Parse parent ID
@@ -137,9 +172,24 @@ public class CategoryList extends HttpServlet {
             // Redirect với thông báo thành công
             response.sendRedirect("categorylist?message=Category added successfully");
         } else {
-            request.setAttribute("errorMessage", "Failed to add category. Please try again.");
-            request.setAttribute("showAddModal", true);
-            doGet(request, response);
+            try {
+                String redirectUrl = buildRedirectUrl(request);
+                StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                if (redirectUrl.contains("?")) {
+                    finalUrl.append("&");
+                } else {
+                    finalUrl.append("?");
+                }
+
+                finalUrl.append("error=").append(java.net.URLEncoder.encode("Failed to add category. Please try again.", "UTF-8"));
+                finalUrl.append("&modalType=add");
+
+                response.sendRedirect(finalUrl.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+            }
         }
     }
 
@@ -150,8 +200,7 @@ public class CategoryList extends HttpServlet {
         String statusParam = request.getParameter("statusParam");
 
         if (categoryIdStr == null || categoryIdStr.trim().isEmpty()) {
-            request.setAttribute("errorMessage", "Invalid category ID.");
-            doGet(request, response);
+            response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("Invalid category ID.", "UTF-8"));
             return;
         }
 
@@ -163,8 +212,7 @@ public class CategoryList extends HttpServlet {
             Category category = dao.getCategoryById(categoryId);
 
             if (category == null) {
-                request.setAttribute("errorMessage", "Category not found.");
-                doGet(request, response);
+                response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("Category not found.", "UTF-8"));
                 return;
             }
 
@@ -174,13 +222,12 @@ public class CategoryList extends HttpServlet {
             // Chỉ xử lý khi có thay đổi trạng thái
             if (!currentStatus.equals(newStatus)) {
 
-                // CHỈ HIỆN MODAL XÁC NHẬN KHI CHUYỂN TỪ ACTIVE SANG INACTIVE
+                // CHỈ HIỆN MODAL XÂC NHẬN KHI CHUYỂN TỪ ACTIVE SANG INACTIVE
                 if ("active".equals(currentStatus) && "inactive".equals(newStatus)) {
                     String validationError = validateStatusChange(category, newStatus, mDao);
 
                     if (validationError != null) {
-                        request.setAttribute("errorMessage", validationError);
-                        doGet(request, response);
+                        response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode(validationError, "UTF-8"));
                         return;
                     }
 
@@ -200,8 +247,7 @@ public class CategoryList extends HttpServlet {
                     String validationError = validateStatusChange(category, newStatus, mDao);
 
                     if (validationError != null) {
-                        request.setAttribute("errorMessage", validationError);
-                        doGet(request, response);
+                        response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode(validationError, "UTF-8"));
                         return;
                     }
 
@@ -215,8 +261,10 @@ public class CategoryList extends HttpServlet {
             response.sendRedirect(redirectUrl);
 
         } catch (NumberFormatException e) {
-            request.setAttribute("errorMessage", "Invalid category ID format.");
-            doGet(request, response);
+            response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("Invalid category ID format.", "UTF-8"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred while updating status.", "UTF-8"));
         }
     }
 
@@ -446,98 +494,51 @@ public class CategoryList extends HttpServlet {
         String errorMessage = validateUpdateCategoryInput(categoryIdStr, categoryName, parentIdStr, categoryStatus);
 
         if (errorMessage != null) {
-            // Hiển thị lỗi và modal
-            request.setAttribute("errorMessage", errorMessage);
-            request.setAttribute("showUpdateModal", true);
-            request.setAttribute("updateCategoryId", categoryIdStr);
-            request.setAttribute("categoryName", categoryName);
-            request.setAttribute("parentId", parentIdStr);
-            request.setAttribute("categoryStatus", categoryStatus);
-            doGet(request, response);
-            return;
+            try {
+                String redirectUrl = buildRedirectUrl(request);
+                StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                if (redirectUrl.contains("?")) {
+                    finalUrl.append("&");
+                } else {
+                    finalUrl.append("?");
+                }
+
+                finalUrl.append("error=").append(java.net.URLEncoder.encode(errorMessage, "UTF-8"));
+                finalUrl.append("&modalType=update");
+                finalUrl.append("&categoryId=").append(java.net.URLEncoder.encode(categoryIdStr != null ? categoryIdStr : "", "UTF-8"));
+                finalUrl.append("&categoryName=").append(java.net.URLEncoder.encode(categoryName != null ? categoryName : "", "UTF-8"));
+                finalUrl.append("&parentId=").append(java.net.URLEncoder.encode(parentIdStr != null ? parentIdStr : "", "UTF-8"));
+                finalUrl.append("&categoryStatus=").append(java.net.URLEncoder.encode(categoryStatus != null ? categoryStatus : "", "UTF-8"));
+
+                response.sendRedirect(finalUrl.toString());
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+                return;
+            }
         }
 
         try {
             int categoryId = Integer.parseInt(categoryIdStr);
             CategoryDAO dao = new CategoryDAO();
+            MaterialDAO mDao = new MaterialDAO();
             Category currentCategory = dao.getCategoryById(categoryId);
 
             if (currentCategory == null) {
-                request.setAttribute("errorMessage", "Category not found.");
-                doGet(request, response);
+                response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("Category not found.", "UTF-8"));
                 return;
             }
 
             // Parse parent ID
             Integer parentId = parseParentId(parentIdStr);
 
-            // Validate circular reference
-            if (parentId != null && dao.isCircularParent(categoryId, parentId)) {
-                request.setAttribute("errorMessage", "Cannot update: circular hierarchy detected!");
-                request.setAttribute("showUpdateModal", true);
-                request.setAttribute("updateCategoryId", categoryIdStr);
-                request.setAttribute("categoryName", categoryName);
-                request.setAttribute("parentId", parentIdStr);
-                request.setAttribute("categoryStatus", categoryStatus);
-                doGet(request, response);
-                return;
-            }
-
-            Integer currentParentId = currentCategory.getParentId() != null ? currentCategory.getParentId().getCategoryId() : null;
-            boolean hasParentChange = !Objects.equals(currentParentId, parentId);
-
-            // CHỈ VALIDATE KHI CÓ THAY ĐỔI PARENT
-            if (hasParentChange && parentId != null) {
-                // Validate max 2 levels (only parent and child)
-                Category parentCategory = dao.getCategoryById(parentId);
-                if (parentCategory != null && parentCategory.getParentId() != null) {
-                    request.setAttribute("errorMessage", "Cannot update: exceeds 2-level hierarchy (only parent and child allowed).");
-                    request.setAttribute("showUpdateModal", true);
-                    request.setAttribute("updateCategoryId", categoryIdStr);
-                    request.setAttribute("categoryName", categoryName);
-                    request.setAttribute("parentId", parentIdStr);
-                    request.setAttribute("categoryStatus", categoryStatus);
-                    doGet(request, response);
-                    return;
-                }
-
-                // Kiểm tra nếu category hiện tại có children thì không được phép chuyển thành child của category khác
-                List<Category> childrenOfCurrentCategory = dao.getSubCategoryByParentId(categoryId);
-                if (childrenOfCurrentCategory != null && !childrenOfCurrentCategory.isEmpty()) {
-                    request.setAttribute("errorMessage", "Cannot update: this category has child categories. A parent category cannot become a child category.");
-                    request.setAttribute("showUpdateModal", true);
-                    request.setAttribute("updateCategoryId", categoryIdStr);
-                    request.setAttribute("categoryName", categoryName);
-                    request.setAttribute("parentId", parentIdStr);
-                    request.setAttribute("categoryStatus", categoryStatus);
-                    doGet(request, response);
-                    return;
-                }
-            }
-
-            // Validate status change if needed
-            if (!currentCategory.getStatus().equals(categoryStatus)) {
-                MaterialDAO mDao = new MaterialDAO();
-                String validationError = validateStatusChange(currentCategory, categoryStatus, mDao);
-
-                if (validationError != null) {
-                    request.setAttribute("errorMessage", validationError);
-                    request.setAttribute("showUpdateModal", true);
-                    request.setAttribute("updateCategoryId", categoryIdStr);
-                    request.setAttribute("categoryName", categoryName);
-                    request.setAttribute("parentId", parentIdStr);
-                    request.setAttribute("categoryStatus", categoryStatus);
-                    doGet(request, response);
-                    return;
-                }
-            }
-
             // Kiểm tra xem có thay đổi gì không
             boolean hasNameChange = !currentCategory.getName().equals(categoryName.trim());
             boolean hasStatusChange = !currentCategory.getStatus().equals(categoryStatus);
-            // Sửa lại phần kiểm tra thay đổi parent
-            currentParentId = currentCategory.getParentId() != null ? currentCategory.getParentId().getCategoryId() : null;
-            hasParentChange = !Objects.equals(currentParentId, parentId);
+            Integer currentParentId = currentCategory.getParentId() != null ? currentCategory.getParentId().getCategoryId() : null;
+            boolean hasParentChange = !Objects.equals(currentParentId, parentId);
             boolean hasChanges = hasNameChange || hasStatusChange || hasParentChange;
 
             // Nếu không có thay đổi gì
@@ -545,6 +546,156 @@ public class CategoryList extends HttpServlet {
                 String redirectUrl = buildRedirectUrl(request);
                 response.sendRedirect(redirectUrl + (redirectUrl.contains("?") ? "&" : "?") + "message=No changes detected");
                 return;
+            }
+
+            // *** THÊM VALIDATION CHO TẤT CẢ CÁC THAY ĐỔI ***
+            // Kiểm tra ràng buộc với orders cho BẤT KỲ thay đổi nào
+            String orderValidationError = validateCategoryForOrderConstraints(currentCategory, mDao);
+            if (orderValidationError != null) {
+                try {
+                    String redirectUrl = buildRedirectUrl(request);
+                    StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                    if (redirectUrl.contains("?")) {
+                        finalUrl.append("&");
+                    } else {
+                        finalUrl.append("?");
+                    }
+
+                    finalUrl.append("error=").append(java.net.URLEncoder.encode(orderValidationError, "UTF-8"));
+                    finalUrl.append("&modalType=update");
+                    finalUrl.append("&categoryId=").append(java.net.URLEncoder.encode(categoryIdStr, "UTF-8"));
+                    finalUrl.append("&categoryName=").append(java.net.URLEncoder.encode(categoryName, "UTF-8"));
+                    finalUrl.append("&parentId=").append(java.net.URLEncoder.encode(parentIdStr != null ? parentIdStr : "", "UTF-8"));
+                    finalUrl.append("&categoryStatus=").append(java.net.URLEncoder.encode(categoryStatus, "UTF-8"));
+
+                    response.sendRedirect(finalUrl.toString());
+                    return;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+                    return;
+                }
+            }
+
+            // Validate circular reference nếu có thay đổi parent
+            if (hasParentChange && parentId != null && dao.isCircularParent(categoryId, parentId)) {
+                try {
+                    String redirectUrl = buildRedirectUrl(request);
+                    StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                    if (redirectUrl.contains("?")) {
+                        finalUrl.append("&");
+                    } else {
+                        finalUrl.append("?");
+                    }
+
+                    finalUrl.append("error=").append(java.net.URLEncoder.encode("Cannot update: circular hierarchy detected!", "UTF-8"));
+                    finalUrl.append("&modalType=update");
+                    finalUrl.append("&categoryId=").append(java.net.URLEncoder.encode(categoryIdStr, "UTF-8"));
+                    finalUrl.append("&categoryName=").append(java.net.URLEncoder.encode(categoryName, "UTF-8"));
+                    finalUrl.append("&parentId=").append(java.net.URLEncoder.encode(parentIdStr != null ? parentIdStr : "", "UTF-8"));
+                    finalUrl.append("&categoryStatus=").append(java.net.URLEncoder.encode(categoryStatus, "UTF-8"));
+
+                    response.sendRedirect(finalUrl.toString());
+                    return;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+                    return;
+                }
+            }
+
+            // Validate hierarchy rules nếu có thay đổi parent
+            if (hasParentChange && parentId != null) {
+                // Validate max 2 levels (only parent and child)
+                Category parentCategory = dao.getCategoryById(parentId);
+                if (parentCategory != null && parentCategory.getParentId() != null) {
+                    try {
+                        String redirectUrl = buildRedirectUrl(request);
+                        StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                        if (redirectUrl.contains("?")) {
+                            finalUrl.append("&");
+                        } else {
+                            finalUrl.append("?");
+                        }
+
+                        finalUrl.append("error=").append(java.net.URLEncoder.encode("Cannot update: exceeds 2-level hierarchy (only parent and child allowed).", "UTF-8"));
+                        finalUrl.append("&modalType=update");
+                        finalUrl.append("&categoryId=").append(java.net.URLEncoder.encode(categoryIdStr, "UTF-8"));
+                        finalUrl.append("&categoryName=").append(java.net.URLEncoder.encode(categoryName, "UTF-8"));
+                        finalUrl.append("&parentId=").append(java.net.URLEncoder.encode(parentIdStr != null ? parentIdStr : "", "UTF-8"));
+                        finalUrl.append("&categoryStatus=").append(java.net.URLEncoder.encode(categoryStatus, "UTF-8"));
+
+                        response.sendRedirect(finalUrl.toString());
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+                        return;
+                    }
+                }
+
+                // Kiểm tra nếu category hiện tại có children thì không được phép chuyển thành child của category khác
+                List<Category> childrenOfCurrentCategory = dao.getSubCategoryByParentId(categoryId);
+                if (childrenOfCurrentCategory != null && !childrenOfCurrentCategory.isEmpty()) {
+                    try {
+                        String redirectUrl = buildRedirectUrl(request);
+                        StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                        if (redirectUrl.contains("?")) {
+                            finalUrl.append("&");
+                        } else {
+                            finalUrl.append("?");
+                        }
+
+                        finalUrl.append("error=").append(java.net.URLEncoder.encode("Cannot update: this category has child categories. A parent category cannot become a child category.", "UTF-8"));
+                        finalUrl.append("&modalType=update");
+                        finalUrl.append("&categoryId=").append(java.net.URLEncoder.encode(categoryIdStr, "UTF-8"));
+                        finalUrl.append("&categoryName=").append(java.net.URLEncoder.encode(categoryName, "UTF-8"));
+                        finalUrl.append("&parentId=").append(java.net.URLEncoder.encode(parentIdStr != null ? parentIdStr : "", "UTF-8"));
+                        finalUrl.append("&categoryStatus=").append(java.net.URLEncoder.encode(categoryStatus, "UTF-8"));
+
+                        response.sendRedirect(finalUrl.toString());
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+                        return;
+                    }
+                }
+            }
+
+            // Validate status change constraints nếu có thay đổi status
+            if (hasStatusChange) {
+                String validationError = validateStatusChange(currentCategory, categoryStatus, mDao);
+                if (validationError != null) {
+                    try {
+                        String redirectUrl = buildRedirectUrl(request);
+                        StringBuilder finalUrl = new StringBuilder(redirectUrl);
+
+                        if (redirectUrl.contains("?")) {
+                            finalUrl.append("&");
+                        } else {
+                            finalUrl.append("?");
+                        }
+
+                        finalUrl.append("error=").append(java.net.URLEncoder.encode(validationError, "UTF-8"));
+                        finalUrl.append("&modalType=update");
+                        finalUrl.append("&categoryId=").append(java.net.URLEncoder.encode(categoryIdStr, "UTF-8"));
+                        finalUrl.append("&categoryName=").append(java.net.URLEncoder.encode(categoryName, "UTF-8"));
+                        finalUrl.append("&parentId=").append(java.net.URLEncoder.encode(parentIdStr != null ? parentIdStr : "", "UTF-8"));
+                        finalUrl.append("&categoryStatus=").append(java.net.URLEncoder.encode(categoryStatus, "UTF-8"));
+
+                        response.sendRedirect(finalUrl.toString());
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred", "UTF-8"));
+                        return;
+                    }
+                }
             }
 
             // Hiển thị modal xác nhận với thông tin chi tiết
@@ -555,17 +706,62 @@ public class CategoryList extends HttpServlet {
             request.setAttribute("updateConfirmStatus", categoryStatus);
             request.setAttribute("updateConfirmCategory", currentCategory);
 
-            // LUÔN TÍNH TOÁN VÀ HIỂN THỊ THÔNG TIN SUB-CATEGORIES VÀ MATERIALS
-            // Không chỉ khi thay đổi status sang inactive
-            MaterialDAO mDao = new MaterialDAO();
+            // Tính toán và hiển thị thông tin sub-categories và materials
             setConfirmModalData(request, currentCategory, mDao, dao);
 
             doGet(request, response);
 
         } catch (NumberFormatException e) {
-            request.setAttribute("errorMessage", "Invalid category ID format.");
-            doGet(request, response);
+            response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("Invalid category ID format.", "UTF-8"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("categorylist?error=" + java.net.URLEncoder.encode("An error occurred while updating category.", "UTF-8"));
         }
+    }
+
+    // *** THÊM METHOD MỚI ĐỂ VALIDATE CONSTRAINTS VỚI ORDERS ***
+    private String validateCategoryForOrderConstraints(Category category, MaterialDAO mDao) {
+        List<Material> allMaterials = new ArrayList<>();
+
+        // Thu thập tất cả materials liên quan đến category
+        if (category.getParentId() == null) {
+            // Parent category - lấy materials từ tất cả subcategories
+            CategoryDAO dao = new CategoryDAO();
+            Category parent = dao.getParentCategoryById(category.getCategoryId());
+
+            if (parent != null && parent.getSubCategories() != null) {
+                for (Category subCategory : parent.getSubCategories()) {
+                    List<Material> subMaterials = mDao.getAllMaterialsByCategoryId(subCategory.getCategoryId());
+                    if (subMaterials != null && !subMaterials.isEmpty()) {
+                        allMaterials.addAll(subMaterials);
+                    }
+                }
+            }
+        } else {
+            // Subcategory - lấy materials trực tiếp
+            allMaterials = mDao.getAllMaterialsByCategoryId(category.getCategoryId());
+        }
+
+        // Kiểm tra ràng buộc với orders
+        for (Material material : allMaterials) {
+            // Kiểm tra materials có trong pending orders
+            if (mDao.isMaterialInOrderWithStatus(material.getMaterialId(), "pending")) {
+                return "Cannot update category because it contains materials that are in pending orders.";
+            }
+
+            // Kiểm tra materials có trong approved orders với pending import/export
+            if (mDao.isMaterialInOrderWithStatus(material.getMaterialId(), "approved")) {
+                if (mDao.isMaterialInPendingImport(material.getMaterialId())) {
+                    return "Cannot update category because it contains materials that are in pending import.";
+                }
+
+                if (mDao.isMaterialInPendingExport(material.getMaterialId())) {
+                    return "Cannot update category because it contains materials that are in pending export.";
+                }
+            }
+        }
+
+        return null; // Không có lỗi
     }
 
     private String validateUpdateCategoryInput(String categoryIdStr, String categoryName,

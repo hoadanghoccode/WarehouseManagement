@@ -222,20 +222,13 @@ public class MaterialDAO extends DBContext {
     }
 
     public void updateMaterial(Material material) {
-        String query = "UPDATE Material SET Category_id = ?, Unit_id = ?, Name = ?, Description = ?, Inventory_quantity = ?, "
-                + "Price = ?, Image = ?, Quality = ?, Status = ?, Updated_at = NOW() WHERE Material_id = ?";
+        String query = "UPDATE Material SET Category_id = ?, Name = ?, Status = ? WHERE Material_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, material.getCategoryId());
-            ps.setInt(2, material.getUnitId());
-            ps.setString(3, material.getName());
-            ps.setString(4, material.getDescription());
-            ps.setInt(5, material.getInventoryQuantity());
-            ps.setDouble(6, material.getPrice());
-            ps.setString(7, material.getImage());
-            ps.setString(8, material.getQuality());
-            ps.setString(9, material.getStatus());
-            ps.setInt(10, material.getMaterialId());
+            ps.setString(2, material.getName());
+            ps.setString(3, material.getStatus());
+            ps.setInt(4, material.getMaterialId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -281,9 +274,11 @@ public class MaterialDAO extends DBContext {
     }
 
     public boolean isMaterialInOrderWithStatus(int materialId, String status) {
-        String query = "SELECT 1 FROM Order_detail od "
+        String query = "SELECT 1 "
+                + "FROM Order_detail od "
                 + "JOIN Orders o ON od.Order_id = o.Order_id "
-                + "WHERE od.Material_id = ? AND o.Status = ? LIMIT 1";
+                + "WHERE od.Material_id = ? AND o.Status = ? "
+                + "LIMIT 1";
 
         try {
             PreparedStatement ps = connection.prepareStatement(query);
@@ -299,9 +294,12 @@ public class MaterialDAO extends DBContext {
     }
 
     public boolean isMaterialInPendingImport(int materialId) {
-        String query = "SELECT 1 FROM Import_note_detail ind "
+        String query = "SELECT 1 "
+                + "FROM Import_note_detail ind "
                 + "JOIN Import_note i ON ind.Import_note_id = i.Import_note_id "
-                + "WHERE ind.Material_id = ? AND i.Status = 'pending' LIMIT 1";
+                + "WHERE ind.Material_id = ? AND i.Status = 'pending' "
+                + "LIMIT 1";
+
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, materialId);
@@ -311,17 +309,18 @@ public class MaterialDAO extends DBContext {
             e.printStackTrace();
         }
 
-        return false; // Nếu có lỗi hoặc không có kết quả nào
+        return false;
     }
 
     public boolean isMaterialInPendingExport(int materialId) {
-        String query = "SELECT 1 FROM Export_note_detail endt "
+        String query = "SELECT 1 "
+                + "FROM Export_note_detail endt "
                 + "JOIN Export_note en ON endt.Export_note_id = en.Export_note_id "
-                + "WHERE endt.Material_id = ? AND en.Status = 'pending' LIMIT 1";
+                + "WHERE endt.Material_id = ? AND en.Status = 'pending' "
+                + "LIMIT 1";
 
         try {
             PreparedStatement ps = connection.prepareStatement(query);
-
             ps.setInt(1, materialId);
             ResultSet rs = ps.executeQuery();
             return rs.next();
@@ -359,16 +358,8 @@ public class MaterialDAO extends DBContext {
                     Material material = new Material();
                     material.setMaterialId(rs.getInt("Material_id"));
                     material.setCategoryId(rs.getInt("Category_id"));
-                    material.setUnitId(rs.getInt("Unit_id"));
                     material.setName(rs.getString("Name"));
-                    material.setDescription(rs.getString("Description"));
-                    material.setInventoryQuantity(rs.getInt("Inventory_quantity"));
-                    material.setPrice(rs.getDouble("Price"));
-                    material.setImage(rs.getString("Image"));
-                    material.setQuality(rs.getString("Quality"));
                     material.setStatus(rs.getString("Status"));
-                    material.setCreatedAt(rs.getTimestamp("Created_at"));
-                    material.setUpdatedAt(rs.getTimestamp("Updated_at"));
                     materials.add(material);
                 }
             }
@@ -381,6 +372,6 @@ public class MaterialDAO extends DBContext {
 
     public static void main(String[] args) {
         MaterialDAO dao = new MaterialDAO();
-        System.out.println(dao.getAllMaterialsByCategoryId(1) == null);
+        System.out.println(dao.getAllMaterialsByCategoryId(2));
     }
 }
