@@ -12,15 +12,18 @@ package controller;
 import dal.MaterialDAO;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.Material;
 import model.Unit;
 import model.Category;
+import model.Supplier;
 
 @WebServlet(name = "MaterialController", urlPatterns = {"/material"})
 public class MaterialController extends HttpServlet {
@@ -36,7 +39,6 @@ public class MaterialController extends HttpServlet {
         MaterialDAO materialDAO = new MaterialDAO();
         switch (action) {
             case "list":
-                // Xử lý phân trang
                 int page = 1;
                 int pageSize = 5;
                 String pageParam = request.getParameter("page");
@@ -54,18 +56,18 @@ public class MaterialController extends HttpServlet {
                 String quantityMinParam = request.getParameter("quantityMin");
                 String quantityMaxParam = request.getParameter("quantityMax");
 
-                Integer quantityMin = null;
-                Integer quantityMax = null;
+                Double quantityMin = null;
+                Double quantityMax = null;
                 if (quantityMinParam != null && !quantityMinParam.isEmpty()) {
                     try {
-                        quantityMin = Integer.parseInt(quantityMinParam);
+                        quantityMin = Double.parseDouble(quantityMinParam);
                     } catch (NumberFormatException e) {
                         quantityMin = null;
                     }
                 }
                 if (quantityMaxParam != null && !quantityMaxParam.isEmpty()) {
                     try {
-                        quantityMax = Integer.parseInt(quantityMaxParam);
+                        quantityMax = Double.parseDouble(quantityMaxParam);
                     } catch (NumberFormatException e) {
                         quantityMax = null;
                     }
@@ -78,9 +80,11 @@ public class MaterialController extends HttpServlet {
                 if (page > totalPages) page = totalPages;
 
                 List<Category> categories = materialDAO.getAllCategories();
+                List<Supplier> suppliers = materialDAO.getAllSuppliers();
 
                 request.setAttribute("materials", materials);
                 request.setAttribute("categories", categories);
+                request.setAttribute("suppliers", suppliers);
                 request.setAttribute("currentPage", page);
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("pageSize", pageSize);
@@ -92,22 +96,13 @@ public class MaterialController extends HttpServlet {
                 request.getRequestDispatcher("/materialList.jsp").forward(request, response);
                 break;
 
-            case "detail":
-                int materialId = Integer.parseInt(request.getParameter("id"));
-                Material material = materialDAO.getMaterialById(materialId);
-                if (material != null) {
-                    request.setAttribute("material", material);
-                    request.getRequestDispatcher("/materialDetail.jsp").forward(request, response);
-                } else {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "Material not found");
-                }
-                break;
-
             case "add":
                 List<Category> categoriesAdd = materialDAO.getAllCategories();
                 List<Unit> units = materialDAO.getAllUnits();
+                List<Supplier> addSuppliers = materialDAO.getAllSuppliers();
                 request.setAttribute("categories", categoriesAdd);
                 request.setAttribute("units", units);
+                request.setAttribute("suppliers", addSuppliers);
                 request.getRequestDispatcher("/addMaterial.jsp").forward(request, response);
                 break;
 
@@ -116,10 +111,12 @@ public class MaterialController extends HttpServlet {
                 Material updateMaterial = materialDAO.getMaterialById(updateMaterialId);
                 List<Category> updateCategories = materialDAO.getAllCategories();
                 List<Unit> updateUnits = materialDAO.getAllUnits();
+                List<Supplier> updateSuppliers = materialDAO.getAllSuppliers();
                 if (updateMaterial != null) {
                     request.setAttribute("material", updateMaterial);
                     request.setAttribute("categories", updateCategories);
                     request.setAttribute("units", updateUnits);
+                    request.setAttribute("suppliers", updateSuppliers);
                     request.getRequestDispatcher("/updateMaterial.jsp").forward(request, response);
                 } else {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND, "Material not found");
@@ -128,9 +125,16 @@ public class MaterialController extends HttpServlet {
 
             case "delete":
                 int deleteMaterialId = Integer.parseInt(request.getParameter("id"));
-                materialDAO.deleteMaterial(deleteMaterialId);
+            {
+                try {
+                    materialDAO.deleteMaterial(deleteMaterialId);
+                } catch (SQLException ex) {
+                    Logger.getLogger(MaterialController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
                 response.sendRedirect("material?action=list");
                 break;
+
 
             default:
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action");
@@ -148,14 +152,13 @@ public class MaterialController extends HttpServlet {
             case "add":
                 Material newMaterial = new Material();
                 newMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
-                newMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 newMaterial.setName(request.getParameter("name"));
-                newMaterial.setDescription(request.getParameter("description"));
-                newMaterial.setInventoryQuantity(Integer.parseInt(request.getParameter("inventoryQuantity")));
+                newMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 newMaterial.setPrice(Double.parseDouble(request.getParameter("price")));
-                newMaterial.setImage(request.getParameter("image"));
-                newMaterial.setQuality(request.getParameter("quality"));
-                newMaterial.setStatus("active"); // Default status
+                newMaterial.setQuantity(Double.parseDouble(request.getParameter("quantity")));
+                String supplierIdStr = request.getParameter("supplierId");
+                newMaterial.setSupplierId(supplierIdStr != null && !supplierIdStr.isEmpty() ? Integer.parseInt(supplierIdStr) : 0);
+                newMaterial.setStatus("active");
                 materialDAO.addMaterial(newMaterial);
                 response.sendRedirect("material?action=list");
                 break;
@@ -164,13 +167,12 @@ public class MaterialController extends HttpServlet {
                 Material updatedMaterial = new Material();
                 updatedMaterial.setMaterialId(Integer.parseInt(request.getParameter("materialId")));
                 updatedMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
-                updatedMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 updatedMaterial.setName(request.getParameter("name"));
-                updatedMaterial.setDescription(request.getParameter("description"));
-                updatedMaterial.setInventoryQuantity(Integer.parseInt(request.getParameter("inventoryQuantity")));
+                updatedMaterial.setUnitId(Integer.parseInt(request.getParameter("unitId")));
                 updatedMaterial.setPrice(Double.parseDouble(request.getParameter("price")));
-                updatedMaterial.setImage(request.getParameter("image"));
-                updatedMaterial.setQuality(request.getParameter("quality"));
+                updatedMaterial.setQuantity(Double.parseDouble(request.getParameter("quantity")));
+                String updateSupplierIdStr = request.getParameter("supplierId");
+                updatedMaterial.setSupplierId(updateSupplierIdStr != null && !updateSupplierIdStr.isEmpty() ? Integer.parseInt(updateSupplierIdStr) : 0);
                 updatedMaterial.setStatus(request.getParameter("status"));
                 materialDAO.updateMaterial(updatedMaterial);
                 response.sendRedirect("material?action=list");
