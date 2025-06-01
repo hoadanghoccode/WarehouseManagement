@@ -20,45 +20,45 @@ import java.util.UUID;
 public class UserDAO extends DBContext {
 
      public Users getUserById(int userId) {
-        String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
-                     "FROM Users u " +
-                     "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
-                     "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
-                     "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
-                     "WHERE u.User_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Users user = new Users(
-                        rs.getInt("User_id"),
-                        rs.getInt("Role_id"),
-                        rs.getString("Full_name"),
-                        rs.getString("Email"),
-                        rs.getString("Password"),
-                        rs.getInt("Gender") == 1,
-                        rs.getString("Phone_number"),
-                        rs.getString("Address"),
-                        rs.getDate("Date_of_birth"),
-                        rs.getString("Image"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at"),
-                        rs.getInt("Status") == 1,
-                        rs.getString("Reset_Password_Token"),
-                        rs.getTimestamp("Reset_Password_Expiry")
-                    );
-                    user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
-                    user.setDepartmentId(rs.getInt("Department_id"));
-                    user.setDepartmentName(rs.getString("Department_name") != null ? rs.getString("Department_name") : "");
-                    return user;
-                }
+    String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
+                 "FROM Users u " +
+                 "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
+                 "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
+                 "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
+                 "WHERE u.User_id = ?";
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setInt(1, userId);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                Users user = new Users(
+                    rs.getInt("User_id"),
+                    rs.getInt("Role_id"),
+                    rs.getString("Full_name"),
+                    rs.getString("Email"),
+                    rs.getString("Password"),
+                    rs.getInt("Gender") == 1,
+                    rs.getString("Phone_number"),
+                    rs.getString("Address"),
+                    rs.getDate("Date_of_birth"),
+                    rs.getString("Image"),
+                    rs.getTimestamp("Created_at"),
+                    rs.getTimestamp("Updated_at"),
+                    rs.getInt("Status") == 1,
+                    rs.getString("Reset_Password_Token"),
+                    rs.getTimestamp("Reset_Password_Expiry")
+                );
+                user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
+                user.setDepartmentId(rs.getInt("Department_id"));
+                user.setDepartmentName(rs.getString("Department_name") != null ? rs.getString("Department_name") : "");
+                return user;
             }
-        } catch (SQLException e) {
-            System.err.println("Error fetching user with ID " + userId + ": " + e.getMessage());
-            e.printStackTrace();
         }
-        return null;
+    } catch (SQLException e) {
+        System.err.println("Error fetching user with ID " + userId + ": " + e.getMessage());
+        e.printStackTrace();
     }
+    return null;
+}
 
     public void createUser(Users user, int departmentId) {
         String sql = "INSERT INTO Users (Role_id, Full_name, Email, Password, Gender, Phone_number, Address, Date_of_birth, Image, Created_at, Updated_at, Status) " +

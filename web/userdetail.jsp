@@ -5,12 +5,12 @@
     <div class="header">
         <div>
             <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
-                 alt="User Avatar" class="avatar" onclick="document.getElementById('imageUpload').click();">
+                 alt="User Avatar" class="avatar">
             <h2>${user.fullName}</h2>
         </div>
         <button class="close-btn" onclick="closeModal('userDetailModal')">×</button>
     </div>
-    <form action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
+    <form action="${pageContext.request.contextPath}/userdetail" method="post">
         <input type="hidden" name="userId" value="${user.userId}" />
         <input type="hidden" name="email" value="${user.email}" />
         <input type="hidden" name="userDepartmentId" value="${userDepartmentId}" />
@@ -68,8 +68,7 @@
         <div class="grid-container">
             <div class="form-group">
                 <label for="image">Image URL</label>
-                <input type="text" name="image" id="image" value="${user.image}" />
-                <input type="file" name="imageUpload" id="imageUpload" style="display: none;" onchange="this.form.submit();" />
+                <input type="text" name="image" id="image" value="${user.image}" readonly />
             </div>
             <div class="form-group">
                 <label>Updated At</label>

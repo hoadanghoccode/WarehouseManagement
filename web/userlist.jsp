@@ -428,53 +428,53 @@
                 });
         }
         function initializeDepartmentOptions() {
-            const modalContent = document.querySelector('#userDetailModal .modal-content');
-            const roleSelect = modalContent.querySelector("#roleId");
-            const departmentSelect = modalContent.querySelector("#departmentId");
-            if (!roleSelect || !departmentSelect) {
-                console.error("Role or Department select not found");
-                return;
-            }
-            function updateDepartmentOptions() {
-                const roleId = roleSelect.value;
-                departmentSelect.innerHTML = '<option value="">Select a department</option>';
-                if (roleId) {
-                    fetch('${pageContext.request.contextPath}/userdetail?action=getDepartmentsByRole&roleId=' + roleId)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.error) {
-                                departmentSelect.innerHTML = '<option value="">Error: ' + data.error + '</option>';
-                                return;
-                            }
-                            if (data.length === 0) {
-                                departmentSelect.innerHTML = '<option value="">No departments available</option>';
-                                return;
-                            }
-                            const userDepartmentId = modalContent.querySelector('input[name="userDepartmentId"]').value;
-                            data.forEach(department => {
-                                const option = document.createElement("option");
-                                option.value = department.departmentId;
-                                option.textContent = department.name;
-                                if (userDepartmentId && department.departmentId == userDepartmentId) {
-                                    option.selected = true;
-                                }
-                                departmentSelect.appendChild(option);
-                            });
-                        })
-                        .catch(error => {
-                            console.error('Error fetching departments:', error);
-                            departmentSelect.innerHTML = '<option value="">Error loading departments</option>';
-                        });
-                }
-            }
-            updateDepartmentOptions();
-            roleSelect.addEventListener("change", updateDepartmentOptions);
+    const modalContent = document.querySelector('#userDetailModal .modal-content');
+    const roleSelect = modalContent.querySelector("#roleId");
+    const departmentSelect = modalContent.querySelector("#departmentId");
+    if (!roleSelect || !departmentSelect) {
+        console.error("Role or Department select not found");
+        return;
+    }
+    function updateDepartmentOptions() {
+        const roleId = roleSelect.value;
+        departmentSelect.innerHTML = '<option value="">Select a department</option>';
+        if (roleId) {
+            fetch('${pageContext.request.contextPath}/userdetail?action=getDepartmentsByRole&roleId=' + roleId)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        departmentSelect.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+                        return;
+                    }
+                    if (data.length === 0) {
+                        departmentSelect.innerHTML = '<option value="">No departments available</option>';
+                        return;
+                    }
+                    const userDepartmentId = modalContent.querySelector('input[name="userDepartmentId"]').value;
+                    data.forEach(department => {
+                        const option = document.createElement("option");
+                        option.value = department.departmentId;
+                        option.textContent = department.name;
+                        if (userDepartmentId && department.departmentId == userDepartmentId) {
+                            option.selected = true;
+                        }
+                        departmentSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching departments:', error);
+                    departmentSelect.innerHTML = '<option value="">Error loading departments</option>';
+                });
         }
+    }
+    updateDepartmentOptions();
+    roleSelect.addEventListener("change", updateDepartmentOptions);
+}
         window.onclick = function(event) {
             var createModal = document.getElementById("createUserModal");
             var detailModal = document.getElementById("userDetailModal");

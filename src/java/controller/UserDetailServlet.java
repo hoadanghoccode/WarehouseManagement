@@ -4,28 +4,17 @@ import dal.UserDAO;
 import model.Department;
 import model.Users;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-import java.util.Map;
 
+@WebServlet(name = "UserDetailServlet", urlPatterns = {"/userdetail"})
 public class UserDetailServlet extends HttpServlet {
-    private Cloudinary cloudinary;
-
-    @Override
-    public void init() throws ServletException {
-        String cloudinaryUrl = "cloudinary://884545436675372:M-jnhig7NIB1zRHeQ_tqktQD1u8@dzvacilp0";
-        cloudinary = new Cloudinary(cloudinaryUrl);
-    }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -163,11 +152,6 @@ public class UserDetailServlet extends HttpServlet {
             java.util.Date dateOfBirth = null;
             if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
                 dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
-            }
-            Part filePart = request.getPart("imageUpload");
-            if (filePart != null && filePart.getSize() > 0) {
-                Map uploadResult = cloudinary.uploader().upload(filePart.getInputStream(), ObjectUtils.emptyMap());
-                image = uploadResult.get("url").toString();
             }
             Users user = new Users(userId, roleId, existingUser.getFullName(), email, existingUser.getPassword(),
                     existingUser.isGender(), phoneNumber, address, dateOfBirth, image, null,
