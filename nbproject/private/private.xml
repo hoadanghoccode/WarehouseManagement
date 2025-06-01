@@ -3,7 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-<<<<<<< HEAD
+
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Group.java</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Users.java</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/UserDetailServlet.java</file>
@@ -11,13 +11,13 @@
             <file>file:/D:/E/SWP391/WarehouseManagement/web/userlist.jsp</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/UserListServlet.java</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/UserDAO.java</file>
-=======
+
             <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.xml</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.properties</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/ChangePasswordController.java</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddCategory.java</file>
->>>>>>> 00d1712aba0bb72c3b017bc11bd1766dff211dcb
+
         </group>
     </open-files>
 </project-private>
