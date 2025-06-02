@@ -237,6 +237,7 @@ public class MaterialDAO extends DBContext {
         String sql = "UPDATE Material SET Category_id = ?, Name = ?, Status = ? WHERE Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
+
             ps.setInt(1, material.getCategoryId());
             ps.setString(2, material.getName());
             ps.setString(3, material.getStatus());
@@ -392,4 +393,108 @@ public class MaterialDAO extends DBContext {
         }
         return null;
     }
+
+
+    public boolean isMaterialInOrderWithStatus(int materialId, String status) {
+        String query = "SELECT 1 "
+                + "FROM Order_detail od "
+                + "JOIN Orders o ON od.Order_id = o.Order_id "
+                + "WHERE od.Material_id = ? AND o.Status = ? "
+                + "LIMIT 1";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, materialId);
+            ps.setString(2, status);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean isMaterialInPendingImport(int materialId) {
+        String query = "SELECT 1 "
+                + "FROM Import_note_detail ind "
+                + "JOIN Import_note i ON ind.Import_note_id = i.Import_note_id "
+                + "WHERE ind.Material_id = ? AND i.Status = 'pending' "
+                + "LIMIT 1";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, materialId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean isMaterialInPendingExport(int materialId) {
+        String query = "SELECT 1 "
+                + "FROM Export_note_detail endt "
+                + "JOIN Export_note en ON endt.Export_note_id = en.Export_note_id "
+                + "WHERE endt.Material_id = ? AND en.Status = 'pending' "
+                + "LIMIT 1";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, materialId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public int countMaterialByCategoryId(int cid) {
+        String query = "SELECT COUNT(*) FROM Material WHERE Category_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, cid);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getInt("COUNT(*)");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+        }
+        return 0;
+    }
+
+    public List<Material> getAllMaterialsByCategoryId(int categoryId) {
+        List<Material> materials = new ArrayList<>();
+        String query = "SELECT * FROM Material WHERE Category_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, categoryId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Material material = new Material();
+                    material.setMaterialId(rs.getInt("Material_id"));
+                    material.setCategoryId(rs.getInt("Category_id"));
+                    material.setName(rs.getString("Name"));
+                    material.setStatus(rs.getString("Status"));
+                    materials.add(material);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return materials;
+    }
+
+    public static void main(String[] args) {
+        MaterialDAO dao = new MaterialDAO();
+        System.out.println(dao.getAllMaterialsByCategoryId(2));
+    }
 }
+

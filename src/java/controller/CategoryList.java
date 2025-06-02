@@ -52,7 +52,6 @@ public class CategoryList extends HttpServlet {
             List<Category> filterCategories;
             List<Category> allCategories = dao.getIndentedCategories();
 
-
             // Tìm kiếm categories
             if (search != null && !search.trim().isEmpty()) {
                 filterCategories = dao.searchCategoryByName((ArrayList<Category>) parentCategories, search.trim());
