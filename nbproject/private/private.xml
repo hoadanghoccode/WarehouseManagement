@@ -2,7 +2,7 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
         <file>
-            <url>src/java/dal/MaterialDAO.java</url>
+            <url>src/java/dal/CategoryDAO.java</url>
             <bookmark id="1">
                 <name/>
                 <line>0</line>
@@ -11,6 +11,19 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/categorylist.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/categorylist.js</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UpdateCategory.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeleteCategory.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/deletecategory.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/materialList.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/util/GoogleUtils.java</file>
+        </group>
     </open-files>
 </project-private>
