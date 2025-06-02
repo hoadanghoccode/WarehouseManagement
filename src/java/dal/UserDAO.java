@@ -12,13 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Departmentt;
 import model.Department;
-import java.util.UUID;
 import org.mindrot.jbcrypt.BCrypt;
+import java.util.UUID;
 
 
 public class UserDAO extends DBContext {
 
-    public Users getUserById(int userId) {
+   public Users getUserById(int userId) {
     String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
                  "FROM Users u " +
                  "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
