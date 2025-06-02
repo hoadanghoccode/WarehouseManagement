@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
  */
 public class ResetService {
     private final int LIMIT_MINUS = 10;
-    static final String from = "duyddhe173473@fpt.edu.vn";
-    static final String password = "bpxd hqqx pkzc faoe";
+    static final String from = "nhom2.swp391@gmail.com";
+    static final String password = "tvun mzuk vfqb arly";
     
     public String generateToken() {
         return UUID.randomUUID().toString();
