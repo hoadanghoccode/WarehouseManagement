@@ -16,7 +16,6 @@
     <link rel="stylesheet" type="text/css" href="css/materiallist.css" />
 
     <style>
-        /* ================= Reset & Layout chung ================= */
         * {
             box-sizing: border-box;
         }
@@ -52,7 +51,6 @@
             align-items: center;
         }
 
-        /* ================= Filter Controls ================= */
         .search-container {
             display: flex;
             flex-wrap: wrap;
@@ -96,7 +94,6 @@
             min-width: 80px;
         }
 
-        /* ================= Buttons ================= */
         .btn {
             padding: 8px 16px;
             border-radius: 8px;
@@ -143,7 +140,6 @@
             background-color: #dc2626;
         }
 
-        /* ================= Stats Info ================= */
         .stats-info {
             margin-bottom: 16px;
             color: #374151;
@@ -162,7 +158,6 @@
             color: #1f2937;
         }
 
-        /* ================= Table ================= */
         .table-container {
             overflow-x: auto;
             background-color: white;
@@ -209,7 +204,6 @@
             color: #9ca3af;
         }
 
-        /* ================= Pagination ================= */
         .pagination {
             display: flex;
             justify-content: center;
@@ -235,9 +229,8 @@
             border-color: #3b82f6;
         }
 
-        /* ================= Modal ================= */
         .modal {
-            display: none; /* Ẩn mặc định, JS sẽ show khi cần */
+            display: none; 
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
@@ -277,7 +270,6 @@
             width: 110px;
         }
 
-        /* ================= Responsive ================= */
         @media (max-width: 768px) {
             .search-input {
                 width: 160px;
@@ -306,7 +298,6 @@
             <div class="header-actions">
                 <div class="search-container">
                     <!-- SEARCH TEXT -->
-                    <!--<i class="fas fa-search" style="position: absolute; margin-left: 12px; color: #9ca3af;"></i>-->
                     <input
                         type="text"
                         id="searchInput"
@@ -376,7 +367,7 @@
         <c:if test="${not empty materials}">
             <div class="stats-info">
                 <i class="fas fa-info-circle"></i>
-                Showing <strong>${materials.size()}</strong> / <strong>${totalMaterials}</strong> materials
+                Showing <strong id="showingCount">${materials.size()}</strong> / <strong>${totalMaterials}</strong> materials
             </div>
         </c:if>
 
@@ -398,7 +389,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- JSP render mỗi row server‐side -->
+                    <!-- JSP render toàn bộ dữ liệu -->
                     <c:forEach var="material" items="${materials}" varStatus="status">
                         <c:set var="parentCategoryName" value="N/A" />
                         <c:forEach var="category" items="${categories}">
@@ -406,8 +397,8 @@
                                 <c:set var="parentCategoryName" value="${category.name}" />
                             </c:if>
                         </c:forEach>
-                        <tr>
-                            <td><strong>${(currentPage - 1) * pageSize + status.index + 1}</strong></td>
+                        <tr data-index="${status.index + 1}">
+                            <td class="row-number"><strong>${status.index + 1}</strong></td>
                             <td>${material.name}</td>
                             <td>${material.unitName != null ? material.unitName : '-'}</td>
                             <td><fmt:formatNumber value="${material.price}" type="number" minFractionDigits="2" /></td>
@@ -457,103 +448,8 @@
             </table>
         </div>
 
-        <!-------------------------------------- PAGINATION SERVER‐SIDE (giữ nguyên) -------------------------------------->
-        <c:if test="${totalPages > 1}">
-            <div class="pagination">
-                <c:choose>
-                    <c:when test="${currentPage > 1}">
-                        <a href="list-material?page=1"><i class="fas fa-angle-double-left"></i></a>
-                        <a href="list-material?page=${currentPage-1}"><i class="fas fa-angle-left"></i></a>
-                    </c:when>
-                    <c:otherwise>
-                        <span style="opacity: 0.3; cursor: not-allowed;">
-                            <i class="fas fa-angle-double-left"></i>
-                        </span>
-                        <span style="opacity: 0.3; cursor: not-allowed;">
-                            <i class="fas fa-angle-left"></i>
-                        </span>
-                    </c:otherwise>
-                </c:choose>
-
-                <c:choose>
-                    <c:when test="${totalPages <= 7}">
-                        <c:forEach begin="1" end="${totalPages}" var="i">
-                            <c:choose>
-                                <c:when test="${i == currentPage}">
-                                    <span class="current">${i}</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <a href="list-material?page=${i}">${i}</a>
-                                </c:otherwise>
-                            </c:choose>
-                        </c:forEach>
-                    </c:when>
-                    <c:otherwise>
-                        <c:choose>
-                            <c:when test="${currentPage <= 4}">
-                                <c:forEach begin="1" end="5" var="i">
-                                    <c:choose>
-                                        <c:when test="${i == currentPage}">
-                                            <span class="current">${i}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <a href="list-material?page=${i}">${i}</a>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </c:forEach>
-                                <c:if test="${totalPages > 6}">
-                                    <span style="padding: 8px 4px;">...</span>
-                                    <a href="list-material?page=${totalPages}">${totalPages}</a>
-                                </c:if>
-                            </c:when>
-                            <c:when test="${currentPage >= totalPages - 3}">
-                                <a href="list-material?page=1">1</a>
-                                <c:if test="${totalPages > 6}">
-                                    <span style="padding: 8px 4px;">...</span>
-                                </c:if>
-                                <c:forEach begin="${totalPages - 4}" end="${totalPages}" var="i">
-                                    <c:choose>
-                                        <c:when test="${i == currentPage}">
-                                            <span class="current">${i}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <a href="list-material?page=${i}">${i}</a>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <a href="list-material?page=1">1</a>
-                                <span style="padding: 8px 4px;">...</span>
-                                <c:forEach begin="${currentPage - 1}" end="${currentPage + 1}" var="i">
-                                    <c:choose>
-                                        <c:when test="${i == currentPage}">
-                                            <span class="current">${i}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <a href="list-material?page=${i}">${i}</a>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </c:forEach>
-                                <span style="padding: 8px 4px;">...</span>
-                                <a href="list-material?page=${totalPages}">${totalPages}</a>
-                            </c:otherwise>
-                        </c:choose>
-                    </c:otherwise>
-                </c:choose>
-
-                <c:choose>
-                    <c:when test="${currentPage < totalPages}">
-                        <a href="list-material?page=${currentPage+1}"><i class="fas fa-angle-right"></i></a>
-                        <a href="list-material?page=${totalPages}"><i class="fas fa-angle-double-right"></i></a>
-                    </c:when>
-                    <c:otherwise>
-                        <span style="opacity: 0.3; cursor: not-allowed;"><i class="fas fa-angle-right"></i></span>
-                        <span style="opacity: 0.3; cursor: not-allowed;"><i class="fas fa-angle-double-right"></i></span>
-                    </c:otherwise>
-                </c:choose>
-            </div>
-        </c:if>
+        <!-------------------------------------- PAGINATION CLIENT-SIDE -------------------------------------->
+        <div class="pagination" id="pagination"></div>
     </div>
 
     <!-------------------------------------- MODAL CHI TIẾT -------------------------------------->
@@ -574,17 +470,20 @@
         </div>
     </div>
 
-    <!-------------------------------------- JAVASCRIPT CUỐI FILE -------------------------------------->
     <script>
-        /**
-         * Hàm filterMaterials() sẽ:
-         *   1. Lấy tất cả các <tr> trong #materialsTable tbody.
-         *   2. Với mỗi row, đọc giá trị từ từng <td> dựa trên index cột.
-         *   3. So sánh với điều kiện: search, category, unit, supplier, status, min/max quantity.
-         *   4. Nếu thỏa, row.style.display = ''; nếu không thỏa, row.style.display = 'none';
-         */
+        const pageSize = 5; 
+        let currentPage = 1;
+        let allRows = [];
+        let filteredRows = [];
+
+        window.addEventListener('DOMContentLoaded', function() {
+            allRows = Array.from(document.querySelectorAll('#materialsTable tbody tr'));
+            filteredRows = [...allRows];
+            updatePagination();
+            updateTable();
+        });
+
         function filterMaterials() {
-            // Lấy giá trị từ input/dropdown
             let searchText      = document.getElementById('searchInput').value.trim().toLowerCase();
             let categoryValue   = document.getElementById('categoryFilter').value.trim().toLowerCase();
             let unitValue       = document.getElementById('unitFilter').value.trim().toLowerCase();
@@ -595,26 +494,19 @@
             let qtyMin          = qtyMinRaw === '' ? -Infinity : parseFloat(qtyMinRaw);
             let qtyMax          = qtyMaxRaw === '' ? Infinity  : parseFloat(qtyMaxRaw);
 
-            // Lấy tất cả các row trong tbody
-            let tbody           = document.querySelector('#materialsTable tbody');
-            let allRows         = tbody.querySelectorAll('tr');
+            filteredRows = allRows.filter(row => {
+                let nameText       = row.cells[1].textContent.trim().toLowerCase();
+                let unitText       = row.cells[2].textContent.trim().toLowerCase();
+                let qtyText        = row.cells[4].textContent.trim().replace(/,/g, '');
+                let supplierText   = row.cells[5].textContent.trim().toLowerCase();
+                let categoryText   = row.cells[6].textContent.trim().toLowerCase();
+                let statusText     = row.cells[8].textContent.trim().toLowerCase();
 
-            allRows.forEach(row => {
-                // Lấy text từng cột (chú ý index cột)
-                let nameText       = row.cells[1].textContent.trim().toLowerCase();      // cột Name
-                let unitText       = row.cells[2].textContent.trim().toLowerCase();      // cột Unit
-                let qtyText        = row.cells[4].textContent.trim().replace(/,/g, '');  // cột Quantity
-                let supplierText   = row.cells[5].textContent.trim().toLowerCase();      // cột Supplier
-                let categoryText   = row.cells[6].textContent.trim().toLowerCase();      // cột Category
-                let statusText     = row.cells[8].textContent.trim().toLowerCase();      // cột Active
-
-                // Chuyển số lượng (quantity) sang số
                 let qtyValue       = parseFloat(qtyText);
-                if (isNaN(qtyValue)) { 
-                    qtyValue = 0; 
+                if (isNaN(qtyValue)) {
+                    qtyValue = 0;
                 }
 
-                // Kiểm tra điều kiện:
                 let isMatchName     = !searchText || nameText.includes(searchText);
                 let isMatchCat      = !categoryValue || categoryText === categoryValue;
                 let isMatchUnit     = !unitValue     || unitText === unitValue;
@@ -622,22 +514,278 @@
                 let isMatchStatus   = !statusValue   || statusText === statusValue;
                 let isMatchQty      = (qtyValue >= qtyMin) && (qtyValue <= qtyMax);
 
-                // Nếu tất cả điều kiện đều true thì show, ngược lại hide
-                if (isMatchName && isMatchCat && isMatchUnit && isMatchSupplier && isMatchStatus && isMatchQty) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                return isMatchName && isMatchCat && isMatchUnit && isMatchSupplier && isMatchStatus && isMatchQty;
+            });
+
+            currentPage = 1;
+            updatePagination();
+            updateTable();
+            updateShowingCount();
+        }
+
+        function updateTable() {
+            allRows.forEach(row => {
+                row.style.display = 'none';
+            });
+
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, filteredRows.length);
+            const rowsToShow = filteredRows.slice(start, end);
+
+            rowsToShow.forEach((row, index) => {
+                row.style.display = '';
+                const rowNumberCell = row.querySelector('.row-number strong');
+                rowNumberCell.textContent = start + index + 1;
             });
         }
 
-        // ====== Modal Detail ======
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredRows.length / pageSize);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            if (currentPage > 1) {
+                const first = document.createElement('a');
+                first.href = '#';
+                first.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+                first.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = 1;
+                    updatePagination();
+                    updateTable();
+                });
+                pagination.appendChild(first);
+            } else {
+                const disabled = document.createElement('span');
+                disabled.style.opacity = '0.3';
+                disabled.style.cursor = 'not-allowed';
+                disabled.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+                pagination.appendChild(disabled);
+            }
+
+            if (currentPage > 1) {
+                const prev = document.createElement('a');
+                prev.href = '#';
+                prev.innerHTML = '<i class="fas fa-angle-left"></i>';
+                prev.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage--;
+                    updatePagination();
+                    updateTable();
+                });
+                pagination.appendChild(prev);
+            } else {
+                const disabled = document.createElement('span');
+                disabled.style.opacity = '0.3';
+                disabled.style.cursor = 'not-allowed';
+                disabled.innerHTML = '<i class="fas fa-angle-left"></i>';
+                pagination.appendChild(disabled);
+            }
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPage) {
+                        const current = document.createElement('span');
+                        current.className = 'current';
+                        current.textContent = i;
+                        pagination.appendChild(current);
+                    } else {
+                        const pageLink = document.createElement('a');
+                        pageLink.href = '#';
+                        pageLink.textContent = i;
+                        pageLink.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            currentPage = i;
+                            updatePagination();
+                            updateTable();
+                        });
+                        pagination.appendChild(pageLink);
+                    }
+                }
+            } else {
+                if (currentPage <= 4) {
+                    for (let i = 1; i <= 5; i++) {
+                        if (i === currentPage) {
+                            const current = document.createElement('span');
+                            current.className = 'current';
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement('a');
+                            pageLink.href = '#';
+                            pageLink.textContent = i;
+                            pageLink.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+                    if (totalPages > 6) {
+                        const dots = document.createElement('span');
+                        dots.style.padding = '8px 4px';
+                        dots.textContent = '...';
+                        pagination.appendChild(dots);
+
+                        const last = document.createElement('a');
+                        last.href = '#';
+                        last.textContent = totalPages;
+                        last.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            currentPage = totalPages;
+                            updatePagination();
+                            updateTable();
+                        });
+                        pagination.appendChild(last);
+                    }
+                } else if (currentPage >= totalPages - 3) {
+                    const first = document.createElement('a');
+                    first.href = '#';
+                    first.textContent = '1';
+                    first.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = 1;
+                        updatePagination();
+                        updateTable();
+                    });
+                    pagination.appendChild(first);
+
+                    if (totalPages > 6) {
+                        const dots = document.createElement('span');
+                        dots.style.padding = '8px 4px';
+                        dots.textContent = '...';
+                        pagination.appendChild(dots);
+                    }
+
+                    for (let i = totalPages - 4; i <= totalPages; i++) {
+                        if (i === currentPage) {
+                            const current = document.createElement('span');
+                            current.className = 'current';
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement('a');
+                            pageLink.href = '#';
+                            pageLink.textContent = i;
+                            pageLink.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+                } else {
+                    const first = document.createElement('a');
+                    first.href = '#';
+                    first.textContent = '1';
+                    first.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = 1;
+                        updatePagination();
+                        updateTable();
+                    });
+                    pagination.appendChild(first);
+
+                    const dots1 = document.createElement('span');
+                    dots1.style.padding = '8px 4px';
+                    dots1.textContent = '...';
+                    pagination.appendChild(dots1);
+
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        if (i === currentPage) {
+                            const current = document.createElement('span');
+                            current.className = 'current';
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement('a');
+                            pageLink.href = '#';
+                            pageLink.textContent = i;
+                            pageLink.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+
+                    const dots2 = document.createElement('span');
+                    dots2.style.padding = '8px 4px';
+                    dots2.textContent = '...';
+                    pagination.appendChild(dots2);
+
+                    const last = document.createElement('a');
+                    last.href = '#';
+                    last.textContent = totalPages;
+                    last.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = totalPages;
+                        updatePagination();
+                        updateTable();
+                    });
+                    pagination.appendChild(last);
+                }
+            }
+
+            if (currentPage < totalPages) {
+                const next = document.createElement('a');
+                next.href = '#';
+                next.innerHTML = '<i class="fas fa-angle-right"></i>';
+                next.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage++;
+                    updatePagination();
+                    updateTable();
+                });
+                pagination.appendChild(next);
+            } else {
+                const disabled = document.createElement('span');
+                disabled.style.opacity = '0.3';
+                disabled.style.cursor = 'not-allowed';
+                disabled.innerHTML = '<i class="fas fa-angle-right"></i>';
+                pagination.appendChild(disabled);
+            }
+
+            if (currentPage < totalPages) {
+                const last = document.createElement('a');
+                last.href = '#';
+                last.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+                last.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = totalPages;
+                    updatePagination();
+                    updateTable();
+                });
+                pagination.appendChild(last);
+            } else {
+                const disabled = document.createElement('span');
+                disabled.style.opacity = '0.3';
+                disabled.style.cursor = 'not-allowed';
+                disabled.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+                pagination.appendChild(disabled);
+            }
+        }
+
+        function updateShowingCount() {
+            const showingCount = document.getElementById('showingCount');
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, filteredRows.length);
+            showingCount.textContent = filteredRows.length === 0 ? 0 : (end - start);
+        }
+
         function showMaterialDetail(materialId) {
             if (!materialId) {
                 alert('Material ID is missing.');
                 return;
             }
-            // Tự động build URL (không hardcode)
             const base = window.location.origin
                        + window.location.pathname.replace(/\/list-material.*$/, '');
             const url = base + '/detail-material?id=' + materialId;
@@ -682,7 +830,6 @@
             }
         });
 
-        // ====== Gắn sự kiện cho nút VIEW ban đầu ======
         window.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.view-detail').forEach(btn => {
                 btn.addEventListener('click', function(e) {

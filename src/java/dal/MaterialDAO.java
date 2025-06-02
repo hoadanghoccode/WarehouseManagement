@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import model.Category;
 import model.Material;
 import model.Unit;
@@ -18,11 +17,6 @@ import model.Supplier;
 
 public class MaterialDAO extends DBContext {
 
-    /**
-     * Phương thức cũ: Lấy danh sách vật liệu theo trang (có filter nội bộ).
-     * Ta vẫn giữ nguyên vì có thể dùng cho các mục đích khác,
-     * nhưng trong Controller ta sẽ không gọi đến nữa.
-     */
     public List<Material> getMaterialsByPage(int page, int pageSize, String search, String categoryFilter,
             BigDecimal quantityMin, BigDecimal quantityMax) {
         List<Material> list = new ArrayList<>();
@@ -75,49 +69,6 @@ public class MaterialDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Phương thức mới: Lấy TOÀN BỘ danh sách Material (không phân trang).
-     * Client‐side (JSP + JS) sẽ render lên bảng, rồi quản lý paging bằng JS.
-     */
-    public List<Material> getAllMaterials() {
-        List<Material> list = new ArrayList<>();
-        String sql = "SELECT m.Material_id, m.Name, m.Status, c.Name AS categoryName, c.Parent_id, "
-                   + "p.Unit_id, u.Name AS unitName, p.price, i.Quantity, s.Name AS supplierName "
-                   + "FROM Material m "
-                   + "LEFT JOIN Category c ON m.Category_id = c.Category_id "
-                   + "LEFT JOIN Material_Unit_Price p ON m.Material_id = p.Material_id "
-                   + "LEFT JOIN Unit u ON p.Unit_id = u.Unit_id "
-                   + "LEFT JOIN MaterialInventory i ON m.Material_id = i.Material_id AND p.Unit_id = i.Unit_id "
-                   + "LEFT JOIN SupplierMaterial sm ON m.Material_id = sm.MaterialId "
-                   + "LEFT JOIN Supplier s ON sm.SupplierId = s.Id "
-                   + "ORDER BY m.Material_id";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Material m = new Material();
-                m.setMaterialId(rs.getInt("Material_id"));
-                m.setName(rs.getString("Name"));
-                m.setStatus(rs.getString("Status"));
-                m.setCategoryName(rs.getString("categoryName"));
-                m.setParentCategoryId(rs.getInt("Parent_id"));
-                m.setUnitId(rs.getInt("Unit_id"));
-                m.setUnitName(rs.getString("unitName"));
-                m.setPrice(rs.getBigDecimal("price"));
-                m.setQuantity(rs.getBigDecimal("Quantity"));
-                m.setSupplierName(rs.getString("supplierName"));
-                list.add(m);
-            }
-        } catch (SQLException e) {
-            System.out.println("getAllMaterials error: " + e.getMessage());
-        }
-        return list;
-    }
-
-    /**
-     * Đếm tổng số vật liệu (giữ nguyên nếu có nhu cầu server‐side). 
-     * Ở giải pháp A, ta không cần dùng đến, nhưng giữ lại để không phá vỡ các chỗ khác.
-     */
     public int getTotalMaterials(String search, String categoryFilter, BigDecimal quantityMin, BigDecimal quantityMax) {
         String sql = "SELECT COUNT(DISTINCT m.Material_id) AS total "
                 + "FROM Material m "
@@ -148,9 +99,6 @@ public class MaterialDAO extends DBContext {
         return 0;
     }
 
-    /**
-     * Lấy danh sách Category (active).
-     */
     public List<Category> getAllCategories() {
         List<Category> list = new ArrayList<>();
         String sql = "SELECT * FROM Category WHERE Status = 'active'";
@@ -164,7 +112,6 @@ public class MaterialDAO extends DBContext {
                 cate.setStatus(rs.getString("Status"));
                 int parentId = rs.getInt("Parent_id");
                 if (!rs.wasNull()) {
-                    // Lấy parent category (đệ quy nếu cần)
                     cate.setParentId(new CategoryDAO().getCategoryById(parentId));
                 } else {
                     cate.setParentId(null);
@@ -177,9 +124,6 @@ public class MaterialDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Lấy danh sách Unit (active).
-     */
     public List<Unit> getAllUnits() {
         List<Unit> list = new ArrayList<>();
         String sql = "SELECT * FROM Unit WHERE Status = 'active'";
@@ -199,9 +143,6 @@ public class MaterialDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Lấy danh sách Supplier (active).
-     */
     public List<Supplier> getAllSuppliers() {
         List<Supplier> list = new ArrayList<>();
         String sql = "SELECT * FROM Supplier WHERE Status = 'active'";
@@ -221,22 +162,160 @@ public class MaterialDAO extends DBContext {
         return list;
     }
 
-    // ... (Giữ nguyên các method addMaterial, updateMaterial, deleteMaterial, addMaterialUnitPrice, etc.)
+    public int addMaterial(Material material) {
+        String sql = "INSERT INTO Material (Category_id, Name, Status) VALUES (?, ?, ?)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, material.getCategoryId());
+            ps.setString(2, material.getName());
+            ps.setString(3, material.getStatus());
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("addMaterial error: " + e.getMessage());
+        }
+        return 0;
+    }
 
-    /**
-     * Lấy chi tiết vật liệu (bao gồm Unit, Price, Quantity, Supplier)
-     */
+    public void updateMaterial(Material material) {
+        String sql = "UPDATE Material SET Category_id = ?, Name = ?, Status = ? WHERE Material_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, material.getCategoryId());
+            ps.setString(2, material.getName());
+            ps.setString(3, material.getStatus());
+            ps.setInt(4, material.getMaterialId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("updateMaterial error: " + e.getMessage());
+        }
+    }
+
+    public void deleteMaterial(int materialId) {
+        String sql = "UPDATE Material SET Status = 'inactive' WHERE Material_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("deleteMaterial error: " + e.getMessage());
+        }
+    }
+
+    public void addMaterialUnitPrice(int materialId, int unitId, BigDecimal price) {
+        String sql = "INSERT INTO Material_Unit_Price (Material_id, Unit_id, price) VALUES (?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE price = VALUES(price)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ps.setInt(2, unitId);
+            ps.setBigDecimal(3, price);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("addMaterialUnitPrice error: " + e.getMessage());
+        }
+    }
+
+    public void updateMaterialUnitPrice(int materialId, int unitId, BigDecimal price) {
+        String sql = "UPDATE Material_Unit_Price SET price = ? WHERE Material_id = ? AND Unit_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setBigDecimal(1, price);
+            ps.setInt(2, materialId);
+            ps.setInt(3, unitId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("updateMaterialUnitPrice error: " + e.getMessage());
+        }
+    }
+
+    public void deleteMaterialUnitPrice(int materialId) {
+        String sql = "DELETE FROM Material_Unit_Price WHERE Material_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("deleteMaterialUnitPrice error: " + e.getMessage());
+        }
+    }
+
+    public void addMaterialInventory(int materialId, int unitId, BigDecimal quantity) {
+        String sql = "INSERT INTO MaterialInventory (Material_id, Unit_id, Quantity) VALUES (?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE Quantity = VALUES(Quantity)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ps.setInt(2, unitId);
+            ps.setBigDecimal(3, quantity);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("addMaterialInventory error: " + e.getMessage());
+        }
+    }
+
+    public void updateMaterialInventory(int materialId, int unitId, BigDecimal quantity) {
+        String sql = "UPDATE MaterialInventory SET Quantity = ? WHERE Material_id = ? AND Unit_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setBigDecimal(1, quantity);
+            ps.setInt(2, materialId);
+            ps.setInt(3, unitId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("updateMaterialInventory error: " + e.getMessage());
+        }
+    }
+
+    public void deleteMaterialInventory(int materialId) {
+        String sql = "DELETE FROM MaterialInventory WHERE Material_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("deleteMaterialInventory error: " + e.getMessage());
+        }
+    }
+
+    public void addSupplierMaterial(int supplierId, int materialId) {
+        String sql = "INSERT INTO SupplierMaterial (SupplierId, MaterialId) VALUES (?, ?) "
+                + "ON DUPLICATE KEY UPDATE SupplierId = VALUES(SupplierId)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, supplierId);
+            ps.setInt(2, materialId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("addSupplierMaterial error: " + e.getMessage());
+        }
+    }
+
+    public void deleteSupplierMaterial(int materialId) {
+        String sql = "DELETE FROM SupplierMaterial WHERE MaterialId = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("deleteSupplierMaterial error: " + e.getMessage());
+        }
+    }
+
     public Material getMaterialByIdWithDetails(int materialId) {
         String sql = "SELECT m.Material_id, m.Name, m.Status, c.Name AS categoryName, c.Parent_id, "
-                   + "p.Unit_id, u.Name AS unitName, p.price, i.Quantity, s.Name AS supplierName "
-                   + "FROM Material m "
-                   + "LEFT JOIN Category c ON m.Category_id = c.Category_id "
-                   + "LEFT JOIN Material_Unit_Price p ON m.Material_id = p.Material_id "
-                   + "LEFT JOIN Unit u ON p.Unit_id = u.Unit_id "
-                   + "LEFT JOIN MaterialInventory i ON m.Material_id = i.Material_id AND p.Unit_id = i.Unit_id "
-                   + "LEFT JOIN SupplierMaterial sm ON m.Material_id = sm.MaterialId "
-                   + "LEFT JOIN Supplier s ON sm.SupplierId = s.Id "
-                   + "WHERE m.Material_id = ?";
+                + "p.Unit_id, u.Name AS unitName, p.price, i.Quantity, s.Name AS supplierName "
+                + "FROM Material m "
+                + "LEFT JOIN Category c ON m.Category_id = c.Category_id "
+                + "LEFT JOIN Material_Unit_Price p ON m.Material_id = p.Material_id "
+                + "LEFT JOIN Unit u ON p.Unit_id = u.Unit_id "
+                + "LEFT JOIN MaterialInventory i ON m.Material_id = i.Material_id AND p.Unit_id = i.Unit_id "
+                + "LEFT JOIN SupplierMaterial sm ON m.Material_id = sm.MaterialId "
+                + "LEFT JOIN Supplier s ON sm.SupplierId = s.Id "
+                + "WHERE m.Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, materialId);

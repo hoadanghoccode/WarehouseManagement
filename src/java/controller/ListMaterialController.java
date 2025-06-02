@@ -30,41 +30,19 @@ public class ListMaterialController extends HttpServlet {
             throws ServletException, IOException {
         MaterialDAO materialDAO = new MaterialDAO();
 
-        int page = 1;
-        int pageSize = 5;
-        String pageParam = request.getParameter("page");
-        if (pageParam != null && !pageParam.isEmpty()) {
-            try {
-                page = Integer.parseInt(pageParam);
-                if (page < 1) page = 1;
-            } catch (NumberFormatException e) {
-                page = 1;
-            }
-        }
-
-        // Lấy danh sách material của trang hiện tại (có phân trang)
-        List<Material> materials = materialDAO.getMaterialsByPage(page, pageSize, null, null, null, null);
+        List<Material> materials = materialDAO.getMaterialsByPage(1, Integer.MAX_VALUE, null, null, null, null);
         int totalMaterials = materialDAO.getTotalMaterials(null, null, null, null);
-        int totalPages = (int) Math.ceil((double) totalMaterials / pageSize);
-        if (totalPages == 0) totalPages = 1;
-        if (page > totalPages) page = totalPages;
 
-        // Lấy danh sách Category, Unit, Supplier
         List<Category> categories = materialDAO.getAllCategories();
         List<Unit> units = materialDAO.getAllUnits();          
         List<Supplier> suppliers = materialDAO.getAllSuppliers();
 
-        // Đưa vào request
         request.setAttribute("materials", materials);
         request.setAttribute("categories", categories);
         request.setAttribute("units", units);                  
         request.setAttribute("suppliers", suppliers);
-        request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("pageSize", pageSize);
         request.setAttribute("totalMaterials", totalMaterials);
 
-        // Forward sang JSP
         request.getRequestDispatcher("/materialList.jsp").forward(request, response);
     }
 }

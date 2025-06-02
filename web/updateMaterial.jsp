@@ -17,7 +17,6 @@
     <link rel="stylesheet" type="text/css" href="css/materiallist.css" />
 
     <style>
-        /* ========================= Container & Form Styles ========================= */
         .form-container {
             max-width: 600px;
             margin: 24px auto;
@@ -59,7 +58,6 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
-        /* ============================ Button Styles ============================= */
         .form-container .btn {
             margin-right: 8px;
             padding: 8px 16px;
@@ -72,7 +70,6 @@
             cursor: pointer;
             border: none;
         }
-        /* Nút “Update Material” giữ nguyên màu Primary */
         .btn-primary {
             background-color: #6366f1;
             color: #ffffff;
@@ -80,18 +77,16 @@
         .btn-primary:hover {
             background-color: #4f46e5;
         }
-        /* Nút “Cancel” đổi sang đen (btn-outline) */
         .btn-outline {
             background-color: transparent;
-            border: 1px solid #000000;  /* viền đen */
-            color: #000000;              /* chữ đen */
+            border: 1px solid #000000;  
+            color: #000000;             
             transition: background-color 0.2s, color 0.2s;
         }
         .btn-outline:hover {
-            background-color: #e5e7eb;   /* nền xám nhạt khi hover */
+            background-color: #e5e7eb;   
             color: #000000;
         }
-        /* ========================================================================= */
     </style>
 </head>
 <body>
@@ -99,12 +94,9 @@
         <div class="form-container">
             <h2>Update Material</h2>
             <form action="update-material" method="post">
-                <!-- Hidden để controller biết đây là request update (không phải update-status) -->
                 <input type="hidden" name="action" value="update" />
-                <!-- Hidden để truyền Material ID -->
                 <input type="hidden" name="materialId" value="${material.materialId}" />
 
-                <!-- Category -->
                 <div class="form-group">
                     <label for="categoryId">Category</label>
                     <select class="form-select" id="categoryId" name="categoryId" required>
@@ -118,7 +110,6 @@
                     </select>
                 </div>
 
-                <!-- Name -->
                 <div class="form-group">
                     <label for="name">Name</label>
                     <input
@@ -131,7 +122,6 @@
                     />
                 </div>
 
-                <!-- Unit -->
                 <div class="form-group">
                     <label for="unitId">Unit</label>
                     <select class="form-select" id="unitId" name="unitId" required>
@@ -146,7 +136,6 @@
                     </select>
                 </div>
 
-                <!-- Price -->
                 <div class="form-group">
                     <label for="price">Price</label>
                     <input
@@ -160,7 +149,6 @@
                     />
                 </div>
 
-                <!-- Quantity -->
                 <div class="form-group">
                     <label for="quantity">Quantity</label>
                     <input
@@ -174,7 +162,6 @@
                     />
                 </div>
 
-                <!-- Supplier -->
                 <div class="form-group">
                     <label for="supplierId">Supplier</label>
                     <select class="form-select" id="supplierId" name="supplierId">
@@ -189,7 +176,6 @@
                     </select>
                 </div>
 
-                <!-- Status -->
                 <div class="form-group">
                     <label for="status">Status</label>
                     <select class="form-select" id="status" name="status" required>
@@ -198,7 +184,6 @@
                     </select>
                 </div>
 
-                <!-- Nút Update và Cancel -->
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Update Material
                 </button>
