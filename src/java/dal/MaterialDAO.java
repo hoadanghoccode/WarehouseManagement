@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dal;
 
 import java.math.BigDecimal;
@@ -160,6 +156,63 @@ public class MaterialDAO extends DBContext {
             System.out.println("getAllSuppliers error: " + e.getMessage());
         }
         return list;
+    }
+
+    public List<Material> getAllMaterials() {
+        List<Material> list = new ArrayList<>();
+        String sql = "SELECT Material_id, Name FROM Material";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Material m = new Material();
+                m.setMaterialId(rs.getInt("Material_id"));
+                m.setName(rs.getString("Name"));
+                list.add(m);
+            }
+        } catch (SQLException e) {
+            System.out.println("getAllMaterials error: " + e.getMessage());
+        }
+        return list;
+    }
+
+    public List<Unit> getUnitsByMaterialId(int materialId) {
+        List<Unit> list = new ArrayList<>();
+        String sql = "SELECT u.Unit_id, u.Name, u.Status "
+                + "FROM Material_Unit_Price p "
+                + "JOIN Unit u ON p.Unit_id = u.Unit_id "
+                + "WHERE p.Material_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Unit u = new Unit();
+                u.setUnitId(rs.getInt("Unit_id"));
+                u.setName(rs.getString("Name"));
+                u.setStatus(rs.getString("Status"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            System.out.println("getUnitsByMaterialId error: " + e.getMessage());
+        }
+        return list;
+    }
+
+    public BigDecimal getCurrentQuantity(int materialId, int unitId) {
+        String sql = "SELECT Quantity FROM MaterialInventory WHERE Material_id = ? AND Unit_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            ps.setInt(2, unitId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("Quantity");
+            }
+        } catch (SQLException e) {
+            System.out.println("getCurrentQuantity error: " + e.getMessage());
+        }
+        return BigDecimal.ZERO;
     }
 
     public int addMaterial(Material material) {

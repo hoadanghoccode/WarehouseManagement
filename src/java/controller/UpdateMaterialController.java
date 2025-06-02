@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller;
-
-/**
- *
- * @author legia
- */
 
 import dal.MaterialDAO;
 import java.io.IOException;
@@ -18,72 +9,85 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Category;
 import model.Material;
 import model.Unit;
-import model.Category;
 import model.Supplier;
 
-@WebServlet(name = "UpdateMaterialController", urlPatterns = {"/update-material", "/update-material-status"})
+@WebServlet(name = "UpdateMaterialController", urlPatterns = {"/update-material"})
 public class UpdateMaterialController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        MaterialDAO materialDAO = new MaterialDAO();
         int materialId = Integer.parseInt(request.getParameter("id"));
-        Material material = materialDAO.getMaterialByIdWithDetails(materialId);
+        String unitIdParam = request.getParameter("unitId");
+        int unitId = unitIdParam != null && !unitIdParam.isEmpty() ? Integer.parseInt(unitIdParam) : -1;
+        MaterialDAO materialDAO = new MaterialDAO();
+
+        List<Material> materials = materialDAO.getMaterialsByPage(1, Integer.MAX_VALUE, "", "", null, null)
+                .stream()
+                .filter(m -> m.getMaterialId() == materialId)
+                .toList();
+        Material material = unitId != -1
+                ? materials.stream().filter(m -> m.getUnitId() == unitId).findFirst().orElse(materials.get(0))
+                : materials.get(0);
+
         List<Category> categories = materialDAO.getAllCategories();
         List<Unit> units = materialDAO.getAllUnits();
         List<Supplier> suppliers = materialDAO.getAllSuppliers();
-        if (material != null) {
-            request.setAttribute("material", material);
-            request.setAttribute("categories", categories);
-            request.setAttribute("units", units);
-            request.setAttribute("suppliers", suppliers);
-            request.getRequestDispatcher("/updateMaterial.jsp").forward(request, response);
-        } else {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Material not found");
-        }
+
+        request.setAttribute("material", material);
+        request.setAttribute("categories", categories);
+        request.setAttribute("units", units);
+        request.setAttribute("suppliers", suppliers);
+        request.getRequestDispatcher("/updateMaterial.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         MaterialDAO materialDAO = new MaterialDAO();
-        String action = request.getParameter("action");
-        if ("update".equals(action)) {
-            int materialId = Integer.parseInt(request.getParameter("materialId"));
-            Material updatedMaterial = materialDAO.getMaterialByIdWithDetails(materialId);
-            if (updatedMaterial != null) {
-                updatedMaterial.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
-                updatedMaterial.setName(request.getParameter("name"));
-                updatedMaterial.setStatus(request.getParameter("status"));
+        int materialId = Integer.parseInt(request.getParameter("materialId"));
+        String status = request.getParameter("status");
+        String[] unitIds = request.getParameterValues("unitIds");
 
-                materialDAO.updateMaterial(updatedMaterial);
+        if (status == null || status.isEmpty()) {
+            request.setAttribute("error", "Status is required.");
+            doGet(request, response);
+            return;
+        }
 
-                int unitId = Integer.parseInt(request.getParameter("unitId"));
-                BigDecimal price = new BigDecimal(request.getParameter("price"));
-                materialDAO.updateMaterialUnitPrice(materialId, unitId, price);
+        if (unitIds == null || unitIds.length == 0) {
+            request.setAttribute("error", "At least one unit must be selected.");
+            doGet(request, response);
+            return;
+        }
 
-                BigDecimal quantity = new BigDecimal(request.getParameter("quantity"));
-                materialDAO.updateMaterialInventory(materialId, unitId, quantity);
-
-                materialDAO.deleteSupplierMaterial(materialId);
-                String supplierIdStr = request.getParameter("supplierId");
-                if (supplierIdStr != null && !supplierIdStr.isEmpty() && !supplierIdStr.equals("0")) {
-                    int supplierId = Integer.parseInt(supplierIdStr);
-                    materialDAO.addSupplierMaterial(supplierId, materialId);
-                }
-            }
-        } else if ("status".equals(action)) {
-            int materialId = Integer.parseInt(request.getParameter("materialId"));
-            String status = request.getParameter("status");
-            Material material = materialDAO.getMaterialByIdWithDetails(materialId);
-            if (material != null) {
-                material.setStatus(status);
-                materialDAO.updateMaterial(material);
+        for (String unitIdStr : unitIds) {
+            int unitId = Integer.parseInt(unitIdStr);
+            String priceParam = request.getParameter("price_" + unitId);
+            String quantityParam = request.getParameter("quantity_" + unitId);
+            if (priceParam == null || priceParam.isEmpty() || quantityParam == null || quantityParam.isEmpty()) {
+                request.setAttribute("error", "Price and quantity are required for all selected units.");
+                doGet(request, response);
+                return;
             }
         }
+
+        Material material = materialDAO.getMaterialByIdWithDetails(materialId);
+        material.setStatus(status);
+        materialDAO.updateMaterial(material);
+
+        for (String unitIdStr : unitIds) {
+            int unitId = Integer.parseInt(unitIdStr);
+            BigDecimal price = new BigDecimal(request.getParameter("price_" + unitId));
+            BigDecimal quantity = new BigDecimal(request.getParameter("quantity_" + unitId));
+
+            materialDAO.updateMaterialUnitPrice(materialId, unitId, price);
+            materialDAO.updateMaterialInventory(materialId, unitId, quantity);
+        }
+
         response.sendRedirect("list-material");
     }
 }

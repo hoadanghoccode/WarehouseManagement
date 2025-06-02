@@ -1,197 +1,202 @@
-<%-- 
-    Document   : updateMaterial
-    Created on : May 21, 2025, 10:02:12 AM
-    Author     : legia
---%>
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
     <title>Update Material</title>
-    <!-- Font Awesome cho icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- CSS chính của bạn -->
-    <link rel="stylesheet" type="text/css" href="css/materiallist.css" />
-
     <style>
-        .form-container {
-            max-width: 600px;
-            margin: 24px auto;
-            background-color: #ffffff;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        * {
+            box-sizing: border-box;
         }
-        .form-container h2 {
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            color: #374151;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 24px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .title {
             font-size: 24px;
             font-weight: 600;
-            color: #1e293b;
+            color: #1f2937;
             margin-bottom: 24px;
         }
-        .form-container .form-group {
-            margin-bottom: 16px;
+        .form-group {
+            margin-bottom: 20px;
         }
-        .form-container label {
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 8px;
+        .form-group label {
             display: block;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 8px;
         }
-        .form-container .form-control,
-        .form-container .form-select {
+        .form-group input,
+        .form-group select {
             width: 100%;
-            padding: 8px 16px;
+            padding: 10px 12px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 14px;
-            transition: all 0.2s;
             color: #374151;
-            background-color: #ffffff;
+            background-color: #fff;
         }
-        .form-container .form-control:focus,
-        .form-container .form-select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        .form-group input[readonly] {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
         }
-
-        .form-container .btn {
-            margin-right: 8px;
-            padding: 8px 16px;
+        .form-group input[type="checkbox"] {
+            width: auto;
+        }
+        .unit-section {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        .unit-section .unit-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .unit-section input[type="number"] {
+            width: 120px;
+        }
+        .btn {
+            padding: 10px 20px;
             border-radius: 8px;
             text-decoration: none;
+            color: white;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            font-size: 14px;
+            gap: 6px;
             cursor: pointer;
+            font-size: 14px;
             border: none;
+            transition: background-color 0.2s;
         }
         .btn-primary {
             background-color: #6366f1;
-            color: #ffffff;
         }
         .btn-primary:hover {
             background-color: #4f46e5;
         }
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid #000000;  
-            color: #000000;             
-            transition: background-color 0.2s, color 0.2s;
+        .btn-secondary {
+            background-color: #6b7280;
         }
-        .btn-outline:hover {
-            background-color: #e5e7eb;   
-            color: #000000;
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-bottom: 16px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="form-container">
-            <h2>Update Material</h2>
-            <form action="update-material" method="post">
-                <input type="hidden" name="action" value="update" />
-                <input type="hidden" name="materialId" value="${material.materialId}" />
+        <h1 class="title">Update Material</h1>
 
-                <div class="form-group">
-                    <label for="categoryId">Category</label>
-                    <select class="form-select" id="categoryId" name="categoryId" required>
-                        <option value="">Select Category</option>
-                        <c:forEach var="category" items="${categories}">
-                            <option value="${category.categoryId}"
-                                ${category.categoryId == material.categoryId ? 'selected' : ''}>
-                                ${category.name}
-                            </option>
-                        </c:forEach>
-                    </select>
+        <c:if test="${not empty error}">
+            <div class="error">${error}</div>
+        </c:if>
+
+        <form action="update-material" method="POST" onsubmit="return validateForm()">
+            <input type="hidden" name="materialId" value="${material.materialId}">
+
+            <!-- Category (readonly) -->
+            <div class="form-group">
+                <label for="categoryId">Category</label>
+                <input type="text" value="${material.categoryName}" readonly>
+            </div>
+
+            <!-- Name (readonly) -->
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" value="${material.name}" readonly>
+            </div>
+
+            <!-- Units (Multiple selection with price and quantity) -->
+            <div class="form-group">
+                <label>Units</label>
+                <div class="unit-section">
+                    <c:forEach var="unit" items="${units}">
+                        <div class="unit-item">
+                            <input type="checkbox" name="unitIds" value="${unit.unitId}"
+                                   onchange="toggleUnitInputs(this)"
+                                   <c:if test="${unit.unitId == material.unitId}">checked</c:if>>
+                            <label>${unit.name}</label>
+                            <input type="number" step="0.01" name="price_${unit.unitId}" placeholder="Price"
+                                   value="<c:if test='${unit.unitId == material.unitId}'>${material.price}</c:if>"
+                                   <c:if test="${unit.unitId != material.unitId}">disabled</c:if>>
+                            <input type="number" step="0.01" name="quantity_${unit.unitId}" placeholder="Quantity"
+                                   value="<c:if test='${unit.unitId == material.unitId}'>${material.quantity}</c:if>"
+                                   <c:if test="${unit.unitId != material.unitId}">disabled</c:if>>
+                        </div>
+                    </c:forEach>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input
-                        type="text"
-                        class="form-control"
-                        id="name"
-                        name="name"
-                        value="${material.name}"
-                        required
-                    />
-                </div>
+            <!-- Supplier (readonly) -->
+            <div class="form-group">
+                <label for="supplierId">Supplier</label>
+                <input type="text" value="${material.supplierName != null ? material.supplierName : 'No Supplier'}" readonly>
+            </div>
 
-                <div class="form-group">
-                    <label for="unitId">Unit</label>
-                    <select class="form-select" id="unitId" name="unitId" required>
-                        <option value="">Select Unit</option>
-                        <c:forEach var="unit" items="${units}">
-                            <option value="${unit.unitId}"
-                                    ${unit.unitId == material.unitId ? 'selected' : ''}
-                                    ${unit.status == 'active' ? '' : 'disabled'}>
-                                ${unit.name}
-                            </option>
-                        </c:forEach>
-                    </select>
-                </div>
+            <!-- Status -->
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status" name="status" required>
+                    <option value="active" <c:if test="${material.status == 'active'}">selected</c:if>>Active</option>
+                    <option value="inactive" <c:if test="${material.status == 'inactive'}">selected</c:if>>Inactive</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label for="price">Price</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        class="form-control"
-                        id="price"
-                        name="price"
-                        value="${material.price}"
-                        required
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label for="quantity">Quantity</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        class="form-control"
-                        id="quantity"
-                        name="quantity"
-                        value="${material.quantity}"
-                        required
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label for="supplierId">Supplier</label>
-                    <select class="form-select" id="supplierId" name="supplierId">
-                        <option value="0" ${material.supplierName == null ? 'selected' : ''}>No Supplier</option>
-                        <c:forEach var="supplier" items="${suppliers}">
-                            <option value="${supplier.id}"
-                                    ${supplier.name == material.supplierName ? 'selected' : ''}
-                                    ${supplier.status == 'active' ? '' : 'disabled'}>
-                                ${supplier.name}
-                            </option>
-                        </c:forEach>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="status">Status</label>
-                    <select class="form-select" id="status" name="status" required>
-                        <option value="active" ${material.status == 'active' ? 'selected' : ''}>Active</option>
-                        <option value="inactive" ${material.status == 'inactive' ? 'selected' : ''}>Inactive</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Update Material
-                </button>
-                <a href="list-material" class="btn btn-outline">
-                    <i class="fas fa-times"></i> Cancel
-                </a>
-            </form>
-        </div>
+            <!-- Buttons -->
+            <button type="submit" class="btn btn-primary">Update Material</button>
+            <a href="list-material" class="btn btn-secondary">Cancel</a>
+        </form>
     </div>
+
+    <script>
+        function toggleUnitInputs(checkbox) {
+            const priceInput = checkbox.nextElementSibling.nextElementSibling;
+            const quantityInput = priceInput.nextElementSibling;
+            priceInput.disabled = !checkbox.checked;
+            quantityInput.disabled = !checkbox.checked;
+            priceInput.required = checkbox.checked;
+            quantityInput.required = checkbox.checked;
+            if (!checkbox.checked) {
+                priceInput.value = '';
+                quantityInput.value = '';
+            }
+        }
+
+        function validateForm() {
+            const unitCheckboxes = document.querySelectorAll('input[name="unitIds"]');
+            let atLeastOneUnitChecked = false;
+            for (let checkbox of unitCheckboxes) {
+                if (checkbox.checked) {
+                    atLeastOneUnitChecked = true;
+                    break;
+                }
+            }
+            if (!atLeastOneUnitChecked) {
+                alert("At least one unit must be selected.");
+                return false;
+            }
+            return true;
+        }
+    </script>
 </body>
 </html>

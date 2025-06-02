@@ -74,7 +74,6 @@
             <div class="detail-item"><strong>Supplier:</strong> ${material.supplierName != null ? material.supplierName : 'No Supplier'}</div>
             <div class="detail-item"><strong>Status:</strong> ${material.status}</div>
             <div class="detail-item"><strong>Category:</strong> ${material.categoryName}</div>
-            <div class="detail-item"><strong>Parent Category:</strong> ${material.parentCategoryName != null ? material.parentCategoryName : '-'}</div>
             <a href="list-material" class="btn btn-primary">Close</a>
         </div>
     </div>

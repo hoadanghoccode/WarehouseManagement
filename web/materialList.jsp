@@ -167,7 +167,7 @@
         table.table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 800px;
+            min-width: 600px;
         }
         table.table th,
         table.table td {
@@ -292,7 +292,6 @@
 </head>
 <body>
     <div class="container">
-        <!-------------------------------------- HEADER + FILTER -------------------------------------->
         <div class="header">
             <h1 class="title">Materials List</h1>
             <div class="header-actions">
@@ -363,15 +362,6 @@
             </div>
         </div>
 
-        <!-------------------------------------- STATS INFO -------------------------------------->
-        <c:if test="${not empty materials}">
-            <div class="stats-info">
-                <i class="fas fa-info-circle"></i>
-                Showing <strong id="showingCount">${materials.size()}</strong> / <strong>${totalMaterials}</strong> materials
-            </div>
-        </c:if>
-
-        <!-------------------------------------- BẢNG DỮ LIỆU -------------------------------------->
         <div class="table-container">
             <table class="table" id="materialsTable">
                 <thead>
@@ -383,7 +373,6 @@
                         <th>Quantity</th>
                         <th>Supplier</th>
                         <th>Category</th>
-                        <th>Parent Category</th>
                         <th>Active</th>
                         <th style="width: 140px;">Action</th>
                     </tr>
@@ -391,12 +380,6 @@
                 <tbody>
                     <!-- JSP render toàn bộ dữ liệu -->
                     <c:forEach var="material" items="${materials}" varStatus="status">
-                        <c:set var="parentCategoryName" value="N/A" />
-                        <c:forEach var="category" items="${categories}">
-                            <c:if test="${category.categoryId == material.parentCategoryId}">
-                                <c:set var="parentCategoryName" value="${category.name}" />
-                            </c:if>
-                        </c:forEach>
                         <tr data-index="${status.index + 1}">
                             <td class="row-number"><strong>${status.index + 1}</strong></td>
                             <td>${material.name}</td>
@@ -405,7 +388,6 @@
                             <td><fmt:formatNumber value="${material.quantity}" type="number" minFractionDigits="2" /></td>
                             <td>${material.supplierName != null ? material.supplierName : '-'}</td>
                             <td>${material.categoryName}</td>
-                            <td>${parentCategoryName}</td>
                             <td>
                                 <span style="
                                     display:inline-block;
@@ -424,11 +406,12 @@
                                     <!-- VIEW BUTTON -->
                                     <button class="btn btn-info view-detail"
                                             data-id="${material.materialId}"
+                                            data-unit-id="${material.unitId}"
                                             title="View">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <!-- EDIT BUTTON -->
-                                    <a href="update-material?id=${material.materialId}"
+                                    <a href="update-material?id=${material.materialId}&unitId=${material.unitId}"
                                        class="btn btn-primary"
                                        title="Edit">
                                         <i class="fas fa-edit"></i>
@@ -448,11 +431,9 @@
             </table>
         </div>
 
-        <!-------------------------------------- PAGINATION CLIENT-SIDE -------------------------------------->
         <div class="pagination" id="pagination"></div>
     </div>
 
-    <!-------------------------------------- MODAL CHI TIẾT -------------------------------------->
     <div id="materialModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">×</span>
@@ -465,7 +446,6 @@
             <div class="detail-item"><strong>Supplier:</strong> <span id="modalSupplierName"></span></div>
             <div class="detail-item"><strong>Status:</strong> <span id="modalStatus"></span></div>
             <div class="detail-item"><strong>Category:</strong> <span id="modalCategoryName"></span></div>
-            <div class="detail-item"><strong>Parent Category:</strong> <span id="modalParentCategoryName"></span></div>
             <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 16px;">Close</button>
         </div>
     </div>
@@ -500,7 +480,7 @@
                 let qtyText        = row.cells[4].textContent.trim().replace(/,/g, '');
                 let supplierText   = row.cells[5].textContent.trim().toLowerCase();
                 let categoryText   = row.cells[6].textContent.trim().toLowerCase();
-                let statusText     = row.cells[8].textContent.trim().toLowerCase();
+                let statusText     = row.cells[7].textContent.trim().toLowerCase();
 
                 let qtyValue       = parseFloat(qtyText);
                 if (isNaN(qtyValue)) {
@@ -781,14 +761,14 @@
             showingCount.textContent = filteredRows.length === 0 ? 0 : (end - start);
         }
 
-        function showMaterialDetail(materialId) {
+        function showMaterialDetail(materialId, unitId) {
             if (!materialId) {
                 alert('Material ID is missing.');
                 return;
             }
             const base = window.location.origin
                        + window.location.pathname.replace(/\/list-material.*$/, '');
-            const url = base + '/detail-material?id=' + materialId;
+            const url = base + '/detail-material?id=' + materialId + (unitId ? '&unitId=' + unitId : '');
 
             fetch(url, {
                 method: 'GET',
@@ -809,7 +789,6 @@
                 document.getElementById('modalSupplierName').textContent         = data.supplierName || 'No Supplier';
                 document.getElementById('modalStatus').textContent               = data.status;
                 document.getElementById('modalCategoryName').textContent         = data.categoryName;
-                document.getElementById('modalParentCategoryName').textContent   = data.parentCategoryName ? data.parentCategoryName : 'N/A';
 
                 document.getElementById('materialModal').style.display = 'block';
             })
@@ -835,7 +814,8 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     let mid = this.getAttribute('data-id');
-                    showMaterialDetail(mid);
+                    let uid = this.getAttribute('data-unit-id');
+                    showMaterialDetail(mid, uid);
                 });
             });
         });
