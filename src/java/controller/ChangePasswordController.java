@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Users;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  *
@@ -60,8 +61,15 @@ public class ChangePasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+         HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect("login");
+            return;
+        }
+
+        request.getRequestDispatcher("changepassword.jsp").forward(request, response);
     }
+    
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -78,13 +86,20 @@ public class ChangePasswordController extends HttpServlet {
         Users u = (Users) request.getSession().getAttribute("user");
 
         if (u == null) {
-            response.sendRedirect("login.jsp");
+            response.sendRedirect("login");
             return;
         }
 
         String current = request.getParameter("currentPassword");
         String newPass = request.getParameter("newPassword");
         String confirm = request.getParameter("confirmPassword");
+
+        String passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+        if (!newPass.matches(passwordRegex)) {
+            request.setAttribute("error", "Password must be at least 8 characters, include a letter, a number, and a special character.");
+            request.getRequestDispatcher("changepassword.jsp").forward(request, response);
+            return;
+        }
 
         if (!newPass.equals(confirm)) {
             request.setAttribute("error", "New password does not match!!");
@@ -93,23 +108,30 @@ public class ChangePasswordController extends HttpServlet {
         }
 
         UserDAO userDAO = new UserDAO();
-        if (!userDAO.checkLogin(u.getEmail(), current).getPassword().equals(current)) {
+        Users userFromDB = userDAO.getUserByEmail(u.getEmail());
+
+        if (userFromDB == null) {
+            request.setAttribute("error", "User not found!");
+            request.getRequestDispatcher("changepassword.jsp").forward(request, response);
+            return;
+        }
+
+        String hashedPassword = userFromDB.getPassword();
+
+        if (!BCrypt.checkpw(current, hashedPassword)) {
             request.setAttribute("error", "Current password is wrong");
             request.getRequestDispatcher("changepassword.jsp").forward(request, response);
             return;
         }
-        // Lấy session hiện tại
-        HttpSession session = request.getSession(false); // false để không tạo session mới nếu chưa có
+        HttpSession session = request.getSession(false); 
 
         if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect("login.jsp");
+            response.sendRedirect("login");
             return;
         }
 
         boolean updated = userDAO.updatePassword(u.getUserId(), newPass);
         if (updated) {
-            // Nếu đổi mật khẩu thành công, xóa session để bắt login lại
-//            session.invalidate();
             HttpSession newSession = request.getSession(true);
             request.setAttribute("success", "Change password is successfully, please login again.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
@@ -117,7 +139,7 @@ public class ChangePasswordController extends HttpServlet {
             request.setAttribute("error", "Error! Please try again");
             request.getRequestDispatcher("changepassword.jsp").forward(request, response);
         }
-        
+
     }
 
     /**

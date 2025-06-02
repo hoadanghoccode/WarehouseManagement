@@ -45,7 +45,7 @@ public class LoginValidationFilter implements Filter {
         }
 
         // Regex: ít nhất 8 ký tự, có số, chữ cái và ký tự đặc biệt
-        String passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+        String passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d])[\\S]{8,}$";
 
         if (!password.matches(passwordRegex)) {
             req.setAttribute("error", "Password must be at least 8 characters, include a letter, a number, and a special character.");

@@ -5,30 +5,32 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+
 <div class="container-fluid g-0">
-        <div class="row">
-            <div class="col-lg-12 p-0 ">
-                <div class="header_iner d-flex justify-content-between align-items-center">
-                    <div class="sidebar_icon d-lg-none">
-                        <i class="ti-menu"></i>
-                    </div>
-                    <div class="serach_field-area">
-                            <div class="search_inner">
-                                <form action="#">
-                                    <div class="search_field">
-                                        <input type="text" placeholder="Search here..." >
-                                    </div>
-                                    <button type="submit"> <img src="img/icon/icon_search.svg" alt=""> </button>
-                                </form>
+    <div class="row">
+        <div class="col-lg-12 p-0 ">
+            <div class="header_iner d-flex justify-content-between align-items-center">
+                <div class="sidebar_icon d-lg-none">
+                    <i class="ti-menu"></i>
+                </div>
+                <div class="serach_field-area">
+                    <div class="search_inner">
+                        <form action="#">
+                            <div class="search_field">
+                                <input type="text" placeholder="Search here..." >
                             </div>
-                        </div>
-                    <div class="header_right d-flex justify-content-between align-items-center">
-                        <div class="header_notification_warp d-flex align-items-center">
-                            <li>
-                                <a class="bell_notification_clicker" href="#"> <img src="img/icon/bell.svg" alt="">
-                                    <span>04</span>
-                                </a>
-                                <!-- Menu_NOtification_Wrap  -->
+                            <button type="submit"> <img src="img/icon/icon_search.svg" alt=""> </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="header_right d-flex justify-content-between align-items-center">
+                    <div class="header_notification_warp d-flex align-items-center">
+                        <li>
+                            <a class="bell_notification_clicker" href="#"> <img src="img/icon/bell.svg" alt="">
+                                <span>04</span>
+                            </a>
+                            <!-- Menu_NOtification_Wrap  -->
                             <div class="Menu_NOtification_Wrap">
                                 <div class="notification_Header">
                                     <h4>Notifications</h4>
@@ -102,24 +104,24 @@
                                 </div>
                             </div>
                             <!--/ Menu_NOtification_Wrap  -->
-                            </li>
-                            <li>
-                                <a class="CHATBOX_open" href="#"> <img src="img/icon/msg.svg" alt="">  <span>01</span> </a>
-                            </li>
-                        </div>
-                        <div class="profile_info">
-                            <img src="img/client_img.png" alt="#">
-                            <div class="profile_info_iner">
-                                <div class="profile_author_name">
-                                    <p>Neurologist </p>
-                                    <h5>Dr. Robar Smith</h5>
-                                </div>
-                                <div class="profile_info_details">
-                                    <a href="#">My Profile </a>
-                                    <a href="changepassword.jsp">Change Password </a>
-                                    <a href="#">Settings</a>
-                                    <a href="#">Log Out </a>
-                                </div>
+                        </li>
+                        <li>
+                            <a class="CHATBOX_open" href="#"> <img src="img/icon/msg.svg" alt="">  <span>01</span> </a>
+                        </li>
+                    </div>
+                    <div class="profile_info">
+                        <img src="img/client_img.png" alt="#">
+                        <div class="profile_info_iner">
+                            <div class="profile_author_name">
+                                <p>Neurologist </p>
+                                <h5>Dr. Robar Smith</h5>
+                            </div>
+                            <div class="profile_info_details">
+                                <a href="#">My Profile </a>
+                                
+                                <a href="changepassword">Change Password </a>
+                                <a href="#">Settings</a>
+                                <a href="logout">Log Out </a>
                             </div>
                         </div>
                     </div>
@@ -127,3 +129,4 @@
             </div>
         </div>
     </div>
+</div>
