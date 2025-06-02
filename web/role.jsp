@@ -293,13 +293,24 @@
                         });
 
                         if (j === 0) {
-                            console.log('role ne', role.roleId);
+                            console.log('Rendering role with ID:', role.roleId, 'Full role object:', role);
                             const tdBtn = document.createElement('td');
                             tdBtn.rowSpan = role.permissions.length;
-                            tdBtn.innerHTML = `
-          <button
-            class="btn btn-danger btn-sm delete-role-btn"
-            data-role-id="${role.roleId}">Xoá</button>`;
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'btn btn-danger btn-sm delete-role-btn';
+                            deleteBtn.textContent = 'Xoá';
+                            deleteBtn.setAttribute('data-role-id', role.roleId);
+
+                            // Thêm trực tiếp event listener vào button
+                            deleteBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                console.log('Delete button clicked');
+                                console.log('Role ID:', role.roleId);
+                                roleIdToDelete = role.roleId;
+                                confirmModal.show();
+                            });
+
+                            tdBtn.appendChild(deleteBtn);
                             tr.appendChild(tdBtn);
                         }
                         tbody.appendChild(tr);
@@ -374,6 +385,9 @@
                             body: params
                         });
 
+
+
+
                         const result = await resp.json();
                         if (result.success) {
                             // đóng modal
@@ -390,53 +404,76 @@
                 });
             });
         </script>
-        
+
         <script>
-  // Biến global nhớ roleId cần xóa
-  let roleIdToDelete = null;
-  // Tạo instance modal (Bootstrap 5)
-  const confirmModalEl = document.getElementById('confirmDeleteModal');
-  const confirmModal = new bootstrap.Modal(confirmModalEl);
+            // Khởi tạo biến và modal ở phạm vi global
+            let roleIdToDelete = null;
+            let confirmModal = null;
 
-  // 1) Delegate click cho nút Xoá trong table
-  document.getElementById('roleTableBody').addEventListener('click', e => {
-    const btn = e.target.closest('button.delete-role-btn');
-    if (!btn) return;
+            // Đợi DOM load xong
+            document.addEventListener('DOMContentLoaded', () => {
+                // Khởi tạo modal
+                const confirmModalEl = document.getElementById('confirmDeleteModal');
+                confirmModal = new bootstrap.Modal(confirmModalEl);
 
-    // Lấy roleId từ data-attribute
-    roleIdToDelete = btn.dataset.roleId;
-    // Hiện modal confirm
-    confirmModal.show();
-  });
+                // Xử lý nút confirm trong modal
+                document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+                    try {
+                        console.log('Confirming delete for roleId:', roleIdToDelete);
+                        if (!roleIdToDelete) {
+                            console.log('No role ID to delete');
+                            return;
+                        }
 
-  // 2) Khi người dùng nhấn Xoá ở modal
-  document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-    if (!roleIdToDelete) return;
+                        // Tạo URLSearchParams (application/x-www-form-urlencoded)
+                        const params = new URLSearchParams();
+                        params.append('roleId', roleIdToDelete);
 
-    try {
-      // Gọi servlet xóa (POST hoặc GET tuỳ bạn implement)
-      const resp = await fetch(`${ctx}/permissionrole/delete?roleId=${roleIdToDelete}`, {
-        method: 'POST'
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        console.log('Params being sent:', params.toString()); // ví dụ "roleId=4"
 
-      // Ẩn modal và reload lại bảng
-      confirmModal.hide();
-      // Tái fetch & render lại data
-      const data = await fetch(`${ctx}/permissionrole/data`).then(r => r.json());
-      roles = data.length && data[0].resources !== undefined
-        ? data.map(r => ({ /* mapping nested như trước */ }))
-        : transformDataToRoles(data);
-      renderRoleTable();
+                        const resp = await fetch(`${pageContext.request.contextPath}/deleterole`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                            },
+                            body: params.toString()
+                        });
 
-    } catch (err) {
-      console.error('Lỗi khi xóa role:', err);
-      // có thể show alert trong #alertContainer
-    } finally {
-      roleIdToDelete = null;
-    }
-  });
-</script>
+                   
+                        // Refresh lại dữ liệu
+                        const response = await fetch(`${pageContext.request.contextPath}/permissionrole/data`);
+
+                        const result = await resp.json();
+                        console.log('Response from server:', result);
+
+                        if (result.status === 'ok') {
+                            confirmModal.hide();
+                            // Refresh lại dữ liệu
+                            const response = await fetch(`${pageContext.request.contextPath}/permissionrole/data`);
+                            const data = await response.json();
+                            console.log('New data after delete:', data);
+                             window.location.reload();
+                            // … render lại bảng …
+                        } else {
+                            throw new Error(result.msg || 'Lỗi không xác định');
+                        }
+
+                    } catch (err) {
+                        console.error('Error deleting role:', err);
+                        const alertContainer = document.getElementById('alertContainer');
+                        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Có lỗi xảy ra khi xóa role: ${err.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+                    } finally {
+                        roleIdToDelete = null;
+                    }
+                });
+
+            });
+        </script>
 
 
 
