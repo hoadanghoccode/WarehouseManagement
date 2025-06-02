@@ -1,96 +1,228 @@
-<%-- 
-    Document   : addMaterial
-    Created on : May 21, 2025, 10:01:57 AM
-    Author     : legia
---%>
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
     <title>Add Material</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" type="text/css" href="css/materiallist.css" />
     <style>
-        .form-container {
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            color: #374151;
+        }
+        .container {
             max-width: 600px;
-            margin: 24px auto;
+            margin: 40px auto;
             padding: 24px;
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .form-title {
+        .title {
             font-size: 24px;
             font-weight: 600;
-            color: #1e293b;
+            color: #1f2937;
             margin-bottom: 24px;
         }
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
-        .form-label {
+        .form-group label {
+            display: block;
             font-weight: 500;
-            color: #374151;
+            color: #1f2937;
             margin-bottom: 8px;
         }
-        .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+            background-color: #fff;
         }
-        .btn-space {
-            margin-right: 8px;
+        .form-group input[type="checkbox"] {
+            width: auto;
+        }
+        .unit-section {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        .unit-section .unit-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .unit-section input[type="number"] {
+            width: 120px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #6366f1;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        #newNameSection {
+            display: none;
+            margin-top: 10px;
         }
     </style>
-    <link rel="icon" href="img/logo.png" type="image/png">
 </head>
 <body>
-    <div class="form-container">
-        <h2 class="form-title">Add New Material</h2>
-        <form action="material?action=add" method="post">
+    <div class="container">
+        <h1 class="title">Add Material</h1>
+
+        <c:if test="${not empty error}">
+            <div class="error">${error}</div>
+        </c:if>
+
+        <form action="add-material" method="POST" onsubmit="return validateForm()">
+            <!-- Material Selection -->
             <div class="form-group">
-                <label for="categoryId" class="form-label">Category</label>
-                <select class="form-select" id="categoryId" name="categoryId" required>
+                <label for="materialId">Material</label>
+                <select id="materialId" name="materialId" onchange="toggleNewNameSection()" required>
+                    <option value="">Select Material</option>
+                    <option value="0">Add new material</option>
+                    <c:forEach var="material" items="${materials}">
+                        <option value="${material.materialId}">${material.name}</option>
+                    </c:forEach>
+                </select>
+                <div id="newNameSection">
+                    <label for="newName">New Material Name</label>
+                    <input type="text" id="newName" name="newName">
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+                <label for="categoryId">Category</label>
+                <select id="categoryId" name="categoryId" required>
                     <option value="">Select Category</option>
                     <c:forEach var="category" items="${categories}">
                         <option value="${category.categoryId}">${category.name}</option>
                     </c:forEach>
                 </select>
             </div>
+
+            <!-- Units (Multiple selection with price and quantity) -->
             <div class="form-group">
-                <label for="unitId" class="form-label">Unit</label>
-                <select class="form-select" id="unitId" name="unitId" required>
-                    <option value="">Select Unit</option>
+                <label>Units</label>
+                <div class="unit-section">
                     <c:forEach var="unit" items="${units}">
-                        <option value="${unit.unitId}">${unit.name}</option>
+                        <div class="unit-item">
+                            <input type="checkbox" name="unitIds" value="${unit.unitId}" onchange="toggleUnitInputs(this)">
+                            <label>${unit.name}</label>
+                            <input type="number" step="0.01" name="price_${unit.unitId}" placeholder="Price" disabled>
+                            <input type="number" step="0.01" name="quantity_${unit.unitId}" placeholder="Quantity" disabled>
+                        </div>
+                    </c:forEach>
+                </div>
+            </div>
+
+            <!-- Supplier -->
+            <div class="form-group">
+                <label for="supplierId">Supplier</label>
+                <select id="supplierId" name="supplierId" required>
+                    <option value="">Select Supplier</option>
+                    <c:forEach var="supplier" items="${suppliers}">
+                        <option value="${supplier.id}">${supplier.name}</option>
                     </c:forEach>
                 </select>
             </div>
+
+            <!-- Status -->
             <div class="form-group">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
+                <label for="status">Status</label>
+                <select id="status" name="status" required>
+                    <option value="">Select Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label for="unitOfCalculation" class="form-label">Unit of Calculation</label>
-                <input type="text" class="form-control" id="unitOfCalculation" name="unitOfCalculation" required>
-            </div>
-            <div class="form-group">
-                <label for="inventoryQuantity" class="form-label">Inventory Quantity</label>
-                <input type="number" class="form-control" id="inventoryQuantity" name="inventoryQuantity" min="0" required>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary btn-space">Add Material</button>
-                <a href="material?action=list" class="btn btn-secondary">Cancel</a>
-            </div>
+
+            <!-- Buttons -->
+            <button type="submit" class="btn btn-primary">Add Material</button>
+            <a href="list-material" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        function toggleNewNameSection() {
+            const materialId = document.getElementById('materialId').value;
+            const newNameSection = document.getElementById('newNameSection');
+            if (materialId === '0') {
+                newNameSection.style.display = 'block';
+                document.getElementById('newName').required = true;
+            } else {
+                newNameSection.style.display = 'none';
+                document.getElementById('newName').required = false;
+                document.getElementById('newName').value = '';
+            }
+        }
+
+        function toggleUnitInputs(checkbox) {
+            const priceInput = checkbox.nextElementSibling.nextElementSibling;
+            const quantityInput = priceInput.nextElementSibling;
+            priceInput.disabled = !checkbox.checked;
+            quantityInput.disabled = !checkbox.checked;
+            priceInput.required = checkbox.checked;
+            quantityInput.required = checkbox.checked;
+            if (!checkbox.checked) {
+                priceInput.value = '';
+                quantityInput.value = '';
+            }
+        }
+
+        function validateForm() {
+            const unitCheckboxes = document.querySelectorAll('input[name="unitIds"]');
+            let atLeastOneUnitChecked = false;
+            for (let checkbox of unitCheckboxes) {
+                if (checkbox.checked) {
+                    atLeastOneUnitChecked = true;
+                    break;
+                }
+            }
+            if (!atLeastOneUnitChecked) {
+                alert("At least one unit must be selected.");
+                return false;
+            }
+            return true;
+        }
+    </script>
 </body>
 </html>
