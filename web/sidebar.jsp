@@ -27,7 +27,7 @@
             <ul>
                 <li><a href="/WarehouseManagement/resource">Permission</a></li>
                 <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
-                <li><a href="authorization.jsp">Authorization</a></li>
+                <li><a href="/WarehouseManagement/department">Department</a></li>
             </ul>
         </li>
 
