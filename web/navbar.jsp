@@ -4,13 +4,9 @@
     Author     : legia
 --%>
 
-<<<<<<< HEAD
 <%--<%@page contentType="text/html" pageEncoding="UTF-8"%>--%>
-=======
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
-
->>>>>>> c91c23e (Update Login, Change, Reset)
 <div class="container-fluid g-0">
     <div class="row">
         <div class="col-lg-12 p-0 ">

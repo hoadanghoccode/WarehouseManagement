@@ -4,9 +4,7 @@
     Author     : legia
 --%>
 
-<<<<<<< HEAD
 <%--<%@page contentType="text/html" pageEncoding="UTF-8"%>--%>
-=======
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page import="model.Users" %>
@@ -16,7 +14,6 @@
     request.setAttribute("user", user); 
 %>
 
->>>>>>> c91c23e (Update Login, Change, Reset)
 <nav class="sidebar">
     <div class="logo d-flex justify-content-between">
         <a href="index.jsp"><img src="img/logo.png" alt=""></a>

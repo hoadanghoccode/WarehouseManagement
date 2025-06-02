@@ -14,7 +14,7 @@ import model.Departmentt;
 import model.Department;
 import java.util.UUID;
 import org.mindrot.jbcrypt.BCrypt;
-import java.util.UUID;
+
 
 public class UserDAO extends DBContext {
 
