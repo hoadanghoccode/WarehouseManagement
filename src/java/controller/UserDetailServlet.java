@@ -1,24 +1,36 @@
 package controller;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import dal.UserDAO;
-import model.Department;
 import model.Users;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
+import model.Department;
 
-@WebServlet(name = "UserDetailServlet", urlPatterns = {"/userdetail"})
+@MultipartConfig
 public class UserDetailServlet extends HttpServlet {
+    private Cloudinary cloudinary;
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        cloudinary = new Cloudinary(ObjectUtils.asMap(
+            "cloud_name", "dzvacilp0",
+            "api_key", "884545436675372",
+            "api_secret", "M-jnhig7NIB1zRHeQ_tqktQD1u8"));
     }
 
     @Override
@@ -153,6 +165,37 @@ public class UserDetailServlet extends HttpServlet {
             if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
                 dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
             }
+
+            // Handle file upload
+            Part filePart = request.getPart("imageFile");
+if (filePart != null && filePart.getSize() > 0) {
+    try (InputStream fileContent = filePart.getInputStream()) {
+
+        // Chuyển InputStream thành byte[]
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] data = new byte[1024];
+        int nRead;
+        while ((nRead = fileContent.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+
+        byte[] fileBytes = buffer.toByteArray();
+
+        // Upload fileBytes lên Cloudinary
+        Map uploadResult = cloudinary.uploader().upload(fileBytes, ObjectUtils.asMap(
+            "resource_type", "auto"
+        ));
+
+        image = (String) uploadResult.get("url");
+
+    } catch (Exception e) {
+        System.err.println("Error uploading image to Cloudinary: " + e.getMessage());
+        e.printStackTrace();
+        session.setAttribute("error", "Image upload failed: " + e.getMessage());
+    }
+}
+
             Users user = new Users(userId, roleId, existingUser.getFullName(), email, existingUser.getPassword(),
                     existingUser.isGender(), phoneNumber, address, dateOfBirth, image, null,
                     new java.sql.Timestamp(System.currentTimeMillis()), status, null, null);

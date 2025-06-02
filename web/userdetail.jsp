@@ -5,15 +5,16 @@
     <div class="header">
         <div>
             <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
-                 alt="User Avatar" class="avatar">
+                 alt="User Avatar" class="avatar" onclick="document.getElementById('fileInput').click()">
             <h2>${user.fullName}</h2>
         </div>
         <button class="close-btn" onclick="closeModal('userDetailModal')">×</button>
     </div>
-    <form action="${pageContext.request.contextPath}/userdetail" method="post">
+    <form action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
         <input type="hidden" name="userId" value="${user.userId}" />
         <input type="hidden" name="email" value="${user.email}" />
         <input type="hidden" name="userDepartmentId" value="${userDepartmentId}" />
+        <input type="file" id="fileInput" name="imageFile" style="display:none;" onchange="this.form.submit()"/>
         <div class="grid-container">
             <div class="form-group">
                 <label>Email</label>
