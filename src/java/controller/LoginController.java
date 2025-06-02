@@ -60,7 +60,14 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("user") != null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
+        // Nếu chưa → forward tới login.jsp
+        request.getRequestDispatcher("login.jsp").forward(request, response);
     }
 
     /**
@@ -77,16 +84,16 @@ public class LoginController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        String email = request.getParameter("email");
+        String email = request.getParameter("email").trim().toLowerCase();
         String pass = request.getParameter("password");
 
         try {
-
             UserDAO userDAO = new UserDAO();
             Users u = userDAO.checkLogin(email, pass);
+
             if (u == null) {
                 request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
+                request.setAttribute("email", email); 
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             } else {
                 HttpSession session = request.getSession();
@@ -95,10 +102,11 @@ public class LoginController extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
+            request.setAttribute("error", "A system error occurred. Please try again later.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
+    
 
     /**
      * Returns a short description of the servlet.

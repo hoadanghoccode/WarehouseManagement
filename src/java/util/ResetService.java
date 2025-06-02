@@ -59,9 +59,6 @@ public class ResetService {
         };
         
         Session session = Session.getInstance(props, auth);
-        
-      
-        
         try {
             MimeMessage msg = new MimeMessage(session);
         msg.setFrom(from);
@@ -82,26 +79,24 @@ public class ResetService {
     String lower = "abcdefghijklmnopqrstuvwxyz";
     String digits = "0123456789";
     String special = "!@#$%^&*()-_+=";
-    String allChars = upper + lower + digits + special;
 
+    String allChars = upper + lower + digits + special;
     StringBuilder password = new StringBuilder();
     Random random = new Random();
 
-    // Đảm bảo có ít nhất 1 ký tự từ mỗi loại
+    // Đảm bảo ít nhất 1 ký tự từ mỗi nhóm
     password.append(upper.charAt(random.nextInt(upper.length())));
     password.append(lower.charAt(random.nextInt(lower.length())));
     password.append(digits.charAt(random.nextInt(digits.length())));
     password.append(special.charAt(random.nextInt(special.length())));
 
-    // Thêm các ký tự còn lại
+    // Thêm các ký tự ngẫu nhiên còn lại
     for (int i = 4; i < length; i++) {
         password.append(allChars.charAt(random.nextInt(allChars.length())));
     }
 
-    // Trộn ngẫu nhiên các ký tự trong chuỗi
-    List<Character> pwdChars = password.chars()
-        .mapToObj(c -> (char) c)
-        .collect(Collectors.toList());
+    // Shuffle để mật khẩu không theo thứ tự
+    List<Character> pwdChars = password.chars().mapToObj(c -> (char) c).collect(Collectors.toList());
     Collections.shuffle(pwdChars);
 
     StringBuilder finalPassword = new StringBuilder();
