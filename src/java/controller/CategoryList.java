@@ -36,7 +36,7 @@ public class CategoryList extends HttpServlet {
         }
         for (Category pcate : filterCategories) {
             for (Category subCate : pcate.getSubCategories()) {
-                subCate.setMaterialCount(mDao.countMaterialByCategoryId(subCate.getCategoryId()));
+//                subCate.setMaterialCount(mDao.countMaterialByCategoryId(subCate.getCategoryId()));
             }
         }
 

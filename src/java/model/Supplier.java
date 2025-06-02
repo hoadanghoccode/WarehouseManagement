@@ -8,22 +8,21 @@ package model;
  *
  * @author legia
  */
-
-public class Unit {
-    private int unitId;
+public class Supplier {
+    private int id;
     private String name;
     private String status;
 
-    public Unit() {}
+    public Supplier() {}
 
-    public Unit(int unitId, String name, String status) {
-        this.unitId = unitId;
+    public Supplier(int id, String name, String status) {
+        this.id = id;
         this.name = name;
         this.status = status;
     }
 
-    public int getUnitId() { return unitId; }
-    public void setUnitId(int unitId) { this.unitId = unitId; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getStatus() { return status; }

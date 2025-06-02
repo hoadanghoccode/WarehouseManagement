@@ -69,13 +69,13 @@ public class DeleteCategory extends HttpServlet {
         if (cate.getParentId() == null) {
             Category parentCate = cDao.getParentCategoryById(cate.getCategoryId());
             for (Category subCate : parentCate.getSubCategories()) {
-                countMaterials += mDao.countMaterialByCategoryId(subCate.getCategoryId());
+//                countMaterials += mDao.countMaterialByCategoryId(subCate.getCategoryId());
             }
             request.setAttribute("countMaterial", countMaterials);
             request.setAttribute("countSub", parentCate.getSubCategoryCount());
             request.getRequestDispatcher("deletecategory.jsp").forward(request, response);
         } else {
-            cate.setMaterialCount(mDao.countMaterialByCategoryId(cate.getCategoryId()));
+//            cate.setMaterialCount(mDao.countMaterialByCategoryId(cate.getCategoryId()));
             countMaterials = cate.getMaterialCount();
             request.setAttribute("countMaterial", countMaterials);
 
