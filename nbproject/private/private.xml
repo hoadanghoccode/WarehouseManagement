@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
+        <file>
+            <url>src/java/dal/MaterialDAO.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/WEB-INF/web.xml</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/role.jsp</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/DetailMaterialController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/UpdateMaterialController.java</file>
         </group>
     </open-files>
 </project-private>
