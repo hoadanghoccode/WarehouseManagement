@@ -28,9 +28,9 @@ public class UserDetailServlet extends HttpServlet {
     public void init() throws ServletException {
         super.init();
         cloudinary = new Cloudinary(ObjectUtils.asMap(
-            "cloud_name", "dzvacilp0",
-            "api_key", "884545436675372",
-            "api_secret", "M-jnhig7NIB1zRHeQ_tqktQD1u8"));
+            "cloud_name", "dnzc9p3jj",
+            "api_key", "199637772186358",
+            "api_secret", "JcmmcMjcJxr7z8cTo1OSO759wNk"));
     }
 
     @Override

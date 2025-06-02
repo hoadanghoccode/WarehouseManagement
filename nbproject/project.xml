@@ -90,10 +90,6 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.slf4j-api-1.7.30.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
                     <file>${file.reference.httpmime-4.5.13.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>

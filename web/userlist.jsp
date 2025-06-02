@@ -525,18 +525,22 @@
             </select>
             <button type="submit" class="btn btn-primary">Filter</button>
         </form>
-        <c:if test="${not empty success}">
-            <div class="success-message">
-                ${success}
-                <button class="dismiss-btn" onclick="dismissNotification()">×</button>
-            </div>
-        </c:if>
-        <c:if test="${not empty error}">
-            <div class="error-message">
-                ${error}
-                <button class="dismiss-btn" onclick="dismissNotification()">×</button>
-            </div>
-        </c:if>
+        <c:if test="${not empty sessionScope.success}">
+    <div class="success-message">
+        ${sessionScope.success}
+        <button class="dismiss-btn" onclick="dismissNotification()">×</button>
+    </div>
+    <c:remove var="success" scope="session" />
+</c:if>
+
+<c:if test="${not empty sessionScope.error}">
+    <div class="error-message">
+        ${sessionScope.error}
+        <button class="dismiss-btn" onclick="dismissNotification()">×</button>
+    </div>
+    <c:remove var="error" scope="session" />
+</c:if>
+
         <div class="stats-info">
             Showing ${fn:length(users)} of ${totalUsers}
         </div>
