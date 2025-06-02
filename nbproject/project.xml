@@ -7,10 +7,7 @@
             <minimum-ant-version>1.6.5</minimum-ant-version>
             <web-module-libraries>
                 <library dirs="200">
-                    <file>${file.reference.json-20230227.jar}</file>
-                </library>
-                <library dirs="200">
-                    <file>${javac.compilerargs=}</file>
+                    <file>${# Space-separated list of extra javac options}</file>
                 </library>
                 <library dirs="200">
                     <file>${file.reference.jakarta.servlet-api-5.0.0__1_.jar}</file>
