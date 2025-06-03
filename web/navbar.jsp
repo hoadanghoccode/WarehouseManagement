@@ -3,7 +3,7 @@
     Created on : May 16, 2025, 3:33:39 PM
     Author     : legia
 --%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%--<%@page contentType="text/html" pageEncoding="UTF-8"%>--%>
 <div class="container-fluid g-0">
     <div class="row">
         <div class="col-lg-12 p-0 ">

@@ -242,4 +242,18 @@ public class DepartmentDAO extends DBContext {
             return affected > 0;
         }
     }
+
+    public boolean isDepartmentNameExists(String departmentName) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM department WHERE Name = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, departmentName);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
 }
