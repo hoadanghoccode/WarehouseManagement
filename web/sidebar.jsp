@@ -28,6 +28,7 @@
                 <li><a href="/WarehouseManagement/resource">Permission</a></li>
                 <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
                 <li><a href="/WarehouseManagement/department">Department</a></li>
+                <li><a href="/WarehouseManagement/userlist">User List</a></li>
             </ul>
         </li>
 
