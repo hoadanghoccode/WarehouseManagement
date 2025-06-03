@@ -36,10 +36,20 @@
                 <li><a href="/WarehouseManagement/resource">Permission</a></li>
                 <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
                 <li><a href="/WarehouseManagement/department">Department</a></li>
-                <li><a href="/WarehouseManagement/userlist">User List</a></li>
             </ul>
         </li>
-
+        <li class="">
+            <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/list-material">
+                <img src="img/menu-icon/4.svg" alt="">
+                <span>Materials</span>
+            </a>
+        </li>
+        <li class="">
+            <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/userlist">
+                <img src="img/menu-icon/4.svg" alt="">
+                <span>Users</span>
+            </a>
+        </li>
         <c:if test="${user.roleId == 1}">
             <li class="mm-active">
                 <a href="adminresetlist">
