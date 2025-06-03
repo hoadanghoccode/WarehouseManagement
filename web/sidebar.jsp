@@ -6,10 +6,13 @@
 <%--<%@page contentType="text/html" pageEncoding="UTF-8"%>--%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page import="model.Users" %>
+<%@ page import="java.util.Map" %>
 
 <%
     Users user = (Users) session.getAttribute("user");
-    request.setAttribute("user", user); 
+    request.setAttribute("user", user);
+    Map<String, Boolean> permissions = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    request.setAttribute("permissions", permissions);
 %>
 <nav class="sidebar">
     <div class="logo d-flex justify-content-between">
@@ -33,10 +36,18 @@
                 <span>Authentication</span>
             </a>
             <ul>
-                <li><a href="/WarehouseManagement/resource">Permission</a></li>
-                <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
-                <li><a href="/WarehouseManagement/department">Department</a></li>
-                <li><a href="/WarehouseManagement/userlist">User List</a></li>
+                <c:if test="${permissions['Permission_VIEW']}">
+                    <li><a href="/WarehouseManagement/resource">Permission</a></li>
+                </c:if>
+                <c:if test="${permissions['Role_VIEW']}">
+                    <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
+                </c:if>
+                <c:if test="${permissions['Department_VIEW']}">
+                    <li><a href="/WarehouseManagement/department">Department</a></li>
+                </c:if>
+                <c:if test="${permissions['Customer_VIEW']}">
+                    <li><a href="/WarehouseManagement/userlist">User List</a></li>
+                </c:if>
             </ul>
         </li>
 
