@@ -61,7 +61,7 @@ public class LoginController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("user") != null) {
+        if (session != null && session.getAttribute("USER") != null) {
             response.sendRedirect("index.jsp");
             return;
         }
@@ -86,10 +86,12 @@ public class LoginController extends HttpServlet {
 
         String email = request.getParameter("email").trim().toLowerCase();
         String pass = request.getParameter("password");
+        System.out.println("Login attempt with email: " + email);
 
         try {
             UserDAO userDAO = new UserDAO();
             Users u = userDAO.checkLogin(email, pass);
+            System.out.println("Login check result: " + (u != null ? "success" : "failed"));
 
             if (u == null) {
                 request.setAttribute("error", "Email or password is wrong!");
@@ -97,10 +99,12 @@ public class LoginController extends HttpServlet {
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             } else {
                 HttpSession session = request.getSession();
-                session.setAttribute("user", u);
+                session.setAttribute("USER", u);
+                System.out.println("User set in session with ID: " + u.getUserId());
                 response.sendRedirect("index.jsp");
             }
         } catch (Exception e) {
+            System.out.println("Login error: " + e.getMessage());
             e.printStackTrace();
             request.setAttribute("error", "A system error occurred. Please try again later.");
             request.getRequestDispatcher("login.jsp").forward(request, response);

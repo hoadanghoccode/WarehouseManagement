@@ -3,8 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/authentication.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/index.html</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/LoginGoogleController.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/LoginController.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/filter/AuthFilter.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/constant/IConstant.java</file>
         </group>
     </open-files>
 </project-private>

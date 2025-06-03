@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <%@ page import="model.Users" %>
 <%
-    Users u = (Users) session.getAttribute("user");
+    Users u = (Users) session.getAttribute("USER");
     if (u == null) {
         response.sendRedirect("login.jsp");
         return;
