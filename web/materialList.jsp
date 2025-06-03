@@ -306,7 +306,6 @@
             </div>
 
             <!-- If there’s any stats/info to show -->
-            
 
             <!-- MATERIALS TABLE -->
             <div class="table-container mb-4">
