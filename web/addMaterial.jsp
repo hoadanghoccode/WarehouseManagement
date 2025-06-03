@@ -6,6 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Add Material</title>
+    <!-- Optional: Bootstrap for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -97,9 +99,10 @@
             font-size: 14px;
             margin-bottom: 16px;
         }
-        #newNameSection {
-            display: none;
-            margin-top: 10px;
+        .warning {
+            color: #b45309;
+            font-size: 14px;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -112,67 +115,67 @@
         </c:if>
 
         <form action="add-material" method="POST" onsubmit="return validateForm()">
-            <!-- Material Selection -->
+            <!-- Select existing material or enter new name -->
             <div class="form-group">
-                <label for="materialId">Material</label>
-                <select id="materialId" name="materialId" onchange="toggleNewNameSection()" required>
-                    <option value="">Select Material</option>
-                    <option value="0">Add new material</option>
-                    <c:forEach var="material" items="${materials}">
-                        <option value="${material.materialId}">${material.name}</option>
+                <label for="materialId">Select Existing Material</label>
+                <select id="materialId" name="materialId" onchange="toggleNewName(this)">
+                    <option value="">-- Choose or Enter New --</option>
+                    <option value="0">*** Enter New Material ***</option>
+                    <c:forEach var="mat" items="${materials}">
+                        <option value="${mat.materialId}">${mat.name}</option>
                     </c:forEach>
                 </select>
-                <div id="newNameSection">
-                    <label for="newName">New Material Name</label>
-                    <input type="text" id="newName" name="newName">
+            </div>
+
+            <div class="form-group" id="newNameGroup" style="display: none;">
+                <label for="newName">New Material Name</label>
+                <input type="text" id="newName" name="newName" placeholder="Enter new material name"
+                       oninput="checkNameConflict()" autocomplete="off">
+                <div id="nameWarning" class="warning" style="display: none;">
+                    This material name already exists in the database. Submitting will link to the existing material.
                 </div>
             </div>
 
-            <!-- Category -->
+            <!-- Category (only subcategories: parentId != null) -->
             <div class="form-group">
-                <label for="categoryId">Category</label>
+                <label for="categoryId">Category (Subcategories Only)</label>
                 <select id="categoryId" name="categoryId" required>
-                    <option value="">Select Category</option>
+                    <option value="">-- Select Subcategory --</option>
                     <c:forEach var="category" items="${categories}">
-                        <option value="${category.categoryId}">${category.name}</option>
+                        <c:if test="${category.parentId != null}">
+                            <option value="${category.categoryId}">${category.name}</option>
+                        </c:if>
                     </c:forEach>
                 </select>
-            </div>
-
-            <!-- Units (Multiple selection with price and quantity) -->
-            <div class="form-group">
-                <label>Units</label>
-                <div class="unit-section">
-                    <c:forEach var="unit" items="${units}">
-                        <div class="unit-item">
-                            <input type="checkbox" name="unitIds" value="${unit.unitId}" onchange="toggleUnitInputs(this)">
-                            <label>${unit.name}</label>
-                            <input type="number" step="0.01" name="price_${unit.unitId}" placeholder="Price" disabled>
-                            <input type="number" step="0.01" name="quantity_${unit.unitId}" placeholder="Quantity" disabled>
-                        </div>
-                    </c:forEach>
-                </div>
             </div>
 
             <!-- Supplier -->
             <div class="form-group">
                 <label for="supplierId">Supplier</label>
                 <select id="supplierId" name="supplierId" required>
-                    <option value="">Select Supplier</option>
+                    <option value="">-- Select Supplier --</option>
                     <c:forEach var="supplier" items="${suppliers}">
                         <option value="${supplier.id}">${supplier.name}</option>
                     </c:forEach>
                 </select>
             </div>
 
-            <!-- Status -->
+            <!-- Units with price and quantity -->
             <div class="form-group">
-                <label for="status">Status</label>
-                <select id="status" name="status" required>
-                    <option value="">Select Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+                <label>Units</label>
+                <div class="unit-section">
+                    <c:forEach var="unit" items="${units}">
+                        <div class="unit-item">
+                            <input type="checkbox" name="unitIds" value="${unit.unitId}"
+                                   onchange="toggleUnitInputs(this)">
+                            <label>${unit.name}</label>
+                            <input type="number" step="0.01" name="price_${unit.unitId}" placeholder="Price"
+                                   disabled>
+                            <input type="number" step="0.01" name="quantity_${unit.unitId}" placeholder="Quantity"
+                                   disabled>
+                        </div>
+                    </c:forEach>
+                </div>
             </div>
 
             <!-- Buttons -->
@@ -182,14 +185,22 @@
     </div>
 
     <script>
-        function toggleNewNameSection() {
-            const materialId = document.getElementById('materialId').value;
-            const newNameSection = document.getElementById('newNameSection');
-            if (materialId === '0') {
-                newNameSection.style.display = 'block';
+        // Build an array of existing names (lowercase) for quick conflict checking
+        const existingNames = [
+            <c:forEach var="mat" items="${materials}" varStatus="loop">
+                "${mat.name.toLowerCase()}"<c:if test="${!loop.last}">,</c:if>
+            </c:forEach>
+        ];
+
+        function toggleNewName(selectElem) {
+            const newNameGroup = document.getElementById('newNameGroup');
+            const nameWarning = document.getElementById('nameWarning');
+            if (selectElem.value === '0') {
+                newNameGroup.style.display = 'block';
                 document.getElementById('newName').required = true;
             } else {
-                newNameSection.style.display = 'none';
+                newNameGroup.style.display = 'none';
+                nameWarning.style.display = 'none';
                 document.getElementById('newName').required = false;
                 document.getElementById('newName').value = '';
             }
@@ -208,7 +219,32 @@
             }
         }
 
+        function checkNameConflict() {
+            const input = document.getElementById('newName').value.trim().toLowerCase();
+            const nameWarning = document.getElementById('nameWarning');
+            if (input.length === 0) {
+                nameWarning.style.display = 'none';
+                return;
+            }
+            if (existingNames.includes(input)) {
+                nameWarning.style.display = 'block';
+            } else {
+                nameWarning.style.display = 'none';
+            }
+        }
+
         function validateForm() {
+            const materialSelect = document.getElementById('materialId');
+            const newNameInput = document.getElementById('newName');
+            if (materialSelect.value === '') {
+                alert("Please select an existing material or choose to enter a new one.");
+                return false;
+            }
+            if (materialSelect.value === '0' && newNameInput.value.trim() === '') {
+                alert("New material name is required.");
+                return false;
+            }
+
             const unitCheckboxes = document.querySelectorAll('input[name="unitIds"]');
             let atLeastOneUnitChecked = false;
             for (let checkbox of unitCheckboxes) {
@@ -224,5 +260,7 @@
             return true;
         }
     </script>
+    <!-- (Optional) Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
