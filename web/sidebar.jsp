@@ -3,8 +3,14 @@
     Created on : May 16, 2025, 3:29:58 PM
     Author     : legia
 --%>
-
 <%--<%@page contentType="text/html" pageEncoding="UTF-8"%>--%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="model.Users" %>
+
+<%
+    Users user = (Users) session.getAttribute("user");
+    request.setAttribute("user", user); 
+%>
 <nav class="sidebar">
     <div class="logo d-flex justify-content-between">
         <a href="index.jsp"><img src="img/logo.png" alt=""></a>
@@ -12,15 +18,17 @@
             <i class="ti-close"></i>
         </div>
     </div>
+
     <ul id="sidebar_menu">
         <li class="mm-active">
-            <a  href="index.jsp"  aria-expanded="false">
+            <a href="index.jsp" aria-expanded="false">
                 <img src="img/menu-icon/dashboard.svg" alt="">
                 <span>Dashboard</span>
             </a>
         </li>
+
         <li class="">
-            <a   class="has-arrow" href="#" aria-expanded="false">
+            <a class="has-arrow" href="#" aria-expanded="false">
                 <img src="img/menu-icon/4.svg" alt="">
                 <span>Authentication</span>
             </a>
@@ -30,6 +38,18 @@
                 <li><a href="/WarehouseManagement/department">Department</a></li>
             </ul>
         </li>
+
+        <c:if test="${user.roleId == 1}">
+            <li class="mm-active">
+                <a href="adminresetlist">
+                    <img src="img/menu-icon/your-icon.svg" alt="">
+                    <span>Reset List</span>
+                </a>
+            </li>
+        </c:if>
+
+    </ul>
+</nav>
 
         <!--        <li class="">
                     <a   class="has-arrow" href="#" aria-expanded="false">

@@ -10,89 +10,78 @@ import model.Users;
 import model.Role;
 import java.util.ArrayList;
 import java.util.List;
-import model.Branch;
-import model.Group;
-
+import model.Departmentt;
+import model.Department;
+import org.mindrot.jbcrypt.BCrypt;
 import java.util.UUID;
-
-import model.Branch;
-import model.Group;
 
 
 public class UserDAO extends DBContext {
 
-    public Users getUserById(int userId) {
-        String sql = "SELECT u.*, r.Name AS Role_name, b.Name AS Branch_name, " +
-                     "GROUP_CONCAT(g.Name SEPARATOR ', ') AS Group_names " +
-                     "FROM Users u " +
-                     "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
-                     "LEFT JOIN Branch b ON u.Branch_id = b.Branch_id " +
-                     "LEFT JOIN Group_has_User gu ON u.User_id = gu.User_id " +
-                     "LEFT JOIN `Group` g ON gu.Group_id = g.Group_id " +
-                     "WHERE u.User_id = ? " +
-                     "GROUP BY u.User_id";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Users user = new Users(
-                        rs.getInt("User_id"),
-                        rs.getInt("Role_id"),
-                        rs.getInt("Branch_id"),
-                        rs.getString("Full_name"),
-                        rs.getString("Email"),
-                        rs.getString("Password"),
-                        rs.getInt("Gender"),
-                        rs.getString("Phone_number"),
-                        rs.getString("Address"),
-                        rs.getDate("Date_of_birth"),
-                        rs.getString("Image"),
-                        rs.getDate("Created_at"),
-                        rs.getDate("Updated_at"),
-                        rs.getBoolean("Status"),
-                        rs.getString("Reset_Password_Token"),
-                        rs.getTimestamp("Reset_Password_Expiry")
-                    );
-                    user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
-                    user.setBranchName(rs.getString("Branch_name") != null ? rs.getString("Branch_name") : "");
-                    user.setGroupNames(rs.getString("Group_names") != null ? rs.getString("Group_names") : "");
-                    return user;
-                }
+   public Users getUserById(int userId) {
+    String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
+                 "FROM Users u " +
+                 "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
+                 "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
+                 "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
+                 "WHERE u.User_id = ?";
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setInt(1, userId);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                Users user = new Users(
+                    rs.getInt("User_id"),
+                    rs.getInt("Role_id"),
+                    rs.getString("Full_name"),
+                    rs.getString("Email"),
+                    rs.getString("Password"),
+                    rs.getInt("Gender") == 1,
+                    rs.getString("Phone_number"),
+                    rs.getString("Address"),
+                    rs.getDate("Date_of_birth"),
+                    rs.getString("Image"),
+                    rs.getTimestamp("Created_at"),
+                    rs.getTimestamp("Updated_at"),
+                    rs.getInt("Status") == 1,
+                    rs.getString("Reset_Password_Token"),
+                    rs.getTimestamp("Reset_Password_Expiry")
+                );
+                user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
+                user.setDepartmentId(rs.getInt("Department_id"));
+                user.setDepartmentName(rs.getString("Department_name") != null ? rs.getString("Department_name") : "");
+                return user;
             }
-        } catch (SQLException e) {
-            System.err.println("Error fetching user with ID " + userId + ": " + e.getMessage());
-            e.printStackTrace();
         }
-        return null;
+    } catch (SQLException e) {
+        System.err.println("Error fetching user with ID " + userId + ": " + e.getMessage());
+        e.printStackTrace();
     }
+    return null;
+}
 
-    public void createUser(Users user, int groupId) {
-        String sql = "INSERT INTO Users (Role_id, Branch_id, Full_name, Email, Password, Gender, Phone_number, Address, Date_of_birth, Image, Created_at, Updated_at, Status) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public void createUser(Users user, int departmentId) {
+        String sql = "INSERT INTO Users (Role_id, Full_name, Email, Password, Gender, Phone_number, Address, Date_of_birth, Image, Created_at, Updated_at, Status) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            java.sql.Date currentDate = new java.sql.Date(System.currentTimeMillis());
-
+            Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
             stmt.setInt(1, user.getRoleId());
-            stmt.setInt(2, user.getBranchId());
-            stmt.setString(3, user.getFullName());
-            stmt.setString(4, user.getEmail());
-            stmt.setString(5, user.getPassword());
-            stmt.setInt(6, user.getGender());
-            stmt.setString(7, user.getPhoneNumber());
-            stmt.setString(8, user.getAddress());
-            stmt.setDate(9, user.getDateOfBirth() != null ? new java.sql.Date(user.getDateOfBirth().getTime()) : null);
-            stmt.setString(10, user.getImage());
-            stmt.setDate(11, currentDate);
-            stmt.setDate(12, currentDate);
-            stmt.setBoolean(13, user.isStatus());
-
+            stmt.setString(2, user.getFullName());
+            stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getPassword());
+            stmt.setInt(5, user.isGender() ? 1 : 0);
+            stmt.setString(6, user.getPhoneNumber());
+            stmt.setString(7, user.getAddress());
+            stmt.setDate(8, user.getDateOfBirth() != null ? new java.sql.Date(user.getDateOfBirth().getTime()) : null);
+            stmt.setString(9, user.getImage());
+            stmt.setTimestamp(10, currentTimestamp);
+            stmt.setTimestamp(11, currentTimestamp);
+            stmt.setInt(12, user.isStatus() ? 1 : 0);
             stmt.executeUpdate();
-
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     user.setUserId(rs.getInt(1));
-                    if (groupId > 0) {
-                        assignUserToGroup(user.getUserId(), groupId);
+                    if (departmentId > 0) {
+                        assignUserToDepartment(user.getUserId(), departmentId);
                     }
                 }
             }
@@ -102,32 +91,41 @@ public class UserDAO extends DBContext {
         }
     }
 
-    public void updateUser(Users user, List<Integer> groupIds) {
-        String sql = "UPDATE Users SET Full_name=?, Password=?, Gender=?, Phone_number=?, Address=?, Date_of_birth=?, Branch_id=?, Image=?, Updated_at=?, Status=?, Role_id=? " +
+    public void updateUser(Users user, int departmentId) {
+        if (departmentId > 0) {
+            String checkSql = "SELECT COUNT(*) FROM Department WHERE Department_id = ? AND Role_id = ?";
+            try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, departmentId);
+                checkStmt.setInt(2, user.getRoleId());
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) == 0) {
+                        throw new IllegalArgumentException("Department does not belong to the selected role");
+                    }
+                }
+            } catch (SQLException e) {
+                System.err.println("Error validating department ID " + departmentId + " for role ID " + user.getRoleId() + ": " + e.getMessage());
+                e.printStackTrace();
+                throw new RuntimeException("Invalid department for role");
+            }
+        }
+        String sql = "UPDATE Users SET Full_name=?, Password=?, Gender=?, Phone_number=?, Address=?, Date_of_birth=?, Image=?, Updated_at=?, Status=?, Role_id=? " +
                      "WHERE User_id=?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getFullName());
             stmt.setString(2, user.getPassword());
-            stmt.setInt(3, user.getGender());
+            stmt.setInt(3, user.isGender() ? 1 : 0);
             stmt.setString(4, user.getPhoneNumber());
             stmt.setString(5, user.getAddress());
             stmt.setDate(6, user.getDateOfBirth() != null ? new java.sql.Date(user.getDateOfBirth().getTime()) : null);
-            stmt.setInt(7, user.getBranchId());
-            stmt.setString(8, user.getImage());
-            stmt.setDate(9, new java.sql.Date(System.currentTimeMillis()));
-            stmt.setBoolean(10, user.isStatus());
-            stmt.setInt(11, user.getRoleId());
-            stmt.setInt(12, user.getUserId());
-
+            stmt.setString(7, user.getImage());
+            stmt.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
+            stmt.setInt(9, user.isStatus() ? 1 : 0);
+            stmt.setInt(10, user.getRoleId());
+            stmt.setInt(11, user.getUserId());
             stmt.executeUpdate();
-
-            removeUserFromAllGroups(user.getUserId());
-            if (groupIds != null) {
-                for (int groupId : groupIds) {
-                    if (groupId > 0) {
-                        assignUserToGroup(user.getUserId(), groupId);
-                    }
-                }
+            removeUserFromAllDepartments(user.getUserId());
+            if (departmentId > 0) {
+                assignUserToDepartment(user.getUserId(), departmentId);
             }
         } catch (SQLException e) {
             System.err.println("Error updating user with ID " + user.getUserId() + ": " + e.getMessage());
@@ -139,20 +137,17 @@ public class UserDAO extends DBContext {
         PreparedStatement stmt = null;
         try {
             connection.setAutoCommit(false);
-
-            // Delete from Group_has_User
-            String sqlGroup = "DELETE FROM Group_has_User WHERE User_id = ?";
-            stmt = connection.prepareStatement(sqlGroup);
+            // Xóa từ Department_has_User
+            String sqlDepartment = "DELETE FROM Department_has_User WHERE User_id = ?";
+            stmt = connection.prepareStatement(sqlDepartment);
             stmt.setInt(1, userId);
             stmt.executeUpdate();
             stmt.close();
-
-            // Delete from Users
+            // Xóa từ Users
             String sqlUser = "DELETE FROM Users WHERE User_id = ?";
             stmt = connection.prepareStatement(sqlUser);
             stmt.setInt(1, userId);
             stmt.executeUpdate();
-
             connection.commit();
         } catch (SQLException e) {
             try {
@@ -204,185 +199,160 @@ public class UserDAO extends DBContext {
         return list;
     }
 
-    public List<Branch> getAllBranches() {
-        List<Branch> list = new ArrayList<>();
-        String sql = "SELECT Branch_id, Name FROM Branch";
+    public List<Departmentt> getAllDepartments() {
+        List<Departmentt> list = new ArrayList<>();
+        String sql = "SELECT Department_id, Name, Description, Role_id FROM Department";
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                list.add(new Branch(
-                    rs.getInt("Branch_id"),
-                    rs.getString("Name")
-                ));
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching branches: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<Group> getAllGroups() {
-        List<Group> list = new ArrayList<>();
-        String sql = "SELECT Group_id, Name, Role_id FROM `Group`";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                list.add(new Group(
-                    rs.getInt("Group_id"),
+                list.add(new Departmentt(
+                    rs.getInt("Department_id"),
                     rs.getString("Name"),
+                    rs.getString("Description"),
                     rs.getInt("Role_id")
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching all groups: " + e.getMessage());
+            System.err.println("Error fetching departments: " + e.getMessage());
             e.printStackTrace();
         }
         return list;
     }
 
-    public List<Group> getGroupsByRoleId(int roleId) {
-        List<Group> list = new ArrayList<>();
-        String sql = "SELECT Group_id, Name, Role_id FROM `Group` WHERE Role_id = ?";
+    public List<Departmentt> getDepartmentsByRoleId(int roleId) {
+        List<Departmentt> departments = new ArrayList<>();
+        String sql = "SELECT Department_id, Name, Description FROM Department WHERE Role_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, roleId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    list.add(new Group(
-                        rs.getInt("Group_id"),
+                    departments.add(new Departmentt(
+                        rs.getInt("Department_id"),
                         rs.getString("Name"),
-                        rs.getInt("Role_id")
+                        rs.getString("Description"),
+                        roleId // Gán roleId vào đối tượng Department để giữ thông tin
                     ));
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching groups for Role_id " + roleId + ": " + e.getMessage());
+            System.err.println("Error fetching departments for role ID " + roleId + ": " + e.getMessage());
             e.printStackTrace();
         }
-        return list;
+        return departments;
     }
 
-    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer branchId, Integer roleId, Integer groupId, String sortOrder) {
-    List<Users> users = new ArrayList<>();
-    StringBuilder sql = new StringBuilder(
-        "SELECT u.*, r.Name AS Role_name, b.Name AS Branch_name, " +
-        "GROUP_CONCAT(g.Name SEPARATOR ', ') AS Group_names " +
-        "FROM Users u " +
-        "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
-        "LEFT JOIN Branch b ON u.Branch_id = b.Branch_id " +
-        "LEFT JOIN Group_has_User gu ON u.User_id = gu.User_id " +
-        "LEFT JOIN `Group` g ON gu.Group_id = g.Group_id " +
-        "WHERE 1=1"
-    );
-    if (searchQuery != null && !searchQuery.isEmpty()) {
-        sql.append(" AND (u.Full_name LIKE ? OR u.Email LIKE ? OR u.Phone_number LIKE ? OR u.Address LIKE ?)");
-    }
-    if (branchId != null) {
-        sql.append(" AND u.Branch_id = ?");
-    }
-    if (roleId != null) {
-        sql.append(" AND u.Role_id = ?");
-    }
-    if (groupId != null) {
-        sql.append(" AND u.User_id IN (SELECT User_id FROM Group_has_User WHERE Group_id = ?)");
-    }
-    sql.append(" GROUP BY u.User_id, u.Role_id, u.Branch_id, u.Full_name, u.Email, u.Password, u.Gender, " +
-               "u.Phone_number, u.Address, u.Date_of_birth, u.Image, u.Created_at, u.Updated_at, u.Status, " +
-               "u.Reset_Password_Token, u.Reset_Password_Expiry, r.Name, b.Name " +
-               "ORDER BY u.Updated_at ").append(sortOrder != null && sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC").append(" LIMIT ? OFFSET ?");
-
-    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
-        int paramIndex = 1;
-        if (searchQuery != null && !searchQuery.isEmpty()) {
-            String searchPattern = "%" + searchQuery + "%";
-            stmt.setString(paramIndex++, searchPattern);
-            stmt.setString(paramIndex++, searchPattern);
-            stmt.setString(paramIndex++, searchPattern);
-            stmt.setString(paramIndex++, searchPattern);
-        }
-        if (branchId != null) {
-            stmt.setInt(paramIndex++, branchId);
-        }
-        if (roleId != null) {
-            stmt.setInt(paramIndex++, roleId);
-        }
-        if (groupId != null) {
-            stmt.setInt(paramIndex++, groupId);
-        }
-        stmt.setInt(paramIndex++, pageSize);
-        stmt.setInt(paramIndex++, (page - 1) * pageSize);
-
-        try (ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                Users user = new Users(
-                    rs.getInt("User_id"),
-                    rs.getInt("Role_id"),
-                    rs.getInt("Branch_id"),
-                    rs.getString("Full_name"),
-                    rs.getString("Email"),
-                    rs.getString("Password"),
-                    rs.getInt("Gender"),
-                    rs.getString("Phone_number"),
-                    rs.getString("Address"),
-                    rs.getDate("Date_of_birth"),
-                    rs.getString("Image"),
-                    rs.getDate("Created_at"),
-                    rs.getDate("Updated_at"),
-                    rs.getBoolean("Status"),
-                    rs.getString("Reset_Password_Token"),
-                    rs.getTimestamp("Reset_Password_Expiry")
-                );
-                user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
-                user.setBranchName(rs.getString("Branch_name") != null ? rs.getString("Branch_name") : "");
-                user.setGroupNames(rs.getString("Group_names") != null ? rs.getString("Group_names") : "");
-                users.add(user);
+    public Integer getUserDepartmentId(int userId) {
+        String sql = "SELECT Department_id FROM Department_has_User WHERE User_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("Department_id");
+                }
             }
+        } catch (SQLException e) {
+            System.err.println("Error fetching department ID for user ID " + userId + ": " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        System.err.println("Error fetching users: " + e.getMessage());
-        e.printStackTrace();
+        return null; // Nếu user chưa thuộc department nào
     }
-    return users;
-}
 
-    public int getTotalUsers(String searchQuery, Integer branchId, Integer roleId, Integer groupId) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(DISTINCT u.User_id) FROM Users u");
-        if (groupId != null) {
-            sql.append(" JOIN Group_has_User gu ON u.User_id = gu.User_id");
-        }
-        sql.append(" WHERE 1=1");
+    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer departmentId, Integer roleId, String sortOrder) {
+        List<Users> users = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
+            "FROM Users u " +
+            "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
+            "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
+            "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
+            "WHERE 1=1"
+        );
+        List<Object> params = new ArrayList<>();
         if (searchQuery != null && !searchQuery.isEmpty()) {
             sql.append(" AND (u.Full_name LIKE ? OR u.Email LIKE ? OR u.Phone_number LIKE ? OR u.Address LIKE ?)");
+            String searchPattern = "%" + searchQuery + "%";
+            for (int i = 0; i < 4; i++) {
+                params.add(searchPattern);
+            }
         }
-        if (branchId != null) {
-            sql.append(" AND u.Branch_id = ?");
+        if (departmentId != null) {
+            sql.append(" AND dhu.Department_id = ?");
+            params.add(departmentId);
         }
         if (roleId != null) {
             sql.append(" AND u.Role_id = ?");
+            params.add(roleId);
         }
-        if (groupId != null) {
-            sql.append(" AND gu.Group_id = ?");
-        }
-
+        sql.append(" ORDER BY u.Updated_at ")
+           .append(sortOrder != null && sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC")
+           .append(" LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
-            int paramIndex = 1;
-            if (searchQuery != null && !searchQuery.isEmpty()) {
-                String searchPattern = "%" + searchQuery + "%";
-                stmt.setString(paramIndex++, searchPattern);
-                stmt.setString(paramIndex++, searchPattern);
-                stmt.setString(paramIndex++, searchPattern);
-                stmt.setString(paramIndex++, searchPattern);
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
             }
-            if (branchId != null) {
-                stmt.setInt(paramIndex++, branchId);
+            System.out.println("Executing query: " + sql.toString());
+            System.out.println("Parameters: " + params.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Users user = new Users(
+                        rs.getInt("User_id"),
+                        rs.getInt("Role_id"),
+                        rs.getString("Full_name"),
+                        rs.getString("Email"),
+                        rs.getString("Password"),
+                        rs.getInt("Gender") == 1,
+                        rs.getString("Phone_number"),
+                        rs.getString("Address"),
+                        rs.getDate("Date_of_birth"),
+                        rs.getString("Image"),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at"),
+                        rs.getInt("Status") == 1,
+                        rs.getString("Reset_Password_Token"),
+                        rs.getTimestamp("Reset_Password_Expiry")
+                    );
+                    user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
+                    user.setDepartmentId(rs.getInt("Department_id"));
+                    user.setDepartmentName(rs.getString("Department_name") != null ? rs.getString("Department_name") : "");
+                    users.add(user);
+                }
+                System.out.println("Retrieved " + users.size() + " users.");
             }
-            if (roleId != null) {
-                stmt.setInt(paramIndex++, roleId);
-            }
-            if (groupId != null) {
-                stmt.setInt(paramIndex++, groupId);
-            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching users: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return users;
+    }
 
+    public int getTotalUsers(String searchQuery, Integer departmentId, Integer roleId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(DISTINCT u.User_id) FROM Users u");
+        sql.append(" LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id");
+        sql.append(" WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            sql.append(" AND (u.Full_name LIKE ? OR u.Email LIKE ? OR u.Phone_number LIKE ? OR u.Address LIKE ?)");
+            String searchPattern = "%" + searchQuery + "%";
+            for (int i = 0; i < 4; i++) {
+                params.add(searchPattern);
+            }
+        }
+        if (departmentId != null) {
+            sql.append(" AND dhu.Department_id = ?");
+            params.add(departmentId);
+        }
+        if (roleId != null) {
+            sql.append(" AND u.Role_id = ?");
+            params.add(roleId);
+        }
+        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            System.out.println("Executing count query: " + sql.toString());
+            System.out.println("Parameters: " + params.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
@@ -412,105 +382,92 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public List<String> getUserGroups(int userId) {
-        List<String> groups = new ArrayList<>();
-        String sql = "SELECT g.Name " +
-                     "FROM `Group` g " +
-                     "JOIN Group_has_User gu ON g.Group_id = gu.Group_id " +
-                     "WHERE gu.User_id = ?";
+    public String getUserDepartment(int userId) {
+        String sql = "SELECT d.Name " +
+                     "FROM Department d " +
+                     "JOIN Department_has_User dhu ON d.Department_id = dhu.Department_id " +
+                     "WHERE dhu.User_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    String groupName = rs.getString("Name");
-                    if (groupName != null) {
-                        groups.add(groupName);
-                    }
+                if (rs.next()) {
+                    return rs.getString("Name") != null ? rs.getString("Name") : "";
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching groups for user ID " + userId + ": " + e.getMessage());
+            System.err.println("Error fetching department for user ID " + userId + ": " + e.getMessage());
             e.printStackTrace();
         }
-        return groups;
+        return "";
     }
 
-    public List<Integer> getUserGroupIds(int userId) {
-        List<Integer> groupIds = new ArrayList<>();
-        String sql = "SELECT Group_id FROM Group_has_User WHERE User_id = ?";
+    private void assignUserToDepartment(int userId, int departmentId) {
+        String sql = "INSERT INTO Department_has_User (Department_id, User_id) VALUES (?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    groupIds.add(rs.getInt("Group_id"));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching group IDs for user ID " + userId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-        return groupIds;
-    }
-
-    private void assignUserToGroup(int userId, int groupId) {
-        String sql = "INSERT INTO Group_has_User (Group_id, User_id) VALUES (?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, groupId);
+            stmt.setInt(1, departmentId);
             stmt.setInt(2, userId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error assigning user ID " + userId + " to group ID " + groupId + ": " + e.getMessage());
+            System.err.println("Error assigning user ID " + userId + " to department ID " + departmentId + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private void removeUserFromAllGroups(int userId) {
-        String sql = "DELETE FROM Group_has_User WHERE User_id = ?";
+    private void removeUserFromAllDepartments(int userId) {
+        String sql = "DELETE FROM Department_has_User WHERE User_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error removing user ID " + userId + " from all groups: " + e.getMessage());
+            System.err.println("Error removing user ID " + userId + " from all departments: " + e.getMessage());
             e.printStackTrace();
         }
     }
+    
 /**
  *
  * @author duong
  */
     Connection conn = null;
+
+    /**
+     *
+     * @author duong
+     */
+
     PreparedStatement ps = null;
     ResultSet rs = null;
 
-    public Users checkLogin(String email, String pass) {
+    public Users checkLogin(String email, String plainPasswordInput) {
         try {
-            String query = "SELECT * FROM users WHERE email = ? AND password = ?";
+            String query = "SELECT * FROM users WHERE email = ?";
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
             ps.setString(1, email);
-            ps.setString(2, pass);
             rs = ps.executeQuery();
-            while (rs.next()) {
-                Users u = new Users(
-                        rs.getInt("user_id"),
-                        rs.getInt("role_id"),
-                        rs.getInt("branch_id"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getInt("gender"),
-                        rs.getString("phone_number"),
-                        rs.getString("address"),
-                        rs.getDate("date_of_birth"),
-                        rs.getString("image"),
-                        rs.getDate("created_at"),
-                        rs.getDate("updated_at"),
-                        rs.getBoolean("status"),
-                        rs.getString("reset_password_token"),
-                        rs.getDate("reset_password_expiry")
-                );
-                return u;
-
+            if (rs.next()) {
+                String hashedPassword = rs.getString("password");
+                if (BCrypt.checkpw(plainPasswordInput, hashedPassword)) {
+                    return new Users(
+                            rs.getInt("user_id"),
+                            rs.getInt("role_id"),
+                            rs.getString("full_name"),
+                            rs.getString("email"),
+                            rs.getString("password"),
+                            rs.getBoolean("gender"), 
+                            rs.getString("phone_number"),
+                            rs.getString("address"),
+                            rs.getDate("date_of_birth"),
+                            rs.getString("image"),
+                            rs.getTimestamp("created_at"), 
+                            rs.getTimestamp("updated_at"),
+                            rs.getBoolean("status"),
+                            rs.getString("reset_password_token"),
+                            rs.getTimestamp("reset_password_expiry") 
+                    );
+                } else {
+                    return null;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -534,10 +491,11 @@ public class UserDAO extends DBContext {
 
     public boolean updatePassword(int userId, String newPassword) {
         try {
+            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
             String query = "UPDATE Users SET Password = ? WHERE User_id = ?";
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
-            ps.setString(1, newPassword);
+            ps.setString(1, hashedPassword);
             ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
 
@@ -563,13 +521,14 @@ public class UserDAO extends DBContext {
             e.printStackTrace();
         }
     }
-    
+
     public boolean updatePasswordbyEmail(String email, String newPassword) {
         try {
+            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
             String query = "UPDATE Users SET Password = ? WHERE Email = ?";
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
-            ps.setString(1, newPassword);
+            ps.setString(1, hashedPassword);
             ps.setString(2, email);
             return ps.executeUpdate() > 0;
 
@@ -579,122 +538,193 @@ public class UserDAO extends DBContext {
         }
 
     }
+
     public Users getUserByEmail(String email) {
         try {
-             String query = "SELECT * FROM users WHERE LOWER(TRIM(email)) = ?";
-        conn = new DBContext().getConnection();
-        ps = conn.prepareStatement(query);
-        ps.setString(1, email);
-        rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Users(
-                rs.getInt("user_id"),
-                rs.getInt("role_id"),
-                rs.getInt("branch_id"),
-                rs.getString("full_name"),
-                rs.getString("email"),
-                rs.getString("password"),
-                rs.getInt("gender"),
-                rs.getString("phone_number"),
-                rs.getString("address"),
-                rs.getDate("date_of_birth"),
-                rs.getString("image"),
-                rs.getDate("created_at"),
-                rs.getDate("updated_at"),
-                rs.getBoolean("status"),
-                rs.getString("reset_password_token"),
-                rs.getDate("reset_password_expiry")
-            );
+            String query = "SELECT * FROM users WHERE LOWER(TRIM(email)) = ?";
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+               return new Users(
+                            rs.getInt("user_id"),
+                            rs.getInt("role_id"),
+                            rs.getString("full_name"),
+                            rs.getString("email"),
+                            rs.getString("password"),
+                            rs.getBoolean("gender"), 
+                            rs.getString("phone_number"),
+                            rs.getString("address"),
+                            rs.getDate("date_of_birth"),
+                            rs.getString("image"),
+                            rs.getTimestamp("created_at"), 
+                            rs.getTimestamp("updated_at"),
+                            rs.getBoolean("status"),
+                            rs.getString("reset_password_token"),
+                            rs.getTimestamp("reset_password_expiry") 
+                    );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace(); 
+        return null;
+
     }
-    return null;
-            
-    }
+
     public Users getUserByID(int id) {
-    try {
-        String query = "SELECT * FROM users WHERE user_id = ?";
-        conn = new DBContext().getConnection();
-        ps = conn.prepareStatement(query);
-        ps.setInt(1, id);
-        rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Users(
-                rs.getInt("user_id"),
-                rs.getInt("role_id"),
-                rs.getInt("branch_id"),
-                rs.getString("full_name"),
-                rs.getString("email"),
-                rs.getString("password"),
-                rs.getInt("gender"),
-                rs.getString("phone_number"),
-                rs.getString("address"),
-                rs.getDate("date_of_birth"),
-                rs.getString("image"),
-                rs.getDate("created_at"),
-                rs.getDate("updated_at"),
-                rs.getBoolean("status"),
-                rs.getString("reset_password_token"),
-                rs.getDate("reset_password_expiry")
-            );
+        try {
+            String query = "SELECT * FROM users WHERE user_id = ?";
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, id);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Users(
+                            rs.getInt("user_id"),
+                            rs.getInt("role_id"),
+                            rs.getString("full_name"),
+                            rs.getString("email"),
+                            rs.getString("password"),
+                            rs.getBoolean("gender"), 
+                            rs.getString("phone_number"),
+                            rs.getString("address"),
+                            rs.getDate("date_of_birth"),
+                            rs.getString("image"),
+                            rs.getTimestamp("created_at"), 
+                            rs.getTimestamp("updated_at"),
+                            rs.getBoolean("status"),
+                            rs.getString("reset_password_token"),
+                            rs.getTimestamp("reset_password_expiry") 
+                    );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return null;
     }
-    return null;
-    }
-    
+
     public boolean saveResetToken(int userId, String token, LocalDateTime expiryTime) {
-    String sql = "UPDATE users SET reset_password_token = ?, reset_password_expiry = ? WHERE user_id = ?";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setString(1, token);
-        ps.setTimestamp(2, Timestamp.valueOf(expiryTime));
-        ps.setInt(3, userId);
-        return ps.executeUpdate() > 0;
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-    return false;
-}
-    
-    public Users getUserByResetToken(String token) {
-    String sql = "SELECT * FROM users WHERE reset_password_token = ?";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setString(1, token);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Users(
-                rs.getInt("user_id"),
-                rs.getInt("role_id"),
-                rs.getInt("branch_id"),
-                rs.getString("full_name"),
-                rs.getString("email"),
-                rs.getString("password"),
-                rs.getInt("gender"),
-                rs.getString("phone_number"),
-                rs.getString("address"),
-                rs.getDate("date_of_birth"),
-                rs.getString("image"),
-                rs.getDate("created_at"),
-                rs.getDate("updated_at"),
-                rs.getBoolean("status"),
-                rs.getString("reset_password_token"),
-                rs.getDate("reset_password_expiry")
-            );
+        String sql = "UPDATE users SET reset_password_token = ?, reset_password_expiry = ? WHERE user_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, token);
+            ps.setTimestamp(2, Timestamp.valueOf(expiryTime));
+            ps.setInt(3, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return false;
     }
-    return null;
-}
+
+    public Users getUserByResetToken(String token) {
+        String sql = "SELECT * FROM users WHERE reset_password_token = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, token);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Users(
+                            rs.getInt("user_id"),
+                            rs.getInt("role_id"),
+                            rs.getString("full_name"),
+                            rs.getString("email"),
+                            rs.getString("password"),
+                            rs.getBoolean("gender"), 
+                            rs.getString("phone_number"),
+                            rs.getString("address"),
+                            rs.getDate("date_of_birth"),
+                            rs.getString("image"),
+                            rs.getTimestamp("created_at"), 
+                            rs.getTimestamp("updated_at"),
+                            rs.getBoolean("status"),
+                            rs.getString("reset_password_token"),
+                            rs.getTimestamp("reset_password_expiry") 
+                    );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void clearResetToken(int userId) {
-    String sql = "UPDATE users SET reset_password_token = NULL, reset_password_expiry = NULL WHERE user_id = ?";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setInt(1, userId);
-        ps.executeUpdate();
-    } catch (SQLException e) {
-        e.printStackTrace();
+        String sql = "UPDATE users SET reset_password_token = NULL, reset_password_expiry = NULL WHERE user_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
-}
+
+    // Lưu yêu cầu reset vào ResetRequest
+    public boolean saveResetRequest(int userId, String email, String token, LocalDateTime expiry) {
+        String sql = "INSERT INTO ResetRequest (User_id, Email, Token, Expiry_time, Status, Request_time) "
+                + "VALUES (?, ?, ?, ?, 'Pending', NOW())";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setString(2, email);
+            ps.setString(3, token);
+            ps.setTimestamp(4, Timestamp.valueOf(expiry));
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<Users> getAllResetRequestsFromUsers() {
+        List<Users> list = new ArrayList<>();
+        try {
+            String sql = "SELECT * FROM Users WHERE Reset_Password_Token IS NOT NULL ORDER BY Updated_at DESC";
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Users user = new Users(
+                            rs.getInt("user_id"),
+                            rs.getInt("role_id"),
+                            rs.getString("full_name"),
+                            rs.getString("email"),
+                            rs.getString("password"),
+                            rs.getBoolean("gender"), 
+                            rs.getString("phone_number"),
+                            rs.getString("address"),
+                            rs.getDate("date_of_birth"),
+                            rs.getString("image"),
+                            rs.getTimestamp("created_at"), 
+                            rs.getTimestamp("updated_at"),
+                            rs.getBoolean("status"),
+                            rs.getString("reset_password_token"),
+                            rs.getTimestamp("reset_password_expiry") 
+                    );
+                list.add(user);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+
+    }
+
+    public boolean updateResetToken(int userId, String token, LocalDateTime expiryTime) {
+        try {
+            String sql = "UPDATE Users SET Reset_Password_Token = ?, Reset_Password_Expiry = ?, Updated_at = NOW() WHERE user_id = ?";
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, token);
+            ps.setTimestamp(2, Timestamp.valueOf(expiryTime));
+            ps.setInt(3, userId);
+
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }
