@@ -139,10 +139,14 @@
                                 <div class="mb-3">
                                     <label for="departmentName" class="form-label">Department Name</label>
                                     <input type="text" class="form-control" id="departmentName" name="departmentName" required>
+
+                                    <small class="text-danger" id="departmentNameError"></small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="departmentDescription" class="form-label">Description</label>
                                     <textarea class="form-control" id="departmentDescription" name="departmentDescription" rows="3" required></textarea>
+
+                                    <small class="text-danger" id="departmentDescError"></small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="departmentRole" class="form-label">Select Role</label>
@@ -150,6 +154,8 @@
                                         <option value="">Select a role...</option>
                                         <!-- Các <option> sẽ được JS đổ vào từ JSON -->
                                     </select>
+
+                                    <small class="text-danger" id="departmentRoleError"></small>
                                 </div>
                                 <div id="permissionMatrix" class="permission-matrix" style="display: none;">
                                     <table class="table table-bordered">
@@ -195,6 +201,7 @@
                                     <div class="invalid-feedback">
                                         Tên Department không được để trống
                                     </div>
+                                    <small class="text-danger" id="viewDepartmentNameError"></small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="viewDepartmentDescription" class="form-label">Description</label>
@@ -202,6 +209,7 @@
                                     <div class="invalid-feedback">
                                         Mô tả Department không được để trống
                                     </div>
+                                    <small class="text-danger" id="viewDepartmentDescError"></small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="viewDepartmentRole" class="form-label">Select Role</label>
@@ -211,6 +219,7 @@
                                     <div class="invalid-feedback">
                                         Bạn phải chọn 1 Role cho Department
                                     </div>
+                                    <small class="text-danger" id="viewDepartmentRoleError"></small>
                                 </div>
                                 <div id="viewPermissionMatrix" class="permission-matrix" style="display: none;">
                                     <table class="table table-bordered">
@@ -241,6 +250,8 @@
         </section>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 
         <script>
                                         // Mảng chứa các "entry" để render vào bảng
@@ -330,13 +341,48 @@
                                                     // Hiển thị thông báo "No Role"
                                                     const tdNoRole = document.createElement('td');
                                                     tdNoRole.textContent = 'No Role Assigned';
-                                                    tdNoRole.colSpan = 5; // gộp cả cột Permission -> Delete
+                                                    tdNoRole.colSpan = 5; // Giảm colspan xuống 4 để dành chỗ cho cột Actions
                                                     tdNoRole.className = 'text-center fst-italic text-muted';
                                                     tr.appendChild(tdNoRole);
 
-                                                    // Cột Actions (có thể để trống hoặc thêm nút "Assign Role")
+                                                    // Thêm cột Actions với các nút chức năng
                                                     const tdAction = document.createElement('td');
-                                                    tdAction.textContent = '-';
+
+                                                    // Nút View/Edit
+                                                    const viewBtn = document.createElement('button');
+                                                    viewBtn.className = 'btn btn-info btn-sm me-2';
+                                                    viewBtn.innerHTML = '<i class="fas fa-eye text-white"></i>';
+                                                    viewBtn.setAttribute('data-dept-id', entry.departmentId);
+
+                                                    // Event khi click vào nút View
+                                                    viewBtn.addEventListener('click', (e) => {
+                                                        e.preventDefault();
+                                                        const deptId = viewBtn.getAttribute('data-dept-id');
+                                                        loadDepartmentDetails(deptId);
+                                                    });
+
+                                                    // Nút Delete
+                                                    const deleteBtn = document.createElement('button');
+                                                    deleteBtn.className = 'btn btn-danger btn-sm';
+                                                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                                                    deleteBtn.setAttribute('data-dept-id', entry.departmentId);
+
+                                                    // Event khi click vào nút Xoá
+                                                    deleteBtn.addEventListener('click', (e) => {
+                                                        e.preventDefault();
+                                                        const did = deleteBtn.getAttribute('data-dept-id');
+                                                        console.log('Delete department clicked: deptId=', did);
+
+                                                        // Lưu ID department cần xóa vào biến global
+                                                        departmentToDeleteId = did;
+
+                                                        // Hiển thị modal xác nhận
+                                                        const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+                                                        confirmModal.show();
+                                                    });
+
+                                                    tdAction.appendChild(viewBtn);
+                                                    tdAction.appendChild(deleteBtn);
                                                     tr.appendChild(tdAction);
 
                                                     tbody.appendChild(tr);
@@ -413,9 +459,9 @@
                                                             // Nút View/Edit
                                                             const viewBtn = document.createElement('button');
                                                             viewBtn.className = 'btn btn-info btn-sm me-2';
-                                                            viewBtn.textContent = 'View';
+                                                            viewBtn.innerHTML = '<i class="fas fa-eye text-white"></i>';
                                                             viewBtn.setAttribute('data-dept-id', entry.departmentId);
-                                                            
+
                                                             // Event khi click vào nút View
                                                             viewBtn.addEventListener('click', (e) => {
                                                                 e.preventDefault();
@@ -426,7 +472,7 @@
                                                             // Nút Delete
                                                             const deleteBtn = document.createElement('button');
                                                             deleteBtn.className = 'btn btn-danger btn-sm';
-                                                            deleteBtn.textContent = 'Xoá';
+                                                            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
                                                             deleteBtn.setAttribute('data-role-id', entry.roleId);
                                                             deleteBtn.setAttribute('data-dept-id', entry.departmentId);
 
@@ -578,33 +624,69 @@
                 document.getElementById('departmentForm').reset();
                 document.getElementById('permissionMatrix').style.display = 'none';
                 document.getElementById('permissionMatrixBody').innerHTML = '';
+
+                // Reset validation states
+                const inputs = ['departmentName', 'departmentDescription', 'departmentRole'];
+                inputs.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.classList.remove('is-invalid');
+                    }
+                });
+
+                // Reset error messages
+                document.getElementById('departmentNameError').textContent = '';
+                document.getElementById('departmentDescError').textContent = '';
+                document.getElementById('departmentRoleError').textContent = '';
             }
 
             // 5. Bắt sự kiện Save → gửi AJAX POST để lưu vào DB
             document.getElementById('btnSaveDept').addEventListener('click', function () {
-                const deptName = document.getElementById('departmentName').value.trim();
-                const deptDesc = document.getElementById('departmentDescription').value.trim();
-                const roleId = document.getElementById('departmentRole').value;
+                const deptName = document.getElementById('departmentName');
+                const deptDesc = document.getElementById('departmentDescription');
+                const roleSelect = document.getElementById('departmentRole');
+                let isValid = true;
 
-                // Validate nhanh
-                if (!deptName) {
-                    alert('Tên Department không được để trống.');
-                    return;
+                // Reset validation state
+                [deptName, deptDesc, roleSelect].forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+
+                // Reset error messages
+                document.getElementById('departmentNameError').textContent = '';
+                document.getElementById('departmentDescError').textContent = '';
+                document.getElementById('departmentRoleError').textContent = '';
+
+                // Validate Department Name
+                if (!deptName.value.trim()) {
+                    deptName.classList.add('is-invalid');
+                    document.getElementById('departmentNameError').textContent = 'Vui lòng nhập tên phòng ban';
+                    isValid = false;
                 }
-                if (!deptDesc) {
-                    alert('Mô tả Department không được để trống.');
-                    return;
+
+                // Validate Description
+                if (!deptDesc.value.trim()) {
+                    deptDesc.classList.add('is-invalid');
+                    document.getElementById('departmentDescError').textContent = 'Vui lòng nhập mô tả phòng ban';
+                    isValid = false;
                 }
-                if (!roleId) {
-                    alert('Bạn phải chọn 1 Role cho Department.');
+
+                // Validate Role
+                if (!roleSelect.value) {
+                    roleSelect.classList.add('is-invalid');
+                    document.getElementById('departmentRoleError').textContent = 'Vui lòng chọn một Role cho phòng ban';
+                    isValid = false;
+                }
+
+                if (!isValid) {
                     return;
                 }
 
                 // Chuẩn bị payload (có thể gửi theo FormData hoặc JSON; ví dụ gửi form-urlencoded)
                 const formData = new URLSearchParams();
-                formData.append('departmentName', deptName);
-                formData.append('departmentDescription', deptDesc);
-                formData.append('roleId', roleId);
+                formData.append('departmentName', deptName.value.trim());
+                formData.append('departmentDescription', deptDesc.value.trim());
+                formData.append('roleId', roleSelect.value);
 
                 fetch('/WarehouseManagement/department', {
                     method: 'POST',
@@ -620,21 +702,67 @@
                         })
                         .then(json => {
                             if (json.success) {
-                                // Nếu backend trả về success: true
-                                alert('Thêm Department thành công!');
-                                // 1. Đóng modal:
+                                // Nếu backend trả về success: true                             
+                                showAlert(true, 'Thêm Department thành công!');
+                                
+                                // Đóng modal
                                 const modal = bootstrap.Modal.getInstance(departmentModalEl);
                                 modal.hide();
-                                // 2. Thực hiện refresh danh sách Department trên trang chính (nếu có)
-                                //    Ví dụ: gọi lại hàm loadDepartmentList() hoặc reload toàn page tuỳ nhu cầu.
-                                loadDepartmentList(); // tự triển khai bên ngoài
+
+                                // Gọi lại API để lấy dữ liệu mới nhất
+                                fetch(`/WarehouseManagement/department/data`)
+                                    .then(response => {
+                                        if (!response.ok)
+                                            throw new Error("HTTP error " + response.status);
+                                        return response.json();
+                                    })
+                                    .then(data => {
+                                        // Cập nhật lại mảng entries với dữ liệu mới
+                                        entries = data.map(dept => {
+                                            if (!dept.role) {
+                                                return {
+                                                    departmentId: dept.departmentId,
+                                                    departmentName: dept.departmentName,
+                                                    description: dept.description,
+                                                    roleId: null,
+                                                    roleName: null,
+                                                    permissions: []
+                                                };
+                                            }
+                                            return {
+                                                departmentId: dept.departmentId,
+                                                departmentName: dept.departmentName,
+                                                description: dept.description,
+                                                roleId: dept.role.roleId,
+                                                roleName: dept.role.role,
+                                                permissions: Array.isArray(dept.role.resources)
+                                                    ? dept.role.resources.map(res => ({
+                                                        resourceId: res.resourceId,
+                                                        resourceName: res.resourceName,
+                                                        canAdd: res.canAdd,
+                                                        canView: res.canView,
+                                                        canUpdate: res.canUpdate,
+                                                        canDelete: res.canDelete
+                                                    }))
+                                                    : []
+                                            };
+                                        });
+
+                                        // Render lại bảng với dữ liệu mới
+                                        renderRoleTable();
+                                    })
+                                    .catch(err => {
+                                        console.error("Lỗi khi fetch dữ liệu mới:", err);
+                                        showAlert(false, 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+                                    });
                             } else {
-                                alert('Có lỗi: ' + json.message);
+                                const modal = bootstrap.Modal.getInstance(departmentModalEl);
+                                modal.hide();
+                                showAlert(false, json.message);
                             }
                         })
                         .catch(err => {
-                            console.error(err);
-                            alert('Có lỗi xảy ra khi lưu Department: ' + err.message);
+                    showAlert(false, err.message || 'Có lỗi xảy ra khi lưu Department !');
                         });
             });
 
@@ -645,7 +773,7 @@
                 console.log('>>> Refresh lại danh sách Department sau khi thêm.');
             }
         </script>
-
+        <!--        Xóa phòng ban-->
         <script>
             // Xử lý sự kiện khi nhấn nút Xóa trong modal confirm
             document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
@@ -674,9 +802,12 @@
                                     // Render lại bảng
                                     renderRoleTable();
                                     // Hiển thị thông báo thành công
-                                    alert('Xóa phòng ban thành công!');
+                                    showAlert(true, 'Xóa phòng ban thành công!');
+//                                    alert('Xóa phòng ban thành công!');
                                 } else {
-                                    alert('Xóa phòng ban thất bại: ' + (data.message || ''));
+//                                    alert('Xóa phòng ban thất bại: ' + (data.message || ''));
+                                    showAlert(false, ${data.message});
+
                                 }
                             })
                             .catch(err => {
@@ -703,21 +834,21 @@
                 if (rolesData.length === 0) {
                     // Fetch roles data trước
                     fetch('/WarehouseManagement/permissionrole/data')
-                        .then(response => {
-                            if (!response.ok)
-                                throw new Error('Lỗi khi lấy dữ liệu permissions.');
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log('roles data loaded', data);
-                            rolesData = data;
-                            // Sau khi có roles data, tiếp tục hiển thị department
-                            showDepartmentDetails(departmentId);
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert('Không thể tải danh sách role từ server.');
-                        });
+                            .then(response => {
+                                if (!response.ok)
+                                    throw new Error('Lỗi khi lấy dữ liệu permissions.');
+                                return response.json();
+                            })
+                            .then(data => {
+                                rolesData = data;
+                                // Sau khi có roles data, tiếp tục hiển thị department
+                                showDepartmentDetails(departmentId);
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                showAlert(true, 'Không thể tải danh sách role từ server.');
+
+                            });
                 } else {
                     // Nếu đã có roles data, hiển thị department luôn
                     showDepartmentDetails(departmentId);
@@ -734,7 +865,7 @@
                 // Tìm department trong mảng entries dựa vào ID
                 const department = entries.find(entry => entry.departmentId === parseInt(departmentId));
                 console.log('department', department);
-                
+
                 if (!department) {
                     alert('Không tìm thấy thông tin phòng ban');
                     return;
@@ -744,20 +875,20 @@
                 document.getElementById('viewDepartmentId').value = department.departmentId;
                 document.getElementById('viewDepartmentName').value = department.departmentName;
                 document.getElementById('viewDepartmentDescription').value = department.description || '';
-                
+
                 // Populate role dropdown
                 populateViewRoleDropdown();
-                
+
                 // Set selected role nếu có
                 if (department.roleId) {
                     document.getElementById('viewDepartmentRole').value = department.roleId;
                 } else if (department.role && department.role.roleId) {
                     document.getElementById('viewDepartmentRole').value = department.role.roleId;
                 }
-                
+
                 // Update permission matrix sau khi set role
                 updateViewPermissionMatrix();
-                
+
                 // Hiển thị modal
                 const viewModal = new bootstrap.Modal(document.getElementById('viewDepartmentModal'));
                 viewModal.show();
@@ -767,7 +898,7 @@
             function populateViewRoleDropdown() {
                 const selectEl = document.getElementById('viewDepartmentRole');
                 selectEl.innerHTML = '<option value="">Select a role...</option>';
-                
+
                 if (rolesData && rolesData.length > 0) {
                     rolesData.forEach(roleObj => {
                         const opt = document.createElement('option');
@@ -783,36 +914,36 @@
                 const roleId = parseInt(document.getElementById('viewDepartmentRole').value);
                 const tblContainer = document.getElementById('viewPermissionMatrix');
                 const tbody = document.getElementById('viewPermissionMatrixBody');
-                
+
                 if (isNaN(roleId)) {
                     tblContainer.style.display = 'none';
                     tbody.innerHTML = '';
                     return;
                 }
-                
+
                 const selectedRole = rolesData.find(r => r.roleId === roleId);
                 if (!selectedRole) {
                     tblContainer.style.display = 'none';
                     tbody.innerHTML = '';
                     return;
                 }
-                
+
                 tblContainer.style.display = 'block';
                 tbody.innerHTML = '';
-                
+
                 selectedRole.resources.forEach(rp => {
                     const tr = document.createElement('tr');
-                    
+
                     // Role Name
                     const tdRoleName = document.createElement('td');
                     tdRoleName.textContent = selectedRole.role;
                     tr.appendChild(tdRoleName);
-                    
+
                     // Resource Name
                     const tdResource = document.createElement('td');
                     tdResource.textContent = rp.resourceName;
                     tr.appendChild(tdResource);
-                    
+
                     // Permissions
                     ['canAdd', 'canView', 'canUpdate', 'canDelete'].forEach(perm => {
                         const td = document.createElement('td');
@@ -820,7 +951,7 @@
                         td.style.textAlign = 'center';
                         tr.appendChild(td);
                     });
-                    
+
                     tbody.appendChild(tr);
                 });
             }
@@ -839,63 +970,63 @@
             });
 
             // Thêm event listeners cho các input để tự động xóa trạng thái lỗi khi người dùng nhập liệu
-            document.getElementById('viewDepartmentName').addEventListener('input', function() {
+            document.getElementById('viewDepartmentName').addEventListener('input', function () {
                 if (this.value.trim()) {
                     this.classList.remove('is-invalid');
                 }
             });
 
-            document.getElementById('viewDepartmentDescription').addEventListener('input', function() {
+            document.getElementById('viewDepartmentDescription').addEventListener('input', function () {
                 if (this.value.trim()) {
                     this.classList.remove('is-invalid');
                 }
             });
 
-            document.getElementById('viewDepartmentRole').addEventListener('change', function() {
+            document.getElementById('viewDepartmentRole').addEventListener('change', function () {
                 if (this.value) {
                     this.classList.remove('is-invalid');
                 }
             });
 
             // Xử lý sự kiện Save Changes
-            document.getElementById('btnSaveViewDept').addEventListener('click', function() {
+            document.getElementById('btnSaveViewDept').addEventListener('click', function () {
                 const form = document.getElementById('viewDepartmentForm');
                 resetValidation(form);
-                
+
                 let isValid = true;
-                
+
                 // Validate Department Name
                 const nameInput = document.getElementById('viewDepartmentName');
                 if (!nameInput.value.trim()) {
                     nameInput.classList.add('is-invalid');
                     isValid = false;
                 }
-                
+
                 // Validate Description
                 const descInput = document.getElementById('viewDepartmentDescription');
                 if (!descInput.value.trim()) {
                     descInput.classList.add('is-invalid');
                     isValid = false;
                 }
-                
+
                 // Validate Role
                 const roleSelect = document.getElementById('viewDepartmentRole');
                 if (!roleSelect.value) {
                     roleSelect.classList.add('is-invalid');
                     isValid = false;
                 }
-                
+
                 if (!isValid) {
                     return;
                 }
-                
+
                 // Nếu validate pass, gửi request update
                 const formData = new URLSearchParams();
                 formData.append('departmentId', document.getElementById('viewDepartmentId').value);
                 formData.append('departmentName', nameInput.value.trim());
                 formData.append('departmentDescription', descInput.value.trim());
                 formData.append('roleId', roleSelect.value);
-                
+
                 // Gửi request update đến servlet
                 fetch('/WarehouseManagement/detaildepartment', {
                     method: 'POST',
@@ -904,117 +1035,141 @@
                     },
                     body: formData.toString()
                 })
-                .then(async response => {
-                    const data = await response.json();
-                    
-                    // Xử lý các loại lỗi dựa vào status code
-                    if (!response.ok) {
-                        switch (response.status) {
-                            case 400: // Bad Request
-                                // Kiểm tra loại lỗi validate
-                                if (data.message.includes("Department ID không hợp lệ")) {
-                                    throw new Error("ID phòng ban không hợp lệ");
-                                } else if (data.message.includes("Role ID không hợp lệ")) {
-                                    roleSelect.classList.add('is-invalid');
-                                    throw new Error("Role không hợp lệ");
-                                } else {
-                                    // Lỗi validate chung
-                                    if (!nameInput.value.trim()) nameInput.classList.add('is-invalid');
-                                    if (!descInput.value.trim()) descInput.classList.add('is-invalid');
-                                    if (!roleSelect.value) roleSelect.classList.add('is-invalid');
-                                    throw new Error(data.message || "Vui lòng điền đầy đủ thông tin bắt buộc");
+                        .then(async response => {
+                            const data = await response.json();
+
+                            // Xử lý các loại lỗi dựa vào status code
+                            if (!response.ok) {
+                                switch (response.status) {
+                                    case 400: // Bad Request
+                                        // Kiểm tra loại lỗi validate
+                                        if (data.message.includes("Department ID không hợp lệ")) {
+                                            throw new Error("ID phòng ban không hợp lệ");
+                                        } else if (data.message.includes("Role ID không hợp lệ")) {
+                                            roleSelect.classList.add('is-invalid');
+                                            throw new Error("Role không hợp lệ");
+                                        } else {
+                                            // Lỗi validate chung
+                                            if (!nameInput.value.trim())
+                                                nameInput.classList.add('is-invalid');
+                                            if (!descInput.value.trim())
+                                                descInput.classList.add('is-invalid');
+                                            if (!roleSelect.value)
+                                                roleSelect.classList.add('is-invalid');
+                                            throw new Error(data.message || "Vui lòng điền đầy đủ thông tin bắt buộc");
+                                        }
+                                    case 409: // Conflict
+                                        roleSelect.classList.add('is-invalid');
+                                        throw new Error(data.message || "Role này đã được sử dụng bởi department khác");
+                                    case 500: // Internal Server Error
+                                        throw new Error(data.message || "Lỗi hệ thống, vui lòng thử lại sau");
+                                    default:
+                                        throw new Error("Có lỗi xảy ra, vui lòng thử lại");
                                 }
-                            case 409: // Conflict
-                                roleSelect.classList.add('is-invalid');
-                                throw new Error(data.message || "Role này đã được sử dụng bởi department khác");
-                            case 500: // Internal Server Error
-                                throw new Error(data.message || "Lỗi hệ thống, vui lòng thử lại sau");
-                            default:
-                                throw new Error("Có lỗi xảy ra, vui lòng thử lại");
-                        }
-                    }
-                    return data;
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Cập nhật lại dữ liệu trong entries
-                        const departmentIndex = entries.findIndex(entry => 
-                            entry.departmentId === parseInt(document.getElementById('viewDepartmentId').value)
-                        );
-                        if (departmentIndex !== -1) {
-                            entries[departmentIndex] = {
-                                ...entries[departmentIndex],
-                                departmentName: nameInput.value.trim(),
-                                description: descInput.value.trim(),
-                                roleId: parseInt(roleSelect.value),
-                                role: rolesData.find(r => r.roleId === parseInt(roleSelect.value))
-                            };
-                        }
-                        
-                        // Render lại bảng
-                        renderRoleTable();
-                        
-                        // Đóng modal
-                        const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewDepartmentModal'));
-                        viewModal.hide();
-                        
-                        // Hiển thị thông báo thành công
-                        showAlert('success', data.message || 'Cập nhật Department thành công!');
-                    } else {
-                        // Nếu có lỗi nhưng không phải lỗi HTTP
-                        showAlert('danger', data.message || 'Cập nhật thất bại');
-                    }
-                })
-                .catch(err => {
-                    console.error('Lỗi:', err);
-                    showAlert('danger', err.message || 'Có lỗi xảy ra khi cập nhật Department');
-                });
+                            }
+                            return data;
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                // Cập nhật lại dữ liệu trong entries
+                                const departmentIndex = entries.findIndex(entry =>
+                                    entry.departmentId === parseInt(document.getElementById('viewDepartmentId').value)
+                                );
+                                if (departmentIndex !== -1) {
+                                    entries[departmentIndex] = {
+                                        ...entries[departmentIndex],
+                                        departmentName: nameInput.value.trim(),
+                                        description: descInput.value.trim(),
+                                        roleId: parseInt(roleSelect.value),
+                                        role: rolesData.find(r => r.roleId === parseInt(roleSelect.value))
+                                    };
+                                }
+
+                                // Render lại bảng
+                                renderRoleTable();
+
+                                // Đóng modal
+                                const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewDepartmentModal'));
+                                viewModal.hide();
+
+                                // Hiển thị thông báo thành công
+                                showAlert(true, data.message || 'Cập nhật Department thành công nhé!');
+                            } else {
+                                // Nếu có lỗi nhưng không phải lỗi HTTP
+                                showAlert(false, data.message || 'Cập nhật thất bại');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Lỗi:', err);
+                            showAlert('danger', err.message || 'Có lỗi xảy ra khi cập nhật Department');
+                        });
             });
 
-            // Cập nhật hàm showAlert để hỗ trợ thêm các loại alert
-            function showAlert(type, message) {
-                const alertContainer = document.getElementById('alertContainer');
-                
+
+        </script>
+
+        <script>
+            /**
+             * Hàm showAlert(status, message):
+             *   - status = true  → alert màu xanh (alert-success)
+             *   - status = false → alert màu đỏ  (alert-danger)
+             * alert sẽ nằm cố định bên phải, tự đóng sau 4s
+             */
+            function showAlert(status, message) {
                 // Xóa alert cũ nếu có
-                const existingAlert = alertContainer.querySelector('.alert');
+                const existingAlert = document.querySelector('.custom-alert');
                 if (existingAlert) {
                     existingAlert.remove();
                 }
-                
+                console.log('here', status);
+                // Tạo alert mới
                 const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-                alertDiv.role = 'alert';
-                
-                // Thêm icon phù hợp với loại alert
-                let icon = '';
-                switch (type) {
-                    case 'success':
-                        icon = '<i class="fas fa-check-circle me-2"></i>';
-                        break;
-                    case 'danger':
-                        icon = '<i class="fas fa-exclamation-circle me-2"></i>';
-                        break;
-                    case 'warning':
-                        icon = '<i class="fas fa-exclamation-triangle me-2"></i>';
-                        break;
-                    case 'info':
-                        icon = '<i class="fas fa-info-circle me-2"></i>';
-                        break;
+                if (status === true) {
+                    alertDiv.className = `alert alert-success alert-dismissible fade show custom-alert`;
+
+                } else {
+                    alertDiv.className = `alert alert-danger alert-dismissible fade show custom-alert`;
+
                 }
-                
-                alertDiv.innerHTML = `
-                    ${icon}${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    min-width: 300px;
+                    z-index: 9999;
+                    padding: 1rem;
+                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                    border-radius: 0.375rem;
                 `;
-                
-                alertContainer.appendChild(alertDiv);
-                
-                // Tự động ẩn sau 5 giây
+
+                // Thêm icon
+                const icon = document.createElement('i');
+
+                icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+                alertDiv.appendChild(icon);
+
+                // Thêm message
+                const messageText = document.createTextNode(message);
+                alertDiv.appendChild(messageText);
+
+
+
+                // Thêm vào body
+                document.body.appendChild(alertDiv);
+
+                // Animation khi hiện alert
                 setTimeout(() => {
-                    if (alertDiv && alertDiv.parentNode === alertContainer) {
-                        alertDiv.remove();
+                    alertDiv.style.opacity = '1';
+                }, 100);
+
+//                 Tự động đóng sau 4s
+                setTimeout(() => {
+                    if (alertDiv && document.body.contains(alertDiv)) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => alertDiv.remove(), 150);
                     }
-                }, 5000);
+                }, 4000);
             }
         </script>
 
