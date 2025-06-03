@@ -8,27 +8,26 @@ package model;
  *
  * @author legia
  */
+public class Supplier {
 
-public class Unit {
-
-    private int unitId;
+    private int id;
     private String name;
     private String status;
 
-    public Unit() {
+    public Supplier() {
     }
 
-    public Unit(int unitId, String name) {
-        this.unitId = unitId;
+    public Supplier(int id, String name) {
+        this.id = id;
         this.name = name;
     }
 
-    public int getUnitId() {
-        return unitId;
+    public int getId() {
+        return id;
     }
 
-    public void setUnitId(int unitId) {
-        this.unitId = unitId;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -49,6 +48,6 @@ public class Unit {
 
     @Override
     public String toString() {
-        return "Unit{" + "unitId=" + unitId + ", name=" + name + ", status=" + status + '}';
+        return "Supplier{" + "id=" + id + ", name=" + name + ", status=" + status + '}';
     }
 }

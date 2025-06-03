@@ -57,6 +57,7 @@ public class CategoryList extends HttpServlet {
                 filterCategories = dao.searchCategoryByName((ArrayList<Category>) parentCategories, search.trim());
             } else {
                 filterCategories = parentCategories;
+
             }
 
             // Đếm số lượng materials cho mỗi subcategory

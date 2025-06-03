@@ -2,7 +2,9 @@ package dal;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.PermPayload;
 import model.Permission;
 import model.Resource;
@@ -431,50 +433,45 @@ public class AuthenDAO {
     }
 
     public void deleteRole(int roleId) throws SQLException {
-        // Tắt auto-commit để dùng transaction
         boolean oldAuto = conn.getAutoCommit();
         conn.setAutoCommit(false);
         try (
-                // 1) Xoá user–group liên quan
+                // 1) (Tùy mục đích) Xóa user–department nếu muốn:
                 PreparedStatement ps1 = conn.prepareStatement(
-                        "DELETE FROM Group_has_User "
-                        + "WHERE Group_id IN (SELECT Group_id FROM `Group` WHERE Role_id = ?)"); // 2) Xoá nhóm
+                        "DELETE FROM Department_has_User "
+                        + "WHERE Department_id IN ("
+                        + "    SELECT Department_id "
+                        + "    FROM Department "
+                        + "    WHERE Role_id = ?"
+                        + ")"
+                ); // 2) Xóa Resource_role
                  PreparedStatement ps2 = conn.prepareStatement(
-                        "UPDATE Group SET Role_id = NULL WHERE Role_id = ?"); // 3) Xóa quyền khỏi department
+                        "DELETE FROM Resource_role WHERE Role_id = ?"
+                ); // 3) Xóa Role (DB sẽ set NULL Department.Role_id)
                  PreparedStatement ps3 = conn.prepareStatement(
-                        "UPDATE Users SET Role_id = NULL WHERE Role_id = ?"); // 4) Xoá quyền resource
-                 PreparedStatement ps4 = conn.prepareStatement(
-                        "DELETE FROM Resource_role WHERE Role_id = ?"); // 5) Xoá chính role
-                 PreparedStatement ps5 = conn.prepareStatement(
-                        "DELETE FROM `Role` WHERE Role_id = ?");) {
-            // Thiết lập tham số và thực thi từng câu
+                        "DELETE FROM Role WHERE Role_id = ?"
+                );) {
+            // (1) Nếu chọn xóa user–department:
             ps1.setInt(1, roleId);
             ps1.executeUpdate();
 
+            // (2) Xóa Resource_role
             ps2.setInt(1, roleId);
             ps2.executeUpdate();
 
+            // (3) Xóa Role → DB sẽ set Department.Role_id = NULL vì ON DELETE SET NULL
             ps3.setInt(1, roleId);
             ps3.executeUpdate();
 
-            ps4.setInt(1, roleId);
-            ps4.executeUpdate();
-
-            ps5.setInt(1, roleId);
-            ps5.executeUpdate();
-
-            // Nếu không có lỗi, commit
             conn.commit();
         } catch (SQLException ex) {
-            // Rollback nếu có lỗi
             conn.rollback();
             throw ex;
         } finally {
-            // Trả lại auto-commit như ban đầu
             conn.setAutoCommit(oldAuto);
         }
     }
-    
+
     public void insertRole(Role role) throws SQLException {
         String sql = "INSERT INTO Role(Name, Description) VALUES(?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -494,4 +491,34 @@ public class AuthenDAO {
             }
         }
     }
+    
+    public Map<String, Boolean> getPermissionsByRoleId(int roleId) throws SQLException {
+        Map<String, Boolean> perms = new HashMap<>();
+
+        String sql = ""
+            + "SELECT r.name, rr.can_add, rr.can_view, rr.can_update, rr.can_delete "
+            + "FROM Resource r "
+            + "JOIN Resource_role rr ON r.resource_id = rr.resource_id "
+            + "WHERE rr.role_id = ?";
+
+        // Sử dụng try-with-resources để đóng PreparedStatement và ResultSet tự động
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String resourceName = rs.getString("name");
+
+                    // Gom các quyền CRUD thành key riêng:
+                    // Ví dụ "RESOURCE_ADD", "RESOURCE_VIEW", "RESOURCE_UPDATE", "RESOURCE_DELETE"
+                    perms.put(resourceName + "_ADD", rs.getBoolean("can_add"));
+                    perms.put(resourceName + "_VIEW", rs.getBoolean("can_view"));
+                    perms.put(resourceName + "_UPDATE", rs.getBoolean("can_update"));
+                    perms.put(resourceName + "_DELETE", rs.getBoolean("can_delete"));
+                }
+            }
+        }
+
+        return perms;
+    }
+
 }

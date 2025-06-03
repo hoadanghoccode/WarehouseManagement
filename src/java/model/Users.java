@@ -1,38 +1,38 @@
+
 package model;
 
 import java.util.Date;
+import java.sql.Timestamp;
 
 public class Users {
-
     private int userId;
     private int roleId;
-    private String roleName;
-    private int branchId;
-    private String branchName;
     private String fullName;
-    private String email;
     private String password;
-    private int gender;
+    private String image;
+    private boolean gender;
+    private String email;
     private String phoneNumber;
     private String address;
     private Date dateOfBirth;
-    private String image;
-    private Date createdAt;
-    private Date updatedAt;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
     private boolean status;
     private String resetPasswordToken;
-    private Date resetPasswordExpiry;
-    private String groupNames;
+    private Timestamp resetPasswordExpiry;
+    private String roleName;
+    private int departmentId;
+    private String departmentName;
 
     public Users() {
     }
 
-    public Users(int userId, int roleId, int branchId, String fullName, String email, String password, int gender,
-            String phoneNumber, String address, Date dateOfBirth, String image, Date createdAt, Date updatedAt,
-            boolean status, String resetPasswordToken, Date resetPasswordExpiry) {
+   public Users(int userId, int roleId, String fullName, String email, String password,
+                 boolean gender, String phoneNumber, String address, Date dateOfBirth,
+                 String image, Timestamp createdAt, Timestamp updatedAt, boolean status,
+                 String resetPasswordToken, Timestamp resetPasswordExpiry) {
         this.userId = userId;
         this.roleId = roleId;
-        this.branchId = branchId;
         this.fullName = fullName;
         this.email = email;
         this.password = password;
@@ -46,6 +46,31 @@ public class Users {
         this.status = status;
         this.resetPasswordToken = resetPasswordToken;
         this.resetPasswordExpiry = resetPasswordExpiry;
+    }
+
+    public Users(int userId, int roleId, String fullName, String email, String password,
+                 boolean gender, String phoneNumber, String address, Date dateOfBirth,
+                 String image, Timestamp createdAt, Timestamp updatedAt, boolean status,
+                 String resetPasswordToken, Timestamp resetPasswordExpiry, String roleName,
+                 int departmentId, String departmentName) {
+        this.userId = userId;
+        this.roleId = roleId;
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+        this.dateOfBirth = dateOfBirth;
+        this.image = image;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.status = status;
+        this.resetPasswordToken = resetPasswordToken;
+        this.resetPasswordExpiry = resetPasswordExpiry;
+        this.roleName = roleName;
+        this.departmentId = departmentId;
+        this.departmentName = departmentName;
     }
 
     // Getters and Setters
@@ -65,44 +90,12 @@ public class Users {
         this.roleId = roleId;
     }
 
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
-
-    public int getBranchId() {
-        return branchId;
-    }
-
-    public void setBranchId(int branchId) {
-        this.branchId = branchId;
-    }
-
-    public String getBranchName() {
-        return branchName;
-    }
-
-    public void setBranchName(String branchName) {
-        this.branchName = branchName;
-    }
-
     public String getFullName() {
         return fullName;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getPassword() {
@@ -113,12 +106,28 @@ public class Users {
         this.password = password;
     }
 
-    public int getGender() {
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public boolean isGender() {
         return gender;
     }
 
-    public void setGender(int gender) {
+    public void setGender(boolean gender) {
         this.gender = gender;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPhoneNumber() {
@@ -145,27 +154,19 @@ public class Users {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public Date getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public Timestamp getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -185,19 +186,60 @@ public class Users {
         this.resetPasswordToken = resetPasswordToken;
     }
 
-    public Date getResetPasswordExpiry() {
+    public Timestamp getResetPasswordExpiry() {
         return resetPasswordExpiry;
     }
 
-    public void setResetPasswordExpiry(Date resetPasswordExpiry) {
+    public void setResetPasswordExpiry(Timestamp resetPasswordExpiry) {
         this.resetPasswordExpiry = resetPasswordExpiry;
     }
 
-    public String getGroupNames() {
-        return groupNames;
+    public String getRoleName() {
+        return roleName;
     }
 
-    public void setGroupNames(String groupNames) {
-        this.groupNames = groupNames;
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public int getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(int departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
+
+    @Override
+    public String toString() {
+        return "Users{" +
+               "userId=" + userId +
+               ", roleId=" + roleId +
+               ", fullName='" + fullName + '\'' +
+               ", password='[PROTECTED]'" +
+               ", image='" + image + '\'' +
+               ", gender=" + gender +
+               ", email='" + email + '\'' +
+               ", phoneNumber='" + phoneNumber + '\'' +
+               ", address='" + address + '\'' +
+               ", dateOfBirth=" + dateOfBirth +
+               ", createdAt=" + createdAt +
+               ", updatedAt=" + updatedAt +
+               ", status=" + status +
+               ", resetPasswordToken='" + resetPasswordToken + '\'' +
+               ", resetPasswordExpiry=" + resetPasswordExpiry +
+               ", roleName='" + roleName + '\'' +
+               ", departmentId=" + departmentId +
+               ", departmentName='" + departmentName + '\'' +
+               '}';
     }
 }
+
