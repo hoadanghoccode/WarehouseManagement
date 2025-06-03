@@ -166,4 +166,9 @@
         <servlet-name>DetailDepartmentController</servlet-name>
         <url-pattern>/detaildepartment</url-pattern>
     </servlet-mapping>
+    
+    <!-- Cấu hình thời gian tồn tại của session -->
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
 </web-app>
