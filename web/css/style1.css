@@ -861,7 +861,7 @@ table.dataTable tbody th, table.dataTable tbody td {
   content: '';
   width: 15px;
   height: 15px;
-  background-color: #2E4765;
+  /*background-color: #2E4765;*/
   position: absolute;
   border-radius: 100%;
   transition: 1s;

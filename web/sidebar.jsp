@@ -30,6 +30,13 @@
                 <li><a href="authorization.jsp">Authorization</a></li>
             </ul>
         </li>
+        <li class="">
+            <a   class="has-arrow" href="/WarehouseManagement/categorylist" aria-expanded="false">
+                <img src="img/menu-icon/4.svg" alt="">
+                <span>Category</span>
+            </a>
+           
+        </li>
 
         <!--        <li class="">
                     <a   class="has-arrow" href="#" aria-expanded="false">

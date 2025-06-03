@@ -13,15 +13,7 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/categorylist.jsp</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/categorylist.js</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UpdateCategory.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeleteCategory.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/deletecategory.jsp</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/materialList.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
         </group>
     </open-files>
 </project-private>
