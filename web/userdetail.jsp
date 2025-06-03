@@ -5,16 +5,16 @@
     <div class="header">
         <div>
             <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
-                 alt="User Avatar" class="avatar" onclick="document.getElementById('fileInput').click()">
+                 alt="User Avatar" class="avatar" id="avatar" onclick="document.getElementById('fileInput').click()">
             <h2>${user.fullName}</h2>
         </div>
         <button class="close-btn" onclick="closeModal('userDetailModal')">×</button>
     </div>
-    <form action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
+    <form id="userForm" action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
         <input type="hidden" name="userId" value="${user.userId}" />
         <input type="hidden" name="email" value="${user.email}" />
         <input type="hidden" name="userDepartmentId" value="${userDepartmentId}" />
-        <input type="file" id="fileInput" name="imageFile" style="display:none;" onchange="this.form.submit()"/>
+        <input type="file" id="fileInput" name="imageFile" style="display:none;" accept="image/*" onchange="previewImage(event)" />
         <div class="grid-container">
             <div class="form-group">
                 <label>Email</label>
@@ -84,3 +84,24 @@
         </div>
     </form>
 </div>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatar').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            alert('Please select a valid image file.');
+            event.target.value = '';
+        }
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = 'none';
+    }
+</script>
