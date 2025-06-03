@@ -3,7 +3,6 @@ package controller;
 import dal.MaterialDAO;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -39,11 +38,10 @@ public class AddMaterialController extends HttpServlet {
             throws ServletException, IOException {
         MaterialDAO materialDAO = new MaterialDAO();
 
-        // Lấy và validate các trường
+        // Get form fields
         String materialIdStr = request.getParameter("materialId");
         String newName = request.getParameter("newName");
         String categoryIdStr = request.getParameter("categoryId");
-        String status = request.getParameter("status");
         String supplierIdStr = request.getParameter("supplierId");
         String[] unitIds = request.getParameterValues("unitIds");
 
@@ -63,12 +61,6 @@ public class AddMaterialController extends HttpServlet {
 
         if (categoryIdStr == null || categoryIdStr.isEmpty()) {
             request.setAttribute("error", "Category is required.");
-            doGet(request, response);
-            return;
-        }
-
-        if (status == null || status.isEmpty()) {
-            request.setAttribute("error", "Status is required.");
             doGet(request, response);
             return;
         }
@@ -96,54 +88,63 @@ public class AddMaterialController extends HttpServlet {
             }
         }
 
-        // Xử lý logic thêm hoặc cập nhật Material
         int finalMaterialId;
         int categoryId = Integer.parseInt(categoryIdStr);
         int supplierId = Integer.parseInt(supplierIdStr);
 
         if (materialId == 0) {
-            // Thêm Material mới
-            Material material = new Material();
-            material.setName(newName);
-            material.setCategoryId(categoryId);
-            material.setStatus(status);
-            finalMaterialId = materialDAO.addMaterial(material);
-            if (finalMaterialId == 0) {
-                request.setAttribute("error", "Failed to add material.");
-                doGet(request, response);
-                return;
+            // The user entered a "new" name.
+            // Check if that name already exists:
+            int existingId = materialDAO.getMaterialIdByName(newName);
+            if (existingId > 0) {
+                // Already exists → use that existing ID instead of inserting a duplicate
+                finalMaterialId = existingId;
+            } else {
+                // Truly new: insert with status = "active"
+                Material material = new Material();
+                material.setName(newName);
+                material.setCategoryId(categoryId);
+                material.setStatus("active"); // default
+                finalMaterialId = materialDAO.addMaterial(material);
+                if (finalMaterialId == 0) {
+                    request.setAttribute("error", "Failed to add material.");
+                    doGet(request, response);
+                    return;
+                }
             }
         } else {
-            // Sử dụng Material hiện có
+            // User selected an existing material from dropdown
             finalMaterialId = materialId;
         }
 
-        // Xử lý Units
+        // Process units (update price/inventory or insert new)
         for (String unitIdStr : unitIds) {
             int unitId = Integer.parseInt(unitIdStr);
             BigDecimal price = new BigDecimal(request.getParameter("price_" + unitId));
             BigDecimal quantity = new BigDecimal(request.getParameter("quantity_" + unitId));
 
-            // Kiểm tra xem Unit đã tồn tại với Material chưa
+            // Check if this unit exists for the material
             List<Unit> existingUnits = materialDAO.getUnitsByMaterialId(finalMaterialId);
-            boolean unitExists = existingUnits.stream().anyMatch(u -> u.getUnitId() == unitId);
+            boolean unitExists = existingUnits.stream()
+                    .anyMatch(u -> u.getUnitId() == unitId);
 
             if (unitExists) {
-                // Cập nhật price và cộng dồn quantity
+                // Update price + add to existing quantity
                 BigDecimal currentQuantity = materialDAO.getCurrentQuantity(finalMaterialId, unitId);
                 BigDecimal newQuantity = currentQuantity.add(quantity);
                 materialDAO.updateMaterialUnitPrice(finalMaterialId, unitId, price);
                 materialDAO.updateMaterialInventory(finalMaterialId, unitId, newQuantity);
             } else {
-                // Thêm mới Unit cho Material
+                // Insert new price & inventory rows
                 materialDAO.addMaterialUnitPrice(finalMaterialId, unitId, price);
                 materialDAO.addMaterialInventory(finalMaterialId, unitId, quantity);
             }
         }
 
-        // Thêm SupplierMaterial
+        // Link to supplier
         materialDAO.addSupplierMaterial(supplierId, finalMaterialId);
 
-        response.sendRedirect("list-material");
+        // Redirect so that list page can show a success toast
+        response.sendRedirect("list-material?message=added");
     }
 }

@@ -6,6 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Update Material</title>
+    <!-- (Optional) Bootstrap for consistent styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -150,7 +152,9 @@
             <!-- Supplier (readonly) -->
             <div class="form-group">
                 <label for="supplierId">Supplier</label>
-                <input type="text" value="${material.supplierName != null ? material.supplierName : 'No Supplier'}" readonly>
+                <input type="text"
+                       value="${material.supplierName != null ? material.supplierName : 'No Supplier'}"
+                       readonly>
             </div>
 
             <!-- Status -->
@@ -198,5 +202,7 @@
             return true;
         }
     </script>
+    <!-- (Optional) Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

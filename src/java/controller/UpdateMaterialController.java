@@ -21,18 +21,12 @@ public class UpdateMaterialController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int materialId = Integer.parseInt(request.getParameter("id"));
-        String unitIdParam = request.getParameter("unitId");
-        int unitId = unitIdParam != null && !unitIdParam.isEmpty() ? Integer.parseInt(unitIdParam) : -1;
         MaterialDAO materialDAO = new MaterialDAO();
 
-        List<Material> materials = materialDAO.getMaterialsByPage(1, Integer.MAX_VALUE, "", "", null, null)
-                .stream()
-                .filter(m -> m.getMaterialId() == materialId)
-                .toList();
-        Material material = unitId != -1
-                ? materials.stream().filter(m -> m.getUnitId() == unitId).findFirst().orElse(materials.get(0))
-                : materials.get(0);
+        // Fetch the single Material with details (including supplier)
+        Material material = materialDAO.getMaterialByIdWithDetails(materialId);
 
+        // All categories, units, suppliers for the form
         List<Category> categories = materialDAO.getAllCategories();
         List<Unit> units = materialDAO.getAllUnits();
         List<Supplier> suppliers = materialDAO.getAllSuppliers();
@@ -64,6 +58,7 @@ public class UpdateMaterialController extends HttpServlet {
             return;
         }
 
+        // Validate price/quantity for each selected unit
         for (String unitIdStr : unitIds) {
             int unitId = Integer.parseInt(unitIdStr);
             String priceParam = request.getParameter("price_" + unitId);
@@ -75,10 +70,12 @@ public class UpdateMaterialController extends HttpServlet {
             }
         }
 
+        // Fetch the material object (with supplier) again
         Material material = materialDAO.getMaterialByIdWithDetails(materialId);
         material.setStatus(status);
         materialDAO.updateMaterial(material);
 
+        // Update unit-price and inventory
         for (String unitIdStr : unitIds) {
             int unitId = Integer.parseInt(unitIdStr);
             BigDecimal price = new BigDecimal(request.getParameter("price_" + unitId));
@@ -88,6 +85,7 @@ public class UpdateMaterialController extends HttpServlet {
             materialDAO.updateMaterialInventory(materialId, unitId, quantity);
         }
 
-        response.sendRedirect("list-material");
+        // Redirect and show a success toast in the list page
+        response.sendRedirect("list-material?message=updated");
     }
 }

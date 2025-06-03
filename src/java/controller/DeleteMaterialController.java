@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller;
-
-/**
- *
- * @author legia
- */
 
 import dal.MaterialDAO;
 import java.io.IOException;
@@ -26,6 +17,7 @@ public class DeleteMaterialController extends HttpServlet {
         MaterialDAO materialDAO = new MaterialDAO();
         int materialId = Integer.parseInt(request.getParameter("id"));
         materialDAO.deleteMaterial(materialId);
-        response.sendRedirect("list-material");
+        // Redirect with a parameter to trigger a success toast
+        response.sendRedirect("list-material?message=deleted");
     }
 }

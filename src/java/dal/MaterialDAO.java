@@ -237,7 +237,6 @@ public class MaterialDAO extends DBContext {
         String sql = "UPDATE Material SET Category_id = ?, Name = ?, Status = ? WHERE Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-
             ps.setInt(1, material.getCategoryId());
             ps.setString(2, material.getName());
             ps.setString(3, material.getStatus());
@@ -360,7 +359,7 @@ public class MaterialDAO extends DBContext {
     }
 
     public Material getMaterialByIdWithDetails(int materialId) {
-        String sql = "SELECT m.Material_id, m.Name, m.Status, c.Name AS categoryName, c.Parent_id, "
+        String sql = "SELECT m.Material_id, m.Name, m.Status, m.Category_id, c.Name AS categoryName, c.Parent_id, "
                 + "p.Unit_id, u.Name AS unitName, p.price, i.Quantity, s.Name AS supplierName "
                 + "FROM Material m "
                 + "LEFT JOIN Category c ON m.Category_id = c.Category_id "
@@ -379,6 +378,7 @@ public class MaterialDAO extends DBContext {
                 m.setMaterialId(rs.getInt("Material_id"));
                 m.setName(rs.getString("Name"));
                 m.setStatus(rs.getString("Status"));
+                m.setCategoryId(rs.getInt("Category_id"));        // <— Set categoryId
                 m.setCategoryName(rs.getString("categoryName"));
                 m.setParentCategoryId(rs.getInt("Parent_id"));
                 m.setUnitId(rs.getInt("Unit_id"));
@@ -393,7 +393,6 @@ public class MaterialDAO extends DBContext {
         }
         return null;
     }
-
 
     public boolean isMaterialInOrderWithStatus(int materialId, String status) {
         String query = "SELECT 1 "
@@ -491,10 +490,24 @@ public class MaterialDAO extends DBContext {
 
         return materials;
     }
+    
+    public int getMaterialIdByName(String name) {
+        String sql = "SELECT Material_id FROM Material WHERE LOWER(Name) = LOWER(?) LIMIT 1";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, name.trim());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("Material_id");
+            }
+        } catch (SQLException e) {
+            System.out.println("getMaterialIdByName error: " + e.getMessage());
+        }
+        return 0;
+    }
 
     public static void main(String[] args) {
         MaterialDAO dao = new MaterialDAO();
         System.out.println(dao.getAllMaterialsByCategoryId(2));
     }
 }
-
