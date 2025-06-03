@@ -2,7 +2,9 @@ package dal;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.PermPayload;
 import model.Permission;
 import model.Resource;
@@ -488,6 +490,35 @@ public class AuthenDAO {
                 }
             }
         }
+    }
+    
+    public Map<String, Boolean> getPermissionsByRoleId(int roleId) throws SQLException {
+        Map<String, Boolean> perms = new HashMap<>();
+
+        String sql = ""
+            + "SELECT r.name, rr.can_add, rr.can_view, rr.can_update, rr.can_delete "
+            + "FROM Resource r "
+            + "JOIN Resource_role rr ON r.resource_id = rr.resource_id "
+            + "WHERE rr.role_id = ?";
+
+        // Sử dụng try-with-resources để đóng PreparedStatement và ResultSet tự động
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String resourceName = rs.getString("name");
+
+                    // Gom các quyền CRUD thành key riêng:
+                    // Ví dụ "RESOURCE_ADD", "RESOURCE_VIEW", "RESOURCE_UPDATE", "RESOURCE_DELETE"
+                    perms.put(resourceName + "_ADD", rs.getBoolean("can_add"));
+                    perms.put(resourceName + "_VIEW", rs.getBoolean("can_view"));
+                    perms.put(resourceName + "_UPDATE", rs.getBoolean("can_update"));
+                    perms.put(resourceName + "_DELETE", rs.getBoolean("can_delete"));
+                }
+            }
+        }
+
+        return perms;
     }
 
 }
