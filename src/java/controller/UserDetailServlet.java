@@ -95,8 +95,7 @@ public class UserDetailServlet extends HttpServlet {
             for (int i = 0; i < departments.size(); i++) {
                 Departmentt department = departments.get(i);
                 json.append("{");
-                json.append("\"departmentId\":").append(department.getDepartmentId()
-).append(",");
+                json.append("\"departmentId\":").append(department.getDepartmentId()).append(",");
                 json.append("\"name\":\"").append(department.getName().replace("\"", "\\\"")).append("\"");
                 json.append("}");
                 if (i < departments.size() - 1) {
@@ -153,10 +152,7 @@ public class UserDetailServlet extends HttpServlet {
             if (address == null) {
                 address = "";
             }
-            String image = request.getParameter("image");
-            if (image == null) {
-                image = "";
-            }
+            String image = existingUser.getImage(); // Default to existing image
             String statusRaw = request.getParameter("status");
             if (statusRaw == null || (!statusRaw.equals("true") && !statusRaw.equals("false"))) {
                 throw new IllegalArgumentException("Invalid status value");
@@ -167,37 +163,30 @@ public class UserDetailServlet extends HttpServlet {
             if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
                 dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
             }
-
-            // Handle file upload
+            // Handle file upload only if a new file is selected
             Part filePart = request.getPart("imageFile");
-if (filePart != null && filePart.getSize() > 0) {
-    try (InputStream fileContent = filePart.getInputStream()) {
-
-        // Chuyển InputStream thành byte[]
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        byte[] data = new byte[1024];
-        int nRead;
-        while ((nRead = fileContent.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-        buffer.flush();
-
-        byte[] fileBytes = buffer.toByteArray();
-
-        // Upload fileBytes lên Cloudinary
-        Map uploadResult = cloudinary.uploader().upload(fileBytes, ObjectUtils.asMap(
-            "resource_type", "auto"
-        ));
-
-        image = (String) uploadResult.get("url");
-
-    } catch (Exception e) {
-        System.err.println("Error uploading image to Cloudinary: " + e.getMessage());
-        e.printStackTrace();
-        session.setAttribute("error", "Image upload failed: " + e.getMessage());
-    }
-}
-
+            if (filePart != null && filePart.getSize() > 0) {
+                try (InputStream fileContent = filePart.getInputStream()) {
+                    // Convert InputStream to byte[]
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    byte[] data = new byte[1024];
+                    int nRead;
+                    while ((nRead = fileContent.read(data, 0, data.length)) != -1) {
+                        buffer.write(data, 0, nRead);
+                    }
+                    buffer.flush();
+                    byte[] fileBytes = buffer.toByteArray();
+                    // Upload fileBytes to Cloudinary
+                    Map uploadResult = cloudinary.uploader().upload(fileBytes, ObjectUtils.asMap(
+                        "resource_type", "auto"
+                    ));
+                    image = (String) uploadResult.get("url");
+                } catch (Exception e) {
+                    System.err.println("Error uploading image to Cloudinary: " + e.getMessage());
+                    e.printStackTrace();
+                    session.setAttribute("error", "Image upload failed: " + e.getMessage());
+                }
+            }
             Users user = new Users(userId, roleId, existingUser.getFullName(), email, existingUser.getPassword(),
                     existingUser.isGender(), phoneNumber, address, dateOfBirth, image, null,
                     new java.sql.Timestamp(System.currentTimeMillis()), status, null, null);
