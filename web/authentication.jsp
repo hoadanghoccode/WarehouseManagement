@@ -70,7 +70,6 @@
                 </div>
 
                 <!-- Modal for Adding Permission -->
-                <!-- Modal -->
                 <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -97,6 +96,26 @@
                                     <button type="submit" class="btn btn-primary">Save</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Modal Xác nhận Xóa -->
+                <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Xác nhận xóa</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Bạn có chắc muốn xóa resource này không?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xóa</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -140,12 +159,9 @@
 
                                             <td class="action-buttons">                                               
                                                 <!-- Delete -->
-                                                <form method="post"
-                                                      action="${pageContext.request.contextPath}/deleteresource"
-                                                      style="display:inline;"
-                                                      onsubmit="return confirm('Bạn có chắc muốn xóa resource này không?');">
+                                                <form class="delete-resource-form" style="display:inline;">
                                                     <input type="hidden" name="resourceId" value="${res.resourceId}"/>
-                                                    <button type="submit" class="btn btn-danger">
+                                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -247,7 +263,6 @@
         </section>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
                                                           document.getElementById('addPermissionForm').addEventListener('submit', function (e) {
                                                               e.preventDefault();
@@ -274,6 +289,39 @@
                                                                           }
                                                                       });
                                                           });
+
+        let resourceIdToDelete = null;
+        
+        // When delete button is clicked, store the resource ID
+        document.querySelectorAll('.delete-resource-form button').forEach(button => {
+            button.addEventListener('click', function() {
+                resourceIdToDelete = this.closest('form').querySelector('input[name="resourceId"]').value;
+            });
+        });
+        
+        // When confirm delete button is clicked
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (resourceIdToDelete) {
+                // Create and submit form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '${pageContext.request.contextPath}/deleteresource';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'resourceId';
+                input.value = resourceIdToDelete;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                
+                form.submit();
+            }
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+            modal.hide();
+        });
         </script>
     </body>
 </html>

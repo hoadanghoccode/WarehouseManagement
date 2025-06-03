@@ -106,7 +106,7 @@ public class DepartmentController extends HttpServlet {
                             initialRole = new RoleData(roleId, roleName);
                             // resources vẫn rỗng, sẽ thêm vào ở bước sau
                         }
-                        DeptWithRole dwr = new DeptWithRole(deptId, description , deptName, initialRole);
+                        DeptWithRole dwr = new DeptWithRole(deptId, description, deptName, initialRole);
                         map.put(deptId, dwr);
                     }
 
@@ -120,7 +120,7 @@ public class DepartmentController extends HttpServlet {
                         // thì tạo mới ở đây
                         if (rd == null) {
                             rd = new RoleData(roleId, roleName);
-                            current = new DeptWithRole(deptId, description, deptName,rd);
+                            current = new DeptWithRole(deptId, description, deptName, rd);
                             map.put(deptId, current);
                         }
                         // Nếu resourceId != null, tạo ResourcePerm và add vào rd.resources
@@ -169,7 +169,7 @@ public class DepartmentController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-     @Override
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         // Đặt encoding để đọc được tiếng Việt
@@ -194,6 +194,15 @@ public class DepartmentController extends HttpServlet {
 
         try {
             int roleId = Integer.parseInt(roleIdStr);
+            
+            // Kiểm tra xem tên department đã tồn tại chưa
+            if (dao.isDepartmentNameExists(deptName)) {
+                result.put("success", false);
+                result.put("message", "Tên Department đã tồn tại trong hệ thống!");
+                resp.getWriter().write(gson.toJson(result));
+                return;
+            }
+            
             // Tạo object Department (giả sử bạn có 1 class model Department)
             Department dept = new Department();
             dept.setName(deptName);
@@ -212,8 +221,14 @@ public class DepartmentController extends HttpServlet {
             result.put("success", false);
             result.put("message", "RoleId không hợp lệ.");
         } catch (SQLException e) {
-            result.put("success", false);
-            result.put("message", "Lỗi DB: " + e.getMessage());
+            // Bắt lỗi duplicate key trên cột Role_id (MySQL error code = 1062)
+            if (e.getErrorCode() == 1062 && e.getMessage().contains("department.Role_id")) {
+                result.put("success", false);
+                result.put("message", "Role này đã được gán cho Department khác.");
+            } else {
+                result.put("success", false);
+                result.put("message", "Lỗi DB: " + e.getMessage());
+            }
         }
 
         resp.getWriter().write(gson.toJson(result));

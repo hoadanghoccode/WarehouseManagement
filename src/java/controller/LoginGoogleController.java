@@ -90,13 +90,11 @@ public class LoginGoogleController extends HttpServlet {
             
 
             if (user == null) {
-                // ❌ Không tồn tại trong DB → báo lỗi
                 request.setAttribute("error", "Email not registered. Please contact admin.");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
                 return;
             }
 
-            // ✅ Tồn tại → login
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             response.sendRedirect("index.jsp");

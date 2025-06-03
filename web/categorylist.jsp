@@ -110,13 +110,13 @@
 
                                         <td>
                                             <div class="action-buttons">
-                                                <a href="updatecategory?cid=${category.categoryId}" class="btn btn-primary">
+                                                <button type="button" class="btn btn-primary" onclick="openUpdateModal('${category.categoryId}', '${category.name}', '${category.parentId}', '${category.status}')">
                                                     <i class="fas fa-edit"></i>
-                                                </a>
-                                                <a href="deletecategory?cid=${category.categoryId}" 
+                                                </button>
+<!--                                               <a href="deletecategory?cid=${category.categoryId}" 
                                                    class="btn btn-danger">
                                                     <i class="fas fa-trash"></i>
-                                                </a>
+                                                </a>-->
                                             </div>
                                         </td>
                                     </tr>
@@ -166,12 +166,12 @@
                                                                             </td>
                                                                             <td>
                                                                                 <div class="action-buttons">
-                                                                                    <a href="updatecategory?cid=${sub.categoryId}" class="btn btn-primary">
+                                                                                    <button type="button" class="btn btn-primary" onclick="openUpdateModal('${sub.categoryId}', '${sub.name}', '${sub.parentId.categoryId}', '${sub.status}')">
                                                                                         <i class="fas fa-edit"></i>
-                                                                                    </a>
-                                                                                    <a href="deletecategory?cid=${sub.categoryId}" class="btn btn-danger">
+                                                                                    </button>
+<!--                                                                                    <a href="deletecategory?cid=${sub.categoryId}" class="btn btn-danger">
                                                                                         <i class="fas fa-trash"></i>
-                                                                                    </a>
+                                                                                    </a>-->
                                                                                 </div>
                                                                             </td>
                                                                         </tr>
@@ -362,7 +362,9 @@
                             <select id="addParentId" name="parentId">
                                 <option value="0">-- None --</option>
                                 <c:forEach var="cat" items="${parentCategories}">
-                                    <option value="${cat.categoryId}">${cat.name}</option>
+                                    <c:if test="${cat.status == 'active'}">
+                                        <option value="${cat.categoryId}">${cat.name} </option>
+                                    </c:if>
                                 </c:forEach>
                             </select>
                         </div>
@@ -375,70 +377,259 @@
             </div>
         </div>
 
+        <!-- Update Category Modal -->
+        <div id="updateModal" class="modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Update Category</h2>
+                    <span class="close" onclick="closeModal('updateModal')">&times;</span>
+                </div>
+                <form action="categorylist" method="post">
+                    <input type="hidden" name="action" value="updateModal"/>
+                    <input type="hidden" id="updateCategoryId" name="categoryId"/>
+                    <input type="hidden" name="page" value="${page}" />
+                    <input type="hidden" name="search" value="${search}" />
+                    <input type="hidden" name="statusFilter" value="${param.status}" />
+
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="updateCategoryName">Category Name:</label>
+                            <input type="text" id="updateCategoryName" name="categoryName" placeholder="Enter category name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="updateParentId">Parent Category (optional):</label>
+                            <select id="updateParentId" name="parentId">
+                                <option value="0">-- None --</option>
+                                <c:forEach var="cat" items="${allCategories}">
+                                    <option value="${cat.categoryId}" class="parent-option" data-category-id="${cat.categoryId}">
+                                        <c:choose>
+                                            <c:when test="${cat.parentId != null}">
+                                                ├── ${cat.name} ${cat.status == 'inactive' ? ' - inactive' : ''}
+                                            </c:when>
+                                            <c:otherwise>
+                                                ${cat.name} ${cat.status == 'inactive' ? ' - inactive' : ''}
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="updateStatus">Status:</label>
+                            <select id="updateStatus" name="categoryStatus" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-blue">Update Category</button>
+                        <button type="button" class="btn btn-gray" onclick="closeModal('updateModal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Confirm Update Category Modal -->
+        <div id="updateConfirmModal" class="modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Confirm Update Category</h2>
+                    <span class="close" onclick="closeModal('updateConfirmModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to update this category with the following changes?</p>
+
+                    <!-- LUÔN HIỂN THỊ THÔNG TIN VỀ SUB-CATEGORIES VÀ MATERIALS NỀU CÓ -->
+                    <c:if test="${(countSub > 0 || countMaterial > 0)}">
+                        <div class="warning-box">
+                            <div class="warning-header">
+                                <i class="fas fa-info-circle warning-icon"></i>
+                                <span class="warning-title">Information</span>
+                            </div>
+                            <div class="warning-content">
+                                This category contains 
+                                <c:if test="${countSub > 0}"><strong>${countSub}</strong> sub-categories</c:if>
+                                <c:if test="${countSub > 0 && countMaterial > 0}"> and </c:if>
+                                <c:if test="${countMaterial > 0}"><strong>${countMaterial}</strong> materials</c:if>.
+                                    <br/><br/>
+
+                                    <!-- CHỈ HIỂN THỊ CẢNH BÁO KHI THAY ĐỔI STATUS SANG INACTIVE -->
+                                <c:if test="${updateConfirmStatus == 'inactive'}">
+                                    <span style="color: #991B1B;">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        All of these sub-categories and materials will also have their status changed to inactive.
+                                    </span>
+                                </c:if>
+
+                                <!-- HIỂN THỊ THÔNG TIN CHUNG KHI KHÔNG PHẢI LÀ THAY ĐỔI STATUS SANG INACTIVE -->
+                                <c:if test="${updateConfirmStatus != 'inactive'}">
+                                    <span style="color: #059669;">
+                                        <i class="fas fa-check-circle"></i>
+                                        Please review your changes carefully as this category has related data.
+                                    </span>
+                                </c:if>
+                            </div>
+                        </div>
+                    </c:if>
+
+                    <!-- HIỂN THỊ KHI KHÔNG CÓ SUB-CATEGORIES HOẶC MATERIALS -->
+                    <c:if test="${countSub == 0 && countMaterial == 0}">
+                        <div class="info-box" style="background-color: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; color: #0369a1;">
+                                <i class="fas fa-info-circle"></i>
+                                <span style="font-weight: 500;">This category has no sub-categories or materials.</span>
+                            </div>
+                        </div>
+                    </c:if>
+                </div>
+                <div class="modal-footer">
+                    <form action="categorylist" method="post" style="display: inline;">
+                        <input type="hidden" name="action" value="confirmUpdateCategory"/>
+                        <input type="hidden" name="categoryId" value="${updateConfirmCategoryId}"/>
+                        <input type="hidden" name="categoryName" value="${updateConfirmName}"/>
+                        <input type="hidden" name="parentId" value="${updateConfirmParentId}"/>
+                        <input type="hidden" name="categoryStatus" value="${updateConfirmStatus}"/>
+                        <input type="hidden" name="page" value="${page}"/>
+                        <input type="hidden" name="search" value="${search}"/>
+                        <input type="hidden" name="statusFilter" value="${param.status}"/>
+
+                        <button type="submit" class="btn btn-blue">Yes, Update Category</button>
+                    </form>
+                    <button type="button" class="btn btn-gray" onclick="closeModal('updateConfirmModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
 
 
-        <script src="js/categorylist.js"></script>
+        <!-- Error Modal -->
+        <div id="errorModal" class="modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Update Failed</h2>
+                    <button type="button" class="modal-close" onclick="closeErrorModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Unable to update the category status due to the following reason:</p>
+
+                    <div class="warning-box">
+                        <div class="warning-header">
+                            <i class="fas fa-exclamation-triangle warning-icon"></i>
+                            <span class="warning-title">Warning</span>
+                        </div>
+                        <p class="warning-content" id="errorMessage">
+                            ${errorMessage}
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-gray" onclick="closeErrorModal()">
+                        <i class="fas fa-check"></i> I Understand
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Confirm Status Change Modal -->
+        <div id="confirmModal" class="modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Change Status?</h2>
+                    <span class="close" onclick="closeModal('confirmModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to change the status of this category?</p>
+
+                    <c:if test="${countSub > 0 || countMaterial > 0}">
+                        <div class="warning-box">
+                            <div class="warning-header">
+                                <i class="fas fa-exclamation-triangle warning-icon"></i>
+                                <span class="warning-title">Warning</span>
+                            </div>
+                            <div class="warning-content">
+                                This category contains 
+                                <c:if test="${countSub > 0}"><strong>${countSub}</strong> sub-categories</c:if>
+                                <c:if test="${countSub > 0 && countMaterial > 0}"> and </c:if>
+                                <c:if test="${countMaterial > 0}"><strong>${countMaterial}</strong> materials</c:if>.
+                                    <br/><br/>
+                                    <span style="color: #991B1B;">
+                                        All of these sub-categories and materials will also have their status changed.
+                                    </span>
+                                </div>
+                            </div>
+                    </c:if>
+                </div>
+                <div class="modal-footer">
+                    <form action="categorylist" method="post" style="display: inline;">
+                        <input type="hidden" name="action" value="confirmUpdateStatus"/>
+                        <input type="hidden" name="categoryId" value="${confirmCategoryId}"/>
+                        <input type="hidden" name="newStatus" value="${confirmNewStatus}"/>
+                        <input type="hidden" name="page" value="${page}"/>
+                        <input type="hidden" name="search" value="${search}"/>
+                        <input type="hidden" name="statusFilter" value="${param.status}"/>
+
+                        <button type="submit" class="btn btn-blue">Yes, Change Status</button>
+                    </form>
+                    <button type="button" class="btn btn-gray" onclick="closeModal('confirmModal')">No, Keep Current</button>
+                </div>
+            </div>
+        </div>
 
         <script>
-//                            function openAddModal() {
-//                                document.getElementById('addModal').style.display = 'flex';
-//                                document.getElementById('addCategoryName').focus();
-//                            }
-//
-//                            function closeModal(id) {
-//                                document.getElementById(id).style.display = 'none';
-//                            }
-
-                            const status = new URLSearchParams(window.location.search).get("status");
-                            if (status === "success") {
-                                alert("Thêm danh mục thành công!");
-                            } else if (status === "fail") {
-                                alert("Thêm danh mục thất bại!");
-                            }
-
-                            function openAddModal() {
-                                console.log("Opening modal..."); // Debug
-                                document.getElementById('addModal').style.display = 'flex';
-                                document.getElementById('addCategoryName').focus();
-                            }
-
-                            function closeModal(id) {
-                                document.getElementById(id).style.display = 'none';
-                                // Clear form khi đóng modal
-                                document.getElementById('addCategoryName').value = '';
-                                document.getElementById('addParentId').value = '0';
-                            }
-
-                            // Tự động hiển thị modal khi có lỗi validation
-                            document.addEventListener('DOMContentLoaded', function () {
+            // Truyền dữ liệu từ server sang JavaScript
             <c:if test="${showAddModal}">
-                                console.log("Auto showing modal due to validation error");
-                                openAddModal();
-
-                                // Restore form values
-                <c:if test="${not empty categoryName}">
-                                document.getElementById('addCategoryName').value = '${categoryName}';
-                </c:if>
-                <c:if test="${not empty parentId}">
-                                document.getElementById('addParentId').value = '${parentId}';
-                </c:if>
+            window.showAddModal = true;
             </c:if>
 
-                                // Hiển thị success message nếu có
-            <c:if test="${not empty successMessage}">
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    alert('${successMessage}');
-                                });
+            <c:if test="${showUpdateModal}">
+            window.showUpdateModal = true;
             </c:if>
-                            });
 
-                            // Hiển thị error message nếu có
+            <c:if test="${showUpdateConfirmModal}">
+            window.showUpdateConfirmModal = true;
+            </c:if>
+
+            <c:if test="${not empty categoryName}">
+            window.categoryName = '${categoryName}';
+            </c:if>
+
+            <c:if test="${not empty parentId}">
+            window.parentId = '${parentId}';
+            </c:if>
+
+            <c:if test="${not empty categoryStatus}">
+            window.categoryStatus = '${categoryStatus}';
+            </c:if>
+
+            <c:if test="${not empty updateCategoryId}">
+            window.updateCategoryId = '${updateCategoryId}';
+            </c:if>
+
             <c:if test="${not empty errorMessage}">
-                            document.addEventListener('DOMContentLoaded', function () {
-                                alert('${errorMessage}');
-                            });
+            window.errorMessage = '${errorMessage}';
+            </c:if>
+
+            <c:if test="${not empty successMessage}">
+            window.successMessage = '${successMessage}';
+            </c:if>
+
+            <c:if test="${showConfirmModal}">
+            window.showConfirmModal = true;
+            </c:if>
+
+            <c:if test="${showUpdateConfirmModal}">
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('updateConfirmModal').style.display = 'flex';
+            });
             </c:if>
         </script>
+
+        <script src="js/categorylist.js"></script>
 
     </body>
 </html>
