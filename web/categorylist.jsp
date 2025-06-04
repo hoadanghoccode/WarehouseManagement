@@ -1,5 +1,18 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
+
 <html>
     <head>
         <title>Category List</title>
@@ -91,9 +104,11 @@
 
                                 </form>
                             </div>
-                            <button type="button" class="btn btn-success" onclick="openAddModal()">
-                                <i class="fas fa-plus"></i> Add Category
-                            </button>
+                            <c:if test="${perms['Category_ADD']}"> 
+                                <button type="button" class="btn btn-success" onclick="openAddModal()">
+                                    <i class="fas fa-plus"></i> Add Category
+                                </button>
+                            </c:if>
 
                         </div>
                     </div>
@@ -151,31 +166,43 @@
                                                 </td>
                                                 <td>
                                                     <!-- Switch button -->
-                                                    <form action="categorylist" method="post" style="display:inline;">
-                                                        <input type="hidden" name="action" value="updateStatus" />
-                                                        <input type="hidden" name="categoryId" value="${category.categoryId}" />
-                                                        <input type="hidden" name="page" value="${page}" />
-                                                        <input type="hidden" name="search" value="${search}" />
-                                                        <input type="hidden" name="statusFilter" value="${param.status}" />
+                                                    <c:if test="${perms['Category_DELETE']}"> 
+                                                        <form action="categorylist" method="post" style="display:inline;">
+                                                            <input type="hidden" name="action" value="updateStatus" />
+                                                            <input type="hidden" name="categoryId" value="${category.categoryId}" />
+                                                            <input type="hidden" name="page" value="${page}" />
+                                                            <input type="hidden" name="search" value="${search}" />
+                                                            <input type="hidden" name="statusFilter" value="${param.status}" />
 
-                                                        <label class="switch">
-                                                            <input type="checkbox" name="statusParam"
-                                                                   onchange="this.form.submit()"
-                                                                   ${category.status == 'active' ? 'checked' : ''}>
-                                                            <span class="slider"></span>
-                                                        </label>
-                                                    </form>
+                                                            <label class="switch">
+                                                                <input type="checkbox" name="statusParam"
+                                                                       onchange="this.form.submit()"
+                                                                       ${category.status == 'active' ? 'checked' : ''}>
+                                                                <span class="slider"></span>
+                                                            </label>
+                                                        </form>
+                                                    </c:if>
+                                                    <c:if test="${!perms['Category_DELETE']}"> 
+
+                                                        <div>No permission</div>
+                                                    </c:if>
                                                 </td>
 
                                                 <td>
                                                     <div class="action-buttons">
-                                                        <button type="button" class="btn btn-primary" onclick="openUpdateModal('${category.categoryId}', '${category.name}', '${category.parentId}', '${category.status}')">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                        <!--   <a href="deletecategory?cid=${category.categoryId}" 
-                                                           class="btn btn-danger">
-                                                            <i class="fas fa-trash"></i>
-                                                        </a>-->
+                                                        <c:if test="${perms['Category_UPDATE']}"> 
+                                                            <button type="button" class="btn btn-primary" onclick="openUpdateModal('${category.categoryId}', '${category.name}', '${category.parentId}', '${category.status}')">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                        </c:if>
+                                                        <c:if test="${!perms['Category_UPDATE']}"> 
+
+                                                            <div>No permission</div>
+                                                        </c:if>
+                                                    <!--   <a href="deletecategory?cid=${category.categoryId}" 
+                                                       class="btn btn-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>-->
                                                     </div>
                                                 </td>
                                             </tr>
@@ -208,29 +235,44 @@
                                                                                         </div>
                                                                                     </td>
                                                                                     <td style="width: 235px">
-                                                                                        <form action="categorylist" method="post" style="display:inline;">
-                                                                                            <input type="hidden" name="action" value="updateStatus" />
-                                                                                            <input type="hidden" name="categoryId" value="${sub.categoryId}" />
-                                                                                            <input type="hidden" name="page" value="${page}" />
-                                                                                            <input type="hidden" name="search" value="${search}" />
-                                                                                            <input type="hidden" name="statusFilter" value="${param.status}" />
+                                                                                        <c:if test="${perms['Category_DELETE']}"> 
+                                                                                            <form action="categorylist" method="post" style="display:inline;">
+                                                                                                <input type="hidden" name="action" value="updateStatus" />
+                                                                                                <input type="hidden" name="categoryId" value="${sub.categoryId}" />
+                                                                                                <input type="hidden" name="page" value="${page}" />
+                                                                                                <input type="hidden" name="search" value="${search}" />
+                                                                                                <input type="hidden" name="statusFilter" value="${param.status}" />
 
-                                                                                            <label class="switch">
-                                                                                                <input type="checkbox" name="statusParam"
-                                                                                                       onchange="this.form.submit()"
-                                                                                                       ${sub.status == 'active' ? 'checked' : ''}>
-                                                                                                <span class="slider"></span>
-                                                                                            </label>
-                                                                                        </form>
+                                                                                                <label class="switch">
+                                                                                                    <input type="checkbox" name="statusParam"
+                                                                                                           onchange="this.form.submit()"
+                                                                                                           ${sub.status == 'active' ? 'checked' : ''}>
+                                                                                                    <span class="slider"></span>
+                                                                                                </label>
+                                                                                            </form>
+                                                                                        </c:if>
+                                                                                        <c:if test="${!perms['Category_DELETE']}"> 
+
+                                                                                            <div>No permission</div>
+                                                                                        </c:if>
                                                                                     </td>
                                                                                     <td>
                                                                                         <div class="action-buttons">
-                                                                                            <button type="button" class="btn btn-primary" onclick="openUpdateModal('${sub.categoryId}', '${sub.name}', '${sub.parentId.categoryId}', '${sub.status}')">
-                                                                                                <i class="fas fa-edit"></i>
-                                                                                            </button>
-        <!--                                                                                    <a href="deletecategory?cid=${sub.categoryId}" class="btn btn-danger">
-                                                                                                <i class="fas fa-trash"></i>
-                                                                                            </a>-->
+                                                                                            <c:if test="${perms['Category_UPDATE']}"> 
+                                                                                                <button type="button" class="btn btn-primary" onclick="openUpdateModal('${sub.categoryId}', '${sub.name}', '${sub.parentId.categoryId}', '${sub.status}')">
+                                                                                                    <i class="fas fa-edit"></i>
+                                                                                                </button>
+                                                                                            </c:if>
+
+
+
+                                                                                            <c:if test="${!perms['Category_UPDATE']}"> 
+
+                                                                                                <div>No permission</div>
+                                                                                            </c:if>
+                                            <!--                                                                                    <a href="deletecategory?cid=${sub.categoryId}" class="btn btn-danger">
+                                                                                                                                    <i class="fas fa-trash"></i>
+                                                                                                                                </a>-->
                                                                                         </div>
                                                                                     </td>
                                                                                 </tr>
@@ -266,7 +308,7 @@
                                     </c:when>
                                     <c:otherwise>
                                         <p>No categories in the system yet</p>
-                                        <a href="addcategory" class="btn btn-success" style="margin-top: 16px;">Add first category</a>
+                                        <!--<a href="addcategory" class="btn btn-success" style="margin-top: 16px;">Add first category</a>-->
                                     </c:otherwise>
                                 </c:choose>
                             </div>

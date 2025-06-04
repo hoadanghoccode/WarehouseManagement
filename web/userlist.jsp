@@ -2,6 +2,18 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -538,7 +550,9 @@
             <div class="header">
                 <h1 class="title">Users</h1>
                 <div class="header-actions">
+                    <c:if test="${perms['Customer_ADD']}"> 
                     <button class="btn btn-primary" onclick="toggleCreateForm()">Create User</button>
+                    </c:if>
                 </div>
             </div>
             <div class="search-container">

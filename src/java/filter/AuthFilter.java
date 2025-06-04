@@ -81,6 +81,7 @@ public class AuthFilter implements Filter {
                 || uri.equals(contextPath + "/LoginController")
                 || uri.equals(contextPath + "/login")
                 || uri.equals(contextPath + "/403.jsp")
+                || uri.equals(contextPath + "/changepassword")
                 || uri.equals(contextPath + "/login-google");
         System.out.println("Is Login Page: " + isLoginPage);
 
@@ -140,6 +141,7 @@ public class AuthFilter implements Filter {
             }
         }
 
+        //check department
         if (user != null && uri.startsWith(contextPath + "/department")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
@@ -154,12 +156,11 @@ public class AuthFilter implements Filter {
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
 
-            //Check user
-           if (user != null && uri.startsWith(contextPath + "/userlist")) {
+        //Check user
+        if (user != null && uri.startsWith(contextPath + "/userlist")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
             Boolean canViewCustomer = (perms != null) ? perms.get("Customer_VIEW") : null;
-
 
             if (canViewCustomer == null || !canViewCustomer) {
                 session.invalidate();
@@ -192,6 +193,62 @@ public class AuthFilter implements Filter {
 
             System.out.println("Checking INVENTORY_VIEW permission: " + canViewRole);
             if (canViewRole == null || !canViewRole) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+
+        //check view material
+        if (user != null && uri.startsWith(contextPath + "/list-material")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewMaterial = (perms != null) ? perms.get("Material_VIEW") : null;
+
+            if (canViewMaterial == null || !canViewMaterial) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+
+        //check add material
+        if (user != null && uri.startsWith(contextPath + "/add-material")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canAddMaterial = (perms != null) ? perms.get("Material_ADD") : null;
+
+            if (canAddMaterial == null || !canAddMaterial) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+
+        //check category
+        if (user != null && uri.startsWith(contextPath + "/categorylist")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewCategory = (perms != null) ? perms.get("Category_VIEW") : null;
+
+            if (canViewCategory == null || !canViewCategory) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+
+        //check update material
+        if (user != null && uri.startsWith(contextPath + "/update-material")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canUpdateMaterial = (perms != null) ? perms.get("Material_UPDATE") : null;
+
+            if (canUpdateMaterial == null || !canUpdateMaterial) {
                 session.invalidate();
                 resp.sendRedirect(contextPath + "/403.jsp");
                 return;
