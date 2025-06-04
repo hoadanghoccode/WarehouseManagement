@@ -80,7 +80,8 @@ public class AuthFilter implements Filter {
         boolean isLoginPage = uri.equals(contextPath + "/login.jsp")
                 || uri.equals(contextPath + "/LoginController")
                 || uri.equals(contextPath + "/login")
-                || uri.equals(contextPath + "/403.jsp")
+                || uri.equals(contextPath + "/403.jsp")                                
+                || uri.equals(contextPath + "/adminresetlist")
                 || uri.equals(contextPath + "/resetpassword")
                 || uri.equals(contextPath + "/changepassword")
                 || uri.equals(contextPath + "/login-google");
@@ -242,7 +243,6 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-
         //check update material
         if (user != null && uri.startsWith(contextPath + "/update-material")) {
             @SuppressWarnings("unchecked")
@@ -250,6 +250,20 @@ public class AuthFilter implements Filter {
             Boolean canUpdateMaterial = (perms != null) ? perms.get("Material_UPDATE") : null;
 
             if (canUpdateMaterial == null || !canUpdateMaterial) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+        
+        //check update material
+        if (user != null && uri.startsWith(contextPath + "/adminresetlist")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewAdminReset = (perms != null) ? perms.get("Password_VIEW") : null;
+
+            if (canViewAdminReset == null || !canViewAdminReset) {
                 session.invalidate();
                 resp.sendRedirect(contextPath + "/403.jsp");
                 return;

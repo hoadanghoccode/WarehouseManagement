@@ -76,10 +76,9 @@
                 </a>
             </li>
         </c:if>
-
         <c:if test="${permissions['Password_VIEW']}">
             <li class="mm-active">
-                <a href="adminresetlist">
+                <a href="/WarehouseManagement/adminresetlist">
                     <img src="img/menu-icon/your-icon.svg" alt="">
                     <span>Reset List</span>
                 </a>
