@@ -81,6 +81,7 @@ public class AuthFilter implements Filter {
                 || uri.equals(contextPath + "/LoginController")
                 || uri.equals(contextPath + "/login")
                 || uri.equals(contextPath + "/403.jsp")
+                || uri.equals(contextPath + "/resetpassword")
                 || uri.equals(contextPath + "/changepassword")
                 || uri.equals(contextPath + "/login-google");
         System.out.println("Is Login Page: " + isLoginPage);
