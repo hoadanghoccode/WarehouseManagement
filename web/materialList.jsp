@@ -372,12 +372,12 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                         border-radius: 4px;
                         font-size: 13px;
                         font-weight: 500;
-                        color: $ {
+/*                        color: $ {
                           material.status=='active' ? '#065f46' : '#991b1b';
                         }
                         background-color: $ {
                           material.status=='active' ? '#d1fae5' : '#fee2e2';
-                        }
+                        }*/
                       "
                     >
                       ${material.status == 'active' ? 'Active' : 'Inactive'}
