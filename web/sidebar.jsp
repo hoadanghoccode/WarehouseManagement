@@ -85,6 +85,14 @@
             </li>
         </c:if>
 
+            <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Unit</span>
+                </a>
+            </li>
+        </c:if>
     </ul>
 </nav>
 
