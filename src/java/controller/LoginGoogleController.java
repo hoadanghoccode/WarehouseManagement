@@ -63,7 +63,9 @@ public class LoginGoogleController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String code = request.getParameter("code");
+        System.out.println("Google callback received with code: " + (code != null ? "not null" : "null"));
         if (code == null || code.isEmpty()) {
+            System.out.println("Code is null or empty, redirecting to login.jsp");
             response.sendRedirect("login.jsp");
             return;
         }
@@ -71,7 +73,7 @@ public class LoginGoogleController extends HttpServlet {
         try {
             // Lấy access token từ code
             String accessToken = GoogleUtils.getToken(code);
-             System.out.println("ACCESS TOKEN = " + accessToken);
+            System.out.println("ACCESS TOKEN = " + accessToken);
             // Lấy thông tin user từ Google
             String link = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + accessToken;
             InputStream is = new URL(link).openStream();
@@ -82,26 +84,27 @@ public class LoginGoogleController extends HttpServlet {
             }
 
             JSONObject userInfo = new JSONObject(sb.toString());
-            String email = userInfo.getString("email").trim().toLowerCase();;
+            String email = userInfo.getString("email").trim().toLowerCase();
             System.out.println("EMAIL FROM GOOGLE = " + email);
             // Kiểm tra email có tồn tại trong hệ thống không
             UserDAO dao = new UserDAO();
             Users user = dao.getUserByEmail(email);
-            
+            System.out.println("User found in database: " + (user != null ? "yes" : "no"));
 
             if (user == null) {
-                // ❌ Không tồn tại trong DB → báo lỗi
+                System.out.println("User not found, redirecting to login.jsp with error");
                 request.setAttribute("error", "Email not registered. Please contact admin.");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
                 return;
             }
 
-            // ✅ Tồn tại → login
             HttpSession session = request.getSession();
-            session.setAttribute("user", user);
+            session.setAttribute("USER", user);
+            System.out.println("User set in session, redirecting to index.jsp");
             response.sendRedirect("index.jsp");
 
         } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
             e.printStackTrace();
             response.sendRedirect("login.jsp");
         }

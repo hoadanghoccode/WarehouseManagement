@@ -619,3 +619,137 @@ input:checked + .slider:after {
 .subcat-table td:nth-child(3) {
     width: 235px;
 }
+
+
+/* Error Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.modal-card {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/*error modal*/
+.modal-header {
+    padding: 24px 24px 16px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    text-align: center;
+}
+
+.modal-close {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #9ca3af;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+.modal-body {
+    padding: 20px 24px;
+    text-align: center;
+}
+
+.modal-body p {
+    color: #6b7280;
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+}
+
+.warning-box {
+    background-color: #fef3f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.warning-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.warning-icon {
+    color: #dc2626;
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+.warning-title {
+    color: #dc2626;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.warning-content {
+    color: #991b1b;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.modal-footer {
+    padding: 16px 24px 24px 24px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-gray {
+    background-color: #6b7280;
+    color: white;
+}
+
+.btn-gray:hover {
+    background-color: #4b5563;
+}

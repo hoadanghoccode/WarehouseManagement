@@ -3,6 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+<<<<<<< HEAD
 
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Group.java</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Users.java</file>
@@ -18,6 +19,21 @@
             <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddCategory.java</file>
 
+=======
+            <file>file:/D:/semester8/test/WarehouseManagement/web/sidebar.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/resetpassword.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/categorylist.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/authentication.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/filter/AuthFilter.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/department.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/LoginController.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/adminresetlist.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/ResetPasswordController.java</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/test.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/role.jsp</file>
+            <file>file:/D:/semester8/test/WarehouseManagement/web/materialList.jsp</file>
+>>>>>>> ad8a16fbcaf7b912d901ce78461a2270920f6669
         </group>
     </open-files>
 </project-private>

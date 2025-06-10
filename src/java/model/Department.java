@@ -1,31 +1,43 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package model;
 
+/**
+ *
+ * @author PC
+ */
 public class Department {
-    private int departmentId;
+    private Integer department_id;
+    private Integer role_id;
     private String name;
     private String description;
-    private int roleId;
 
-    // Default constructor
     public Department() {
     }
 
-    // Constructor
-
-    public Department(int departmentId, String name, String description, int roleId) {
-        this.departmentId = departmentId;
+    public Department(Integer department_id, Integer role_id, String name, String description) {
+        this.department_id = department_id;
+        this.role_id = role_id;
         this.name = name;
         this.description = description;
-        this.roleId = roleId;
     }
 
-    // Getters and Setters
-    public int getDepartmentId() {
-        return departmentId;
+    public Integer getDepartment_id() {
+        return department_id;
     }
 
-    public void setDepartmentId(int departmentId) {
-        this.departmentId = departmentId;
+    public void setDepartment_id(Integer department_id) {
+        this.department_id = department_id;
+    }
+
+    public Integer getRole_id() {
+        return role_id;
+    }
+
+    public void setRole_id(Integer role_id) {
+        this.role_id = role_id;
     }
 
     public String getName() {
@@ -44,13 +56,6 @@ public class Department {
         this.description = description;
     }
 
-    public int getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
-    }
-
+   
     
 }

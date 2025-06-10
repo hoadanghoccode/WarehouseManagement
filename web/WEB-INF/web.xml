@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+    <filter>
+        <filter-name>authfilter</filter-name>
+        <filter-class>filter.AuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>authfilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <servlet>
         <servlet-name>UserDetailServlet</servlet-name>
         <servlet-class>controller.UserDetailServlet</servlet-class>
@@ -59,6 +67,26 @@
     <servlet>
         <servlet-name>AddRoleController</servlet-name>
         <servlet-class>controller.AddRoleController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UserController</servlet-name>
+        <servlet-class>controller.UserController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DepartmentController</servlet-name>
+        <servlet-class>controller.DepartmentController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DeleteDepartmentController</servlet-name>
+        <servlet-class>controller.DeleteDepartmentController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DetailDepartmentController</servlet-name>
+        <servlet-class>controller.DetailDepartmentController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UnitServlet</servlet-name>
+        <servlet-class>controller.UnitServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
@@ -125,4 +153,29 @@
         <servlet-name>AddRoleController</servlet-name>
         <url-pattern>/addrole</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UserController</servlet-name>
+        <url-pattern>/user</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DepartmentController</servlet-name>
+        <url-pattern>/department</url-pattern>
+        <url-pattern>/department/data</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DeleteDepartmentController</servlet-name>
+        <url-pattern>/deletedepartment</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DetailDepartmentController</servlet-name>
+        <url-pattern>/detaildepartment</url-pattern>
+    </servlet-mapping>
+    <!-- Cấu hình thời gian tồn tại của session -->
+    <servlet-mapping>
+        <servlet-name>UnitServlet</servlet-name>
+        <url-pattern>/unit</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
 </web-app>

@@ -1,10 +1,18 @@
-<%--
-    Document   : role
-    Created on : May 21, 2025, 11:04:00 AM
-    Author     : PC
---%>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -88,9 +96,14 @@
 
                 <div class="row mb-3">                
                     <div class="col d-flex justify-content-end">
-                        <button id="addRoleBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">Add Role</button>
+                        <c:if test="${perms['Role_ADD']}">
+
+                            <button id="addRoleBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">Add Role</button>
+                        </c:if>
                     </div>
                 </div>
+
+
                 <table class="table table-bordered">
                     <thead class="table-header">
                         <tr>
@@ -105,11 +118,13 @@
                     </thead>
                     <tbody id="roleTableBody"></tbody>
                 </table>
+                 <c:if test="${perms['Role_UPDATE']}"> 
                 <div class="row mb-3">
                     <div class="col d-flex justify-content-end">
                         <button id="submitBtn" class="btn btn-primary">Submit</button>
                     </div>
                 </div>
+                </c:if>
             </div>
 
             <!-- Modal for Adding Role -->
@@ -135,7 +150,7 @@
                                         required
                                         >
                                     <div class="invalid-feedback">
-                                        Vui lòng nhập tên vai trò.
+                                        Please enter correct role
                                     </div>
                                 </div>
 
@@ -151,7 +166,7 @@
                                         required
                                         ></textarea>
                                     <div class="invalid-feedback">
-                                        Vui lòng nhập mô tả.
+                                        Please enter description
                                     </div>
                                 </div>
                             </div>
@@ -168,19 +183,39 @@
             <!-- Modal Confirm -->
             <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
                 <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Xác nhận xoá</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <c:if test="${perms['Role_DELETE']}"> 
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this role?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+                            </div>
                         </div>
-                        <div class="modal-body">
-                            Bạn có chắc muốn xoá role này?
+                    </c:if>
+                    <c:if test="${!perms['Role_DELETE']}"> 
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                You do not have permission to delete !
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
-                            <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xoá</button>
-                        </div>
-                    </div>
+
+                    </c:if>
+
+
                 </div>
             </div>
 
@@ -293,13 +328,24 @@
                         });
 
                         if (j === 0) {
-                            console.log('role ne', role.roleId);
+                            console.log('Rendering role with ID:', role.roleId, 'Full role object:', role);
                             const tdBtn = document.createElement('td');
                             tdBtn.rowSpan = role.permissions.length;
-                            tdBtn.innerHTML = `
-          <button
-            class="btn btn-danger btn-sm delete-role-btn"
-            data-role-id="${role.roleId}">Xoá</button>`;
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'btn btn-danger btn-sm delete-role-btn';
+                            deleteBtn.textContent = 'Delete';
+                            deleteBtn.setAttribute('data-role-id', role.roleId);
+
+                            // Thêm trực tiếp event listener vào button
+                            deleteBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                console.log('Delete button clicked');
+                                console.log('Role ID:', role.roleId);
+                                roleIdToDelete = role.roleId;
+                                confirmModal.show();
+                            });
+
+                            tdBtn.appendChild(deleteBtn);
                             tr.appendChild(tdBtn);
                         }
                         tbody.appendChild(tr);
@@ -374,6 +420,9 @@
                             body: params
                         });
 
+
+
+
                         const result = await resp.json();
                         if (result.success) {
                             // đóng modal
@@ -390,53 +439,76 @@
                 });
             });
         </script>
-        
+
         <script>
-  // Biến global nhớ roleId cần xóa
-  let roleIdToDelete = null;
-  // Tạo instance modal (Bootstrap 5)
-  const confirmModalEl = document.getElementById('confirmDeleteModal');
-  const confirmModal = new bootstrap.Modal(confirmModalEl);
+            // Khởi tạo biến và modal ở phạm vi global
+            let roleIdToDelete = null;
+            let confirmModal = null;
 
-  // 1) Delegate click cho nút Xoá trong table
-  document.getElementById('roleTableBody').addEventListener('click', e => {
-    const btn = e.target.closest('button.delete-role-btn');
-    if (!btn) return;
+            // Đợi DOM load xong
+            document.addEventListener('DOMContentLoaded', () => {
+                // Khởi tạo modal
+                const confirmModalEl = document.getElementById('confirmDeleteModal');
+                confirmModal = new bootstrap.Modal(confirmModalEl);
 
-    // Lấy roleId từ data-attribute
-    roleIdToDelete = btn.dataset.roleId;
-    // Hiện modal confirm
-    confirmModal.show();
-  });
+                // Xử lý nút confirm trong modal
+                document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+                    try {
+                        console.log('Confirming delete for roleId:', roleIdToDelete);
+                        if (!roleIdToDelete) {
+                            console.log('No role ID to delete');
+                            return;
+                        }
 
-  // 2) Khi người dùng nhấn Xoá ở modal
-  document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-    if (!roleIdToDelete) return;
+                        // Tạo URLSearchParams (application/x-www-form-urlencoded)
+                        const params = new URLSearchParams();
+                        params.append('roleId', roleIdToDelete);
 
-    try {
-      // Gọi servlet xóa (POST hoặc GET tuỳ bạn implement)
-      const resp = await fetch(`${ctx}/permissionrole/delete?roleId=${roleIdToDelete}`, {
-        method: 'POST'
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        console.log('Params being sent:', params.toString()); // ví dụ "roleId=4"
 
-      // Ẩn modal và reload lại bảng
-      confirmModal.hide();
-      // Tái fetch & render lại data
-      const data = await fetch(`${ctx}/permissionrole/data`).then(r => r.json());
-      roles = data.length && data[0].resources !== undefined
-        ? data.map(r => ({ /* mapping nested như trước */ }))
-        : transformDataToRoles(data);
-      renderRoleTable();
+                        const resp = await fetch(`${pageContext.request.contextPath}/deleterole`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                            },
+                            body: params.toString()
+                        });
 
-    } catch (err) {
-      console.error('Lỗi khi xóa role:', err);
-      // có thể show alert trong #alertContainer
-    } finally {
-      roleIdToDelete = null;
-    }
-  });
-</script>
+
+                        // Refresh lại dữ liệu
+                        const response = await fetch(`${pageContext.request.contextPath}/permissionrole/data`);
+
+                        const result = await resp.json();
+                        console.log('Response from server:', result);
+
+                        if (result.status === 'ok') {
+                            confirmModal.hide();
+                            // Refresh lại dữ liệu
+                            const response = await fetch(`${pageContext.request.contextPath}/permissionrole/data`);
+                            const data = await response.json();
+                            console.log('New data after delete:', data);
+                            window.location.reload();
+                            // … render lại bảng …
+                        } else {
+                            throw new Error(result.msg || 'Lỗi không xác định');
+                        }
+
+                    } catch (err) {
+                        console.error('Error deleting role:', err);
+                        const alertContainer = document.getElementById('alertContainer');
+                        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Có lỗi xảy ra khi xóa role: ${err.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+                    } finally {
+                        roleIdToDelete = null;
+                    }
+                });
+
+            });
+        </script>
 
 
 

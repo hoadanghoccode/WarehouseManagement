@@ -60,7 +60,14 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("USER") != null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
+        // Nếu chưa → forward tới login.jsp
+        request.getRequestDispatcher("login.jsp").forward(request, response);
     }
 
     /**
@@ -77,28 +84,33 @@ public class LoginController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        String email = request.getParameter("email");
+        String email = request.getParameter("email").trim().toLowerCase();
         String pass = request.getParameter("password");
+        System.out.println("Login attempt with email: " + email);
 
         try {
-
             UserDAO userDAO = new UserDAO();
             Users u = userDAO.checkLogin(email, pass);
+            System.out.println("Login check result: " + (u != null ? "success" : "failed"));
+
             if (u == null) {
                 request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
+                request.setAttribute("email", email); 
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             } else {
                 HttpSession session = request.getSession();
-                session.setAttribute("user", u);
+                session.setAttribute("USER", u);
+                System.out.println("User set in session with ID: " + u.getUserId());
                 response.sendRedirect("index.jsp");
             }
         } catch (Exception e) {
+            System.out.println("Login error: " + e.getMessage());
             e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống.");
+            request.setAttribute("error", "A system error occurred. Please try again later.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
+    
 
     /**
      * Returns a short description of the servlet.

@@ -1,7 +1,7 @@
 package controller;
 
 import dal.UserDAO;
-import model.Department;
+import model.Departmentt;
 import model.Role;
 import model.Users;
 import jakarta.servlet.ServletException;
@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
-
 
 public class UserListServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -40,6 +40,7 @@ public class UserListServlet extends HttpServlet {
         String searchQuery = request.getParameter("search");
         Integer departmentId = null;
         Integer roleId = null;
+        Boolean status = null;
         String sortOrder = "desc";
 
         try {
@@ -60,15 +61,20 @@ public class UserListServlet extends HttpServlet {
             // Default to null
         }
 
+        String statusParam = request.getParameter("status");
+        if (statusParam != null && !statusParam.isEmpty()) {
+            status = Boolean.parseBoolean(statusParam);
+        }
+
         if (request.getParameter("sortOrder") != null) {
             sortOrder = request.getParameter("sortOrder");
         }
 
-        List<Users> users = dao.getUsers(page, pageSize, searchQuery, departmentId, roleId, sortOrder);
-        int totalUsers = dao.getTotalUsers(searchQuery, departmentId, roleId);
+        List<Users> users = dao.getUsers(page, pageSize, searchQuery, departmentId, roleId, status, sortOrder);
+        int totalUsers = dao.getTotalUsers(searchQuery, departmentId, roleId, status);
         int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
 
-        List<Department> departments = dao.getAllDepartments();
+        List<Departmentt> departments = dao.getAllDepartments();
         List<Role> roles = dao.getAllRoles();
 
         request.setAttribute("users", users);
@@ -78,6 +84,7 @@ public class UserListServlet extends HttpServlet {
         request.setAttribute("search", searchQuery);
         request.setAttribute("selectedDepartmentId", departmentId);
         request.setAttribute("selectedRoleId", roleId);
+        request.setAttribute("selectedStatus", statusParam);
         request.setAttribute("sortOrder", sortOrder);
         request.setAttribute("departments", departments);
         request.setAttribute("roles", roles);
@@ -98,7 +105,7 @@ public class UserListServlet extends HttpServlet {
             String dateOfBirthStr = request.getParameter("dateOfBirth");
             java.util.Date dateOfBirth = null;
             if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
-                dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
+                dateOfBirth = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
             }
             int departmentId = Integer.parseInt(request.getParameter("departmentId"));
             int roleId = Integer.parseInt(request.getParameter("roleId"));

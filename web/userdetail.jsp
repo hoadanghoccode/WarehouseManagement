@@ -1,20 +1,33 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
+
 <div class="form-container">
     <div class="header">
         <div>
             <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
-                 alt="User Avatar" class="avatar" onclick="document.getElementById('fileInput').click()">
+                 alt="User Avatar" class="avatar" id="avatar" onclick="document.getElementById('fileInput').click()">
             <h2>${user.fullName}</h2>
         </div>
         <button class="close-btn" onclick="closeModal('userDetailModal')">×</button>
     </div>
-    <form action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
+    <form id="userForm" action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
         <input type="hidden" name="userId" value="${user.userId}" />
         <input type="hidden" name="email" value="${user.email}" />
         <input type="hidden" name="userDepartmentId" value="${userDepartmentId}" />
-        <input type="file" id="fileInput" name="imageFile" style="display:none;" onchange="this.form.submit()"/>
+        <input type="file" id="fileInput" name="imageFile" style="display:none;" accept="image/*" onchange="previewImage(event)" />
         <div class="grid-container">
             <div class="form-group">
                 <label>Email</label>
@@ -66,21 +79,34 @@
             <label for="address">Address</label>
             <input type="text" name="address" id="address" value="${user.address}" />
         </div>
-        <div class="grid-container">
-            <div class="form-group">
-                <label for="image">Image URL</label>
-                <input type="text" name="image" id="image" value="${user.image}" readonly />
-            </div>
-            <div class="form-group">
-                <label>Updated At</label>
-                <p class="text-gray-800">
-                    <fmt:formatDate value="${user.updatedAt}" pattern="yyyy-MM-dd" />
-                </p>
-            </div>
-        </div>
+       
         <div class="form-actions">
+             <c:if test="${perms['Customer_UPDATE']}"> 
             <input type="submit" value="Update User" />
+            </c:if>
+            
             <button type="button" onclick="closeModal('userDetailModal')">Cancel</button>
         </div>
     </form>
 </div>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatar').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            alert('Please select a valid image file.');
+            event.target.value = '';
+        }
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = 'none';
+    }
+</script>

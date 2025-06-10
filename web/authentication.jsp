@@ -1,10 +1,23 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
+
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Permission List</title>
+        <title>Permission Management</title>
         <link rel="stylesheet" type="text/css" href="css/permissionlist.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -60,17 +73,19 @@
                             <input type="text" name="search" value="${search}"
                                    placeholder="Search resources..." class="search-input"/>
                         </form>
-                        <button id="addPermissionBtn"
-                                class="btn btn-success"
-                                data-bs-toggle="modal"
-                                data-bs-target="#addPermissionModal">
-                            Add Permission
-                        </button>
+                        <c:if test="${perms['Permission_ADD']}">
+                            <button id="addPermissionBtn"
+                                    class="btn btn-success"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#addPermissionModal">
+                                Add Permission
+                            </button>
+                        </c:if>
+
                     </div>
                 </div>
 
                 <!-- Modal for Adding Permission -->
-                <!-- Modal -->
                 <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -98,6 +113,44 @@
                                 </div>
                             </form>
                         </div>
+                    </div>
+                </div>
+
+
+                <!-- Modal Xác nhận Xóa -->
+                <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <c:if test="${perms['Permission_DELETE']}">  
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm deletion</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete this role?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xóa</button>
+                                </div>
+                            </div>
+                        </c:if>
+                        <c:if test="${!perms['Permission_DELETE']}"> 
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm deletion</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    You do not have permission to delete !
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                                </div>
+                            </div>
+
+                        </c:if>
                     </div>
                 </div>
 
@@ -137,18 +190,15 @@
                                             <td><strong>${(page-1)*pageSize + st.index + 1}</strong></td>
                                             <td>${res.name}</td>
                                             <td>${res.description}</td>
+                                            <td class="action-buttons">
 
-                                            <td class="action-buttons">                                               
-                                                <!-- Delete -->
-                                                <form method="post"
-                                                      action="${pageContext.request.contextPath}/deleteresource"
-                                                      style="display:inline;"
-                                                      onsubmit="return confirm('Bạn có chắc muốn xóa resource này không?');">
+                                                <form class="delete-resource-form" style="display:inline;">
                                                     <input type="hidden" name="resourceId" value="${res.resourceId}"/>
-                                                    <button type="submit" class="btn btn-danger">
+                                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
+
 
                                             </td>
                                         </tr>
@@ -247,33 +297,65 @@
         </section>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                                                          document.getElementById('addPermissionForm').addEventListener('submit', function (e) {
-                                                              e.preventDefault();
-                                                              const form = e.target;
-                                                              const data = new URLSearchParams(new FormData(form));
+            document.getElementById('addPermissionForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = e.target;
+                const data = new URLSearchParams(new FormData(form));
 
-                                                              fetch(form.getAttribute('action') || '${pageContext.request.contextPath}/resource', {
-                                                                  method: 'POST',
-                                                                  headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                                                                  body: data
-                                                              })
-                                                                      .then(res => res.json())
-                                                                      .then(json => {
-                                                                          if (json.success) {
-                                                                              // Close modal
-                                                                              var modal = bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'));
-                                                                              modal.hide();
-                                                                              // Reload trang hoặc cập nhật table
-                                                                              location.reload();
-                                                                          } else {
-                                                                              const err = document.getElementById('addError');
-                                                                              err.textContent = json.message;
-                                                                              err.style.display = 'block';
-                                                                          }
-                                                                      });
-                                                          });
+                fetch(form.getAttribute('action') || '${pageContext.request.contextPath}/resource', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: data
+                })
+                        .then(res => res.json())
+                        .then(json => {
+                            if (json.success) {
+                                // Close modal
+                                var modal = bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'));
+                                modal.hide();
+                                // Reload trang hoặc cập nhật table
+                                location.reload();
+                            } else {
+                                const err = document.getElementById('addError');
+                                err.textContent = json.message;
+                                err.style.display = 'block';
+                            }
+                        });
+            });
+
+            let resourceIdToDelete = null;
+
+            // When delete button is clicked, store the resource ID
+            document.querySelectorAll('.delete-resource-form button').forEach(button => {
+                button.addEventListener('click', function () {
+                    resourceIdToDelete = this.closest('form').querySelector('input[name="resourceId"]').value;
+                });
+            });
+
+            // When confirm delete button is clicked
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+                if (resourceIdToDelete) {
+                    // Create and submit form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '${pageContext.request.contextPath}/deleteresource';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'resourceId';
+                    input.value = resourceIdToDelete;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+
+                    form.submit();
+                }
+
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                modal.hide();
+            });
         </script>
     </body>
 </html>

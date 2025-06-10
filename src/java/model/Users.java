@@ -1,3 +1,4 @@
+
 package model;
 
 import java.util.Date;
@@ -26,7 +27,7 @@ public class Users {
     public Users() {
     }
 
-    public Users(int userId, int roleId, String fullName, String email, String password,
+   public Users(int userId, int roleId, String fullName, String email, String password,
                  boolean gender, String phoneNumber, String address, Date dateOfBirth,
                  String image, Timestamp createdAt, Timestamp updatedAt, boolean status,
                  String resetPasswordToken, Timestamp resetPasswordExpiry) {
