@@ -6,9 +6,52 @@
 <head>
     <meta charset="UTF-8">
     <title>Update Material</title>
-    <!-- (Optional) Bootstrap for consistent styling -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Bootstrap CSS (v5.3) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-ENjdO4Dr2bkBIFxQpeoYDx1C0Pj7skkPXQ9v+zAP+Yd1zYV6G/p3v5y5B5CEg7vh"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="icon" href="img/logo.png" type="image/png">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="css/bootstrap1.min.css" />
+        <!-- themefy CSS -->
+        <link rel="stylesheet" href="vendors/themefy_icon/themify-icons.css" />
+        <!-- swiper slider CSS -->
+        <link rel="stylesheet" href="vendors/swiper_slider/css/swiper.min.css" />
+        <!-- select2 CSS -->
+        <link rel="stylesheet" href="vendors/select2/css/select2.min.css" />
+        <!-- select2 CSS -->
+        <link rel="stylesheet" href="vendors/niceselect/css/nice-select.css" />
+        <!-- owl carousel CSS -->
+        <link rel="stylesheet" href="vendors/owl_carousel/css/owl.carousel.css" />
+        <!-- gijgo css -->
+        <link rel="stylesheet" href="vendors/gijgo/gijgo.min.css" />
+        <!-- font awesome CSS -->
+        <link rel="stylesheet" href="vendors/font_awesome/css/all.min.css" />
+        <link rel="stylesheet" href="vendors/tagsinput/tagsinput.css" />
+        <!-- date picker -->
+        <link rel="stylesheet" href="vendors/datepicker/date-picker.css" />
+        <!-- datatable CSS -->
+        <link rel="stylesheet" href="vendors/datatable/css/jquery.dataTables.min.css" />
+        <link rel="stylesheet" href="vendors/datatable/css/responsive.dataTables.min.css" />
+        <link rel="stylesheet" href="vendors/datatable/css/buttons.dataTables.min.css" />
+        <!-- text editor css -->
+        <link rel="stylesheet" href="vendors/text_editor/summernote-bs4.css" />
+        <!-- morris css -->
+        <link rel="stylesheet" href="vendors/morris/morris.css">
+        <!-- metarial icon css -->
+        <link rel="stylesheet"six href="vendors/material_icon/material-icons.css" />
+        <!-- menu css  -->
+        <link rel="stylesheet" href="css/metisMenu.css">
+        <!-- style CSS -->
+        <link rel="stylesheet" href="css/style1.css" />
+        <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
     <style>
         * {
             box-sizing: border-box;
@@ -106,71 +149,77 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="title">Update Material</h1>
+    <!-- INCLUDE SIDEBAR & NAVBAR -->
+    <jsp:include page="sidebar.jsp" flush="true" />
+    <section class="main_content dashboard_part">
+        <jsp:include page="navbar.jsp" flush="true" />
 
-        <c:if test="${not empty error}">
-            <div class="error">${error}</div>
-        </c:if>
+        <div class="container">
+            <h1 class="title">Update Material</h1>
 
-        <form action="update-material" method="POST" onsubmit="return validateForm()">
-            <input type="hidden" name="materialId" value="${material.materialId}">
+            <c:if test="${not empty error}">
+                <div class="error">${error}</div>
+            </c:if>
 
-            <!-- Category (readonly) -->
-            <div class="form-group">
-                <label for="categoryId">Category</label>
-                <input type="text" value="${material.categoryName}" readonly>
-            </div>
+            <form action="update-material" method="POST" onsubmit="return validateForm()">
+                <input type="hidden" name="materialId" value="${material.materialId}">
 
-            <!-- Name (readonly) -->
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" value="${material.name}" readonly>
-            </div>
-
-            <!-- Units (Multiple selection with price and quantity) -->
-            <div class="form-group">
-                <label>Units</label>
-                <div class="unit-section">
-                    <c:forEach var="unit" items="${units}">
-                        <div class="unit-item">
-                            <input type="checkbox" name="unitIds" value="${unit.unitId}"
-                                   onchange="toggleUnitInputs(this)"
-                                   <c:if test="${unit.unitId == material.unitId}">checked</c:if>>
-                            <label>${unit.name}</label>
-                            <input type="number" step="0.01" name="price_${unit.unitId}" placeholder="Price"
-                                   value="<c:if test='${unit.unitId == material.unitId}'>${material.price}</c:if>"
-                                   <c:if test="${unit.unitId != material.unitId}">disabled</c:if>>
-                            <input type="number" step="0.01" name="quantity_${unit.unitId}" placeholder="Quantity"
-                                   value="<c:if test='${unit.unitId == material.unitId}'>${material.quantity}</c:if>"
-                                   <c:if test="${unit.unitId != material.unitId}">disabled</c:if>>
-                        </div>
-                    </c:forEach>
+                <!-- Category (readonly) -->
+                <div class="form-group">
+                    <label for="categoryId">Category</label>
+                    <input type="text" value="${material.categoryName}" readonly>
                 </div>
-            </div>
 
-            <!-- Supplier (readonly) -->
-            <div class="form-group">
-                <label for="supplierId">Supplier</label>
-                <input type="text"
-                       value="${material.supplierName != null ? material.supplierName : 'No Supplier'}"
-                       readonly>
-            </div>
+                <!-- Name (readonly) -->
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" value="${material.name}" readonly>
+                </div>
 
-            <!-- Status -->
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select id="status" name="status" required>
-                    <option value="active" <c:if test="${material.status == 'active'}">selected</c:if>>Active</option>
-                    <option value="inactive" <c:if test="${material.status == 'inactive'}">selected</c:if>>Inactive</option>
-                </select>
-            </div>
+                <!-- Units (Multiple selection with price and quantity) -->
+                <div class="form-group">
+                    <label>Units</label>
+                    <div class="unit-section">
+                        <c:forEach var="unit" items="${units}">
+                            <div class="unit-item">
+                                <input type="checkbox" name="unitIds" value="${unit.unitId}"
+                                       onchange="toggleUnitInputs(this)"
+                                       <c:if test="${unit.unitId == material.unitId}">checked</c:if>>
+                                <label>${unit.name}</label>
+                                <input type="number" step="0.01" name="price_${unit.unitId}" placeholder="Price"
+                                       value="<c:if test='${unit.unitId == material.unitId}'>${material.price}</c:if>"
+                                       <c:if test="${unit.unitId != material.unitId}">disabled</c:if>>
+                                <input type="number" step="0.01" name="quantity_${unit.unitId}" placeholder="Quantity"
+                                       value="<c:if test='${unit.unitId == material.unitId}'>${material.quantity}</c:if>"
+                                       <c:if test="${unit.unitId != material.unitId}">disabled</c:if>>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
 
-            <!-- Buttons -->
-            <button type="submit" class="btn btn-primary">Update Material</button>
-            <a href="list-material" class="btn btn-secondary">Cancel</a>
-        </form>
-    </div>
+                <!-- Supplier (readonly) -->
+                <div class="form-group">
+                    <label for="supplierId">Supplier</label>
+                    <input type="text"
+                           value="${material.supplierName != null ? material.supplierName : 'No Supplier'}"
+                           readonly>
+                </div>
+
+                <!-- Status -->
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required>
+                        <option value="active" <c:if test="${material.status == 'active'}">selected</c:if>>Active</option>
+                        <option value="inactive" <c:if test="${material.status == 'inactive'}">selected</c:if>>Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <button type="submit" class="btn btn-primary">Update Material</button>
+                <a href="list-material" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </section>
 
     <script>
         function toggleUnitInputs(checkbox) {
@@ -202,7 +251,12 @@
             return true;
         }
     </script>
-    <!-- (Optional) Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap Bundle JS (includes Popper) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+YxVZXyGTc5J0QTDkfyQp5kw+Vb4D"
+      crossorigin="anonymous"
+    ></script>
 </body>
 </html>
