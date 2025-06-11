@@ -88,6 +88,10 @@
         <servlet-name>UnitServlet</servlet-name>
         <servlet-class>controller.UnitServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>InventoryServlet</servlet-name>
+        <servlet-class>controller.InventoryServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -174,6 +178,10 @@
     <servlet-mapping>
         <servlet-name>UnitServlet</servlet-name>
         <url-pattern>/unit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InventoryServlet</servlet-name>
+        <url-pattern>/inventory</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
