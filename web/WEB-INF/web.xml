@@ -92,6 +92,10 @@
         <servlet-name>InventoryServlet</servlet-name>
         <servlet-class>controller.InventoryServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>OrderDetailController</servlet-name>
+        <servlet-class>controller.OrderDetailController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -182,6 +186,10 @@
     <servlet-mapping>
         <servlet-name>InventoryServlet</servlet-name>
         <url-pattern>/inventory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OrderDetailController</servlet-name>
+        <url-pattern>/orderdetail</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
