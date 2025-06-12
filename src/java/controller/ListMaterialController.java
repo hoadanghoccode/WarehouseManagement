@@ -1,48 +1,58 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+// Controller to list all materials with search and filters
 package controller;
-
-/**
- *
- * @author legia
- */
 
 import dal.MaterialDAO;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
-import model.Category;
-import model.Supplier;
-import model.Unit;
 
-@WebServlet(name = "ListMaterialController", urlPatterns = {"/list-material"})
 public class ListMaterialController extends HttpServlet {
+
+    private static final int DEFAULT_PAGE_SIZE = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        MaterialDAO materialDAO = new MaterialDAO();
+        MaterialDAO dao = new MaterialDAO();
+        String search = request.getParameter("search");
+        Integer categoryId = request.getParameter("categoryId") != null ? Integer.parseInt(request.getParameter("categoryId")) : null;
+        Integer supplierId = request.getParameter("supplierId") != null ? Integer.parseInt(request.getParameter("supplierId")) : null;
+        String status = request.getParameter("status");
 
-        List<Material> materials = materialDAO.getMaterialsByPage(1, Integer.MAX_VALUE, null, null, null, null);
-        int totalMaterials = materialDAO.getTotalMaterials(null, null, null, null);
+        List<Material> materials = dao.getAllMaterials(search, categoryId, supplierId, status);
 
-        List<Category> categories = materialDAO.getAllCategories();
-        List<Unit> units = materialDAO.getAllUnits();          
-        List<Supplier> suppliers = materialDAO.getAllSuppliers();
+        int page = getPageNumber(request);
+        int totalSize = materials.size();
+        int totalPages = (totalSize % DEFAULT_PAGE_SIZE == 0) ? (totalSize / DEFAULT_PAGE_SIZE) : (totalSize / DEFAULT_PAGE_SIZE + 1);
+        if (page > totalPages && totalPages > 0) page = totalPages;
 
-        request.setAttribute("materials", materials);
-        request.setAttribute("categories", categories);
-        request.setAttribute("units", units);                  
-        request.setAttribute("suppliers", suppliers);
-        request.setAttribute("totalMaterials", totalMaterials);
+        int start = (page - 1) * DEFAULT_PAGE_SIZE;
+        int end = Math.min(start + DEFAULT_PAGE_SIZE, totalSize);
+        List<Material> pagedMaterials = materials.subList(start, end);
 
-        request.getRequestDispatcher("/materialList.jsp").forward(request, response);
+        request.setAttribute("materials", pagedMaterials);
+        request.setAttribute("search", search);
+        request.setAttribute("categoryId", categoryId);
+        request.setAttribute("supplierId", supplierId);
+        request.setAttribute("status", status);
+        request.setAttribute("page", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("categories", dao.getAllCategories());
+        request.setAttribute("suppliers", dao.getAllSuppliers());
+        request.getRequestDispatcher("materialList.jsp").forward(request, response);
+    }
+
+    private int getPageNumber(HttpServletRequest request) {
+        String pageParam = request.getParameter("page");
+        if (pageParam == null || pageParam.trim().isEmpty()) return 1;
+        try {
+            return Math.max(1, Integer.parseInt(pageParam));
+        } catch (NumberFormatException e) {
+            return 1;
+        }
     }
 }

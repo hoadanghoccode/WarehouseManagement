@@ -12,7 +12,12 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/AddMaterialController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/model/Supplier.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/DetailMaterialController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/ListMaterialController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/UpdateMaterialController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/DeleteMaterialController.java</file>
         </group>
     </open-files>
 </project-private>
