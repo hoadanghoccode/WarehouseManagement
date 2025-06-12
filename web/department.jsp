@@ -1,4 +1,17 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -80,13 +93,15 @@
             <div class="container mt-4">
                 <!-- Bootstrap Alert Container -->
                 <div class="bootstrap-alert-container" id="alertContainer"></div>
-                <div class="row mb-3">                
-                    <div class="col d-flex justify-content-end">
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#departmentModal">
-                            Add Department
-                        </button>
+                <c:if test="${perms['Department_ADD']}"> 
+                    <div class="row mb-3">                
+                        <div class="col d-flex justify-content-end">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#departmentModal">
+                                Add Department
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </c:if>
 
                 <table class="table table-bordered">
                     <thead class="table-header">
@@ -110,19 +125,37 @@
             <!-- Modal Xác nhận Xoá -->
             <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
                 <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Xác nhận xoá</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <c:if test="${perms['Role_DELETE']}"> 
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this role?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xoá</button>
+                            </div>
                         </div>
-                        <div class="modal-body">
-                            Bạn có chắc muốn xoá phòng ban này?
+                    </c:if>
+                    <c:if test="${!perms['Role_DELETE']}"> 
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                You do not have permission to delete !
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
-                            <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xoá</button>
-                        </div>
-                    </div>
+
+                    </c:if>
                 </div>
             </div>
 
@@ -241,7 +274,9 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button id="btnSaveViewDept" type="button" class="btn btn-primary">Save Changes</button>
+                            <c:if test="${perms['Department_UPDATE']}"> 
+                                <button id="btnSaveViewDept" type="button" class="btn btn-primary">Save Changes</button>
+                            </c:if>
                         </div>
                     </div>
                 </div>
@@ -704,57 +739,57 @@
                             if (json.success) {
                                 // Nếu backend trả về success: true                             
                                 showAlert(true, 'Thêm Department thành công!');
-                                
+
                                 // Đóng modal
                                 const modal = bootstrap.Modal.getInstance(departmentModalEl);
                                 modal.hide();
 
                                 // Gọi lại API để lấy dữ liệu mới nhất
                                 fetch(`/WarehouseManagement/department/data`)
-                                    .then(response => {
-                                        if (!response.ok)
-                                            throw new Error("HTTP error " + response.status);
-                                        return response.json();
-                                    })
-                                    .then(data => {
-                                        // Cập nhật lại mảng entries với dữ liệu mới
-                                        entries = data.map(dept => {
-                                            if (!dept.role) {
+                                        .then(response => {
+                                            if (!response.ok)
+                                                throw new Error("HTTP error " + response.status);
+                                            return response.json();
+                                        })
+                                        .then(data => {
+                                            // Cập nhật lại mảng entries với dữ liệu mới
+                                            entries = data.map(dept => {
+                                                if (!dept.role) {
+                                                    return {
+                                                        departmentId: dept.departmentId,
+                                                        departmentName: dept.departmentName,
+                                                        description: dept.description,
+                                                        roleId: null,
+                                                        roleName: null,
+                                                        permissions: []
+                                                    };
+                                                }
                                                 return {
                                                     departmentId: dept.departmentId,
                                                     departmentName: dept.departmentName,
                                                     description: dept.description,
-                                                    roleId: null,
-                                                    roleName: null,
-                                                    permissions: []
+                                                    roleId: dept.role.roleId,
+                                                    roleName: dept.role.role,
+                                                    permissions: Array.isArray(dept.role.resources)
+                                                            ? dept.role.resources.map(res => ({
+                                                                    resourceId: res.resourceId,
+                                                                    resourceName: res.resourceName,
+                                                                    canAdd: res.canAdd,
+                                                                    canView: res.canView,
+                                                                    canUpdate: res.canUpdate,
+                                                                    canDelete: res.canDelete
+                                                                }))
+                                                            : []
                                                 };
-                                            }
-                                            return {
-                                                departmentId: dept.departmentId,
-                                                departmentName: dept.departmentName,
-                                                description: dept.description,
-                                                roleId: dept.role.roleId,
-                                                roleName: dept.role.role,
-                                                permissions: Array.isArray(dept.role.resources)
-                                                    ? dept.role.resources.map(res => ({
-                                                        resourceId: res.resourceId,
-                                                        resourceName: res.resourceName,
-                                                        canAdd: res.canAdd,
-                                                        canView: res.canView,
-                                                        canUpdate: res.canUpdate,
-                                                        canDelete: res.canDelete
-                                                    }))
-                                                    : []
-                                            };
-                                        });
+                                            });
 
-                                        // Render lại bảng với dữ liệu mới
-                                        renderRoleTable();
-                                    })
-                                    .catch(err => {
-                                        console.error("Lỗi khi fetch dữ liệu mới:", err);
-                                        showAlert(false, 'Có lỗi xảy ra khi cập nhật dữ liệu!');
-                                    });
+                                            // Render lại bảng với dữ liệu mới
+                                            renderRoleTable();
+                                        })
+                                        .catch(err => {
+                                            console.error("Lỗi khi fetch dữ liệu mới:", err);
+                                            showAlert(false, 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+                                        });
                             } else {
                                 const modal = bootstrap.Modal.getInstance(departmentModalEl);
                                 modal.hide();
@@ -762,7 +797,7 @@
                             }
                         })
                         .catch(err => {
-                    showAlert(false, err.message || 'Có lỗi xảy ra khi lưu Department !');
+                            showAlert(false, err.message || 'Có lỗi xảy ra khi lưu Department !');
                         });
             });
 

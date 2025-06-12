@@ -62,7 +62,7 @@ public class ChangePasswordController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
          HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute("USER") == null) {
             response.sendRedirect("login");
             return;
         }
@@ -83,7 +83,7 @@ public class ChangePasswordController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        Users u = (Users) request.getSession().getAttribute("user");
+        Users u = (Users) request.getSession().getAttribute("USER");
 
         if (u == null) {
             response.sendRedirect("login");
@@ -125,7 +125,7 @@ public class ChangePasswordController extends HttpServlet {
         }
         HttpSession session = request.getSession(false); 
 
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute("USER") == null) {
             response.sendRedirect("login");
             return;
         }

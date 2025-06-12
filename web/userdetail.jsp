@@ -1,6 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
+
 <div class="form-container">
     <div class="header">
         <div>
@@ -66,20 +79,12 @@
             <label for="address">Address</label>
             <input type="text" name="address" id="address" value="${user.address}" />
         </div>
-        <div class="grid-container">
-            <div class="form-group">
-                <label for="image">Image URL</label>
-                <input type="text" name="image" id="image" value="${user.image}" readonly />
-            </div>
-            <div class="form-group">
-                <label>Updated At</label>
-                <p class="text-gray-800">
-                    <fmt:formatDate value="${user.updatedAt}" pattern="yyyy-MM-dd" />
-                </p>
-            </div>
-        </div>
+       
         <div class="form-actions">
+             <c:if test="${perms['Customer_UPDATE']}"> 
             <input type="submit" value="Update User" />
+            </c:if>
+            
             <button type="button" onclick="closeModal('userDetailModal')">Cancel</button>
         </div>
     </form>
