@@ -12,8 +12,10 @@ public class OrderDetail {
 
     private int orderDetailId;
     private int materialId;
+    private String materialName;
     private int orderId;
     private int subUnitId;
+    private String subUnitName;
     private int qualityId;
     private int quantity;
 
@@ -29,6 +31,18 @@ public class OrderDetail {
         this.quantity = quantity;
     }
 
+    public OrderDetail(int orderDetailId, int materialId, String materialName, int orderId, int subUnitId, String subUnitName, int qualityId, int quantity) {
+        this.orderDetailId = orderDetailId;
+        this.materialId = materialId;
+        this.materialName = materialName;
+        this.orderId = orderId;
+        this.subUnitId = subUnitId;
+        this.subUnitName = subUnitName;
+        this.qualityId = qualityId;
+        this.quantity = quantity;
+    }
+
+    
     
 
     public int getMaterialId() {
@@ -78,6 +92,22 @@ public class OrderDetail {
 
     public void setQualityId(int qualityId) {
         this.qualityId = qualityId;
+    }
+
+    public String getMaterialName() {
+        return materialName;
+    }
+
+    public void setMaterialName(String materialName) {
+        this.materialName = materialName;
+    }
+
+    public String getSubUnitName() {
+        return subUnitName;
+    }
+
+    public void setSubUnitName(String subUnitName) {
+        this.subUnitName = subUnitName;
     }
 
   

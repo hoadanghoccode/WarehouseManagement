@@ -41,8 +41,9 @@ body {
 
 .order-title {
     display: flex;
-    align-items: center;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     flex: 1;
 }
 
@@ -181,7 +182,7 @@ body {
 }
 
 .order-items {
-    grid-column: 1 / -1;
+    /*grid-column: 1 / -1;*/
 }
 
 .order-item {
@@ -394,3 +395,77 @@ body {
     }
 }
 
+.quantity-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+.quantity-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.order-summary {
+    margin-top: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.summary-row.total-quantity {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 2px solid #007bff;
+    font-weight: 600;
+}
+
+.summary-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #495057;
+}
+
+.summary-label i {
+    color: #007bff;
+    width: 16px;
+    text-align: center;
+}
+
+.summary-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.total-quantity .summary-value {
+    font-size: 16px;
+    color: #28a745;
+}
+
+/* No Items State */
+.no-items {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.no-items h5 {
+    margin-bottom: 8px;
+    color: #495057;
+}

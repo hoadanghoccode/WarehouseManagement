@@ -10,7 +10,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Order Detail - Order #${order.orderId}</title>
+        <title>Order Detail - Order #${order != null ? order.orderId : 'N/A'}</title>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/bootstrap1.min.css" />
         <!-- datatable CSS -->
@@ -93,6 +93,9 @@
                             <button class="btn btn-primary">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
+                            <button class="btn btn-success">
+                                <i class="fas fa-plus"></i> Create Order
+                            </button>
                         </div>
                     </div>
 
@@ -108,10 +111,13 @@
                             <div class="card-body">
                                 <c:choose>
                                     <c:when test="${order.orderDetails != null && !order.orderDetails.isEmpty()}">
-                                        <c:set var="grandTotal" value="0" />
-                                        <c:forEach var="detail" items="${order.orderDetails}">
-                                            <c:set var="totalPrice" value="${detail.quantity * detail.unitPrice}" />
-                                            <c:set var="grandTotal" value="${grandTotal + totalPrice}" />
+                                        <c:set var="totalItems" value="0" />
+                                        <c:set var="totalQuantity" value="0" />
+
+                                        <c:forEach var="detail" items="${detail}">
+                                            <c:set var="totalItems" value="${totalItems + 1}" />
+                                            <c:set var="totalQuantity" value="${totalQuantity + detail.quantity}" />
+
                                             <div class="order-item">
                                                 <div class="item-image">
                                                     <i class="fas fa-cube" style="color: #64748b;"></i>
@@ -119,7 +125,7 @@
                                                 <div class="item-details">
                                                     <div class="item-name">
                                                         <c:choose>
-                                                            <c:when test="${detail.materialId != null}">
+                                                            <c:when test="${detail.materialId != null && detail.materialId > 0}">
                                                                 Material ID: ${detail.materialId}
                                                             </c:when>
                                                             <c:otherwise>
@@ -127,46 +133,56 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </div>
-                                                    <h5>Hello</h5>
+                                                    <div class="item-name">
+                                                        <c:choose>
+                                                            <c:when test="${detail.materialId != null && detail.materialId > 0}">
+                                                               ${detail.materialName}
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                Material: N/A
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </div>
                                                     <div class="item-specs">
                                                         <c:choose>
-                                                            <c:when test="${detail.unitId != null}">
-                                                                Unit: ${detail.unitId}
+                                                            <c:when test="${detail.subUnitId != null && detail.subUnitId > 0}">
+                                                                Unit: ${detail.subUnitName}
                                                             </c:when>
                                                             <c:otherwise>
                                                                 Unit: N/A
                                                             </c:otherwise>
                                                         </c:choose>
+                                                        <c:if test="${detail.qualityId != null && detail.qualityId > 0}">
+                                                            | Quality: ${detail.qualityId == 1 ? "Available" : "Broken"}
+                                                        </c:if>
                                                     </div>
                                                 </div>
                                                 <div class="item-quantity">
-                                                    <fmt:formatNumber value="${detail.quantity}" type="number"/> x 
-                                                    <fmt:formatNumber value="${detail.unitPrice}" type="currency" currencySymbol="₫"/>
-                                                </div>
-                                                <div class="item-price">
-                                                    <fmt:formatNumber value="${totalPrice}" type="currency" currencySymbol="₫"/>
+                                                    <span class="quantity-label">Quantity:</span>
+                                                    <span class="quantity-value">
+                                                        <fmt:formatNumber value="${detail.quantity}" type="number"/> ${detail.subUnitName}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </c:forEach>
 
-                                        <div class="total-section">
-                                            <div class="total-row">
-                                                <span>Subtotal</span>
-                                                <span><fmt:formatNumber value="${grandTotal}" type="currency" currencySymbol="₫"/></span>
-                                            </div>
-                                            <div class="total-row">
-                                                <span>Tax</span>
-                                                <span>₫0.00</span>
-                                            </div>
-                                            <div class="total-row grand-total">
-                                                <span>Total</span>
-                                                <span><fmt:formatNumber value="${grandTotal}" type="currency" currencySymbol="₫"/></span>
+                                        <!-- Order Summary Section -->
+                                        <div class="order-summary">
+                                            <div class="summary-row">
+                                                <span class="summary-label">
+                                                    <i class="fas fa-boxes"></i> Total Items
+                                                </span>
+                                                <span class="summary-value">
+                                                    <fmt:formatNumber value="${totalItems}" type="number"/> items
+                                                </span>
                                             </div>
                                         </div>
                                     </c:when>
                                     <c:otherwise>
-                                        <div class="error-state">
-                                            <p>No order details available for this order.</p>
+                                        <div class="no-items">
+                                            <i class="fas fa-inbox" style="font-size: 48px; color: #dee2e6; margin-bottom: 16px;"></i>
+                                            <h5>No Items Found</h5>
+                                            <p style="color: #6c757d;">This order doesn't contain any items.</p>
                                         </div>
                                     </c:otherwise>
                                 </c:choose>
@@ -180,28 +196,31 @@
                                 <div class="card-header">
                                     <h3 class="card-title">
                                         <i class="fas fa-user"></i>
-                                        User Information
+                                        Owner Information
                                     </h3>
                                 </div>
                                 <div class="card-body">
                                     <c:choose>
                                         <c:when test="${owner != null}">
                                             <div class="customer-info">
-                                                <div>
+                                                <div class="customer-avatar">
                                                     <c:choose>
-                                                        <c:when test="${owner.image != null}">
-                                                            <img src="${empty owner.image || owner.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : owner.image}"
-                                                                 alt="User Avatar" class="avatar">
+                                                        <c:when test="${owner.image != null && !empty owner.image && owner.image != ''}">
+                                                            <img src="${owner.image}" alt="User Avatar" class="avatar" 
+                                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                            <div style="display: none;">
+                                                                <i class="fas fa-user"></i>
+                                                            </div>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            U
+                                                            <i class="fas fa-user"></i>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </div>
                                                 <div class="customer-details">
                                                     <h5>
                                                         <c:choose>
-                                                            <c:when test="${owner.fullName != null && owner.fullName.trim().length() > 0}">
+                                                            <c:when test="${owner.fullName != null && !empty owner.fullName && owner.fullName.trim().length() > 0}">
                                                                 ${owner.fullName}
                                                             </c:when>
                                                             <c:otherwise>
@@ -210,20 +229,14 @@
                                                         </c:choose>
                                                     </h5>
 
-                                                    
-                                                    <c:if test="${owner.email != null && owner.email.trim().length() > 0}">
+                                                    <c:if test="${owner.email != null && !empty owner.email && owner.email.trim().length() > 0}">
                                                         <p style="color: #64748b; font-size: 14px;">
                                                             <i class="fas fa-envelope"></i> ${owner.email}
                                                         </p>
                                                     </c:if>
-                                                    <c:if test="${owner.phoneNumber != null && owner.phoneNumber.trim().length() > 0}">
+                                                    <c:if test="${owner.phoneNumber != null && !empty owner.phoneNumber && owner.phoneNumber.trim().length() > 0}">
                                                         <p style="color: #64748b; font-size: 14px;">
                                                             <i class="fas fa-phone"></i> ${owner.phoneNumber}
-                                                        </p>
-                                                    </c:if>
-                                                    <c:if test="${owner.address != null && owner.address.trim().length() > 0}">
-                                                        <p style="color: #64748b; font-size: 14px;">
-                                                            <i class="fas fa-map-marker-alt"></i> ${owner.address}
                                                         </p>
                                                     </c:if>
 
@@ -256,15 +269,11 @@
                                             <span class="info-value">#${order.orderId}</span>
                                         </div>
 
-                                        <div class="info-row">
-                                            <span class="info-label">Customer ID</span>
-                                            <span class="info-value">${order.userId}</span>
-                                        </div>
 
-                                        <c:if test="${order.warehouseId != null}">
+                                        <c:if test="${order.warehouseId != null && order.warehouseId > 0}">
                                             <div class="info-row">
                                                 <span class="info-label">Warehouse ID</span>
-                                                <span class="info-value">${order.warehouseId}</span>
+                                                <span class="info-value">Kho Hà Nội 1</span>
                                             </div>
                                         </c:if>
 
@@ -272,10 +281,10 @@
                                             <span class="info-label">Order Type</span>
                                             <span class="info-value">
                                                 <c:choose>
-                                                    <c:when test="${order.type == 0}">
+                                                    <c:when test="${order.type == '0' || order.type == 'import'}">
                                                         <span class="status-badge type-import">Import</span>
                                                     </c:when>
-                                                    <c:when test="${order.type == 1}">
+                                                    <c:when test="${order.type == '1' || order.type == 'export'}">
                                                         <span class="status-badge type-export">Export</span>
                                                     </c:when>
                                                     <c:otherwise>
@@ -309,8 +318,8 @@
                                             <span class="info-label">Supplier</span>
                                             <span class="info-value">
                                                 <c:choose>
-                                                    <c:when test="${order.supplier != null && order.supplier.trim().length() > 0}">
-                                                        ${order.supplier}
+                                                    <c:when test="${order.supplier != null && order.supplier > 0}">
+                                                        ${supplier.name}
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span style="color: #6c757d; font-style: italic;">N/A</span>
@@ -318,6 +327,13 @@
                                                 </c:choose>
                                             </span>
                                         </div>
+
+                                        <c:if test="${order.note != null && !empty order.note && order.note.trim().length() > 0}">
+                                            <div class="info-row">
+                                                <span class="info-label">Note</span>
+                                                <span class="info-value">${order.note}</span>
+                                            </div>
+                                        </c:if>
 
                                         <c:if test="${order.createdAt != null}">
                                             <div class="info-row">
@@ -368,7 +384,7 @@
         <script src="vendors/jquery/jquery-3.2.1.min.js"></script>
         <script src="vendors/bootstrap/bootstrap.bundle.min.js"></script>
         <script src="vendors/datatable/js/jquery.dataTables.min.js"></script>
-        <script src="vendors/datatable/js/dataTables.responsive.min.js"></script>
+        <script src="vendors/datatable/js/dataTables.responsive.dataTables.min.js"></script>
         <script src="vendors/datatable/js/dataTables.buttons.min.js"></script>
         <script src="js/metisMenu.js"></script>
         <script src="js/custom.js"></script>
