@@ -1,39 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
+        <file>
+            <url>src/java/dal/CategoryDAO.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-<<<<<<< HEAD
-
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Group.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Users.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/UserDetailServlet.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/AddCategory.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/userlist.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/UserListServlet.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/UserDAO.java</file>
-
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.xml</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.properties</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/ChangePasswordController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddCategory.java</file>
-
-=======
-            <file>file:/D:/semester8/test/WarehouseManagement/web/sidebar.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/resetpassword.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/categorylist.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/authentication.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/filter/AuthFilter.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/department.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/LoginController.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/adminresetlist.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/ResetPasswordController.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/test.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/role.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/materialList.jsp</file>
->>>>>>> ad8a16fbcaf7b912d901ce78461a2270920f6669
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Order.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/OrderDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Users.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/OrderDetail.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/orderdetail.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/css/orderdetail.css</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/categorylist.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UpdateMaterialController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/UserDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UserListServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/sidebar.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/userlist.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Unit.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/WEB-INF/web.xml</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/login.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/filter/AuthFilter.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UserController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/filter/LoginValidationFilter.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/AdminResetListController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/AddMaterialController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/AdminResetPasswordController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeleteDepartmentController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeleteMaterialController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/PermissionController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/PermissionRoleController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/ResetPasswordController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/ResourceController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/ChangePasswordController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeleteCategory.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LoginGoogleController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LoginController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/ListMaterialController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LogoutController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UnitServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/InventoryDAO.java</file>
         </group>
     </open-files>
 </project-private>
