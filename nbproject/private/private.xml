@@ -49,6 +49,14 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/RolePermission.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/RolePayload.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/RoleData.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderDetailController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/OrderDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Order.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/SupplierDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Supplier.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/CategoryDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/OrderDetail.java</file>
         </group>
     </open-files>
 </project-private>
