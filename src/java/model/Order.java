@@ -17,15 +17,16 @@ public class Order {
     private int warehouseId;
     private int userId;
     private Timestamp createdAt;
-    private int type; // 0: nhập, 1: xuất
-    private String supplier;
+    private String type; 
+    private int supplier;
     private String status;
+    private String note;
     private List<OrderDetail> orderDetails;
 
     public Order() {
     }
 
-    public Order(int orderId, int warehouseId, int userId, Timestamp createdAt, int type, String supplier, String status, List<OrderDetail> orderDetails) {
+    public Order(int orderId, int warehouseId, int userId, Timestamp createdAt, String type, int supplier, String status, String note, List<OrderDetail> orderDetails) {
         this.orderId = orderId;
         this.warehouseId = warehouseId;
         this.userId = userId;
@@ -33,9 +34,21 @@ public class Order {
         this.type = type;
         this.supplier = supplier;
         this.status = status;
+        this.note = note;
         this.orderDetails = orderDetails;
     }
 
+   
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+      
     public int getOrderId() {
         return orderId;
     }
@@ -52,13 +65,7 @@ public class Order {
         this.warehouseId = warehouseId;
     }
 
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
+  
 
     public Timestamp getCreatedAt() {
         return createdAt;
@@ -68,19 +75,19 @@ public class Order {
         this.createdAt = createdAt;
     }
 
-    public int getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(String type) {
         this.type = type;
     }
 
-    public String getSupplier() {
+    public int getSupplier() {
         return supplier;
     }
 
-    public void setSupplier(String supplier) {
+    public void setSupplier(int supplier) {
         this.supplier = supplier;
     }
 
@@ -98,6 +105,14 @@ public class Order {
 
     public void setOrderDetails(List<OrderDetail> orderDetails) {
         this.orderDetails = orderDetails;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     @Override

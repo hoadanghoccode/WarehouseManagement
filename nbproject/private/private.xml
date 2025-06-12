@@ -45,9 +45,13 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LoginController.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/ListMaterialController.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LogoutController.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UnitServlet.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/InventoryDAO.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeletePermissionController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/RolePermission.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/RolePayload.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/RoleData.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderDetailController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/OrderDAO.java</file>
         </group>
     </open-files>
 </project-private>
