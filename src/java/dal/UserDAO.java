@@ -19,45 +19,45 @@ import java.util.UUID;
 public class UserDAO extends DBContext {
 
    public Users getUserById(int userId) {
-    String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
-                 "FROM Users u " +
-                 "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
-                 "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
-                 "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
-                 "WHERE u.User_id = ?";
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-        stmt.setInt(1, userId);
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                Users user = new Users(
-                    rs.getInt("User_id"),
-                    rs.getInt("Role_id"),
-                    rs.getString("Full_name"),
-                    rs.getString("Email"),
-                    rs.getString("Password"),
-                    rs.getInt("Gender") == 1,
-                    rs.getString("Phone_number"),
-                    rs.getString("Address"),
-                    rs.getDate("Date_of_birth"),
-                    rs.getString("Image"),
-                    rs.getTimestamp("Created_at"),
-                    rs.getTimestamp("Updated_at"),
-                    rs.getInt("Status") == 1,
-                    rs.getString("Reset_Password_Token"),
-                    rs.getTimestamp("Reset_Password_Expiry")
-                );
-                user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
-                user.setDepartmentId(rs.getInt("Department_id"));
-                user.setDepartmentName(rs.getString("Department_name") != null ? rs.getString("Department_name") : "");
-                return user;
+        String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
+                     "FROM Users u " +
+                     "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
+                     "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
+                     "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
+                     "WHERE u.User_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Users user = new Users(
+                        rs.getInt("User_id"),
+                        rs.getInt("Role_id"),
+                        rs.getString("Full_name"),
+                        rs.getString("Email"),
+                        rs.getString("Password"),
+                        rs.getInt("Gender") == 1,
+                        rs.getString("Phone_number"),
+                        rs.getString("Address"),
+                        rs.getDate("Date_of_birth"),
+                        rs.getString("Image"),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at"),
+                        rs.getInt("Status") == 1,
+                        rs.getString("Reset_Password_Token"),
+                        rs.getTimestamp("Reset_Password_Expiry")
+                    );
+                    user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
+                    user.setDepartmentId(rs.getInt("Department_id"));
+                    user.setDepartmentName(rs.getString("Department_name") != null ? rs.getString("Department_name") : "");
+                    return user;
+                }
             }
+        } catch (SQLException e) {
+            System.err.println("Error fetching user with ID " + userId + ": " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        System.err.println("Error fetching user with ID " + userId + ": " + e.getMessage());
-        e.printStackTrace();
+        return null;
     }
-    return null;
-}
 
     public void createUser(Users user, int departmentId) {
         String sql = "INSERT INTO Users (Role_id, Full_name, Email, Password, Gender, Phone_number, Address, Date_of_birth, Image, Created_at, Updated_at, Status) " +
@@ -137,13 +137,11 @@ public class UserDAO extends DBContext {
         PreparedStatement stmt = null;
         try {
             connection.setAutoCommit(false);
-            // Xóa từ Department_has_User
             String sqlDepartment = "DELETE FROM Department_has_User WHERE User_id = ?";
             stmt = connection.prepareStatement(sqlDepartment);
             stmt.setInt(1, userId);
             stmt.executeUpdate();
             stmt.close();
-            // Xóa từ Users
             String sqlUser = "DELETE FROM Users WHERE User_id = ?";
             stmt = connection.prepareStatement(sqlUser);
             stmt.setInt(1, userId);
@@ -230,7 +228,7 @@ public class UserDAO extends DBContext {
                         rs.getInt("Department_id"),
                         rs.getString("Name"),
                         rs.getString("Description"),
-                        roleId // Gán roleId vào đối tượng Department để giữ thông tin
+                        roleId
                     ));
                 }
             }
@@ -254,10 +252,10 @@ public class UserDAO extends DBContext {
             System.err.println("Error fetching department ID for user ID " + userId + ": " + e.getMessage());
             e.printStackTrace();
         }
-        return null; // Nếu user chưa thuộc department nào
+        return null;
     }
 
-    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer departmentId, Integer roleId, String sortOrder) {
+    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer departmentId, Integer roleId, Boolean status, String sortOrder) {
         List<Users> users = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
             "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
@@ -282,6 +280,10 @@ public class UserDAO extends DBContext {
         if (roleId != null) {
             sql.append(" AND u.Role_id = ?");
             params.add(roleId);
+        }
+        if (status != null) {
+            sql.append(" AND u.Status = ?");
+            params.add(status ? 1 : 0);
         }
         sql.append(" ORDER BY u.Updated_at ")
            .append(sortOrder != null && sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC")
@@ -327,7 +329,7 @@ public class UserDAO extends DBContext {
         return users;
     }
 
-    public int getTotalUsers(String searchQuery, Integer departmentId, Integer roleId) {
+    public int getTotalUsers(String searchQuery, Integer departmentId, Integer roleId, Boolean status) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(DISTINCT u.User_id) FROM Users u");
         sql.append(" LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id");
         sql.append(" WHERE 1=1");
@@ -346,6 +348,10 @@ public class UserDAO extends DBContext {
         if (roleId != null) {
             sql.append(" AND u.Role_id = ?");
             params.add(roleId);
+        }
+        if (status != null) {
+            sql.append(" AND u.Status = ?");
+            params.add(status ? 1 : 0);
         }
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {

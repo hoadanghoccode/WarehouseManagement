@@ -2,6 +2,17 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    request.setAttribute("perms", perms);
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,11 +27,11 @@
     <link rel="stylesheet" href="vendors/swiper_slider/css/swiper.min.css" />
     <!-- select2 CSS -->
     <link rel="stylesheet" href="vendors/select2/css/select2.min.css" />
-    <!-- select2 CSS -->
+    <!-- nice-select CSS -->
     <link rel="stylesheet" href="vendors/niceselect/css/nice-select.css" />
     <!-- owl carousel CSS -->
     <link rel="stylesheet" href="vendors/owl_carousel/css/owl.carousel.css" />
-    <!-- gijgo css -->
+    <!-- gijgo CSS -->
     <link rel="stylesheet" href="vendors/gijgo/gijgo.min.css" />
     <!-- font awesome CSS -->
     <link rel="stylesheet" href="vendors/font_awesome/css/all.min.css" />
@@ -31,13 +42,13 @@
     <link rel="stylesheet" href="vendors/datatable/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="vendors/datatable/css/responsive.dataTables.min.css" />
     <link rel="stylesheet" href="vendors/datatable/css/buttons.dataTables.min.css" />
-    <!-- text editor css -->
+    <!-- text editor CSS -->
     <link rel="stylesheet" href="vendors/text_editor/summernote-bs4.css" />
-    <!-- morris css -->
+    <!-- morris CSS -->
     <link rel="stylesheet" href="vendors/morris/morris.css">
-    <!-- metarial icon css -->
+    <!-- material icon CSS -->
     <link rel="stylesheet" href="vendors/material_icon/material-icons.css" />
-    <!-- menu css  -->
+    <!-- menu CSS -->
     <link rel="stylesheet" href="css/metisMenu.css">
     <!-- style CSS -->
     <link rel="stylesheet" href="css/style1.css" />
@@ -522,11 +533,11 @@
         function toggleSortOrder() {
             var currentSort = '${sortOrder}';
             var newSort = currentSort === 'asc' ? 'desc' : 'asc';
-            var url = "${pageContext.request.contextPath}/userlist?page=${currentPage}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&sortOrder=" + newSort;
+            var url = "${pageContext.request.contextPath}/userlist?page=${currentPage}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sortOrder=" + newSort;
             window.location.href = url;
         }
         function dismissNotification() {
-            window.location.href = "${pageContext.request.contextPath}/userlist?page=${currentPage}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&sortOrder=${sortOrder}";
+            window.location.href = "${pageContext.request.contextPath}/userlist?page=${currentPage}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sortOrder=${sortOrder}";
         }
     </script>
 </head>
@@ -538,7 +549,9 @@
             <div class="header">
                 <h1 class="title">Users</h1>
                 <div class="header-actions">
-                    <button class="btn btn-primary" onclick="toggleCreateForm()">Create User</button>
+                    <c:if test="${perms['Customer_ADD']}"> 
+                        <button class="btn btn-primary" onclick="toggleCreateForm()">Create User</button>
+                    </c:if>
                 </div>
             </div>
             <div class="search-container">
@@ -559,6 +572,11 @@
                     <c:forEach var="role" items="${roles}">
                         <option value="${role.roleId}" ${role.roleId == selectedRoleId ? 'selected' : ''}>${role.name}</option>
                     </c:forEach>
+                </select>
+                <select name="status" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="true" ${selectedStatus == 'true' ? 'selected' : ''}>Active</option>
+                    <option value="false" ${selectedStatus == 'false' ? 'selected' : ''}>Inactive</option>
                 </select>
                 <button type="submit" class="btn btn-primary">Filter</button>
             </form>
@@ -632,7 +650,7 @@
             </div>
             <div class="pagination">
                 <c:if test="${currentPage > 1}">
-                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&sortOrder=${sortOrder}">Previous</a>
+                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sortOrder=${sortOrder}">Previous</a>
                 </c:if>
                 <c:forEach var="i" begin="1" end="${totalPages}">
                     <c:choose>
@@ -640,12 +658,12 @@
                             <span class="current">${i}</span>
                         </c:when>
                         <c:otherwise>
-                            <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&sortOrder=${sortOrder}">${i}</a>
+                            <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sortOrder=${sortOrder}">${i}</a>
                         </c:otherwise>
                     </c:choose>
                 </c:forEach>
                 <c:if test="${currentPage < totalPages}">
-                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&sortOrder=${sortOrder}">Next</a>
+                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sortOrder=${sortOrder}">Next</a>
                 </c:if>
             </div>
             <!-- Create User Modal -->
@@ -711,20 +729,21 @@
                                 <option value="true">Active</option>
                                 <option value="false">Inactive</option>
                             </select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Create User</button>
-                        <button type="button" onclick="closeModal('createUserModal')">Cancel</button>
-                    </div>
-                </form>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Create User</button>
+                            <button type="button" onclick="closeModal('createUserModal')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- User Detail Modal -->
+            <div id="userDetailModal" class="modal">
+                <div class="modal-content">
+                    <!-- Content will be loaded dynamically via JavaScript -->
+                </div>
             </div>
         </div>
-        <!-- User Detail Modal -->
-        <div id="userDetailModal" class="modal">
-            <div class="modal-content">
-                <!-- Content will be loaded dynamically via JavaScript -->
-            </div>
-        </div>
-    </div>
+    </section>
 </body>
 </html>
