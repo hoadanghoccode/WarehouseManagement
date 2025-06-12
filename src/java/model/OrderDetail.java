@@ -10,22 +10,26 @@ package model;
  */
 public class OrderDetail {
 
+    private int orderDetailId;
     private int materialId;
     private int orderId;
-    private int unitId;
+    private int subUnitId;
+    private int qualityId;
     private int quantity;
-    private int unitPrice;
 
     public OrderDetail() {
     }
 
-    public OrderDetail(int materialId, int orderId, int unitId, int quantity, int unitPrice) {
+    public OrderDetail(int orderDetailId, int materialId, int orderId, int subUnitId, int qualityId, int quantity) {
+        this.orderDetailId = orderDetailId;
         this.materialId = materialId;
         this.orderId = orderId;
-        this.unitId = unitId;
+        this.subUnitId = subUnitId;
+        this.qualityId = qualityId;
         this.quantity = quantity;
-        this.unitPrice = unitPrice;
     }
+
+    
 
     public int getMaterialId() {
         return materialId;
@@ -43,13 +47,6 @@ public class OrderDetail {
         this.orderId = orderId;
     }
 
-    public int getUnitId() {
-        return unitId;
-    }
-
-    public void setUnitId(int unitId) {
-        this.unitId = unitId;
-    }
 
     public int getQuantity() {
         return quantity;
@@ -59,14 +56,30 @@ public class OrderDetail {
         this.quantity = quantity;
     }
 
-    public int getUnitPrice() {
-        return unitPrice;
+    public int getOrderDetailId() {
+        return orderDetailId;
     }
 
-    public void setUnitPrice(int unitPrice) {
-        this.unitPrice = unitPrice;
+    public void setOrderDetailId(int orderDetailId) {
+        this.orderDetailId = orderDetailId;
     }
-    
-    
-    
+
+    public int getSubUnitId() {
+        return subUnitId;
+    }
+
+    public void setSubUnitId(int subUnitId) {
+        this.subUnitId = subUnitId;
+    }
+
+    public int getQualityId() {
+        return qualityId;
+    }
+
+    public void setQualityId(int qualityId) {
+        this.qualityId = qualityId;
+    }
+
+  
+
 }
