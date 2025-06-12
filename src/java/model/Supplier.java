@@ -1,6 +1,6 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click nbfs://nofollow/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nofollow/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package model;
 
@@ -8,46 +8,26 @@ package model;
  *
  * @author legia
  */
+//Bạn Giang tạo để test cái nhé.
 public class Supplier {
-
-    private int id;
+    private int supplierId;
     private String name;
     private String status;
 
-    public Supplier() {
-    }
+    // Constructors
+    public Supplier() {}
 
-    public Supplier(int id, String name) {
-        this.id = id;
+    public Supplier(int supplierId, String name, String status) {
+        this.supplierId = supplierId;
         this.name = name;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
         this.status = status;
     }
 
-    @Override
-    public String toString() {
-        return "Supplier{" + "id=" + id + ", name=" + name + ", status=" + status + '}';
-    }
+    // Getters and Setters
+    public int getSupplierId() { return supplierId; }
+    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
