@@ -84,6 +84,10 @@
         <servlet-name>DetailDepartmentController</servlet-name>
         <servlet-class>controller.DetailDepartmentController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>OrderDetailController</servlet-name>
+        <servlet-class>controller.OrderDetailController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -165,5 +169,9 @@
     <servlet-mapping>
         <servlet-name>DetailDepartmentController</servlet-name>
         <url-pattern>/detaildepartment</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OrderDetailController</servlet-name>
+        <url-pattern>/orderdetail</url-pattern>
     </servlet-mapping>
 </web-app>
