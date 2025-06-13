@@ -107,7 +107,6 @@ public class MaterialDAO extends DBContext {
         }
     }
 
-    // Update material (all fields except Create_at, with Last_updated auto-set, and status)
     public boolean updateMaterial(Material material) {
         String query = "UPDATE Materials SET Category_id = ?, SupplierId = ?, Name = ?, Image = ?, Status = ?, Last_updated = ? WHERE Material_id = ?";
         try {
@@ -117,7 +116,7 @@ public class MaterialDAO extends DBContext {
             ps.setString(3, material.getName());
             ps.setString(4, material.getImage());
             ps.setString(5, material.getStatus());
-            ps.setTimestamp(6, Timestamp.from(Instant.now())); // Auto-set Last_updated to current timestamp
+            ps.setTimestamp(6, Timestamp.from(Instant.now())); 
             ps.setInt(7, material.getMaterialId());
 
             // Check if material is in pending order or pending import/export
@@ -133,12 +132,11 @@ public class MaterialDAO extends DBContext {
         }
     }
 
-    // Soft delete material (change status to inactive) with checks
     public boolean deleteMaterial(int materialId) {
         String query = "UPDATE Materials SET Status = 'inactive', Last_updated = ? WHERE Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
-            ps.setTimestamp(1, Timestamp.from(Instant.now())); // Auto-set Last_updated to current timestamp
+            ps.setTimestamp(1, Timestamp.from(Instant.now())); 
             ps.setInt(2, materialId);
 
             // Check if material is in pending order or pending import/export

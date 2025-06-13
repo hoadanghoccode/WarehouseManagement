@@ -2,6 +2,8 @@
 <%@ page import="model.Material" %>
 <%@ page import="model.MaterialDetail" %>
 <%@ page import="dal.MaterialDAO" %>
+<%@ page import="model.Category" %>
+<%@ page import="model.Supplier" %>
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
@@ -39,10 +41,11 @@
         table.table tbody tr:nth-child(even) { background-color: #f9fafb; }
         table.table tbody tr:hover { background-color: #eef2ff; }
         .action-buttons { display: flex; gap: 8px; }
-        .no-data { text-align: center; padding: 24px; background-color: #f3f4f6; border-radius: 12px; font-size: 16px; color: #9ca3af; }
+        .no-data { text-align: center; padding: 24px; background-color: #f3f4f6; border-radius: 12px; font-size: 16px; color: #6b7280; }
         .modal .modal-image { width: 200px; height: auto; float: left; margin-right: 20px; }
         .modal .detail-table { float: right; width: calc(100% - 220px); }
         .material-detail-table { margin-top: 20px; clear: both; }
+        .modal-image-placeholder { width: 200px; height: 150px; background-color: #f3f4f6; border: 1px solid #e5e7eb; text-align: center; padding-top: 60px; color: #6b7280; }
 
         @media (max-width: 768px) {
             .main-content { margin-left: 0; }
@@ -113,13 +116,13 @@
                                     <td><strong>${status.index + 1 + (page - 1) * 5}</strong></td>
                                     <td>${material.name}</td>
                                     <td>
-                                        <c:set var="category" value="${material.categoryId}"/>
+                                        <c:set var="category" value="${material.categoryId}" />
                                         <c:forEach var="cat" items="${categories}">
                                             <c:if test="${cat.categoryId == category}">${cat.name}</c:if>
                                         </c:forEach>
                                     </td>
                                     <td>
-                                        <c:set var="supplier" value="${material.supplierId}"/>
+                                        <c:set var="supplier" value="${material.supplierId}" />
                                         <c:forEach var="sup" items="${suppliers}">
                                             <c:if test="${sup.supplierId == supplier}">${sup.name}</c:if>
                                         </c:forEach>
@@ -273,29 +276,8 @@
                                 <h5 class="modal-title" id="materialDetailModalLabel">Material Details</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div class="modal-body">
-                                <img src="" class="modal-image" alt="Material Image" id="modalImage" onerror="this.onerror=null; this.src='images/default-image.jpg';">
-                                <div class="detail-table">
-                                    <p><strong>ID:</strong> <span id="modalMaterialId"></span></p>
-                                    <p><strong>Name:</strong> <span id="modalName"></span></p>
-                                    <p><strong>Category:</strong> <span id="modalCategory"></span></p>
-                                    <p><strong>Supplier:</strong> <span id="modalSupplier"></span></p>
-                                    <p><strong>Created At:</strong> <span id="modalCreateAt"></span></p>
-                                    <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-                                </div>
-                                <table class="table material-detail-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Detail ID</th>
-                                            <th>SubUnit ID</th>
-                                            <th>Quality ID</th>
-                                            <th>Quantity</th>
-                                            <th>Last Updated</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="materialDetailTableBody">
-                                    </tbody>
-                                </table>
+                            <div class="modal-body" id="materialDetailContent">
+                                <p>Loading...</p>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -303,58 +285,31 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 
+    <!-- JS thư viện -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Handle view detail button click
-        document.querySelectorAll('.view-detail').forEach(btn => {
-            btn.addEventListener('click', function(event) {
-                event.preventDefault();
-                let materialId = this.getAttribute('data-id');
-                fetch(`detail-material?id=${materialId}`, {
-                    headers: { 'Accept': 'application/json' }
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById('modalMaterialId').textContent = data.materialId || 'N/A';
-                    document.getElementById('modalName').textContent = data.name || 'N/A';
-                    document.getElementById('modalCategory').textContent = data.categoryName || 'N/A';
-                    document.getElementById('modalSupplier').textContent = data.supplierName || 'N/A';
-                    document.getElementById('modalCreateAt').textContent = data.createAt || 'N/A';
-                    document.getElementById('modalStatus').textContent = data.status || 'N/A';
-                    document.getElementById('modalImage').src = data.image || 'images/default-image.jpg';
-
-                    let detailTableBody = document.getElementById('materialDetailTableBody');
-                    detailTableBody.innerHTML = '';
-                    if (data.details && data.details.length > 0) {
-                        data.details.forEach(detail => {
-                            let row = `<tr>
-                                <td>${detail.materialDetailId || 'N/A'}</td>
-                                <td>${detail.subUnitId || 'N/A'}</td>
-                                <td>${detail.qualityId || 'N/A'}</td>
-                                <td>${detail.quantity || 'N/A'}</td>
-                                <td>${detail.lastUpdated || 'N/A'}</td>
-                            </tr>`;
-                            detailTableBody.innerHTML += row;
-                        });
-                    } else {
-                        detailTableBody.innerHTML = '<tr><td colspan="5">No details available</td></tr>';
+        $(document).ready(function() {
+            $('.view-detail').on('click', function(e) {
+                e.preventDefault();
+                var materialId = $(this).data('id');
+                $('#materialDetailContent').html('<p>Loading...</p>');
+                $('#materialDetailContent').load(
+                    'getMaterial.jsp?materialId=' + materialId,
+                    function(response, status, xhr) {
+                        if (status === "error") {
+                            $('#materialDetailContent').html('<p class="text-danger">Không thể tải chi tiết.</p>');
+                        }
                     }
-
-                    new bootstrap.Modal(document.getElementById('materialDetailModal')).show();
-                })
-                .catch(error => {
-                    console.error('Error fetching material detail:', error);
-                    alert('Failed to load material details. Please try again.');
-                });
-            }, { once: false }); // Allow multiple clicks but prevent default behavior
+                );
+                var modal = new bootstrap.Modal(document.getElementById('materialDetailModal'));
+                modal.show();
+            });
         });
     </script>
 </body>
