@@ -237,27 +237,43 @@
             console.log("Filter - Category: " + (categoryValue || "empty") + ", Supplier: " + (supplierValue || "empty") + ", Quality: " + (qualityValue || "empty") + ", Search: " + searchText);
 
             filteredRows = allRows.filter((row) => {
-                let materialId = row.getAttribute("data-material-id");
-                let materialName = row.querySelector(".material-name").textContent.trim().toLowerCase();
-                let categoryName = row.querySelector(".category-name").textContent.trim().toLowerCase();
-                let supplierName = row.querySelector(".supplier-name").textContent.trim().toLowerCase();
-                let subUnitName = row.querySelector(".subunit-name").textContent.trim().toLowerCase();
-                let qualityName = row.querySelector(".quality-name").textContent.trim().toLowerCase();
-                let quantityText = row.querySelector(".quantity").textContent.trim().replace(/,/g, "");
-                let inventoryDate = row.querySelector(".inventory-date").textContent.trim().toLowerCase();
-                let rowCategoryId = row.getAttribute("data-category-id");
-                let rowSupplierId = row.getAttribute("data-supplier-id");
-                let rowQualityId = row.getAttribute("data-quality-id");
+                let match = true;
+                let materialId = row.getAttribute("data-material-id") || "";
+                let materialName = row.querySelector(".material-name")?.textContent.trim().toLowerCase() || "";
+                let categoryName = row.querySelector(".category-name")?.textContent.trim().toLowerCase() || "";
+                let supplierName = row.querySelector(".supplier-name")?.textContent.trim().toLowerCase() || "";
+                let subUnitName = row.querySelector(".subunit-name")?.textContent.trim().toLowerCase() || "";
+                let qualityName = row.querySelector(".quality-name")?.textContent.trim().toLowerCase() || "";
+                let quantityText = row.querySelector(".quantity")?.textContent.trim().replace(/,/g, "") || "";
+                let inventoryDate = row.querySelector(".inventory-date")?.textContent.trim().toLowerCase() || "";
+                let rowCategoryId = row.getAttribute("data-category-id") || "0";
+                let rowSupplierId = row.getAttribute("data-supplier-id") || "0";
+                let rowQualityId = row.getAttribute("data-quality-id") || "0";
 
-                let isMatchSearch = !searchText || materialId.includes(searchText) || materialName.includes(searchText) ||
-                                    categoryName.includes(searchText) || supplierName.includes(searchText) ||
-                                    subUnitName.includes(searchText) || qualityName.includes(searchText) ||
-                                    quantityText.includes(searchText) || inventoryDate.includes(searchText);
-                let isMatchCategory = !categoryValue || parseInt(rowCategoryId) === parseInt(categoryValue);
-                let isMatchSupplier = !supplierValue || parseInt(rowSupplierId) === parseInt(supplierValue);
-                let isMatchQuality = !qualityValue || (rowQualityId && parseInt(rowQualityId) === parseInt(qualityValue)) || (!rowQualityId && qualityValue === "0");
+                // Kiểm tra tìm kiếm
+                if (searchText) {
+                    match = materialId.includes(searchText) || materialName.includes(searchText) ||
+                            categoryName.includes(searchText) || supplierName.includes(searchText) ||
+                            subUnitName.includes(searchText) || qualityName.includes(searchText) ||
+                            quantityText.includes(searchText) || inventoryDate.includes(searchText);
+                }
 
-                return isMatchSearch && isMatchCategory && isMatchSupplier && isMatchQuality;
+                // Kiểm tra category
+                if (categoryValue && categoryValue !== "0") {
+                    match = match && (parseInt(rowCategoryId) === parseInt(categoryValue));
+                }
+
+                // Kiểm tra supplier
+                if (supplierValue && supplierValue !== "0") {
+                    match = match && (parseInt(rowSupplierId) === parseInt(supplierValue));
+                }
+
+                // Kiểm tra quality
+                if (qualityValue && qualityValue !== "0") {
+                    match = match && (parseInt(rowQualityId) === parseInt(qualityValue));
+                }
+
+                return match;
             });
 
             currentPage = 1;

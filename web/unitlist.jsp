@@ -1,12 +1,12 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Unit Management</title>
+    <title>Current Inventory</title>
     <link rel="stylesheet" type="text/css" href="css/permissionlist.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -40,307 +40,164 @@
         .stats-info i { color: #3b82f6; }
         .stats-info strong { color: #1f2937; }
         .table-container { overflow-x: auto; background-color: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); }
-        table.table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        table.table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         table.table th, table.table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 14px; vertical-align: middle; }
-        table.table th { background-color: #f3f4f6; font-weight: 600; color: #1f2937; position: sticky; top: 0; z-index: 2; }
+        table.table th { background-color: #f3f4f6; font-weight: 600; color: #1f2937; }
         table.table tbody tr:nth-child(even) { background-color: #f9fafb; }
         table.table tbody tr:hover { background-color: #eef2ff; }
         .action-buttons { display: flex; gap: 8px; }
-        .no-data { text-align: center; padding: 24px; background-color: #f3f4f6; border-radius: 12px; font-size: 16px; color: #9ca3af; }
+        .no-data { text-align: center; padding: 16px; background-color: #f3f4f6; border-radius: 8px; font-size: 16px; color: #6b7280; }
         .modal-content { background-color: white; margin: 6% auto; padding: 24px 32px; border-radius: 4px; width: 90%; max-width: 480px; position: relative; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-size: 14px; }
-        .modal .close { position: absolute; top: 12px; right: 18px; font-size: 24px; cursor: pointer; color: #9ca3af; transition: color 0.2s; }
+        .modal .close { position: absolute; top: 12px; right: 18px; font-size: 24px; cursor: pointer; color: #6b7280; }
         .modal .close:hover { color: #374151; }
         .detail-item { margin-bottom: 14px; display: flex; gap: 8px; }
-        .detail-item strong { color: #1f2937; width: 110px; }
-        .form-group { margin-bottom: 16px; }
-        .error { color: red; font-size: 14px; }
-        .nav-tabs .nav-link { font-weight: 500; color: #6b7280; }
-        .nav-tabs .nav-link.active { color: #1f2937; border-bottom: 2px solid #4f46e5; }
+        .detail-item strong { color: #333; width: 120px; }
+        .error { color: #dc3545; font-size: 14px; }
         .pagination { font-size: 14px; }
         .pagination a, .pagination span { padding: 8px 12px; margin: 0 4px; text-decoration: none; color: #374151; }
         .pagination span { background-color: #9e9e9e1c; color: white; border-radius: 4px; }
         .pagination a:hover { background-color: #e5e7eb; border-radius: 4px; }
-        @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 600px; } .modal-content { padding: 20px; } }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; text-transform: capitalize; }
+        .quality-available { background-color: #22c55e; color: white; }
+        .quality-notavailable { background-color: #ef4444; color: white; }
+        @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 1000px; } .modal-content { padding: 20px; } }
     </style>
 </head>
 <body>
-    <jsp:include page="sidebar.jsp" flush="true"/>
+    <jsp:include page="sidebar.jsp" flush="true" />
     <section class="main_content dashboard_part">
         <%@ include file="navbar.jsp" %>
         <div class="container">
-            <h1 class="title">Unit Management</h1>
-
-            <!-- Tabs -->
-            <ul class="nav nav-tabs" id="unitTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="conversions-tab" data-bs-toggle="tab" data-bs-target="#conversions" type="button" role="tab" aria-controls="conversions" aria-selected="true">Unit Conversions</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="subunits-tab" data-bs-toggle="tab" data-bs-target="#subunits" type="button" role="tab" aria-controls="subunits" aria-selected="false">Subunits</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="units-tab" data-bs-toggle="tab" data-bs-target="#units" type="button" role="tab" aria-controls="units" aria-selected="false">Units</button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="unitTabsContent">
-                <!-- Unit Conversions Tab -->
-                <div class="tab-pane fade show active" id="conversions" role="tabpanel" aria-labelledby="conversions-tab">
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-md-4">
-                            <input type="text" id="conversionSearchInput" class="form-control" placeholder="Search by unit/subunit..." oninput="filterUnits('conversion')">
-                        </div>
-                        <div class="col-md-3">
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#conversionEditModal" onclick="openAddConversionModal()"><i class="fas fa-plus"></i> Add Conversion</button>
-                        </div>
-                    </div>
-                    <c:if test="${not empty errorMsg}">
-                        <div class="alert alert-danger">${errorMsg}</div>
-                    </c:if>
-                    <div class="table-container mb-4">
-                        <table class="table" id="conversionsTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px">#</th>
-                                    <th>Unit</th>
-                                    <th>Subunit</th>
-                                    <th>Factor</th>
-                                    <th style="width: 140px">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:choose>
-                                    <c:when test="${not empty conversions}">
-                                        <c:forEach var="conversion" items="${conversions}" varStatus="status">
-                                            <tr data-index="${status.index + 1}" data-conversion-id="${conversion.unitConversionId}">
-                                                <td class="row-number"><strong>${status.index + 1}</strong></td>
-                                                <td class="conversion-unit">
-                                                    <c:forEach var="unit" items="${units}">
-                                                        <c:if test="${unit.unitId == conversion.unitId}">${unit.name}</c:if>
-                                                    </c:forEach>
-                                                </td>
-                                                <td class="conversion-subunit">
-                                                    <c:forEach var="subunit" items="${subunits}">
-                                                        <c:if test="${subunit.subUnitId == conversion.subUnitId}">${subunit.name}</c:if>
-                                                    </c:forEach>
-                                                </td>
-                                                <td class="conversion-factor">${conversion.factor}</td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <a href="unit?entity=conversion&action=detail&id=${conversion.unitConversionId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
-                                                        <a href="unit?entity=conversion&action=edit&id=${conversion.unitConversionId}" class="btn btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
-                                                        <form action="unit" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this conversion?')">
-                                                            <input type="hidden" name="entity" value="conversion">
-                                                            <input type="hidden" name="action" value="delete">
-                                                            <input type="hidden" name="id" value="${conversion.unitConversionId}">
-                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <tr>
-                                            <td colspan="5" class="no-data">No unit conversions found</td>
-                                        </tr>
-                                    </c:otherwise>
-                                </c:choose>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination" id="conversionPagination"></div>
+            <h1 class="title">Current Inventory</h1>
+            <div class="row g-2 mb-3 align-items-center">
+                <div class="col-md-3">
+                    <select class="form-select" id="categoryFilter">
+                        <option value="0" ${categoryId == 0 ? 'selected' : ''}>All Categories</option>
+                        <c:forEach var="category" items="${categoryList}">
+                            <option value="${category.categoryId}" ${category.categoryId == categoryId ? 'selected' : ''}>${category.name}</option>
+                        </c:forEach>
+                    </select>
                 </div>
-
-                <!-- Subunits Tab -->
-                <div class="tab-pane fade" id="subunits" role="tabpanel" aria-labelledby="subunits-tab">
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-md-4">
-                            <input type="text" id="subunitSearchInput" class="form-control" placeholder="Search by name..." oninput="filterUnits('subunit')">
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="subunitActiveFilter" onchange="filterUnits('subunit')">
-                                <option value="">All Status</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#subunitEditModal" onclick="openAddSubunitModal()"><i class="fas fa-plus"></i> Add Subunit</button>
-                        </div>
-                    </div>
-                    <c:if test="${not empty errorMsg}">
-                        <div class="alert alert-danger">${errorMsg}</div>
-                    </c:if>
-                    <div class="table-container mb-4">
-                        <table class="table" id="subunitsTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px">#</th>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                    <th style="width: 140px">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:choose>
-                                    <c:when test="${not empty subunits}">
-                                        <c:forEach var="subunit" items="${subunits}" varStatus="status">
-                                            <tr data-index="${status.index + 1}" data-subunit-id="${subunit.subUnitId}">
-                                                <td class="row-number"><strong>${status.index + 1}</strong></td>
-                                                <td class="subunit-name">${subunit.name}</td>
-                                                <td class="subunit-status">
-                                                    <span style="color: ${subunit.status == 'active' ? '#065f46' : '#991b1b'}; background-color: ${subunit.status == 'active' ? '#d1fae5' : '#fee2e2'}; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">${subunit.status == 'active' ? 'Active' : 'Inactive'}</span>
-                                                </td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <a href="unit?entity=subunit&action=detail&id=${subunit.subUnitId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
-                                                        <a href="unit?entity=subunit&action=edit&id=${subunit.subUnitId}" class="btn btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
-                                                        <form action="unit" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this subunit?')">
-                                                            <input type="hidden" name="entity" value="subunit">
-                                                            <input type="hidden" name="action" value="delete">
-                                                            <input type="hidden" name="id" value="${subunit.subUnitId}">
-                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <tr>
-                                            <td colspan="4" class="no-data">No subunits found</td>
-                                        </tr>
-                                    </c:otherwise>
-                                </c:choose>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination" id="subunitPagination"></div>
+                <div class="col-md-3">
+                    <select class="form-select" id="supplierFilter">
+                        <option value="0" ${supplierId == 0 ? 'selected' : ''}>All Suppliers</option>
+                        <c:forEach var="supplier" items="${supplierList}">
+                            <option value="${supplier.supplierId}" ${supplier.supplierId == supplierId ? 'selected' : ''}>${supplier.name}</option>
+                        </c:forEach>
+                    </select>
                 </div>
-
-                <!-- Units Tab -->
-                <div class="tab-pane fade" id="units" role="tabpanel" aria-labelledby="units-tab">
-                    <div class="row g-2 mb-3 align-items-center">
-                        <div class="col-md-4">
-                            <input type="text" id="unitSearchInput" class="form-control" placeholder="Search by name..." oninput="filterUnits('unit')">
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="unitActiveFilter" onchange="filterUnits('unit')">
-                                <option value="">All Status</option>
-                                <option value="true">Active</option>
-                                <option value="false">Inactive</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#unitEditModal" onclick="openAddUnitModal()"><i class="fas fa-plus"></i> Add Unit</button>
-                        </div>
-                    </div>
-                    <c:if test="${not empty errorMsg}">
-                        <div class="alert alert-danger">${errorMsg}</div>
-                    </c:if>
-                    <div class="table-container mb-4">
-                        <table class="table" id="unitsTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px">#</th>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                    <th style="width: 140px">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:choose>
-                                    <c:when test="${not empty units}">
-                                        <c:forEach var="unit" items="${units}" varStatus="status">
-                                            <tr data-index="${status.index + 1}" data-unit-id="${unit.unitId}">
-                                                <td class="row-number"><strong>${status.index + 1}</strong></td>
-                                                <td class="unit-name">${unit.name}</td>
-                                                <td class="unit-status">
-                                                    <c:choose>
-                                                        <c:when test="${unit.active}">
-                                                            <span style="color: #065f46; background-color: #d1fae5; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">Active</span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span style="color: #991b1b; background-color: #fee2e2; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">Inactive</span>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <a href="unit?entity=unit&action=detail&id=${unit.unitId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
-                                                        <a href="unit?entity=unit&action=edit&id=${unit.unitId}" class="btn btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
-                                                        <form action="unit" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this unit?')">
-                                                            <input type="hidden" name="entity" value="unit">
-                                                            <input type="hidden" name="action" value="delete">
-                                                            <input type="hidden" name="id" value="${unit.unitId}">
-                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <tr>
-                                            <td colspan="4" class="no-data">No units found</td>
-                                        </tr>
-                                    </c:otherwise>
-                                </c:choose>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination" id="unitPagination"></div>
+                <div class="col-md-3">
+                    <select class="form-select" id="qualityFilter">
+                        <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
+                        <c:forEach var="quality" items="${qualityList}">
+                            <option value="${quality.qualityId}" ${quality.qualityId == qualityId ? 'selected' : ''}>${quality.qualityName}</option>
+                        </c:forEach>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by Name/ID..." value="${searchTerm}">
                 </div>
             </div>
+            <c:if test="${not empty errorMsg}">
+                <div class="alert alert-danger">${errorMsg}</div>
+            </c:if>
+            <div class="table-container mb-4">
+                <table class="table" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px">#</th>
+                            <th>Material Name</th>
+                            <th>Category</th>
+                            <th>Supplier</th>
+                            <th>Subunit</th>
+                            <th>Quality</th>
+                            <th>Quantity</th>
+                            <th>Date</th>
+                            <th style="width: 100px">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:choose>
+                            <c:when test="${not empty inventoryList}">
+                                <c:forEach var="item" items="${inventoryList}" varStatus="status">
+                                    <tr data-material-id="${item.materialId}" data-category-id="${item.categoryId}" 
+                                        data-supplier-id="${item.supplierId}" data-subunit-id="${item.subUnitId}" 
+                                        data-quality-id="${item.qualityId}">
+                                        <td class="row-number"><strong>${status.index + 1}</strong></td>
+                                        <td class="material-name">${item.materialName}</td>
+                                        <td class="category-name">${item.categoryName}</td>
+                                        <td class="supplier-name">${item.supplierName}</td>
+                                        <td class="subunit-name">${item.subUnitName}</td>
+                                        <td class="quality-name">
+                                            <c:choose>
+                                                <c:when test="${item.qualityName == 'available'}">
+                                                    <span class="badge quality-available">Available</span>
+                                                </c:when>
+                                                <c:when test="${item.qualityName == 'notAvailable'}">
+                                                    <span class="badge quality-notavailable">Not Available</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span>${item.qualityName}</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td class="quantity">
+                                            <c:choose>
+                                                <c:when test="${item.qualityName == 'available' and item.closingQty != null}">
+                                                    <fmt:formatNumber value="${item.closingQty}" pattern="#,##0"/>
+                                                </c:when>
+                                                <c:when test="${item.qualityName == 'notAvailable' and item.damagedQuantity != null}">
+                                                    <fmt:formatNumber value="${item.damagedQuantity}" pattern="#,##0.00"/>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span>0</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td class="inventory-date"><fmt:formatDate value="${item.inventoryDate}" pattern="dd/MM/yyyy"/></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailModal" 
+                                                        onclick="viewDetails(${item.materialId}, ${item.subUnitId}, '${item.materialName}', '${item.categoryName}', '${item.supplierName}', '${item.subUnitName}', '${item.qualityName}', ${item.closingQty}, '${item.inventoryDate}', ${item.openingQty}, ${item.importQty}, ${item.exportQty}, ${item.damagedQuantity != null ? item.damagedQuantity : 0}, '${item.note}')">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <tr>
+                                    <td colspan="9" class="no-data">No inventory items found</td>
+                                </tr>
+                            </c:otherwise>
+                        </c:choose>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
 
-            <!-- Unit Edit/Add Modal -->
-            <div class="modal fade" id="unitEditModal" tabindex="-1" aria-labelledby="unitEditModalLabel" aria-hidden="true">
+            <!-- Detail Modal -->
+            <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="unitEditModalLabel"></h5>
+                            <h5 class="modal-title" id="detailModalLabel">Inventory Details</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <form action="unit" method="POST" id="unitForm">
-                                <input type="hidden" name="entity" value="unit">
-                                <input type="hidden" name="action" id="unitModalAction">
-                                <input type="hidden" id="editUnitId" name="unitId">
-                                <div class="form-group">
-                                    <label for="unitName">Name:</label>
-                                    <input type="text" class="form-control" id="unitName" name="name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="unitIsActive">Status:</label>
-                                    <select class="form-control" id="unitIsActive" name="isActive" required>
-                                        <option value="true">Yes</option>
-                                        <option value="false">No</option>
-                                    </select>
-                                </div>
-                                <div id="unitErrorMsg" class="error">${errorMsg}</div>
-                                <button type="submit" class="btn btn-primary" id="unitSubmitBtn">Save</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Unit Details Modal -->
-            <div class="modal fade" id="unitDetailModal" tabindex="-1" aria-labelledby="unitDetailModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="unitDetailModalLabel">Unit Details</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="detail-item"><strong>ID:</strong> <span id="modal-unit-id"></span></div>
-                            <div class="detail-item"><strong>Name:</strong> <span id="modal-unit-name"></span></div>
-                            <div class="detail-item"><strong>Status:</strong> <span id="modal-unit-status"></span></div>
+                            <div class="detail-item"><strong>Material Name:</strong> <span id="modal-material-name"></span></div>
+                            <div class="detail-item"><strong>Category:</strong> <span id="modal-category-name"></span></div>
+                            <div class="detail-item"><strong>Supplier:</strong> <span id="modal-supplier-name"></span></div>
+                            <div class="detail-item"><strong>Subunit:</strong> <span id="modal-subunit-name"></span></div>
+                            <div class="detail-item"><strong>Quality:</strong> <span id="modal-quality"></span></div>
+                            <div class="detail-item"><strong>Total Quantity (Available):</strong> <span id="modal-closing-qty"></span></div>
+                            <div class="detail-item"><strong>Damaged Quantity:</strong> <span id="modal-damaged-qty"></span></div>
+                            <div class="detail-item"><strong>Opening Quantity:</strong> <span id="modal-opening-qty"></span></div>
+                            <div class="detail-item"><strong>Import Quantity:</strong> <span id="modal-import-qty"></span></div>
+                            <div class="detail-item"><strong>Export Quantity:</strong> <span id="modal-export-qty"></span></div>
+                            <div class="detail-item"><strong>Date:</strong> <span id="modal-inventory-date"></span></div>
+                            <div class="detail-item"><strong>Note:</strong> <span id="modal-note"></span></div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -348,623 +205,329 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Subunit Edit/Add Modal -->
-            <div class="modal fade" id="subunitEditModal" tabindex="-1" aria-labelledby="subunitEditModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="subunitEditModalLabel"></h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="unit" method="POST" id="subunitForm">
-                                <input type="hidden" name="entity" value="subunit">
-                                <input type="hidden" name="action" id="subunitModalAction">
-                                <input type="hidden" id="editSubUnitId" name="subUnitId">
-                                <div class="form-group">
-                                    <label for="subunitName">Name:</label>
-                                    <input type="text" class="form-control" id="subunitName" name="name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="subunitStatus">Status:</label>
-                                    <select class="form-control" id="subunitStatus" name="status" required>
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
-                                <div id="subunitErrorMsg" class="error">${errorMsg}</div>
-                                <button type="submit" class="btn btn-primary" id="subunitSubmitBtn">Save</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Subunit Details Modal -->
-            <div class="modal fade" id="subunitDetailModal" tabindex="-1" aria-labelledby="subunitDetailModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="subunitDetailModalLabel">Subunit Details</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="detail-item"><strong>ID:</strong> <span id="modal-subunit-id"></span></div>
-                            <div class="detail-item"><strong>Name:</strong> <span id="modal-subunit-name"></span></div>
-                            <div class="detail-item"><strong>Status:</strong> <span id="modal-subunit-status"></span></div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Unit Conversion Edit/Add Modal -->
-            <div class="modal fade" id="conversionEditModal" tabindex="-1" aria-labelledby="conversionEditModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="conversionEditModalLabel"></h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="unit" method="POST" id="conversionForm">
-                                <input type="hidden" name="entity" value="conversion">
-                                <input type="hidden" name="action" id="conversionModalAction">
-                                <input type="hidden" id="editUnitConversionId" name="unitConversionId">
-                                <div class="form-group">
-                                    <label for="conversionUnitId">Unit:</label>
-                                    <select class="form-control" id="conversionUnitId" name="unitId" required>
-                                        <option value="">Select Unit</option>
-                                        <c:forEach var="unit" items="${units}">
-                                            <option value="${unit.unitId}">${unit.name}</option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="conversionSubUnitId">Subunit:</label>
-                                    <select class="form-control" id="conversionSubUnitId" name="subUnitId" required>
-                                        <option value="">Select Subunit</option>
-                                        <c:forEach var="subunit" items="${subunits}">
-                                            <option value="${subunit.subUnitId}">${subunit.name}</option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="conversionFactor">Factor:</label>
-                                    <input type="number" step="0.01" class="form-control" id="conversionFactor" name="factor" required>
-                                </div>
-                                <div id="conversionErrorMsg" class="error">${errorMsg}</div>
-                                <button type="submit" class="btn btn-primary" id="conversionSubmitBtn">Save</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Unit Conversion Details Modal -->
-            <div class="modal fade" id="conversionDetailModal" tabindex="-1" aria-labelledby="conversionDetailModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="conversionDetailModalLabel">Unit Conversion Details</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="detail-item"><strong>ID:</strong> <span id="modal-conversion-id"></span></div>
-                            <div class="detail-item"><strong>Unit:</strong> <span id="modal-conversion-unit"></span></div>
-                            <div class="detail-item"><strong>Subunit:</strong> <span id="modal-conversion-subunit"></span></div>
-                            <div class="detail-item"><strong>Factor:</strong> <span id="modal-conversion-factor"></span></div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="vendors/datatable/js/jquery.dataTables.min.js"></script>
     <script>
-        // Pagination state for each tab
-        const paginationState = {
-            conversion: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] },
-            subunit: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] },
-            unit: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] }
-        };
+        let pageSize = 5;
+        let currentPage = 1;
+        let allRows = [];
+        let filteredRows = [];
 
-        // Initialize pagination on page load
         window.addEventListener("DOMContentLoaded", function () {
-            // Initialize rows for each table
-            paginationState.conversion.allRows = Array.from(document.querySelectorAll("#conversionsTable tbody tr:not(.no-data)"));
-            paginationState.conversion.filteredRows = [...paginationState.conversion.allRows];
-            paginationState.subunit.allRows = Array.from(document.querySelectorAll("#subunitsTable tbody tr:not(.no-data)"));
-            paginationState.subunit.filteredRows = [...paginationState.subunit.allRows];
-            paginationState.unit.allRows = Array.from(document.querySelectorAll("#unitsTable tbody tr:not(.no-data)"));
-            paginationState.unit.filteredRows = [...paginationState.unit.allRows];
+            allRows = Array.from(document.querySelectorAll("#inventoryTable tbody tr:not(.no-data)"));
+            filteredRows = [...allRows];
+            updatePagination();
+            updateTable();
+            console.log("Inventory table loaded with " + allRows.length + " rows");
 
-            // Update tables and pagination
-            updateTable('conversion');
-            updatePagination('conversion');
-            updateTable('subunit');
-            updatePagination('subunit');
-            updateTable('unit');
-            updatePagination('unit');
-
-            console.log("Conversions table loaded with " + paginationState.conversion.allRows.length + " rows");
-            console.log("Subunits table loaded with " + paginationState.subunit.allRows.length + " rows");
-            console.log("Units table loaded with " + paginationState.unit.allRows.length + " rows");
-
-            // Bind filter events
-            document.querySelectorAll("#conversionSearchInput").forEach(el => {
-                el.addEventListener("input", () => filterUnits('conversion'));
-            });
-            document.querySelectorAll("#subunitSearchInput, #subunitActiveFilter").forEach(el => {
-                el.addEventListener("input", () => filterUnits('subunit'));
-                el.addEventListener("change", () => filterUnits('subunit'));
-            });
-            document.querySelectorAll("#unitSearchInput, #unitActiveFilter").forEach(el => {
-                el.addEventListener("input", () => filterUnits('unit'));
-                el.addEventListener("change", () => filterUnits('unit'));
+            document.querySelectorAll("#categoryFilter, #supplierFilter, #qualityFilter, #searchInput").forEach((element) => {
+                element.addEventListener("input", filterInventory);
+                element.addEventListener("change", filterInventory);
             });
         });
 
-        function filterUnits(entity) {
-            let searchInput, statusFilter, tableId, nameClass, statusClass, paginationId;
-            let state = paginationState[entity];
+        function filterInventory() {
+            let searchText = document.getElementById("searchInput").value.trim().toLowerCase();
+            let categoryValue = document.getElementById("categoryFilter").value;
+            let supplierValue = document.getElementById("supplierFilter").value;
+            let qualityValue = document.getElementById("qualityFilter").value;
 
-            if (entity === 'unit') {
-                searchInput = '#unitSearchInput';
-                statusFilter = '#unitActiveFilter';
-                tableId = '#unitsTable';
-                nameClass = '.unit-name';
-                statusClass = '.unit-status';
-                paginationId = '#unitPagination';
-            } else if (entity === 'subunit') {
-                searchInput = '#subunitSearchInput';
-                statusFilter = '#subunitActiveFilter';
-                tableId = '#subunitsTable';
-                nameClass = '.subunit-name';
-                statusClass = '.subunit-status';
-                paginationId = '#subunitPagination';
-            } else if (entity === 'conversion') {
-                searchInput = '#conversionSearchInput';
-                tableId = '#conversionsTable';
-                nameClass = '.conversion-unit, .conversion-subunit';
-                paginationId = '#conversionPagination';
-            }
+            console.log("Filter - Category: " + (categoryValue || "empty") + ", Supplier: " + (supplierValue || "empty") + ", Quality: " + (qualityValue || "empty") + ", Search: " + searchText);
 
-            const search = document.querySelector(searchInput).value.trim().toLowerCase();
-            const status = entity !== 'conversion' ? document.querySelector(statusFilter)?.value : '';
+            filteredRows = allRows.filter((row) => {
+                let materialId = row.getAttribute("data-material-id");
+                let materialName = row.querySelector(".material-name").textContent.trim().toLowerCase();
+                let categoryName = row.querySelector(".category-name").textContent.trim().toLowerCase();
+                let supplierName = row.querySelector(".supplier-name").textContent.trim().toLowerCase();
+                let subUnitName = row.querySelector(".subunit-name").textContent.trim().toLowerCase();
+                let qualityName = row.querySelector(".quality-name").textContent.trim().toLowerCase();
+                let quantityText = row.querySelector(".quantity").textContent.trim().replace(/,/g, "");
+                let inventoryDate = row.querySelector(".inventory-date").textContent.trim().toLowerCase();
+                let rowCategoryId = row.getAttribute("data-category-id");
+                let rowSupplierId = row.getAttribute("data-supplier-id");
+                let rowQualityId = row.getAttribute("data-quality-id");
 
-            console.log(`Filter ${entity} - Search: ${search}, Status: ${status || 'none'}`);
+                let isMatchSearch = !searchText || materialId.includes(searchText) || materialName.includes(searchText) ||
+                                    categoryName.includes(searchText) || supplierName.includes(searchText) ||
+                                    subUnitName.includes(searchText) || qualityName.includes(searchText) ||
+                                    quantityText.includes(searchText) || inventoryDate.includes(searchText);
+                let isMatchCategory = !categoryValue || parseInt(rowCategoryId) === parseInt(categoryValue);
+                let isMatchSupplier = !supplierValue || parseInt(rowSupplierId) === parseInt(supplierValue);
+                let isMatchQuality = !qualityValue || (rowQualityId && parseInt(rowQualityId) === parseInt(qualityValue)) || (!rowQualityId && qualityValue === "0");
 
-            state.filteredRows = state.allRows.filter(row => {
-                let match = true;
-                if (entity === 'conversion') {
-                    const unit = row.querySelector('.conversion-unit').textContent.trim().toLowerCase();
-                    const subunit = row.querySelector('.conversion-subunit').textContent.trim().toLowerCase();
-                    match = unit.includes(search) || subunit.includes(search);
-                } else {
-                    const name = row.querySelector(nameClass).textContent.trim().toLowerCase();
-                    const statusText = row.querySelector(statusClass).textContent.trim().toLowerCase();
-                    const matchName = name.includes(search);
-                    const matchStatus = !status || statusText === status.toLowerCase();
-                    match = matchName && matchStatus;
-                }
-                return match;
+                return isMatchSearch && isMatchCategory && isMatchSupplier && isMatchQuality;
             });
 
-            state.currentPage = 1;
-            updateTable(entity);
-            updatePagination(entity);
-            console.log(`Visible ${entity} Rows: ${state.filteredRows.length}`);
+            currentPage = 1;
+            updatePagination();
+            updateTable();
+            console.log("Visible Rows: " + filteredRows.length);
         }
 
-        function updateTable(entity) {
-            const state = paginationState[entity];
-            let tableId = entity === 'unit' ? '#unitsTable' : entity === 'subunit' ? '#subunitsTable' : '#conversionsTable';
-
-            // Hide all rows
-            state.allRows.forEach(row => {
-                row.style.display = 'none';
+        function updateTable() {
+            allRows.forEach((row) => {
+                row.style.display = "none";
             });
 
-            // Show rows for current page
-            const start = (state.currentPage - 1) * state.pageSize;
-            const end = Math.min(start + state.pageSize, state.filteredRows.length);
-            const rowsToShow = state.filteredRows.slice(start, end);
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, filteredRows.length);
+            const rowsToShow = filteredRows.slice(start, end);
 
             rowsToShow.forEach((row, index) => {
-                row.style.display = '';
-                const rowNumberCell = row.querySelector('.row-number strong');
+                row.style.display = "";
+                const rowNumberCell = row.querySelector(".row-number strong");
                 rowNumberCell.textContent = start + index + 1;
             });
         }
 
-        function updatePagination(entity) {
-            const state = paginationState[entity];
-            const paginationId = entity === 'unit' ? '#unitPagination' : entity === 'subunit' ? '#subunitPagination' : '#conversionPagination';
-            const pagination = document.querySelector(paginationId);
-            pagination.innerHTML = '';
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredRows.length / pageSize);
+            const pagination = document.getElementById("pagination");
+            pagination.innerHTML = "";
 
-            const totalPages = Math.ceil(state.filteredRows.length / state.pageSize);
             if (totalPages <= 1) return;
 
-            // First and Previous buttons
-            if (state.currentPage > 1) {
-                const first = document.createElement('a');
-                first.href = '#';
+            if (currentPage > 1) {
+                const first = document.createElement("a");
+                first.href = "#";
                 first.innerHTML = '<i class="fas fa-angle-double-left"></i>';
-                first.addEventListener('click', e => {
+                first.addEventListener("click", (e) => {
                     e.preventDefault();
-                    state.currentPage = 1;
-                    updatePagination(entity);
-                    updateTable(entity);
+                    currentPage = 1;
+                    updatePagination();
+                    updateTable();
                 });
                 pagination.appendChild(first);
 
-                const prev = document.createElement('a');
-                prev.href = '#';
+                const prev = document.createElement("a");
+                prev.href = "#";
                 prev.innerHTML = '<i class="fas fa-angle-left"></i>';
-                prev.addEventListener('click', e => {
+                prev.addEventListener("click", (e) => {
                     e.preventDefault();
-                    state.currentPage--;
-                    updatePagination(entity);
-                    updateTable(entity);
+                    currentPage--;
+                    updatePagination();
+                    updateTable();
                 });
                 pagination.appendChild(prev);
             } else {
-                const disabledFirst = document.createElement('span');
-                disabledFirst.className = 'text-muted me-2';
+                const disabledFirst = document.createElement("span");
+                disabledFirst.className = "text-muted me-2";
                 disabledFirst.innerHTML = '<i class="fas fa-angle-double-left"></i>';
                 pagination.appendChild(disabledFirst);
 
-                const disabledPrev = document.createElement('span');
-                disabledPrev.className = 'text-muted me-2';
+                const disabledPrev = document.createElement("span");
+                disabledPrev.className = "text-muted me-2";
                 disabledPrev.innerHTML = '<i class="fas fa-angle-left"></i>';
                 pagination.appendChild(disabledPrev);
             }
 
-            // Page numbers
             if (totalPages <= 7) {
                 for (let i = 1; i <= totalPages; i++) {
-                    if (i === state.currentPage) {
-                        const current = document.createElement('span');
-                        current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                    if (i === currentPage) {
+                        const current = document.createElement("span");
+                        current.className = "px-2 mx-1 bg-primary text-white rounded";
                         current.textContent = i;
                         pagination.appendChild(current);
                     } else {
-                        const pageLink = document.createElement('a');
-                        pageLink.href = '#';
-                        pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                        const pageLink = document.createElement("a");
+                        pageLink.href = "#";
+                        pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
                         pageLink.textContent = i;
-                        pageLink.addEventListener('click', e => {
+                        pageLink.addEventListener("click", (e) => {
                             e.preventDefault();
-                            state.currentPage = i;
-                            updatePagination(entity);
-                            updateTable(entity);
+                            currentPage = i;
+                            updatePagination();
+                            updateTable();
                         });
                         pagination.appendChild(pageLink);
                     }
                 }
             } else {
-                if (state.currentPage <= 4) {
+                if (currentPage <= 4) {
                     for (let i = 1; i <= 5; i++) {
-                        if (i === state.currentPage) {
-                            const current = document.createElement('span');
-                            current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                        if (i === currentPage) {
+                            const current = document.createElement("span");
+                            current.className = "px-2 mx-1 bg-primary text-white rounded";
                             current.textContent = i;
                             pagination.appendChild(current);
                         } else {
-                            const pageLink = document.createElement('a');
-                            pageLink.href = '#';
-                            pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                            const pageLink = document.createElement("a");
+                            pageLink.href = "#";
+                            pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
                             pageLink.textContent = i;
-                            pageLink.addEventListener('click', e => {
+                            pageLink.addEventListener("click", (e) => {
                                 e.preventDefault();
-                                state.currentPage = i;
-                                updatePagination(entity);
-                                updateTable(entity);
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
                             });
                             pagination.appendChild(pageLink);
                         }
                     }
-                    if (totalPages > 6) {
-                        const dots = document.createElement('span');
-                        dots.className = 'px-2 mx-1 text-muted';
-                        dots.textContent = '...';
-                        pagination.appendChild(dots);
+                    const dots = document.createElement("span");
+                    dots.className = "px-2 mx-1 text-muted";
+                    dots.textContent = "...";
+                    pagination.appendChild(dots);
 
-                        const last = document.createElement('a');
-                        last.href = '#';
-                        last.className = 'px-2 mx-1 text-decoration-none text-dark';
-                        last.textContent = totalPages;
-                        last.addEventListener('click', e => {
-                            e.preventDefault();
-                            state.currentPage = totalPages;
-                            updatePagination(entity);
-                            updateTable(entity);
-                        });
-                        pagination.appendChild(last);
-                    }
-                } else if (state.currentPage >= totalPages - 3) {
-                    const first = document.createElement('a');
-                    first.href = '#';
-                    first.className = 'px-2 mx-1 text-decoration-none text-dark';
-                    first.textContent = '1';
-                    first.addEventListener('click', e => {
+                    const last = document.createElement("a");
+                    last.href = "#";
+                    last.className = "px-2 mx-1 text-decoration-none text-dark";
+                    last.textContent = totalPages;
+                    last.addEventListener("click", (e) => {
                         e.preventDefault();
-                        state.currentPage = 1;
-                        updatePagination(entity);
-                        updateTable(entity);
+                        currentPage = totalPages;
+                        updatePagination();
+                        updateTable();
+                    });
+                    pagination.appendChild(last);
+                } else if (currentPage >= totalPages - 3) {
+                    const first = document.createElement("a");
+                    first.href = "#";
+                    first.className = "px-2 mx-1 text-decoration-none text-dark";
+                    first.textContent = "1";
+                    first.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        currentPage = 1;
+                        updatePagination();
+                        updateTable();
                     });
                     pagination.appendChild(first);
 
-                    if (totalPages > 6) {
-                        const dots = document.createElement('span');
-                        dots.className = 'px-2 mx-1 text-muted';
-                        dots.textContent = '...';
-                        pagination.appendChild(dots);
-                    }
+                    const dots = document.createElement("span");
+                    dots.className = "px-2 mx-1 text-muted";
+                    dots.textContent = "...";
+                    pagination.appendChild(dots);
 
                     for (let i = totalPages - 4; i <= totalPages; i++) {
-                        if (i === state.currentPage) {
-                            const current = document.createElement('span');
-                            current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                        if (i === currentPage) {
+                            const current = document.createElement("span");
+                            current.className = "px-2 mx-1 bg-primary text-white rounded";
                             current.textContent = i;
                             pagination.appendChild(current);
                         } else {
-                            const pageLink = document.createElement('a');
-                            pageLink.href = '#';
-                            pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                            const pageLink = document.createElement("a");
+                            pageLink.href = "#";
+                            pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
                             pageLink.textContent = i;
-                            pageLink.addEventListener('click', e => {
+                            pageLink.addEventListener("click", (e) => {
                                 e.preventDefault();
-                                state.currentPage = i;
-                                updatePagination(entity);
-                                updateTable(entity);
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
                             });
                             pagination.appendChild(pageLink);
                         }
                     }
                 } else {
-                    const first = document.createElement('a');
-                    first.href = '#';
-                    first.className = 'px-2 mx-1 text-decoration-none text-dark';
-                    first.textContent = '1';
-                    first.addEventListener('click', e => {
+                    const first = document.createElement("a");
+                    first.href = "#";
+                    first.className = "px-2 mx-1 text-decoration-none text-dark";
+                    first.textContent = "1";
+                    first.addEventListener("click", (e) => {
                         e.preventDefault();
-                        state.currentPage = 1;
-                        updatePagination(entity);
-                        updateTable(entity);
+                        currentPage = 1;
+                        updatePagination();
+                        updateTable();
                     });
                     pagination.appendChild(first);
 
-                    const dots1 = document.createElement('span');
-                    dots1.className = 'px-2 mx-1 text-muted';
-                    dots1.textContent = '...';
+                    const dots1 = document.createElement("span");
+                    dots1.className = "px-2 mx-1 text-muted";
+                    dots1.textContent = "...";
                     pagination.appendChild(dots1);
 
-                    for (let i = state.currentPage - 1; i <= state.currentPage + 1; i++) {
-                        if (i === state.currentPage) {
-                            const current = document.createElement('span');
-                            current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        if (i === currentPage) {
+                            const current = document.createElement("span");
+                            current.className = "px-2 mx-1 bg-primary text-white rounded";
                             current.textContent = i;
                             pagination.appendChild(current);
                         } else {
-                            const pageLink = document.createElement('a');
-                            pageLink.href = '#';
-                            pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                            const pageLink = document.createElement("a");
+                            pageLink.href = "#";
+                            pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
                             pageLink.textContent = i;
-                            pageLink.addEventListener('click', e => {
+                            pageLink.addEventListener("click", (e) => {
                                 e.preventDefault();
-                                state.currentPage = i;
-                                updatePagination(entity);
-                                updateTable(entity);
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
                             });
                             pagination.appendChild(pageLink);
                         }
                     }
 
-                    const dots2 = document.createElement('span');
-                    dots2.className = 'px-2 mx-1 text-muted';
-                    dots2.textContent = '...';
+                    const dots2 = document.createElement("span");
+                    dots2.className = "px-2 mx-1 text-muted";
+                    dots2.textContent = "...";
                     pagination.appendChild(dots2);
 
-                    const last = document.createElement('a');
-                    last.href = '#';
-                    last.className = 'px-2 mx-1 text-decoration-none text-dark';
+                    const last = document.createElement("a");
+                    last.href = "#";
+                    last.className = "px-2 mx-1 text-decoration-none text-dark";
                     last.textContent = totalPages;
-                    last.addEventListener('click', e => {
+                    last.addEventListener("click", (e) => {
                         e.preventDefault();
-                        state.currentPage = totalPages;
-                        updatePagination(entity);
-                        updateTable(entity);
+                        currentPage = totalPages;
+                        updatePagination();
+                        updateTable();
                     });
                     pagination.appendChild(last);
                 }
             }
 
-            // Next and Last buttons
-            if (state.currentPage < totalPages) {
-                const next = document.createElement('a');
-                next.href = '#';
+            if (currentPage < totalPages) {
+                const next = document.createElement("a");
+                next.href = "#";
                 next.innerHTML = '<i class="fas fa-angle-right"></i>';
-                next.className = 'ms-2 text-decoration-none text-dark';
-                next.addEventListener('click', e => {
+                next.className = "ms-2 text-decoration-none text-dark";
+                next.addEventListener("click", (e) => {
                     e.preventDefault();
-                    state.currentPage++;
-                    updatePagination(entity);
-                    updateTable(entity);
+                    currentPage++;
+                    updatePagination();
+                    updateTable();
                 });
                 pagination.appendChild(next);
 
-                const lastBtn = document.createElement('a');
-                lastBtn.href = '#';
+                const lastBtn = document.createElement("a");
+                lastBtn.href = "#";
                 lastBtn.innerHTML = '<i class="fas fa-angle-double-right"></i>';
-                lastBtn.className = 'ms-2 text-decoration-none text-dark';
-                lastBtn.addEventListener('click', e => {
+                lastBtn.className = "ms-2 text-decoration-none text-dark";
+                lastBtn.addEventListener("click", (e) => {
                     e.preventDefault();
-                    state.currentPage = totalPages;
-                    updatePagination(entity);
-                    updateTable(entity);
+                    currentPage = totalPages;
+                    updatePagination();
+                    updateTable();
                 });
                 pagination.appendChild(lastBtn);
             } else {
-                const disabledNext = document.createElement('span');
-                disabledNext.className = 'ms-2 text-muted';
+                const disabledNext = document.createElement("span");
+                disabledNext.className = "ms-2 text-muted";
                 disabledNext.innerHTML = '<i class="fas fa-angle-right"></i>';
                 pagination.appendChild(disabledNext);
 
-                const disabledLast = document.createElement('span');
-                disabledLast.className = 'ms-2 text-muted';
+                const disabledLast = document.createElement("span");
+                disabledLast.className = "ms-2 text-muted";
                 disabledLast.innerHTML = '<i class="fas fa-angle-double-right"></i>';
                 pagination.appendChild(disabledLast);
             }
         }
 
-        $(document).ready(function () {
-            // Show modals based on action
-            <c:if test="${not empty action && not empty entity}">
-                <c:choose>
-                    <c:when test="${entity == 'unit'}">
-                        <c:choose>
-                            <c:when test="${action == 'edit'}">
-                                var editModal = new bootstrap.Modal(document.getElementById('unitEditModal'));
-                                $('#unitEditModalLabel').text('Edit Unit');
-                                $('#unitModalAction').val('update');
-                                $('#editUnitId').val('${unit.unitId}');
-                                $('#unitName').val('${unit.name}');
-                                $('#unitIsActive').val('${unit.active ? 'true' : 'false'}');
-                                $('#unitSubmitBtn').text('Update');
-                                editModal.show();
-                            </c:when>
-                            <c:when test="${action == 'detail'}">
-                                var detailModal = new bootstrap.Modal(document.getElementById('unitDetailModal'));
-                                $('#modal-unit-id').text('${unit.unitId}');
-                                $('#modal-unit-name').text('${unit.name}');
-                                $('#modal-unit-status').text(${unit.active} ? 'Active' : 'Inactive');
-                                detailModal.show();
-                            </c:when>
-                        </c:choose>
-                    </c:when>
-                    <c:when test="${entity == 'subunit'}">
-                        <c:choose>
-                            <c:when test="${action == 'edit'}">
-                                var editModal = new bootstrap.Modal(document.getElementById('subunitEditModal'));
-                                $('#subunitEditModalLabel').text('Edit Subunit');
-                                $('#subunitModalAction').val('update');
-                                $('#editSubUnitId').val('${subunit.subUnitId}');
-                                $('#subunitName').val('${subunit.name}');
-                                $('#subunitStatus').val('${subunit.status}');
-                                $('#subunitSubmitBtn').text('Update');
-                                editModal.show();
-                            </c:when>
-                            <c:when test="${action == 'detail'}">
-                                var detailModal = new bootstrap.Modal(document.getElementById('subunitDetailModal'));
-                                $('#modal-subunit-id').text('${subunit.subUnitId}');
-                                $('#modal-subunit-name').text('${subunit.name}');
-                                $('#modal-subunit-status').text('${subunit.status}');
-                                detailModal.show();
-                            </c:when>
-                        </c:choose>
-                    </c:when>
-                    <c:when test="${entity == 'conversion'}">
-                        <c:choose>
-                            <c:when test="${action == 'edit'}">
-                                var editModal = new bootstrap.Modal(document.getElementById('conversionEditModal'));
-                                $('#conversionEditModalLabel').text('Edit Unit Conversion');
-                                $('#conversionModalAction').val('update');
-                                $('#editUnitConversionId').val('${conversion.unitConversionId}');
-                                $('#conversionUnitId').val('${conversion.unitId}');
-                                $('#conversionSubUnitId').val('${conversion.subUnitId}');
-                                $('#conversionFactor').text('${conversion.factor}');
-                                $('#conversionSubmitBtn').text('Update');
-                                editModal.show();
-                            </c:when>
-                            <c:when test="${action == 'detail'}">
-                                var detailModal = new bootstrap.Modal(document.getElementById('conversionDetailModal'));
-                                $('#modal-conversion-id').text('${conversion.unitConversionId}');
-                                $('#modal-conversion-unit').text(
-                                    <c:forEach var="unit" items="${units}">
-                                        ${unit.unitId == conversion.unitId ? "'".concat(unit.name).concat("'") : ""}
-                                    </c:forEach>
-                                );
-                                $('#modal-conversion-subunit').text(
-                                    <c:forEach var="subunit" items="${subunits}">
-                                        ${subunit.subUnitId == conversion.subUnitId ? "'".concat(subunit.name).concat("'") : ""}
-                                    </c:forEach>
-                                );
-                                $('#modal-conversion-factor').text('${conversion.factor}');
-                                detailModal.show();
-                            </c:when>
-                        </c:choose>
-                    </c:when>
-                </c:choose>
-            </c:if>
-
-            // Clear modal data when closed
-            $('#unitEditModal, #unitDetailModal, #subunitEditModal, #subunitDetailModal, #conversionEditModal, #conversionDetailModal').on('hidden.bs.modal', function () {
-                // Reset forms
-                $('#unitForm')[0].reset();
-                $('#subunitForm')[0].reset();
-                $('#conversionForm')[0].reset();
-                $('#unitModalAction').val('add');
-                $('#subunitModalAction').val('add');
-                $('#conversionModalAction').val('add');
-                $('#editUnitId').val('');
-                $('#editSubUnitId').val('');
-                $('#editUnitConversionId').val('');
-                $('#unitEditModalLabel').text('Add New Unit');
-                $('#subunitEditModalLabel').text('Add New Subunit');
-                $('#conversionEditModalLabel').text('Add New Unit Conversion');
-                $('#unitErrorMsg, #subunitErrorMsg, #conversionErrorMsg').text('');
-                // Clear detail modals
-                $('#modal-unit-id, #modal-unit-name, #modal-unit-status').text('');
-                $('#modal-subunit-id, #modal-subunit-name, #modal-subunit-status').text('');
-                $('#modal-conversion-id, #modal-conversion-unit, #modal-conversion-subunit, #modal-conversion-factor').text('');
-                // Remove backdrop
-                $('.modal-backdrop').remove();
-            });
-        });
-
-        function openAddUnitModal() {
-            $('#unitEditModalLabel').text('Add New Unit');
-            $('#unitModalAction').val('add');
-            $('#editUnitId').val('');
-            $('#unitName').val('');
-            $('#unitIsActive').val('true');
-            $('#unitSubmitBtn').text('Save');
-            $('#unitErrorMsg').text('');
-        }
-
-        function openAddSubunitModal() {
-            $('#subunitEditModalLabel').text('Add New Subunit');
-            $('#subunitModalAction').val('add');
-            $('#editSubUnitId').val('');
-            $('#subunitName').val('');
-            $('#subunitStatus').val('active');
-            $('#subunitSubmitBtn').text('Save');
-            $('#subunitErrorMsg').text('');
-        }
-
-        function openAddConversionModal() {
-            $('#conversionEditModalLabel').text('Add New Unit Conversion');
-            $('#conversionModalAction').val('add');
-            $('#editUnitConversionId').val('');
-            $('#conversionUnitId').val('');
-            $('#conversionSubUnitId').val('');
-            $('#conversionFactor').val('');
-            $('#conversionSubmitBtn').text('Save');
-            $('#conversionErrorMsg').text('');
+        function viewDetails(materialId, subUnitId, materialName, categoryName, supplierName, subUnitName, qualityName, closingQty, inventoryDate, openingQty, importQty, exportQty, damagedQuantity, note) {
+            document.getElementById("modal-material-name").textContent = materialName;
+            document.getElementById("modal-category-name").textContent = categoryName;
+            document.getElementById("modal-supplier-name").textContent = supplierName;
+            document.getElementById("modal-subunit-name").textContent = subUnitName;
+            document.getElementById("modal-quality").textContent = qualityName || 'N/A';
+            document.getElementById("modal-closing-qty").textContent = closingQty.toLocaleString();
+            document.getElementById("modal-damaged-qty").textContent = damagedQuantity ? damagedQuantity.toFixed(2) : '0.00';
+            document.getElementById("modal-opening-qty").textContent = openingQty.toLocaleString();
+            document.getElementById("modal-import-qty").textContent = importQty.toLocaleString();
+            document.getElementById("modal-export-qty").textContent = exportQty.toLocaleString();
+            document.getElementById("modal-inventory-date").textContent = inventoryDate;
+            document.getElementById("modal-note").textContent = note || 'N/A';
         }
     </script>
 </body>

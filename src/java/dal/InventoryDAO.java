@@ -59,43 +59,42 @@ public class InventoryDAO extends DBContext {
     }
 
     private String buildInventoryQuery(int categoryId, int supplierId, int qualityId, String searchTerm, String sortBy) {
-    StringBuilder sql = new StringBuilder(
-        "SELECT imd.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, imd.SubUnit_id AS subunit_id, md.Quality_id AS quality_id, " +
-        "m.Name AS material_name, c.Name AS category_name, s.Name AS supplier_name, su.Name AS subunit_name, " +
-        "q.Quality_name AS quality_name, imd.Closing_qty AS closing_qty, imd.Opening_qty AS opening_qty, imd.Import_qty AS import_qty, imd.Export_qty AS export_qty, " +
-        "CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE NULL END AS damaged_quantity, " +
-        "imd.Inventory_Material_date AS inventory_date, imd.Note AS note " +
-        "FROM InventoryMaterialDaily imd " +
-        "JOIN Materials m ON imd.Material_id = m.Material_id " +
-        "JOIN SubUnits su ON imd.SubUnit_id = su.SubUnit_id " +
-        "JOIN Category c ON m.Category_id = c.Category_id " +
-        "JOIN Suppliers s ON m.SupplierId = s.Supplier_id " +
-        "LEFT JOIN Material_detail md ON imd.Material_id = md.Material_id AND imd.SubUnit_id = md.SubUnit_id " +
-        "LEFT JOIN Quality q ON md.Quality_id = q.Quality_id " +
-        "WHERE m.Status = 'active' AND su.Status = 'active' AND c.Status = 'active' AND s.Status = 'active' "
-    );
+        StringBuilder sql = new StringBuilder(
+            "SELECT imd.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, imd.SubUnit_id AS subunit_id, md.Quality_id AS quality_id, " +
+            "m.Name AS material_name, c.Name AS category_name, s.Name AS supplier_name, su.Name AS subunit_name, " +
+            "q.Quality_name AS quality_name, imd.Closing_qty AS closing_qty, imd.Opening_qty AS opening_qty, imd.Import_qty AS import_qty, imd.Export_qty AS export_qty, md.Quantity AS damaged_quantity, " +
+            "imd.Inventory_Material_date AS inventory_date, imd.Note AS note " +
+            "FROM InventoryMaterialDaily imd " +
+            "JOIN Materials m ON imd.Material_id = m.Material_id " +
+            "JOIN SubUnits su ON imd.SubUnit_id = su.SubUnit_id " +
+            "JOIN Category c ON m.Category_id = c.Category_id " +
+            "JOIN Suppliers s ON m.SupplierId = s.Supplier_id " +
+            "LEFT JOIN Material_detail md ON imd.Material_id = md.Material_id AND imd.SubUnit_id = md.SubUnit_id " +
+            "LEFT JOIN Quality q ON md.Quality_id = q.Quality_id " +
+            "WHERE m.Status = 'active' AND su.Status = 'active' AND c.Status = 'active' AND s.Status = 'active' "
+        );
 
-    if (categoryId > 0) {
-        sql.append(" AND m.Category_id = ? ");
-    }
-    if (supplierId > 0) {
-        sql.append(" AND m.SupplierId = ? ");
-    }
-    if (qualityId > 0) {
-        sql.append(" AND md.Quality_id = ? ");
-    }
-    if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-        sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR s.Name LIKE ? OR su.Name LIKE ? OR q.Quality_name LIKE ? OR CAST(imd.Closing_qty AS CHAR) LIKE ? OR CAST(imd.Inventory_Material_date AS CHAR) LIKE ?) ");
-    }
+        if (categoryId > 0) {
+            sql.append(" AND m.Category_id = ? ");
+        }
+        if (supplierId > 0) {
+            sql.append(" AND m.SupplierId = ? ");
+        }
+        if (qualityId > 0) {
+            sql.append(" AND md.Quality_id = ? ");
+        }
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR s.Name LIKE ? OR su.Name LIKE ? OR q.Quality_name LIKE ? OR CAST(imd.Closing_qty AS CHAR) LIKE ? OR CAST(imd.Inventory_Material_date AS CHAR) LIKE ?) ");
+        }
 
-    String safeSortBy = "imd.Closing_qty ASC";
-    if (sortBy != null && sortBy.matches("^(material_id|material_name|closing_qty) (ASC|DESC)$")) {
-        safeSortBy = sortBy.replace("material_name", "m.Name");
-    }
-    sql.append(" ORDER BY imd.Inventory_Material_date DESC, ").append(safeSortBy);
+        String safeSortBy = "imd.Closing_qty ASC";
+        if (sortBy != null && sortBy.matches("^(material_id|material_name|closing_qty) (ASC|DESC)$")) {
+            safeSortBy = sortBy.replace("material_name", "m.Name");
+        }
+        sql.append(" ORDER BY imd.Inventory_Material_date DESC, ").append(safeSortBy);
 
-    return sql.toString();
-}
+        return sql.toString();
+    }
 
     private List<Object> buildInventoryParameters(int categoryId, int supplierId, int qualityId, String searchTerm) {
         List<Object> params = new ArrayList<>();
