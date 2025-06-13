@@ -40,19 +40,27 @@
         .stats-info i { color: #3b82f6; }
         .stats-info strong { color: #1f2937; }
         .table-container { overflow-x: auto; background-color: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); }
-        table.table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        table.table th, table.table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+        table.table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        table.table th, table.table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 14px; vertical-align: middle; }
         table.table th { background-color: #f3f4f6; font-weight: 600; color: #1f2937; }
         table.table tbody tr:nth-child(even) { background-color: #f9fafb; }
         table.table tbody tr:hover { background-color: #eef2ff; }
         .action-buttons { display: flex; gap: 8px; }
-        .no-data { text-align: center; padding: 16px; background-color: #f3f4f6; border-radius: 8px; font-size: 16px; color: #9ca3af; }
-        .error { color: red; font-size: 14px; }
+        .no-data { text-align: center; padding: 16px; background-color: #f3f4f6; border-radius: 8px; font-size: 16px; color: #6b7280; }
+        .modal-content { background-color: white; margin: 6% auto; padding: 24px 32px; border-radius: 4px; width: 90%; max-width: 480px; position: relative; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-size: 14px; }
+        .modal .close { position: absolute; top: 12px; right: 18px; font-size: 24px; cursor: pointer; color: #6b7280; }
+        .modal .close:hover { color: #374151; }
+        .detail-item { margin-bottom: 14px; display: flex; gap: 8px; }
+        .detail-item strong { color: #333; width: 120px; }
+        .error { color: #dc3545; font-size: 14px; }
         .pagination { font-size: 14px; }
-        .pagination a, .pagination {span: 2px; padding: 8px 12px; margin: 0 4px; text-decoration: none; color: #374151; }
+        .pagination a, .pagination span { padding: 8px 12px; margin: 0 4px; text-decoration: none; color: #374151; }
         .pagination span { background-color: #9e9e9e1c; color: white; border-radius: 4px; }
         .pagination a:hover { background-color: #e5e7eb; border-radius: 4px; }
-        @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 800px; }}
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; text-transform: capitalize; }
+        .quality-available { background-color: #22c55e; color: white; }
+        .quality-notavailable { background-color: #ef4444; color: white; }
+        @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 1000px; } .modal-content { padding: 20px; } }
     </style>
 </head>
 <body>
@@ -62,26 +70,32 @@
         <div class="container">
             <h1 class="title">Current Inventory</h1>
             <div class="row g-2 mb-3 align-items-center">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <select class="form-select" id="categoryFilter">
-                        <option value="" ${empty categoryId ? 'selected' : ''}>All Categories</option>
+                        <option value="0" ${categoryId == 0 ? 'selected' : ''}>All Categories</option>
                         <c:forEach var="category" items="${categoryList}">
                             <option value="${category.categoryId}" ${category.categoryId == categoryId ? 'selected' : ''}>${category.name}</option>
                         </c:forEach>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search by ID/Name..." value="${searchTerm}">
-                </div>
-                <div class="col-md-4">
-                    <select class="form-select" id="sortFilter">
-                        <option value="closing_qty ASC" ${sortBy == 'closing_qty ASC' ? 'selected' : ''}>Quantity Asc</option>
-                        <option value="closing_qty DESC" ${sortBy == 'closing_qty DESC' ? 'selected' : ''}>Quantity Desc</option>
-                        <option value="material_id ASC" ${sortBy == 'material_id ASC' ? 'selected' : ''}>Material ID Asc</option>
-                        <option value="material_id DESC" ${sortBy == 'material_id DESC' ? 'selected' : ''}>Material ID Desc</option>
-                        <option value="material_name ASC" ${sortBy == 'material_name ASC' ? 'selected' : ''}>Name Asc</option>
-                        <option value="material_name DESC" ${sortBy == 'material_name DESC' ? 'selected' : ''}>Name Desc</option>
+                <div class="col-md-3">
+                    <select class="form-select" id="supplierFilter">
+                        <option value="0" ${supplierId == 0 ? 'selected' : ''}>All Suppliers</option>
+                        <c:forEach var="supplier" items="${supplierList}">
+                            <option value="${supplier.supplierId}" ${supplier.supplierId == supplierId ? 'selected' : ''}>${supplier.name}</option>
+                        </c:forEach>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="qualityFilter">
+                        <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
+                        <c:forEach var="quality" items="${qualityList}">
+                            <option value="${quality.qualityId}" ${quality.qualityId == qualityId ? 'selected' : ''}>${quality.qualityName}</option>
+                        </c:forEach>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by Name/ID..." value="${searchTerm}">
                 </div>
             </div>
             <c:if test="${not empty errorMsg}">
@@ -92,32 +106,69 @@
                     <thead>
                         <tr>
                             <th style="width: 40px">#</th>
-                            <th>Material ID</th>
                             <th>Material Name</th>
                             <th>Category</th>
-                            <th>SubUnit Name</th>
+                            <th>Supplier</th>
+                            <th>Subunit</th>
+                            <th>Quality</th>
                             <th>Quantity</th>
                             <th>Date</th>
+                            <th style="width: 100px">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <c:choose>
                             <c:when test="${not empty inventoryList}">
                                 <c:forEach var="item" items="${inventoryList}" varStatus="status">
-                                    <tr data-index="${status.index + 1}" data-material-id="${item.materialId}" data-category-id="${item.categoryId}">
+                                    <tr data-material-id="${item.materialId}" data-category-id="${item.categoryId}" 
+                                        data-supplier-id="${item.supplierId}" data-subunit-id="${item.subUnitId}" 
+                                        data-quality-id="${item.qualityId}">
                                         <td class="row-number"><strong>${status.index + 1}</strong></td>
-                                        <td class="material-id">${item.materialId}</td>
                                         <td class="material-name">${item.materialName}</td>
                                         <td class="category-name">${item.categoryName}</td>
+                                        <td class="supplier-name">${item.supplierName}</td>
                                         <td class="subunit-name">${item.subUnitName}</td>
-                                        <td class="quantity"><fmt:formatNumber value="${item.closingQty}" pattern="#,##0.00"/></td>
-                                        <td class="inventory-date">${item.inventoryDate}</td>
+                                        <td class="quality-name">
+                                            <c:choose>
+                                                <c:when test="${item.qualityName == 'available'}">
+                                                    <span class="badge quality-available">Available</span>
+                                                </c:when>
+                                                <c:when test="${item.qualityName == 'notAvailable'}">
+                                                    <span class="badge quality-notavailable">Not Available</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span>${item.qualityName}</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td class="quantity">
+                                            <c:choose>
+                                                <c:when test="${item.qualityName == 'available' and item.closingQty != null}">
+                                                    <fmt:formatNumber value="${item.closingQty}" pattern="#,##0"/>
+                                                </c:when>
+                                                <c:when test="${item.qualityName == 'notAvailable' and item.damagedQuantity != null}">
+                                                    <fmt:formatNumber value="${item.damagedQuantity}" pattern="#,##0.00"/>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span>0</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td class="inventory-date"><fmt:formatDate value="${item.inventoryDate}" pattern="dd/MM/yyyy"/></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailModal" 
+                                                        onclick="viewDetails(${item.materialId}, ${item.subUnitId}, '${item.materialName}', '${item.categoryName}', '${item.supplierName}', '${item.subUnitName}', '${item.qualityName}', ${item.closingQty}, '${item.inventoryDate}', ${item.openingQty}, ${item.importQty}, ${item.exportQty}, ${item.damagedQuantity != null ? item.damagedQuantity : 0}, '${item.note}')">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="7" class="no-data">No inventory items found</td>
+                                    <td colspan="9" class="no-data">No inventory items found</td>
                                 </tr>
                             </c:otherwise>
                         </c:choose>
@@ -125,8 +176,36 @@
                 </table>
             </div>
             <div class="pagination" id="pagination"></div>
-        </div>
-    </section>
+
+            <!-- Detail Modal -->
+            <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabel">Inventory Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="detail-item"><strong>Material Name:</strong> <span id="modal-material-name"></span></div>
+                            <div class="detail-item"><strong>Category:</strong> <span id="modal-category-name"></span></div>
+                            <div class="detail-item"><strong>Supplier:</strong> <span id="modal-supplier-name"></span></div>
+                            <div class="detail-item"><strong>Subunit:</strong> <span id="modal-subunit-name"></span></div>
+                            <div class="detail-item"><strong>Quality:</strong> <span id="modal-quality"></span></div>
+                            <div class="detail-item"><strong>Total Quantity (Available):</strong> <span id="modal-closing-qty"></span></div>
+                            <div class="detail-item"><strong>Damaged Quantity:</strong> <span id="modal-damaged-qty"></span></div>
+                            <div class="detail-item"><strong>Opening Quantity:</strong> <span id="modal-opening-qty"></span></div>
+                            <div class="detail-item"><strong>Import Quantity:</strong> <span id="modal-import-qty"></span></div>
+                            <div class="detail-item"><strong>Export Quantity:</strong> <span id="modal-export-qty"></span></div>
+                            <div class="detail-item"><strong>Date:</strong> <span id="modal-inventory-date"></span></div>
+                            <div class="detail-item"><strong>Note:</strong> <span id="modal-note"></span></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -143,8 +222,7 @@
             updateTable();
             console.log("Inventory table loaded with " + allRows.length + " rows");
 
-            // Bind filter events
-            document.querySelectorAll("#categoryFilter, #searchInput, #sortFilter").forEach((element) => {
+            document.querySelectorAll("#categoryFilter, #supplierFilter, #qualityFilter, #searchInput").forEach((element) => {
                 element.addEventListener("input", filterInventory);
                 element.addEventListener("change", filterInventory);
             });
@@ -153,47 +231,34 @@
         function filterInventory() {
             let searchText = document.getElementById("searchInput").value.trim().toLowerCase();
             let categoryValue = document.getElementById("categoryFilter").value;
-            let sortBy = document.getElementById("sortFilter").value;
+            let supplierValue = document.getElementById("supplierFilter").value;
+            let qualityValue = document.getElementById("qualityFilter").value;
 
-            console.log("Filter - Category: " + (categoryValue || "empty") + ", Search: " + searchText + ", Sort: " + sortBy);
+            console.log("Filter - Category: " + (categoryValue || "empty") + ", Supplier: " + (supplierValue || "empty") + ", Quality: " + (qualityValue || "empty") + ", Search: " + searchText);
 
             filteredRows = allRows.filter((row) => {
-                let materialId = row.querySelector(".material-id").textContent.trim().toLowerCase();
+                let materialId = row.getAttribute("data-material-id");
                 let materialName = row.querySelector(".material-name").textContent.trim().toLowerCase();
                 let categoryName = row.querySelector(".category-name").textContent.trim().toLowerCase();
+                let supplierName = row.querySelector(".supplier-name").textContent.trim().toLowerCase();
                 let subUnitName = row.querySelector(".subunit-name").textContent.trim().toLowerCase();
+                let qualityName = row.querySelector(".quality-name").textContent.trim().toLowerCase();
                 let quantityText = row.querySelector(".quantity").textContent.trim().replace(/,/g, "");
                 let inventoryDate = row.querySelector(".inventory-date").textContent.trim().toLowerCase();
                 let rowCategoryId = row.getAttribute("data-category-id");
+                let rowSupplierId = row.getAttribute("data-supplier-id");
+                let rowQualityId = row.getAttribute("data-quality-id");
 
                 let isMatchSearch = !searchText || materialId.includes(searchText) || materialName.includes(searchText) ||
-                                    categoryName.includes(searchText) || subUnitName.includes(searchText) ||
+                                    categoryName.includes(searchText) || supplierName.includes(searchText) ||
+                                    subUnitName.includes(searchText) || qualityName.includes(searchText) ||
                                     quantityText.includes(searchText) || inventoryDate.includes(searchText);
-                let isMatchCategory = !categoryValue || (rowCategoryId && parseInt(rowCategoryId) === parseInt(categoryValue));
+                let isMatchCategory = !categoryValue || parseInt(rowCategoryId) === parseInt(categoryValue);
+                let isMatchSupplier = !supplierValue || parseInt(rowSupplierId) === parseInt(supplierValue);
+                let isMatchQuality = !qualityValue || (rowQualityId && parseInt(rowQualityId) === parseInt(qualityValue)) || (!rowQualityId && qualityValue === "0");
 
-                console.log("Row - materialId: " + materialId + ", rowCategoryId: " + rowCategoryId + 
-                            ", categoryValue: " + categoryValue + ", isMatchCategory: " + isMatchCategory + ", isMatchSearch: " + isMatchSearch);
-
-                return isMatchSearch && isMatchCategory;
+                return isMatchSearch && isMatchCategory && isMatchSupplier && isMatchQuality;
             });
-
-            // Sort filtered rows
-            if (sortBy) {
-                filteredRows.sort((a, b) => {
-                    let aValue, bValue;
-                    if (sortBy.includes("closing_qty")) {
-                        aValue = parseFloat(a.querySelector(".quantity").textContent.replace(/,/g, "")) || 0;
-                        bValue = parseFloat(b.querySelector(".quantity").textContent.replace(/,/g, "")) || 0;
-                    } else if (sortBy.includes("material_id")) {
-                        aValue = parseInt(a.querySelector(".material-id").textContent) || 0;
-                        bValue = parseInt(b.querySelector(".material-id").textContent) || 0;
-                    } else {
-                        aValue = a.querySelector(".material-name").textContent.toLowerCase();
-                        bValue = b.querySelector(".material-name").textContent.toLowerCase();
-                    }
-                    return sortBy.endsWith("ASC") ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
-                });
-            }
 
             currentPage = 1;
             updatePagination();
@@ -301,24 +366,22 @@
                             pagination.appendChild(pageLink);
                         }
                     }
-                    if (totalPages > 6) {
-                        const dots = document.createElement("span");
-                        dots.className = "px-2 mx-1 text-muted";
-                        dots.textContent = "...";
-                        pagination.appendChild(dots);
+                    const dots = document.createElement("span");
+                    dots.className = "px-2 mx-1 text-muted";
+                    dots.textContent = "...";
+                    pagination.appendChild(dots);
 
-                        const last = document.createElement("a");
-                        last.href = "#";
-                        last.className = "px-2 mx-1 text-decoration-none text-dark";
-                        last.textContent = totalPages;
-                        last.addEventListener("click", (e) => {
-                            e.preventDefault();
-                            currentPage = totalPages;
-                            updatePagination();
-                            updateTable();
-                        });
-                        pagination.appendChild(last);
-                    }
+                    const last = document.createElement("a");
+                    last.href = "#";
+                    last.className = "px-2 mx-1 text-decoration-none text-dark";
+                    last.textContent = totalPages;
+                    last.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        currentPage = totalPages;
+                        updatePagination();
+                        updateTable();
+                    });
+                    pagination.appendChild(last);
                 } else if (currentPage >= totalPages - 3) {
                     const first = document.createElement("a");
                     first.href = "#";
@@ -332,12 +395,10 @@
                     });
                     pagination.appendChild(first);
 
-                    if (totalPages > 6) {
-                        const dots = document.createElement("span");
-                        dots.className = "px-2 mx-1 text-muted";
-                        dots.textContent = "...";
-                        pagination.appendChild(dots);
-                    }
+                    const dots = document.createElement("span");
+                    dots.className = "px-2 mx-1 text-muted";
+                    dots.textContent = "...";
+                    pagination.appendChild(dots);
 
                     for (let i = totalPages - 4; i <= totalPages; i++) {
                         if (i === currentPage) {
@@ -452,6 +513,21 @@
                 disabledLast.innerHTML = '<i class="fas fa-angle-double-right"></i>';
                 pagination.appendChild(disabledLast);
             }
+        }
+
+        function viewDetails(materialId, subUnitId, materialName, categoryName, supplierName, subUnitName, qualityName, closingQty, inventoryDate, openingQty, importQty, exportQty, damagedQuantity, note) {
+            document.getElementById("modal-material-name").textContent = materialName;
+            document.getElementById("modal-category-name").textContent = categoryName;
+            document.getElementById("modal-supplier-name").textContent = supplierName;
+            document.getElementById("modal-subunit-name").textContent = subUnitName;
+            document.getElementById("modal-quality").textContent = qualityName || 'N/A';
+            document.getElementById("modal-closing-qty").textContent = closingQty.toLocaleString();
+            document.getElementById("modal-damaged-qty").textContent = damagedQuantity ? damagedQuantity.toFixed(2) : '0.00';
+            document.getElementById("modal-opening-qty").textContent = openingQty.toLocaleString();
+            document.getElementById("modal-import-qty").textContent = importQty.toLocaleString();
+            document.getElementById("modal-export-qty").textContent = exportQty.toLocaleString();
+            document.getElementById("modal-inventory-date").textContent = inventoryDate;
+            document.getElementById("modal-note").textContent = note || 'N/A';
         }
     </script>
 </body>
