@@ -1,64 +1,43 @@
-// model/MaterialInventory.java
 package model;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.sql.Date;
 
 public class MaterialInventory {
     private int materialId;
     private int categoryId;
     private String materialName;
-    private String unitName;
-    private BigDecimal quantity;
-    private Timestamp lastUpdated;
-    private int warehouseId;
+    private String subUnitName;
+    private BigDecimal closingQty;
+    private Date inventoryDate;
     private String categoryName;
 
-    // Constructor mặc định
     public MaterialInventory() {
     }
 
-    // Constructor đầy đủ
-    public MaterialInventory(int materialId, int categoryId, String materialName, String unitName,
-                            BigDecimal quantity, Timestamp lastUpdated, int warehouseId) {
+    public MaterialInventory(int materialId, int categoryId, String materialName, String subUnitName,
+                             BigDecimal closingQty, Date inventoryDate, String categoryName) {
         this.materialId = materialId;
         this.categoryId = categoryId;
         this.materialName = materialName;
-        this.unitName = unitName;
-        this.quantity = quantity;
-        this.lastUpdated = lastUpdated;
-        this.warehouseId = warehouseId;
+        this.subUnitName = subUnitName;
+        this.closingQty = closingQty;
+        this.inventoryDate = inventoryDate;
+        this.categoryName = categoryName;
     }
 
-    // Getters và Setters
     public int getMaterialId() { return materialId; }
     public void setMaterialId(int materialId) { this.materialId = materialId; }
     public int getCategoryId() { return categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
     public String getMaterialName() { return materialName; }
     public void setMaterialName(String materialName) { this.materialName = materialName; }
-    public String getUnitName() { return unitName; }
-    public void setUnitName(String unitName) { this.unitName = unitName; }
-    public BigDecimal getQuantity() { return quantity; }
-    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
-    public Timestamp getLastUpdated() { return lastUpdated; }
-    public void setLastUpdated(Timestamp lastUpdated) { this.lastUpdated = lastUpdated; }
-    public int getWarehouseId() { return warehouseId; }
-    public void setWarehouseId(int warehouseId) { this.warehouseId = warehouseId; }
+    public String getSubUnitName() { return subUnitName; }
+    public void setSubUnitName(String subUnitName) { this.subUnitName = subUnitName; }
+    public BigDecimal getClosingQty() { return closingQty; }
+    public void setClosingQty(BigDecimal closingQty) { this.closingQty = closingQty; }
+    public Date getInventoryDate() { return inventoryDate; }
+    public void setInventoryDate(Date inventoryDate) { this.inventoryDate = inventoryDate; }
     public String getCategoryName() { return categoryName; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
-
-    @Override
-    public String toString() {
-        return "MaterialInventory{" +
-               "materialId=" + materialId +
-               ", categoryId=" + categoryId +
-               ", materialName='" + materialName + '\'' +
-               ", unitName='" + unitName + '\'' +
-               ", quantity=" + quantity +
-               ", lastUpdated=" + lastUpdated +
-               ", warehouseId=" + warehouseId +
-               ", categoryName='" + categoryName + '\'' +
-               '}';
-    }
 }
