@@ -50,7 +50,7 @@
         .error { color: red; font-size: 14px; }
         .pagination { font-size: 14px; }
         .pagination a, .pagination {span: 2px; padding: 8px 12px; margin: 0 4px; text-decoration: none; color: #374151; }
-        .pagination span { background-color: #3b82f6; color: white; border-radius: 4px; }
+        .pagination span { background-color: #9e9e9e1c; color: white; border-radius: 4px; }
         .pagination a:hover { background-color: #e5e7eb; border-radius: 4px; }
         @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 800px; }}
     </style>
