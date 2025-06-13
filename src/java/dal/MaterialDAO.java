@@ -1,4 +1,3 @@
-// DAO for Materials and Material_detail tables
 package dal;
 
 import java.sql.PreparedStatement;
@@ -10,6 +9,8 @@ import model.Category;
 import model.Material;
 import model.MaterialDetail;
 import model.Supplier;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 public class MaterialDAO extends DBContext {
 
@@ -106,15 +107,24 @@ public class MaterialDAO extends DBContext {
         }
     }
 
-    // Update material (name, supplier, image)
+    // Update material (all fields except Create_at, with Last_updated auto-set, and status)
     public boolean updateMaterial(Material material) {
-        String query = "UPDATE Materials SET Name = ?, SupplierId = ?, Image = ? WHERE Material_id = ?";
+        String query = "UPDATE Materials SET Category_id = ?, SupplierId = ?, Name = ?, Image = ?, Status = ?, Last_updated = ? WHERE Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
-            ps.setString(1, material.getName());
+            ps.setInt(1, material.getCategoryId());
             ps.setInt(2, material.getSupplierId());
-            ps.setString(3, material.getImage());
-            ps.setInt(4, material.getMaterialId());
+            ps.setString(3, material.getName());
+            ps.setString(4, material.getImage());
+            ps.setString(5, material.getStatus());
+            ps.setTimestamp(6, Timestamp.from(Instant.now())); // Auto-set Last_updated to current timestamp
+            ps.setInt(7, material.getMaterialId());
+
+            // Check if material is in pending order or pending import/export
+            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())) {
+                return false; // Prevent update if material is in pending state
+            }
+
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -123,12 +133,19 @@ public class MaterialDAO extends DBContext {
         }
     }
 
-    // Soft delete material (change status to inactive)
+    // Soft delete material (change status to inactive) with checks
     public boolean deleteMaterial(int materialId) {
-        String query = "UPDATE Materials SET Status = 'inactive' WHERE Material_id = ?";
+        String query = "UPDATE Materials SET Status = 'inactive', Last_updated = ? WHERE Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
-            ps.setInt(1, materialId);
+            ps.setTimestamp(1, Timestamp.from(Instant.now())); // Auto-set Last_updated to current timestamp
+            ps.setInt(2, materialId);
+
+            // Check if material is in pending order or pending import/export
+            if (isMaterialInOrderWithStatus(materialId, "pending") || isMaterialInPendingImportOrExport(materialId)) {
+                return false; // Prevent deletion if material is in pending state
+            }
+
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -302,7 +319,44 @@ public class MaterialDAO extends DBContext {
         return false;
     }
 
-        public int countMaterialByCategoryId(int cid) {
+    // Check if material is in pending import or export with imported/exported = false
+    public boolean isMaterialInPendingImportOrExport(int materialId) {
+        boolean isPending = false;
+
+        // Check Import_note_detail for pending imports (imported = false)
+        String importQuery = "SELECT 1 FROM Import_note_detail ind " +
+                           "JOIN Import_note i ON ind.Import_note_id = i.Import_note_id " +
+                           "WHERE ind.Material_id = ? AND i.imported = false LIMIT 1";
+        try (PreparedStatement psImport = connection.prepareStatement(importQuery)) {
+            psImport.setInt(1, materialId);
+            try (ResultSet rsImport = psImport.executeQuery()) {
+                if (rsImport.next()) {
+                    return true; // Material is in a pending import
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("isMaterialInPendingImportOrExport (import) error: " + e.getMessage());
+        }
+
+        // Check Export_note_detail for pending exports (exported = false)
+        String exportQuery = "SELECT 1 FROM Export_note_detail endt " +
+                           "JOIN Export_note en ON endt.Export_note_id = en.Export_note_id " +
+                           "WHERE endt.Material_id = ? AND en.exported = false LIMIT 1";
+        try (PreparedStatement psExport = connection.prepareStatement(exportQuery)) {
+            psExport.setInt(1, materialId);
+            try (ResultSet rsExport = psExport.executeQuery()) {
+                if (rsExport.next()) {
+                    return true; // Material is in a pending export
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("isMaterialInPendingImportOrExport (export) error: " + e.getMessage());
+        }
+        // Return false if no pending records found
+        return isPending; 
+    }
+
+    public int countMaterialByCategoryId(int cid) {
         String query = "SELECT COUNT(*) FROM Materials WHERE Category_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
@@ -313,7 +367,6 @@ public class MaterialDAO extends DBContext {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-
         }
         return 0;
     }

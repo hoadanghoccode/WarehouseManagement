@@ -1,13 +1,14 @@
-// Controller to soft delete material
 package controller;
 
 import dal.MaterialDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet(name = "DeleteMaterialController", urlPatterns = {"/delete-material"})
 public class DeleteMaterialController extends HttpServlet {
 
     @Override

@@ -1,15 +1,16 @@
-// Controller to list all materials with search and filters
 package controller;
 
 import dal.MaterialDAO;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
 
+@WebServlet(name = "ListMaterialController", urlPatterns = {"/list-material"})
 public class ListMaterialController extends HttpServlet {
 
     private static final int DEFAULT_PAGE_SIZE = 5;
@@ -19,8 +20,8 @@ public class ListMaterialController extends HttpServlet {
             throws ServletException, IOException {
         MaterialDAO dao = new MaterialDAO();
         String search = request.getParameter("search");
-        Integer categoryId = request.getParameter("categoryId") != null ? Integer.parseInt(request.getParameter("categoryId")) : null;
-        Integer supplierId = request.getParameter("supplierId") != null ? Integer.parseInt(request.getParameter("supplierId")) : null;
+        Integer categoryId = parseIntOrNull(request.getParameter("categoryId"));
+        Integer supplierId = parseIntOrNull(request.getParameter("supplierId"));
         String status = request.getParameter("status");
 
         List<Material> materials = dao.getAllMaterials(search, categoryId, supplierId, status);
@@ -53,6 +54,15 @@ public class ListMaterialController extends HttpServlet {
             return Math.max(1, Integer.parseInt(pageParam));
         } catch (NumberFormatException e) {
             return 1;
+        }
+    }
+
+    private Integer parseIntOrNull(String value) {
+        if (value == null || value.trim().isEmpty()) return null;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }

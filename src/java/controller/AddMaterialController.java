@@ -1,15 +1,16 @@
-// Controller to add new material
 package controller;
 
 import dal.MaterialDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
 import java.sql.Date;
 
+@WebServlet(name = "AddMaterialController", urlPatterns = {"/add-material"})
 public class AddMaterialController extends HttpServlet {
 
     @Override
