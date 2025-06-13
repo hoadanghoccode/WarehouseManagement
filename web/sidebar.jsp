@@ -11,7 +11,12 @@
 <%
     Users user = (Users) session.getAttribute("user");
     request.setAttribute("user", user);
+    
+    @SuppressWarnings("unchecked")
     Map<String, Boolean> permissions = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (permissions == null) {
+        permissions = new java.util.HashMap<>();
+    }
     request.setAttribute("permissions", permissions);
 %>
 <nav class="sidebar">
@@ -38,45 +43,65 @@
             <ul>
                 <c:if test="${permissions['Permission_VIEW']}">
                     <li><a href="/WarehouseManagement/resource">Permission</a></li>
-                </c:if>
-                <c:if test="${permissions['Role_VIEW']}">
+                    </c:if>
+                    <c:if test="${permissions['Role_VIEW']}">
                     <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
-                </c:if>
-                <c:if test="${permissions['Department_VIEW']}">
+                    </c:if>
+                    <c:if test="${permissions['Department_VIEW']}">
                     <li><a href="/WarehouseManagement/department">Department</a></li>
-                </c:if>
-                <c:if test="${permissions['Customer_VIEW']}">
-                    <li><a href="/WarehouseManagement/userlist">User List</a></li>
-                </c:if>
+                    </c:if>
             </ul>
         </li>
-        <li class="">
-            <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/categorylist">
-                <img src="img/menu-icon/4.svg" alt="">
-                <span>Categories</span>
-            </a>
-        </li>
-        <li class="">
-            <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/list-material">
-                <img src="img/menu-icon/4.svg" alt="">
-                <span>Materials</span>
-            </a>
-        </li>
-        <li class="">
-            <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/userlist">
-                <img src="img/menu-icon/4.svg" alt="">
-                <span>Users</span>
-            </a>
-        </li>
-        <c:if test="${user.roleId == 1}">
+        <c:if test="${permissions['Category_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/categorylist">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Categories</span>
+                </a>
+            </li>
+        </c:if>
+        <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/list-material">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Materials</span>
+                </a>
+            </li>
+        </c:if>
+        <c:if test="${permissions['Customer_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/userlist">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Users</span>
+                </a>
+            </li>
+        </c:if>
+        <c:if test="${permissions['Password_VIEW']}">
             <li class="mm-active">
-                <a href="adminresetlist">
+                <a href="/WarehouseManagement/adminresetlist">
                     <img src="img/menu-icon/your-icon.svg" alt="">
                     <span>Reset List</span>
                 </a>
             </li>
         </c:if>
 
+            <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Unit</span>
+                </a>
+            </li>
+        </c:if>
+            
+            <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/inventory">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Current Inventory</span>
+                </a>
+            </li>
+        </c:if>
     </ul>
 </nav>
 

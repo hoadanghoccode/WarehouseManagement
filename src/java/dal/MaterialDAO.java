@@ -453,7 +453,7 @@ public class MaterialDAO extends DBContext {
     }
 
     public int countMaterialByCategoryId(int cid) {
-        String query = "SELECT COUNT(*) FROM Material WHERE Category_id = ?";
+        String query = "SELECT COUNT(*) FROM Materials WHERE Category_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, cid);
@@ -490,7 +490,7 @@ public class MaterialDAO extends DBContext {
 
         return materials;
     }
-    
+
     public int getMaterialIdByName(String name) {
         String sql = "SELECT Material_id FROM Material WHERE LOWER(Name) = LOWER(?) LIMIT 1";
         try {
@@ -504,6 +504,25 @@ public class MaterialDAO extends DBContext {
             System.out.println("getMaterialIdByName error: " + e.getMessage());
         }
         return 0;
+    }
+
+    // Minh thêm hàm để xử lí 
+    public Material getMaterialIdBy(int mid) {
+        String sql = "SELECT * FROM Materials WHERE Material_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, mid);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Material material = new Material();
+                material.setMaterialId(rs.getInt("Material_id"));
+                material.setName(rs.getString("Name"));
+                return material;
+            }
+        } catch (SQLException e) {
+            System.out.println("getMaterialIdByName error: " + e.getMessage());
+        }
+        return null;
     }
 
     public static void main(String[] args) {

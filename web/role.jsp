@@ -1,10 +1,18 @@
-<%--
-    Document   : role
-    Created on : May 21, 2025, 11:04:00 AM
-    Author     : PC
---%>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    @SuppressWarnings("unchecked")
+    Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+    if (perms == null) {
+        perms = new HashMap<>();
+    }        
+    // Set attribute để có thể truy cập trong JSP
+    request.setAttribute("perms", perms);
+%>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -88,9 +96,14 @@
 
                 <div class="row mb-3">                
                     <div class="col d-flex justify-content-end">
-                        <button id="addRoleBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">Add Role</button>
+                        <c:if test="${perms['Role_ADD']}">
+
+                            <button id="addRoleBtn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">Add Role</button>
+                        </c:if>
                     </div>
                 </div>
+
+
                 <table class="table table-bordered">
                     <thead class="table-header">
                         <tr>
@@ -105,11 +118,13 @@
                     </thead>
                     <tbody id="roleTableBody"></tbody>
                 </table>
+                 <c:if test="${perms['Role_UPDATE']}"> 
                 <div class="row mb-3">
                     <div class="col d-flex justify-content-end">
                         <button id="submitBtn" class="btn btn-primary">Submit</button>
                     </div>
                 </div>
+                </c:if>
             </div>
 
             <!-- Modal for Adding Role -->
@@ -135,7 +150,7 @@
                                         required
                                         >
                                     <div class="invalid-feedback">
-                                        Vui lòng nhập tên vai trò.
+                                        Please enter correct role
                                     </div>
                                 </div>
 
@@ -151,7 +166,7 @@
                                         required
                                         ></textarea>
                                     <div class="invalid-feedback">
-                                        Vui lòng nhập mô tả.
+                                        Please enter description
                                     </div>
                                 </div>
                             </div>
@@ -168,19 +183,39 @@
             <!-- Modal Confirm -->
             <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
                 <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Xác nhận xoá</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <c:if test="${perms['Role_DELETE']}"> 
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this role?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+                            </div>
                         </div>
-                        <div class="modal-body">
-                            Bạn có chắc muốn xoá role này?
+                    </c:if>
+                    <c:if test="${!perms['Role_DELETE']}"> 
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                You do not have permission to delete !
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
-                            <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xoá</button>
-                        </div>
-                    </div>
+
+                    </c:if>
+
+
                 </div>
             </div>
 
@@ -298,7 +333,7 @@
                             tdBtn.rowSpan = role.permissions.length;
                             const deleteBtn = document.createElement('button');
                             deleteBtn.className = 'btn btn-danger btn-sm delete-role-btn';
-                            deleteBtn.textContent = 'Xoá';
+                            deleteBtn.textContent = 'Delete';
                             deleteBtn.setAttribute('data-role-id', role.roleId);
 
                             // Thêm trực tiếp event listener vào button
@@ -439,7 +474,7 @@
                             body: params.toString()
                         });
 
-                   
+
                         // Refresh lại dữ liệu
                         const response = await fetch(`${pageContext.request.contextPath}/permissionrole/data`);
 
@@ -452,7 +487,7 @@
                             const response = await fetch(`${pageContext.request.contextPath}/permissionrole/data`);
                             const data = await response.json();
                             console.log('New data after delete:', data);
-                             window.location.reload();
+                            window.location.reload();
                             // … render lại bảng …
                         } else {
                             throw new Error(result.msg || 'Lỗi không xác định');
