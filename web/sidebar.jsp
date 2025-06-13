@@ -68,6 +68,14 @@
                 </a>
             </li>
         </c:if>
+        <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/import-note-list">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Import_note</span>
+                </a>
+            </li>
+        </c:if>
         <c:if test="${permissions['Customer_VIEW']}">
             <li class="">
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/userlist">
@@ -94,7 +102,7 @@
             </li>
         </c:if>
             
-            <c:if test="${permissions['Material_VIEW']}">
+            <c:if test="${permissions['']}">
             <li class="">
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/inventory">
                     <img src="img/menu-icon/4.svg" alt="">

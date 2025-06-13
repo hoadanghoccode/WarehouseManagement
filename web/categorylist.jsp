@@ -229,8 +229,7 @@
                                                                                     </td>
                                                                                     <td style="width: 583px">
                                                                                         <div class="subcat-name">
-
-                                                                                            <a href="material?cid=${sub.categoryId}">${sub.name}</a>
+                                                                                            <a href="list-material?search=&categoryId=${sub.categoryId}&supplierId=&status=">${sub.name}</a>
                                                                                             <span class="material-count" style="font-size: 12px">(${sub.materialCount})</span>
                                                                                         </div>
                                                                                     </td>
