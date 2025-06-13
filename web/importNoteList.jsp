@@ -150,7 +150,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="addButton">Add</button>
+                    <button type="button" class="btn btn-primary" id="addButton">Add to Inventory</button>
                 </div>
             </div>
         </div>
@@ -189,7 +189,7 @@
             });
 
             $('#addButton').on('click', function() {
-                alert('Add to inventory functionality to be implemented.');
+                
             });
         });
     </script>

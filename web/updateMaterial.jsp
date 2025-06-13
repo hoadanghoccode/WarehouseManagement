@@ -27,114 +27,26 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .main-layout {
-            display: flex;
-            min-height: 100vh;
+        .main-layout { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; margin-left: 260px; background-color: #f8f9fa; padding: 0; min-height: 100vh; transition: margin-left 0.3s ease; }
+        .container { max-width: none; padding: 30px; margin: 0; }
+        .title { font-size: 28px; font-weight: 600; color: #1f2937; margin-bottom: 16px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 500; color: #1f2937; margin-bottom: 8px; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; color: #374151; background-color: #fff;
         }
-
-        .main-content {
-            flex: 1;
-            margin-left: 260px; /* Width of sidebar */
-            padding: 0;
-            background-color: #f8f9fa;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .container {
-            max-width: none;
-            padding: 30px;
-            margin: 0;
-        }
-
-        .title {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #374151;
-            background-color: #fff;
-        }
-
-        .form-group input[readonly] {
-            background-color: #f3f4f6;
-            cursor: not-allowed;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            border: none;
-            transition: background-color 0.2s;
-        }
-
-        .btn-primary {
-            background-color: #6366f1;
-        }
-
-        .btn-primary:hover {
-            background-color: #4f46e5;
-        }
-
-        .btn-secondary {
-            background-color: #6b7280;
-        }
-
-        .btn-secondary:hover {
-            background-color: #4b5563;
-        }
-
-        .error {
-            color: #ef4444;
-            font-size: 14px;
-            margin-top: 4px;
-            display: block;
-        }
-
-        .general-error {
-            color: #ef4444;
-            font-size: 14px;
-            margin-bottom: 16px;
-            padding: 8px;
-            background-color: #fee2e2;
-            border-radius: 8px;
-        }
-
+        .form-group input[readonly] { background-color: #f3f4f6; cursor: not-allowed; }
+        .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; color: white; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; border: none; transition: background-color 0.2s; }
+        .btn-primary { background-color: #6366f1; }
+        .btn-primary:hover { background-color: #4f46e5; }
+        .btn-secondary { background-color: #6b7280; }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .error { color: #ef4444; font-size: 14px; margin-top: 4px; display: block; }
+        .general-error { color: #ef4444; font-size: 14px; margin-bottom: 16px; padding: 8px; background-color: #fee2e2; border-radius: 8px; }
         @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-            }
-            .title {
-                font-size: 24px;
-            }
+            .main-content { margin-left: 0; }
+            .title { font-size: 24px; }
         }
     </style>
 </head>
@@ -145,17 +57,19 @@
         <div class="main-content">
             <div class="container">
                 <h1 class="title">Update Material</h1>
+
                 <c:if test="${not empty error}">
                     <div class="general-error">${error}</div>
                 </c:if>
                 <c:if test="${not empty param.success}">
                     <div class="alert alert-success">${param.success}</div>
                 </c:if>
+
                 <form action="update-material" method="post">
-                    <input type="hidden" name="materialId" value="${material.materialId}">
+                    <input type="hidden" name="materialId" value="${material.materialId}" />
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input type="text" id="name" name="name" class="form-control" value="${material.name}" required>
+                        <input type="text" id="name" name="name" class="form-control" value="${material.name}" required />
                         <c:if test="${not empty param.error and param.error.contains('Name')}">
                             <span class="error">Name ${param.error.contains('empty') ? 'cannot be empty' : 'must not exceed 250 characters.'}</span>
                         </c:if>
@@ -188,7 +102,7 @@
                     </div>
                     <div class="form-group">
                         <label for="image">Image URL</label>
-                        <input type="text" id="image" name="image" class="form-control" value="${material.image}">
+                        <input type="text" id="image" name="image" class="form-control" value="${material.image}" />
                         <c:if test="${not empty param.error and param.error.contains('Image')}">
                             <span class="error">Image URL must not exceed 500 characters.</span>
                         </c:if>
@@ -205,7 +119,7 @@
                     </div>
                     <div class="form-group">
                         <label for="createAt">Created At</label>
-                        <input type="text" id="createAt" name="createAt" class="form-control" value="${material.createAt}" readonly>
+                        <input type="text" id="createAt" name="createAt" class="form-control" value="${material.createAt}" readonly />
                     </div>
                     <div class="header-actions">
                         <button type="submit" class="btn btn-primary">Update Material</button>
@@ -215,6 +129,36 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080;">
+      <div id="updateToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JS thư viện -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      var toastEl = document.getElementById('updateToast');
+      var bodyEl  = toastEl.querySelector('.toast-body');
+      var err     = '<c:out value="${error}" default=""/>';
+      var ok      = '<c:out value="${param.success}" default=""/>';
+      if (err) {
+        toastEl.classList.add('text-bg-danger');
+        bodyEl.textContent = err;
+        new bootstrap.Toast(toastEl).show();
+      } else if (ok) {
+        toastEl.classList.remove('text-bg-danger');
+        toastEl.classList.add('text-bg-success');
+        bodyEl.textContent = ok;
+        new bootstrap.Toast(toastEl).show();
+      }
+    });
+    </script>
 </body>
 </html>

@@ -140,10 +140,10 @@
                                             <a href="update-material?id=${material.materialId}" class="btn btn-primary btn-sm" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="delete-material?id=${material.materialId}" class="btn btn-danger btn-sm" title="Delete"
-                                               onclick="return confirm('Are you sure you want to deactivate this material?')">
+                                            <!-- soft-delete trigger -->
+                                            <button class="btn btn-danger btn-sm btn-delete" data-id="${material.materialId}" title="Deactivate">
                                                 <i class="fas fa-trash"></i>
-                                            </a>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -268,19 +268,19 @@
                     </div>
                 </c:if>
 
-                <!-- Detail Modal -->
-                <div class="modal fade" id="materialDetailModal" tabindex="-1" aria-labelledby="materialDetailModalLabel" aria-hidden="true">
+                <!-- Detail Modal (unchanged) -->
+                <div class="modal fade" id="materialDetailModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="materialDetailModalLabel">Material Details</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body" id="materialDetailContent">
                                 <p>Loading...</p>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
@@ -290,27 +290,73 @@
         </div>
     </div>
 
+    <!-- Delete Confirm Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Deactivation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to deactivate this material?
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" id="confirmDeleteButton">Deactivate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080;">
+      <div id="actionToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="actionToastBody"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+
     <!-- JS thư viện -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $('.view-detail').on('click', function(e) {
-                e.preventDefault();
-                var materialId = $(this).data('id');
-                $('#materialDetailContent').html('<p>Loading...</p>');
-                $('#materialDetailContent').load(
-                    'getMaterial.jsp?materialId=' + materialId,
-                    function(response, status, xhr) {
-                        if (status === "error") {
-                            $('#materialDetailContent').html('<p class="text-danger">Không thể tải chi tiết.</p>');
-                        }
-                    }
-                );
-                var modal = new bootstrap.Modal(document.getElementById('materialDetailModal'));
-                modal.show();
-            });
-        });
+    $(function(){
+      var deleteId = null;
+
+      // View detail
+      $('.view-detail').on('click', function(){
+        var materialId = $(this).data('id');
+        $('#materialDetailContent').load('getMaterial.jsp?materialId=' + materialId);
+        new bootstrap.Modal(document.getElementById('materialDetailModal')).show();
+      });
+
+      // Open confirm modal
+      $('.btn-delete').on('click', function(){
+        deleteId = $(this).data('id');
+        new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+      });
+
+      // On confirm, redirect to delete
+      $('#confirmDeleteButton').on('click', function(){
+        window.location.href = 'delete-material?id=' + deleteId;
+      });
+
+      // Show toast if redirected with success/error
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('success') || params.has('error')) {
+        const isSuccess = params.has('success');
+        const msg = params.get(isSuccess ? 'success' : 'error');
+        const toastEl = document.getElementById('actionToast');
+        toastEl.classList.remove('text-bg-success','text-bg-danger');
+        toastEl.classList.add(isSuccess ? 'text-bg-success' : 'text-bg-danger');
+        document.getElementById('actionToastBody').textContent = msg;
+        new bootstrap.Toast(toastEl).show();
+        history.replaceState(null,'',location.pathname);
+      }
+    });
     </script>
 </body>
 </html>
