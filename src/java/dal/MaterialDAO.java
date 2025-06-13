@@ -317,7 +317,7 @@ public class MaterialDAO extends DBContext {
         return false;
     }
 
-    // Check if material is in pending import or export with imported/exported = false
+    // Check nếu tôn tại Material trong Import/Export Detail với Imported/Exported = false
     public boolean isMaterialInPendingImportOrExport(int materialId) {
         boolean isPending = false;
 
@@ -329,7 +329,7 @@ public class MaterialDAO extends DBContext {
             psImport.setInt(1, materialId);
             try (ResultSet rsImport = psImport.executeQuery()) {
                 if (rsImport.next()) {
-                    return true; // Material is in a pending import
+                    return true; 
                 }
             }
         } catch (SQLException e) {
@@ -344,13 +344,12 @@ public class MaterialDAO extends DBContext {
             psExport.setInt(1, materialId);
             try (ResultSet rsExport = psExport.executeQuery()) {
                 if (rsExport.next()) {
-                    return true; // Material is in a pending export
+                    return true; 
                 }
             }
         } catch (SQLException e) {
             System.out.println("isMaterialInPendingImportOrExport (export) error: " + e.getMessage());
         }
-        // Return false if no pending records found
         return isPending; 
     }
 
