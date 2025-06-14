@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
 import model.Order;
 import model.OrderDetail;
@@ -218,6 +219,40 @@ public class OrderDAO extends DBContext {
         }
 
         return orders;
+    }
+
+    public List<Order> getAllOrdersByUserId(int userId) {
+           List<Order> orders = new ArrayList<>();
+    String sql = "SELECT o.*, u.Full_name AS User_name, s.Name AS Supplier_name " +
+                 "FROM Orders o " +
+                 "LEFT JOIN Users u ON o.User_id = u.User_id " +
+                 "LEFT JOIN Suppliers s ON o.Supplier_id = s.Supplier_id " +
+                 "WHERE o.User_id = ? " +
+                 "ORDER BY o.Created_at DESC";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, userId);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            Order o = new Order();
+            o.setOrderId(rs.getInt("Order_id"));
+            o.setWarehouseId(rs.getInt("Warehouse_id"));
+            o.setUserId(rs.getInt("User_id"));
+            o.setCreatedAt(rs.getTimestamp("Created_at"));
+            o.setType(rs.getString("Type"));
+            o.setSupplier(rs.getInt("Supplier_id"));
+            o.setNote(rs.getString("Note"));
+            o.setStatus(rs.getString("Status"));
+            o.setUserName(rs.getString("User_name"));
+            o.setSupplierName(rs.getString("Supplier_name"));
+            orders.add(o);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return orders;
     }
 
     public boolean updateOrderStatus(int orderId, String status) {
@@ -470,6 +505,128 @@ public class OrderDAO extends DBContext {
         return 0;
     }
 
+    public List<Order> getPagedOrderList(String search, String type, String status, Date fromDate, Date toDate,
+            int offset, int limit, String sortColumn, String sortDirection) {
+        List<Order> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT o.*, u.Full_name AS User_name, s.Name AS Supplier_name "
+                + "FROM Orders o "
+                + "LEFT JOIN Users u ON o.User_id = u.User_id "
+                + "LEFT JOIN Suppliers s ON o.Supplier_id = s.Supplier_id WHERE 1=1 ");
+
+        if (search != null && !search.isEmpty()) {
+            sql.append(" AND (o.Note LIKE ? OR o.Type LIKE ? OR u.Full_name LIKE ? OR s.Name LIKE ?) ");
+        }
+        if (type != null && !type.isEmpty()) {
+            sql.append(" AND o.Type = ? ");
+        }
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND o.Status = ? ");
+        }
+        if (fromDate != null) {
+            sql.append(" AND DATE(o.Created_at) >= ? ");
+        }
+        if (toDate != null) {
+            sql.append(" AND DATE(o.Created_at) <= ? ");
+        }
+
+        sql.append(" ORDER BY ").append(sortColumn).append(" ").append(sortDirection).append(" LIMIT ? OFFSET ?");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int index = 1;
+            if (search != null && !search.isEmpty()) {
+                for (int i = 0; i < 4; i++) {
+                    ps.setString(index++, "%" + search + "%");
+                }
+            }
+            if (type != null && !type.isEmpty()) {
+                ps.setString(index++, type);
+            }
+            if (status != null && !status.isEmpty()) {
+                ps.setString(index++, status);
+            }
+            if (fromDate != null) {
+                ps.setDate(index++, fromDate);
+            }
+            if (toDate != null) {
+                ps.setDate(index++, toDate);
+            }
+            ps.setInt(index++, limit);
+            ps.setInt(index, offset);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Order o = new Order();
+                o.setOrderId(rs.getInt("Order_id"));
+                o.setWarehouseId(rs.getInt("Warehouse_id"));
+                o.setUserId(rs.getInt("User_id"));
+                o.setCreatedAt(rs.getTimestamp("Created_at"));
+                o.setType(rs.getString("Type"));
+                o.setSupplier(rs.getInt("Supplier_id"));
+                o.setNote(rs.getString("Note"));
+                o.setStatus(rs.getString("Status"));
+                o.setUserName(rs.getString("User_name"));
+                o.setSupplierName(rs.getString("Supplier_name"));
+                list.add(o);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countOrdersWithFilter(String search, String type, String status, Date fromDate, Date toDate) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM Orders o "
+                + "LEFT JOIN Users u ON o.User_id = u.User_id "
+                + "LEFT JOIN Suppliers s ON o.Supplier_id = s.Supplier_id WHERE 1=1 ");
+
+        if (search != null && !search.isEmpty()) {
+            sql.append(" AND (o.Note LIKE ? OR o.Type LIKE ? OR u.Full_name LIKE ? OR s.Name LIKE ?) ");
+        }
+        if (type != null && !type.isEmpty()) {
+            sql.append(" AND o.Type = ? ");
+        }
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND o.Status = ? ");
+        }
+        if (fromDate != null) {
+            sql.append(" AND DATE(o.Created_at) >= ? ");
+        }
+        if (toDate != null) {
+            sql.append(" AND DATE(o.Created_at) <= ? ");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int index = 1;
+            if (search != null && !search.isEmpty()) {
+                for (int i = 0; i < 4; i++) {
+                    ps.setString(index++, "%" + search + "%");
+                }
+            }
+            if (type != null && !type.isEmpty()) {
+                ps.setString(index++, type);
+            }
+            if (status != null && !status.isEmpty()) {
+                ps.setString(index++, status);
+            }
+            if (fromDate != null) {
+                ps.setDate(index++, fromDate);
+            }
+            if (toDate != null) {
+                ps.setDate(index++, toDate);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     // Test method
     public static void main(String[] args) {
         OrderDAO dao = new OrderDAO();
@@ -482,8 +639,10 @@ public class OrderDAO extends DBContext {
             System.out.println("Order not found");
         }
 
+
         // Test get all orders
-        List<Order> allOrders = dao.getAllOrders();
-        System.out.println("Total orders: " + dao.getAllOrders());
+        List<Order> ordersByUser = dao.getAllOrdersByUserId(4);
+System.out.println("Orders by user 1: " + ordersByUser.size());
+
     }
 }
