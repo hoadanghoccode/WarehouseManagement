@@ -29,9 +29,6 @@
     </head>
 
     <body>
-        <!-- CHECKPOINT -->
-        <div id="debug-checkpoint" style="display:none;">MODAL SHOULD BE LOADED</div>
-
         <!-- Include navbar and sidebar -->
         <%@ include file="navbar.jsp" %>
         <div class="main-layout">
@@ -204,8 +201,6 @@
                                 <div>
                                     <!-- Admin Actions Card - Only show for admin on pending orders -->
                                     <c:if test="${currentUser.roleId == 1 && order.status == 'pending'}">
-                                        <!-- CHECKPOINT -->
-                                        <div id="debug-checkpoint" style="display:none;">MODAL SHOULD BE LOADED</div>
 
                                         <div class="card" style="margin-bottom: 24px;">
                                             <div class="card-header">
@@ -228,23 +223,20 @@
                                                 </div>
 
                                                 <div class="admin-actions">
-                                                    <!-- Nút Approve -->
+                                                    <!-- Approve -->
                                                     <button type="button" class="btn btn-success" onclick="openApproveModal()">
-                                                        <i class="fas fa-check-circle"></i> Approve Order
+                                                        <i class="fas fa-check-circle"></i> Approve
                                                     </button>
 
-                                                    <!-- Nút Reject -->
+                                                    <button type="button" class="btn btn-warning" style="color: white">
+                                                        <i class="fas fa-list-check"></i> Partial Approve
+                                                    </button>
+
+                                                    <!-- Reject -->
                                                     <button type="button" class="btn btn-danger" onclick="openRejectModal()">
-                                                        <i class="fas fa-times-circle"></i> Reject Order
+                                                        <i class="fas fa-times-circle"></i> Reject
                                                     </button>
 
-                                                    <!--                                                    <button type="button" class="btn btn-success" id="btnApproveOrder">
-                                                                                                            <i class="fas fa-check-circle"></i> Approve Order
-                                                                                                        </button>
-                                                    
-                                                                                                        <button type="button" class="btn btn-danger" id="btnRejectOrder">
-                                                                                                            <i class="fas fa-times-circle"></i> Reject Order
-                                                                                                        </button>-->
                                                 </div>
 
                                                 <div style="margin-top: 16px; padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
@@ -438,8 +430,7 @@
             </div>
         </div>
 
-        <!-- CHECKPOINT -->
-        <div id="debug-checkpoint" style="display:none;">MODAL SHOULD BE LOADED Last</div>
+
 
 
         <!-- Approve Order Modal -->

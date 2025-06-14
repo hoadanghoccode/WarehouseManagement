@@ -223,7 +223,7 @@ body {
 
 .content-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 2fr 1.4fr;
     gap: 24px;
     align-items: start; /* This ensures cards align to top */
 }
