@@ -344,6 +344,18 @@ body {
 .form-actions button:hover {
     background-color: #d1d5db;
 }
+
+.field-error {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 4px;
+    display: block;
+}
+.success-message {
+    color: green;
+    font-weight: bold;
+    margin-top: 8px;
+}
 .text-gray-800 {
     color: #1f2937;
     font-weight: 500;

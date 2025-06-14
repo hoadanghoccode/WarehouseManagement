@@ -52,77 +52,57 @@
         <!-- style CSS -->
         <link rel="stylesheet" href="css/style1.css" />
         <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
-
-        <style>
-            html, body {
-                height: 100%;
-                margin: 0;
-            }
-            .login-container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                background-color: #f4f4f4;
-            }
-            .cs_modal {
-                width: 100%;
-                max-width: 400px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
-            .modal-body {
-                padding: 30px;
-            }
-            .form-control {
-                margin-bottom: 15px;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="css/login.css" />  
     </head>
 
-    <body class="crm_body_bg">
-        <div class="login-container">
-            <div class="container-fluid">
-                <div class="row justify-content-center">
-                    <div class="col-lg-12 d-flex justify-content-center">
-                        <div class="modal-content cs_modal">
-                            <div class="modal-header justify-content-center theme_bg_1">
-                                <h5 class="modal-title text_white">Log in</h5>
-                            </div>
-                            <div class="modal-body">
-
-                                <c:if test="${not empty error}">
-                                    <p style="color: red;">${error}</p>
-                                </c:if>
-
-                                <c:if test="${not empty success}">
-                                    <p style="color: green;">${success}</p>
-                                </c:if>
-
-                                <%
-                                    session.removeAttribute("success"); // sau khi hiển thị thì xóa để tránh hiển thị lại
-                                %>
-
-                                <form action="login" method="post">
-                                    <div>
-                                        <input type="text" name="email" class="form-control" placeholder="Enter your email" required>
-                                    </div>
-                                    <div>
-                                        <input type="password" name="password" class="form-control" placeholder="Password" required>
-                                    </div>                
-                                    <button type="submit" class="btn_1 full_width text-center">Log in</button>
-                                    <div class="text-center">
-                                        <a href="resetpassword" class="pass_forget_btn">Reset Password?</a>
-                                    </div>
-                                    <a href="https://accounts.google.com/o/oauth2/auth?scope=email%20profile&access_type=online&redirect_uri=http://localhost:8080/WarehouseManagement/login-google&response_type=code&client_id=1016583625353-9670o6t0bql62u5cf43sjvc31d9r6dcr.apps.googleusercontent.com">
-                                        <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" alt="Login with Google"/>
-                                    </a>
-                                </form>
-                            </div>
-                        </div>
+    <body>
+        <div class="login-wrapper">
+            <div class="login-image"></div>
+            <div class="login-form">
+                <div class="login-container">
+                    <div class="login-header">
+                        <img src="img/logo.png" alt="Warehouse Icon">
+                        <h4>Warehouse Management System</h4>
+                        <!-- <small>Secure Login</small> -->
                     </div>
+                    <c:if test="${not empty error}">
+                        <div class="alert alert-danger" role="alert">
+                            ${error}
+                        </div>
+                    </c:if>
+                    <c:if test="${not empty success}">
+                        <div class="alert alert-success" role="alert">
+                            ${success}
+                        </div>
+                    </c:if>
+                    <%
+                        session.removeAttribute("success");
+                    %>
+                    <form action="login" method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" name="email" class="form-control" id="email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label"><i class="fas fa-lock"></i> Password</label>
+                            <input type="password" name="password" class="form-control" id="password" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-login">Log In</button>
+                        <div class="text-center">
+                            <a href="resetpassword" class="pass-forget">Forgot Password?</a>
+                        </div>
+                        <div class="text-center google-btn">
+                            <a href="https://accounts.google.com/o/oauth2/auth?scope=email%20profile&access_type=online&redirect_uri=http://localhost:8080/WarehouseManagement/login-google&response_type=code&client_id=1016583625353-9670o6t0bql62u5cf43sjvc31d9r6dcr.apps.googleusercontent.com">
+                                <img src="https://developers.google.com/identity/images/btn_google_signin_light_normal_web.png" alt="Login with Google"/>
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+
+        <!-- Bootstrap JS and dependencies -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 
 

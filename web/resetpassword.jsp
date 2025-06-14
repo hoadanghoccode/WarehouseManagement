@@ -48,87 +48,8 @@
         <!-- style CSS -->
         <link rel="stylesheet" href="css/style1.css" />
         <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-        }
+        <link rel="stylesheet" type="text/css" href="css/resetPassword.css" />
 
-        body {
-            margin: 0;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .box {
-            background-color: white;
-            border-radius: 12px;
-            padding: 32px;
-            max-width: 420px;
-            width: 100%;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            text-align: left;
-        }
-
-        h2 {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 22px;
-            color: #050505;
-        }
-
-        p.description {
-            margin-bottom: 24px;
-            font-size: 15px;
-            color: #606770;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-
-        input[type="email"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccd0d5;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 15px;
-            background-color: #f5f6f7;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: bold;
-            background-color: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        button:hover {
-            background-color: #155fc4;
-        }
-
-        .message {
-            margin-top: 12px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .text-danger {
-            color: red;
-        }
-    </style>
 </head>
 <body>
     <div class="box">

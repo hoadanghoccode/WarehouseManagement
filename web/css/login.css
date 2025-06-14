@@ -1,0 +1,104 @@
+
+body {
+    height: 100vh;
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f4f4f4;
+}
+.login-wrapper {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+.login-image {
+    flex: 1;
+    background: url('https://chuyennha24h.net/wp-content/uploads/2021/06/cach-yeu-to-khi-chon-kho-h%C3%A0ng.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+.login-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4); /* Overlay for better text readability */
+}
+.login-form {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f4f8; /* Soft grayish-blue background */
+}
+.login-container {
+    max-width: 450px;
+    width: 100%;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    background: #fff;
+}
+.login-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.login-header img {
+    width: 80px;
+    margin-bottom: 10px;
+}
+.login-header h4 {
+    color: #1e40af;
+    font-weight: 700;
+}
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 12px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+}
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 5px rgba(37, 99, 235, 0.5);
+}
+.btn-login {
+    background: #2563eb;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+    font-weight: 700;
+    transition: background 0.3s;
+}
+.btn-login:hover {
+    background: #1e40af;
+}
+.google-btn img {
+    width: 200px;
+    margin-top: 15px;
+}
+.pass-forget {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.pass-forget:hover {
+    text-decoration: underline;
+}
+.alert {
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+@media (max-width: 768px) {
+    .login-image {
+        display: none;
+    }
+    .login-form {
+        flex: 100%;
+    }
+}
