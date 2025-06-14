@@ -1,12 +1,11 @@
+// DeleteMaterialController.java
 package controller;
 
 import dal.MaterialDAO;
-import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
+import java.io.IOException;
 
 @WebServlet(name = "DeleteMaterialController", urlPatterns = {"/delete-material"})
 public class DeleteMaterialController extends HttpServlet {
@@ -14,10 +13,20 @@ public class DeleteMaterialController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        MaterialDAO materialDAO = new MaterialDAO();
         int materialId = Integer.parseInt(request.getParameter("id"));
-        materialDAO.deleteMaterial(materialId);
-        // Redirect with a parameter to trigger a success toast
-        response.sendRedirect("list-material?message=deleted");
+        MaterialDAO dao = new MaterialDAO();
+        boolean deleted = dao.deleteMaterial(materialId);
+
+        if (deleted) {
+            response.sendRedirect("list-material?success=Deactivated successfully");
+        } else {
+            response.sendRedirect("list-material?error=Cannot deactivate: pending orders or imports/exports");
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doGet(request, response);
     }
 }

@@ -353,12 +353,8 @@ public class CategoryList extends HttpServlet {
             }
 
             if (mDao.isMaterialInOrderWithStatus(material.getMaterialId(), "approved")) {
-                if (mDao.isMaterialInPendingImport(material.getMaterialId())) {
-                    return "Cannot change category status because it contains materials that are in pending import.";
-                }
-
-                if (mDao.isMaterialInPendingExport(material.getMaterialId())) {
-                    return "Cannot change category status because it contains materials that are in pending export.";
+                if (mDao.isMaterialInPendingImportOrExport(material.getMaterialId())) {
+                    return "Cannot change category status because it contains materials that are in pending import or export.";
                 }
             }
         }
@@ -752,12 +748,8 @@ public class CategoryList extends HttpServlet {
 
             // Kiểm tra materials có trong approved orders với pending import/export
             if (mDao.isMaterialInOrderWithStatus(material.getMaterialId(), "approved")) {
-                if (mDao.isMaterialInPendingImport(material.getMaterialId())) {
-                    return "Cannot update category because it contains materials that are in pending import.";
-                }
-
-                if (mDao.isMaterialInPendingExport(material.getMaterialId())) {
-                    return "Cannot update category because it contains materials that are in pending export.";
+                if (mDao.isMaterialInPendingImportOrExport(material.getMaterialId())) {
+                    return "Cannot update category because it contains materials that are in pending import or export.";
                 }
             }
         }
