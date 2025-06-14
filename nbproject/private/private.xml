@@ -3,9 +3,18 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/department.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/DeleteDepartmentController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/model/Supplier.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/GetMaterialsServlet.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/CreateOrderServlet.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/DetailDepartmentController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/web/role.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/util/GoogleUtils.java</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/web/authentication.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/DepartmentController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/department.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/DetailMaterialController.java</file>
         </group>
     </open-files>
 </project-private>
