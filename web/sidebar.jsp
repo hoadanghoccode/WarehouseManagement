@@ -11,8 +11,11 @@
 <%
     Users user = (Users) session.getAttribute("user");
     request.setAttribute("user", user);
+
+    @SuppressWarnings(
+            
     
-    @SuppressWarnings("unchecked")
+    "unchecked")
     Map<String, Boolean> permissions = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
     if (permissions == null) {
         permissions = new java.util.HashMap<>();
@@ -108,6 +111,25 @@
                 </a>
             </li>
         </c:if>
+
+        <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Unit</span>
+                </a>
+            </li>
+        </c:if>
+
+        <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/inventory">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Current Inventory</span>
+                </a>
+            </li>
+        </c:if>
+
     </ul>
 </nav>
 

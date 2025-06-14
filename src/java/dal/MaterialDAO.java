@@ -201,7 +201,7 @@ public class MaterialDAO extends DBContext {
         CategoryDAO cDao = new CategoryDAO();
         return cDao.getAllCategories();
     }
-    
+
     public int getMaterialIdByName(String name) {
         String sql = "SELECT Material_id FROM Material WHERE LOWER(Name) = LOWER(?) LIMIT 1";
         try {
@@ -217,7 +217,6 @@ public class MaterialDAO extends DBContext {
         return 0;
     }
 
-    // Minh thêm hàm để xử lí 
     public Material getMaterialIdBy(int mid) {
         String sql = "SELECT * FROM Materials WHERE Material_id = ?";
         try {
@@ -238,7 +237,7 @@ public class MaterialDAO extends DBContext {
     
     public List<Material> getAllMaterialsByCategoryId(int categoryId) {
         List<Material> materials = new ArrayList<>();
-        String query = "SELECT * FROM Material WHERE Category_id = ?";
+        String query = "SELECT * FROM Materials WHERE Category_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, categoryId);
@@ -278,45 +277,7 @@ public class MaterialDAO extends DBContext {
 
         return false;
     }
-    
-    public boolean isMaterialInPendingImport(int materialId) {
-        String query = "SELECT 1 "
-                + "FROM Import_note_detail ind "
-                + "JOIN Import_note i ON ind.Import_note_id = i.Import_note_id "
-                + "WHERE ind.Material_id = ? AND i.Status = 'pending' "
-                + "LIMIT 1";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(query);
-            ps.setInt(1, materialId);
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-    
-    public boolean isMaterialInPendingExport(int materialId) {
-        String query = "SELECT 1 "
-                + "FROM Export_note_detail endt "
-                + "JOIN Export_note en ON endt.Export_note_id = en.Export_note_id "
-                + "WHERE endt.Material_id = ? AND en.Status = 'pending' "
-                + "LIMIT 1";
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(query);
-            ps.setInt(1, materialId);
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
+   
     // Check nếu tôn tại Material trong Import/Export Detail với Imported/Exported = false
     public boolean isMaterialInPendingImportOrExport(int materialId) {
         boolean isPending = false;
