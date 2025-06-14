@@ -14,15 +14,14 @@ public class MaterialInventory {
     private String supplierName;
     private String subUnitName;
     private String qualityName;
-    private int closingQty;
-    private int openingQty;
-    private int importQty;
-    private int exportQty;
-    private BigDecimal damagedQuantity;
+    private BigDecimal availableQty; 
+    private BigDecimal notAvailableQty;
     private Date inventoryDate;
     private String note;
 
     public MaterialInventory() {
+        this.availableQty = BigDecimal.ZERO;
+        this.notAvailableQty = BigDecimal.ZERO;
     }
 
     public int getMaterialId() { return materialId; }
@@ -45,16 +44,10 @@ public class MaterialInventory {
     public void setSubUnitName(String subUnitName) { this.subUnitName = subUnitName; }
     public String getQualityName() { return qualityName; }
     public void setQualityName(String qualityName) { this.qualityName = qualityName; }
-    public int getClosingQty() { return closingQty; }
-    public void setClosingQty(int closingQty) { this.closingQty = closingQty; }
-    public int getOpeningQty() { return openingQty; }
-    public void setOpeningQty(int openingQty) { this.openingQty = openingQty; }
-    public int getImportQty() { return importQty; }
-    public void setImportQty(int importQty) { this.importQty = importQty; }
-    public int getExportQty() { return exportQty; }
-    public void setExportQty(int exportQty) { this.exportQty = exportQty; }
-    public BigDecimal getDamagedQuantity() { return damagedQuantity; }
-    public void setDamagedQuantity(BigDecimal damagedQuantity) { this.damagedQuantity = damagedQuantity; }
+    public BigDecimal getAvailableQty() { return availableQty; }
+    public void setAvailableQty(BigDecimal availableQty) { this.availableQty = availableQty; }
+    public BigDecimal getNotAvailableQty() { return notAvailableQty; }
+    public void setNotAvailableQty(BigDecimal notAvailableQty) { this.notAvailableQty = notAvailableQty; }
     public Date getInventoryDate() { return inventoryDate; }
     public void setInventoryDate(Date inventoryDate) { this.inventoryDate = inventoryDate; }
     public String getNote() { return note; }

@@ -51,7 +51,7 @@ public class InventoryServlet extends HttpServlet {
             request.setAttribute("supplierId", supplierId);
             request.setAttribute("qualityId", qualityId);
             request.setAttribute("searchTerm", searchTerm != null ? searchTerm : "");
-            request.setAttribute("sortBy", sortBy != null ? sortBy : "closing_qty ASC");
+            request.setAttribute("sortBy", sortBy != null ? sortBy : "available_qty DESC");
 
             System.out.println("InventoryServlet - Forwarding to inventory.jsp");
             request.getRequestDispatcher("/inventory.jsp").forward(request, response);

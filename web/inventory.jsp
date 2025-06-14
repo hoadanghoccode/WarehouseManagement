@@ -70,7 +70,7 @@
         <div class="container">
             <h1 class="title">Current Inventory</h1>
             <div class="row g-2 mb-3 align-items-center">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <select class="form-select" id="categoryFilter">
                         <option value="0" ${categoryId == 0 ? 'selected' : ''}>All Categories</option>
                         <c:forEach var="category" items="${categoryList}">
@@ -78,7 +78,7 @@
                         </c:forEach>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <select class="form-select" id="supplierFilter">
                         <option value="0" ${supplierId == 0 ? 'selected' : ''}>All Suppliers</option>
                         <c:forEach var="supplier" items="${supplierList}">
@@ -86,16 +86,8 @@
                         </c:forEach>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <select class="form-select" id="qualityFilter">
-                        <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
-                        <c:forEach var="quality" items="${qualityList}">
-                            <option value="${quality.qualityId}" ${quality.qualityId == qualityId ? 'selected' : ''}>${quality.qualityName}</option>
-                        </c:forEach>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search by Name/ID..." value="${searchTerm}">
+                <div class="col-md-4">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by Name..." value="${searchTerm}">
                 </div>
             </div>
             <c:if test="${not empty errorMsg}">
@@ -107,13 +99,13 @@
                         <tr>
                             <th style="width: 40px">#</th>
                             <th>Material Name</th>
-                            <th>Category</th>
-                            <th>Supplier</th>
-                            <th>Subunit</th>
-                            <th>Quality</th>
-                            <th>Quantity</th>
-                            <th>Date</th>
-                            <th style="width: 100px">Action</th>
+                            <th>Category Name</th>
+                            <th>Supplier Name</th>
+                            <th>Subunit Name</th>
+                            <th>Available</th>
+                            <th>Not Available</th>
+                            <th>Last Updated</th>
+                            <th style="width: 100px"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -121,44 +113,19 @@
                             <c:when test="${not empty inventoryList}">
                                 <c:forEach var="item" items="${inventoryList}" varStatus="status">
                                     <tr data-material-id="${item.materialId}" data-category-id="${item.categoryId}" 
-                                        data-supplier-id="${item.supplierId}" data-subunit-id="${item.subUnitId}" 
-                                        data-quality-id="${item.qualityId}">
+                                        data-supplier-id="${item.supplierId}" data-subunit-id="${item.subUnitId}">
                                         <td class="row-number"><strong>${status.index + 1}</strong></td>
-                                        <td class="material-name">${item.materialName}</td>
-                                        <td class="category-name">${item.categoryName}</td>
-                                        <td class="supplier-name">${item.supplierName}</td>
-                                        <td class="subunit-name">${item.subUnitName}</td>
-                                        <td class="quality-name">
-                                            <c:choose>
-                                                <c:when test="${item.qualityName == 'available'}">
-                                                    <span class="badge quality-available">Available</span>
-                                                </c:when>
-                                                <c:when test="${item.qualityName == 'notAvailable'}">
-                                                    <span class="badge quality-notavailable">Not Available</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span>${item.qualityName}</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td class="quantity">
-                                            <c:choose>
-                                                <c:when test="${item.qualityName == 'available' and item.closingQty != null}">
-                                                    <fmt:formatNumber value="${item.closingQty}" pattern="#,##0"/>
-                                                </c:when>
-                                                <c:when test="${item.qualityName == 'notAvailable' and item.damagedQuantity != null}">
-                                                    <fmt:formatNumber value="${item.damagedQuantity}" pattern="#,##0.00"/>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span>0</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td class="inventory-date"><fmt:formatDate value="${item.inventoryDate}" pattern="dd/MM/yyyy"/></td>
+                                        <td class="material-id">${item.materialName}</td>
+                                        <td class="category-id">${item.categoryName}</td>
+                                        <td class="supplier-id">${item.supplierName}</td>
+                                        <td class="subunit-id">${item.subUnitName}</td>
+                                        <td class="available-qty"><fmt:formatNumber value="${item.availableQty}" pattern="#,##0.00"/></td>
+                                        <td class="not-available-qty"><fmt:formatNumber value="${item.notAvailableQty}" pattern="#,##0.00"/></td>
+                                        <td class="last-updated"><fmt:formatDate value="${item.inventoryDate}" pattern="dd/MM/yyyy"/></td>
                                         <td>
                                             <div class="action-buttons">
                                                 <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailModal" 
-                                                        onclick="viewDetails(${item.materialId}, ${item.subUnitId}, '${item.materialName}', '${item.categoryName}', '${item.supplierName}', '${item.subUnitName}', '${item.qualityName}', ${item.closingQty}, '${item.inventoryDate}', ${item.openingQty}, ${item.importQty}, ${item.exportQty}, ${item.damagedQuantity != null ? item.damagedQuantity : 0}, '${item.note}')">
+                                                        onclick="viewDetails(${item.materialId}, ${item.subUnitId}, '${item.materialName}', '${item.categoryName}', '${item.supplierName}', '${item.subUnitName}', ${item.availableQty}, ${item.notAvailableQty}, '${item.inventoryDate}')">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
@@ -187,15 +154,11 @@
                         </div>
                         <div class="modal-body">
                             <div class="detail-item"><strong>Material Name:</strong> <span id="modal-material-name"></span></div>
-                            <div class="detail-item"><strong>Category:</strong> <span id="modal-category-name"></span></div>
-                            <div class="detail-item"><strong>Supplier:</strong> <span id="modal-supplier-name"></span></div>
-                            <div class="detail-item"><strong>Subunit:</strong> <span id="modal-subunit-name"></span></div>
-                            <div class="detail-item"><strong>Quality:</strong> <span id="modal-quality"></span></div>
-                            <div class="detail-item"><strong>Total Quantity (Available):</strong> <span id="modal-closing-qty"></span></div>
-                            <div class="detail-item"><strong>Damaged Quantity:</strong> <span id="modal-damaged-qty"></span></div>
-                            <div class="detail-item"><strong>Opening Quantity:</strong> <span id="modal-opening-qty"></span></div>
-                            <div class="detail-item"><strong>Import Quantity:</strong> <span id="modal-import-qty"></span></div>
-                            <div class="detail-item"><strong>Export Quantity:</strong> <span id="modal-export-qty"></span></div>
+                            <div class="detail-item"><strong>Category Name:</strong> <span id="modal-category-id"></span></div>
+                            <div class="detail-item"><strong>Supplier Name:</strong> <span id="modal-supplier-id"></span></div>
+                            <div class="detail-item"><strong>Subunit Name:</strong> <span id="modal-subunit-id"></span></div>
+                            <div class="detail-item"><strong>Available Quantity:</strong> <span id="modal-available-qty"></span></div>
+                            <div class="detail-item"><strong>Not Available Quantity:</strong> <span id="modal-not-available-qty"></span></div>
                             <div class="detail-item"><strong>Date:</strong> <span id="modal-inventory-date"></span></div>
                             <div class="detail-item"><strong>Note:</strong> <span id="modal-note"></span></div>
                         </div>
@@ -222,7 +185,7 @@
             updateTable();
             console.log("Inventory table loaded with " + allRows.length + " rows");
 
-            document.querySelectorAll("#categoryFilter, #supplierFilter, #qualityFilter, #searchInput").forEach((element) => {
+            document.querySelectorAll("#categoryFilter, #supplierFilter, #searchInput").forEach((element) => {
                 element.addEventListener("input", filterInventory);
                 element.addEventListener("change", filterInventory);
             });
@@ -232,45 +195,38 @@
             let searchText = document.getElementById("searchInput").value.trim().toLowerCase();
             let categoryValue = document.getElementById("categoryFilter").value;
             let supplierValue = document.getElementById("supplierFilter").value;
-            let qualityValue = document.getElementById("qualityFilter").value;
 
-            console.log("Filter - Category: " + (categoryValue || "empty") + ", Supplier: " + (supplierValue || "empty") + ", Quality: " + (qualityValue || "empty") + ", Search: " + searchText);
+            console.log("Filter - Category: " + (categoryValue || "empty") + ", Supplier: " + (supplierValue || "empty") + ", Search: " + searchText);
 
             filteredRows = allRows.filter((row) => {
                 let match = true;
                 let materialId = row.getAttribute("data-material-id") || "";
-                let materialName = row.querySelector(".material-name")?.textContent.trim().toLowerCase() || "";
-                let categoryName = row.querySelector(".category-name")?.textContent.trim().toLowerCase() || "";
-                let supplierName = row.querySelector(".supplier-name")?.textContent.trim().toLowerCase() || "";
-                let subUnitName = row.querySelector(".subunit-name")?.textContent.trim().toLowerCase() || "";
-                let qualityName = row.querySelector(".quality-name")?.textContent.trim().toLowerCase() || "";
-                let quantityText = row.querySelector(".quantity")?.textContent.trim().replace(/,/g, "") || "";
-                let inventoryDate = row.querySelector(".inventory-date")?.textContent.trim().toLowerCase() || "";
-                let rowCategoryId = row.getAttribute("data-category-id") || "0";
-                let rowSupplierId = row.getAttribute("data-supplier-id") || "0";
-                let rowQualityId = row.getAttribute("data-quality-id") || "0";
+                let categoryId = row.getAttribute("data-category-id") || "";
+                let supplierId = row.getAttribute("data-supplier-id") || "";
+                let subUnitId = row.getAttribute("data-subunit-id") || "";
+                let materialName = row.querySelector(".material-id")?.textContent.trim().toLowerCase() || "";
+                let categoryName = row.querySelector(".category-id")?.textContent.trim().toLowerCase() || "";
+                let supplierName = row.querySelector(".supplier-id")?.textContent.trim().toLowerCase() || "";
+                let subUnitName = row.querySelector(".subunit-id")?.textContent.trim().toLowerCase() || "";
+                let availableQty = row.querySelector(".available-qty")?.textContent.trim().replace(/,/g, "") || "";
+                let notAvailableQty = row.querySelector(".not-available-qty")?.textContent.trim().replace(/,/g, "") || "";
+                let lastUpdated = row.querySelector(".last-updated")?.textContent.trim().toLowerCase() || "";
 
-                // Kiểm tra tìm kiếm
                 if (searchText) {
                     match = materialId.includes(searchText) || materialName.includes(searchText) ||
-                            categoryName.includes(searchText) || supplierName.includes(searchText) ||
-                            subUnitName.includes(searchText) || qualityName.includes(searchText) ||
-                            quantityText.includes(searchText) || inventoryDate.includes(searchText);
+                            categoryId.includes(searchText) || categoryName.includes(searchText) ||
+                            supplierId.includes(searchText) || supplierName.includes(searchText) ||
+                            subUnitId.includes(searchText) || subUnitName.includes(searchText) ||
+                            availableQty.includes(searchText) || notAvailableQty.includes(searchText) ||
+                            lastUpdated.includes(searchText);
                 }
 
-                // Kiểm tra category
                 if (categoryValue && categoryValue !== "0") {
-                    match = match && (parseInt(rowCategoryId) === parseInt(categoryValue));
+                    match = match && (parseInt(categoryId) === parseInt(categoryValue));
                 }
 
-                // Kiểm tra supplier
                 if (supplierValue && supplierValue !== "0") {
-                    match = match && (parseInt(rowSupplierId) === parseInt(supplierValue));
-                }
-
-                // Kiểm tra quality
-                if (qualityValue && qualityValue !== "0") {
-                    match = match && (parseInt(rowQualityId) === parseInt(qualityValue));
+                    match = match && (parseInt(supplierId) === parseInt(supplierValue));
                 }
 
                 return match;
@@ -531,19 +487,51 @@
             }
         }
 
-        function viewDetails(materialId, subUnitId, materialName, categoryName, supplierName, subUnitName, qualityName, closingQty, inventoryDate, openingQty, importQty, exportQty, damagedQuantity, note) {
-            document.getElementById("modal-material-name").textContent = materialName;
-            document.getElementById("modal-category-name").textContent = categoryName;
-            document.getElementById("modal-supplier-name").textContent = supplierName;
-            document.getElementById("modal-subunit-name").textContent = subUnitName;
-            document.getElementById("modal-quality").textContent = qualityName || 'N/A';
-            document.getElementById("modal-closing-qty").textContent = closingQty.toLocaleString();
-            document.getElementById("modal-damaged-qty").textContent = damagedQuantity ? damagedQuantity.toFixed(2) : '0.00';
-            document.getElementById("modal-opening-qty").textContent = openingQty.toLocaleString();
-            document.getElementById("modal-import-qty").textContent = importQty.toLocaleString();
-            document.getElementById("modal-export-qty").textContent = exportQty.toLocaleString();
-            document.getElementById("modal-inventory-date").textContent = inventoryDate;
-            document.getElementById("modal-note").textContent = note || 'N/A';
+        function viewDetails(materialId, subUnitId, materialName, categoryName, supplierName, subUnitName, availableQty, notAvailableQty, lastUpdated) {
+            // Gửi yêu cầu AJAX để lấy chi tiết ngày gần nhất
+            $.ajax({
+                url: '/inventory',
+                type: 'POST',
+                data: {
+                    action: 'getLatestDetails',
+                    materialId: materialId,
+                    subUnitId: subUnitId
+                },
+                success: function(response) {
+                    if (response) {
+                        document.getElementById("modal-material-name").textContent = response.materialName || materialName;
+                        document.getElementById("modal-category-id").textContent = response.categoryName || categoryName;
+                        document.getElementById("modal-supplier-id").textContent = response.supplierName || supplierName;
+                        document.getElementById("modal-subunit-id").textContent = response.subUnitName || subUnitName;
+                        document.getElementById("modal-available-qty").textContent = response.availableQty ? response.availableQty.toFixed(2) : availableQty.toFixed(2);
+                        document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? response.notAvailableQty.toFixed(2) : notAvailableQty.toFixed(2);
+                        document.getElementById("modal-inventory-date").textContent = response.inventoryDate ? response.inventoryDate : lastUpdated;
+                        document.getElementById("modal-note").textContent = response.note || 'N/A';
+                    } else {
+                        // Fallback nếu không có dữ liệu từ InventoryMaterialDaily
+                        document.getElementById("modal-material-name").textContent = materialName;
+                        document.getElementById("modal-category-id").textContent = categoryName;
+                        document.getElementById("modal-supplier-id").textContent = supplierName;
+                        document.getElementById("modal-subunit-id").textContent = subUnitName;
+                        document.getElementById("modal-available-qty").textContent = availableQty.toFixed(2);
+                        document.getElementById("modal-not-available-qty").textContent = notAvailableQty.toFixed(2);
+                        document.getElementById("modal-inventory-date").textContent = lastUpdated;
+                        document.getElementById("modal-note").textContent = 'N/A';
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching details: " + error);
+                    // Fallback nếu AJAX thất bại
+                    document.getElementById("modal-material-name").textContent = materialName;
+                    document.getElementById("modal-category-id").textContent = categoryName;
+                    document.getElementById("modal-supplier-id").textContent = supplierName;
+                    document.getElementById("modal-subunit-id").textContent = subUnitName;
+                    document.getElementById("modal-available-qty").textContent = availableQty.toFixed(2);
+                    document.getElementById("modal-not-available-qty").textContent = notAvailableQty.toFixed(2);
+                    document.getElementById("modal-inventory-date").textContent = lastUpdated;
+                    document.getElementById("modal-note").textContent = 'N/A';
+                }
+            });
         }
     </script>
 </body>

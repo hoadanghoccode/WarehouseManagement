@@ -32,18 +32,13 @@ public class InventoryDAO extends DBContext {
                     inventory.setCategoryId(rs.getInt("category_id"));
                     inventory.setSupplierId(rs.getInt("supplier_id"));
                     inventory.setSubUnitId(rs.getInt("subunit_id"));
-                    inventory.setQualityId(rs.getInt("quality_id"));
                     inventory.setMaterialName(rs.getString("material_name"));
                     inventory.setCategoryName(rs.getString("category_name"));
                     inventory.setSupplierName(rs.getString("supplier_name"));
                     inventory.setSubUnitName(rs.getString("subunit_name"));
-                    inventory.setQualityName(rs.getString("quality_name") != null ? rs.getString("quality_name") : "N/A");
-                    inventory.setClosingQty(rs.getInt("closing_qty"));
-                    inventory.setOpeningQty(rs.getInt("opening_qty"));
-                    inventory.setImportQty(rs.getInt("import_qty"));
-                    inventory.setExportQty(rs.getInt("export_qty"));
-                    inventory.setDamagedQuantity(rs.getBigDecimal("damaged_quantity") != null ? rs.getBigDecimal("damaged_quantity") : BigDecimal.ZERO);
-                    inventory.setInventoryDate(rs.getDate("inventory_date"));
+                    inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
+                    inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
+                    inventory.setInventoryDate(rs.getDate("last_updated"));
                     inventory.setNote(rs.getString("note"));
                     inventoryList.add(inventory);
                     rowCount++;
@@ -60,17 +55,17 @@ public class InventoryDAO extends DBContext {
 
     private String buildInventoryQuery(int categoryId, int supplierId, int qualityId, String searchTerm, String sortBy) {
         StringBuilder sql = new StringBuilder(
-            "SELECT imd.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, imd.SubUnit_id AS subunit_id, md.Quality_id AS quality_id, " +
+            "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, md.SubUnit_id AS subunit_id, " +
             "m.Name AS material_name, c.Name AS category_name, s.Name AS supplier_name, su.Name AS subunit_name, " +
-            "q.Quality_name AS quality_name, imd.Closing_qty AS closing_qty, imd.Opening_qty AS opening_qty, imd.Import_qty AS import_qty, imd.Export_qty AS export_qty, md.Quantity AS damaged_quantity, " +
-            "imd.Inventory_Material_date AS inventory_date, imd.Note AS note " +
-            "FROM InventoryMaterialDaily imd " +
-            "JOIN Materials m ON imd.Material_id = m.Material_id " +
-            "JOIN SubUnits su ON imd.SubUnit_id = su.SubUnit_id " +
+            "SUM(CASE WHEN q.Quality_name = 'available' THEN md.Quantity ELSE 0 END) AS available_qty, " +
+            "SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE 0 END) AS not_available_qty, " +
+            "MAX(md.Last_updated) AS last_updated, NULL AS note " +
+            "FROM Materials m " +
+            "JOIN Material_detail md ON m.Material_id = md.Material_id " +
+            "JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id " +
             "JOIN Category c ON m.Category_id = c.Category_id " +
             "JOIN Suppliers s ON m.SupplierId = s.Supplier_id " +
-            "LEFT JOIN Material_detail md ON imd.Material_id = md.Material_id AND imd.SubUnit_id = md.SubUnit_id " +
-            "LEFT JOIN Quality q ON md.Quality_id = q.Quality_id " +
+            "JOIN Quality q ON md.Quality_id = q.Quality_id " +
             "WHERE m.Status = 'active' AND su.Status = 'active' AND c.Status = 'active' AND s.Status = 'active' "
         );
 
@@ -84,14 +79,16 @@ public class InventoryDAO extends DBContext {
             sql.append(" AND md.Quality_id = ? ");
         }
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR s.Name LIKE ? OR su.Name LIKE ? OR q.Quality_name LIKE ? OR CAST(imd.Closing_qty AS CHAR) LIKE ? OR CAST(imd.Inventory_Material_date AS CHAR) LIKE ?) ");
+            sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR s.Name LIKE ? OR su.Name LIKE ?) ");
         }
 
-        String safeSortBy = "imd.Closing_qty ASC";
-        if (sortBy != null && sortBy.matches("^(material_id|material_name|closing_qty) (ASC|DESC)$")) {
-            safeSortBy = sortBy.replace("material_name", "m.Name");
+        sql.append(" GROUP BY m.Material_id, m.Category_id, m.SupplierId, md.SubUnit_id, m.Name, c.Name, s.Name, su.Name ");
+
+        String safeSortBy = "available_qty DESC";
+        if (sortBy != null && sortBy.matches("^(material_id|material_name|available_qty|not_available_qty) (ASC|DESC)$")) {
+            safeSortBy = sortBy.replace("material_name", "m.Name").replace("available_qty", "available_qty").replace("not_available_qty", "not_available_qty");
         }
-        sql.append(" ORDER BY imd.Inventory_Material_date DESC, ").append(safeSortBy);
+        sql.append(" ORDER BY ").append(safeSortBy);
 
         return sql.toString();
     }
@@ -108,7 +105,7 @@ public class InventoryDAO extends DBContext {
             params.add(qualityId);
         }
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 5; i++) {
                 params.add("%" + searchTerm + "%");
             }
         }
@@ -124,6 +121,49 @@ public class InventoryDAO extends DBContext {
             }
         }
     }
+
+   public MaterialInventory getLatestInventoryDetails(int materialId, int subUnitId) {
+    MaterialInventory inventory = null;
+    String sql = "SELECT imd.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, imd.SubUnit_id AS subunit_id, " +
+                 "m.Name AS material_name, c.Name AS category_name, s.Name AS supplier_name, su.Name AS subunit_name, " +
+                 "imd.Closing_qty AS closing_qty, " +
+                 "imd.Inventory_Material_date AS inventory_date, imd.Note AS note, " +
+                 "(SELECT md.Quantity FROM Material_detail md JOIN Quality q ON md.Quality_id = q.Quality_id " +
+                 "WHERE md.Material_id = imd.Material_id AND md.SubUnit_id = imd.SubUnit_id AND q.Quality_name = 'notAvailable' LIMIT 1) AS damaged_quantity " +
+                 "FROM InventoryMaterialDaily imd " +
+                 "JOIN Materials m ON imd.Material_id = m.Material_id " +
+                 "JOIN SubUnits su ON imd.SubUnit_id = su.SubUnit_id " +
+                 "JOIN Category c ON m.Category_id = c.Category_id " +
+                 "JOIN Suppliers s ON m.SupplierId = s.Supplier_id " +
+                 "WHERE imd.Material_id = ? AND imd.SubUnit_id = ? " +
+                 "ORDER BY imd.Inventory_Material_date DESC LIMIT 1";
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setInt(1, materialId);
+        stmt.setInt(2, subUnitId);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                inventory = new MaterialInventory();
+                inventory.setMaterialId(rs.getInt("material_id"));
+                inventory.setCategoryId(rs.getInt("category_id"));
+                inventory.setSupplierId(rs.getInt("supplier_id"));
+                inventory.setSubUnitId(rs.getInt("subunit_id"));
+                inventory.setMaterialName(rs.getString("material_name"));
+                inventory.setCategoryName(rs.getString("category_name"));
+                inventory.setSupplierName(rs.getString("supplier_name"));
+                inventory.setSubUnitName(rs.getString("subunit_name"));
+                inventory.setAvailableQty(rs.getBigDecimal("closing_qty") != null ? rs.getBigDecimal("closing_qty") : BigDecimal.ZERO);
+                inventory.setNotAvailableQty(rs.getBigDecimal("damaged_quantity") != null ? rs.getBigDecimal("damaged_quantity") : BigDecimal.ZERO);
+                inventory.setInventoryDate(rs.getDate("inventory_date"));
+                inventory.setNote(rs.getString("note"));
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Error fetching latest inventory details: " + e.getMessage());
+        e.printStackTrace();
+    }
+    return inventory;
+}
 
     public List<Category> getActiveCategories() {
         List<Category> categories = new ArrayList<>();
