@@ -147,7 +147,7 @@ public class MaterialDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Supplier s = new Supplier();
-                s.setId(rs.getInt("Id"));
+                s.setSupplierId(rs.getInt("Id"));
                 s.setName(rs.getString("Name"));
                 s.setStatus(rs.getString("Status"));
                 list.add(s);

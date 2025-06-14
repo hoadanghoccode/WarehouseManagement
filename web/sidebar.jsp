@@ -79,13 +79,23 @@
         <c:if test="${permissions['Password_VIEW']}">
             <li class="mm-active">
                 <a href="/WarehouseManagement/adminresetlist">
-                    <img src="img/menu-icon/your-icon.svg" alt="">
+                    <img src="img/menu-icon/4.svg" alt="">
+
                     <span>Reset List</span>
                 </a>
             </li>
         </c:if>
 
-            <c:if test="${permissions['Material_VIEW']}">
+        <c:if test="${permissions['Supplier_VIEW']}">
+            <li class="mm-active">
+                <a href="/WarehouseManagement/supplier">
+                    <img src="img/menu-icon/4.svg" alt="">
+
+                    <span>Supplier</span>
+                </a>
+            </li>
+        </c:if>         
+        <c:if test="${permissions['Material_VIEW']}">
             <li class="">
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
                     <img src="img/menu-icon/4.svg" alt="">

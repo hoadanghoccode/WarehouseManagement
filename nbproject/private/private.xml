@@ -3,19 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/sidebar.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/resetpassword.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/categorylist.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/authentication.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/filter/AuthFilter.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/department.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/LoginController.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/adminresetlist.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/src/java/controller/ResetPasswordController.java</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/test.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/role.jsp</file>
-            <file>file:/D:/semester8/test/WarehouseManagement/web/materialList.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/supplier.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/userlist.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/css/userList.css</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/css/materiallist.css</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/WEB-INF/web.xml</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/CreateUserController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/UserDAO.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/materialList.jsp</file>
         </group>
     </open-files>
 </project-private>
