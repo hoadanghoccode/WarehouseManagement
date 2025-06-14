@@ -394,6 +394,7 @@ public class MaterialDAO extends DBContext {
         return null;
     }
 
+    //Bạn Minh sửa để chạy chức năng có gì b Giang đừng xóa
     public boolean isMaterialInOrderWithStatus(int materialId, String status) {
         String query = "SELECT 1 "
                 + "FROM Order_detail od "
@@ -433,6 +434,7 @@ public class MaterialDAO extends DBContext {
         return false;
     }
 
+    //Bạn Minh sửa để chạy chức năng có gì b Giang đừng xóa
     public boolean isMaterialInPendingExport(int materialId) {
         String query = "SELECT 1 "
                 + "FROM Export_note_detail endt "
@@ -452,6 +454,7 @@ public class MaterialDAO extends DBContext {
         return false;
     }
 
+    //Bạn Minh sửa để chạy chức năng có gì b Giang đừng xóa
     public int countMaterialByCategoryId(int cid) {
         String query = "SELECT COUNT(*) FROM Materials WHERE Category_id = ?";
         try {
@@ -468,9 +471,10 @@ public class MaterialDAO extends DBContext {
         return 0;
     }
 
+    //Bạn Minh sửa để chạy chức năng có gì b Giang đừng xóa
     public List<Material> getAllMaterialsByCategoryId(int categoryId) {
         List<Material> materials = new ArrayList<>();
-        String query = "SELECT * FROM Material WHERE Category_id = ?";
+        String query = "SELECT * FROM Materials WHERE Category_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, categoryId);
@@ -506,6 +510,8 @@ public class MaterialDAO extends DBContext {
         return 0;
     }
 
+
+//Bạn Minh sửa để chạy chức năng có gì b Giang đừng xóa
     // Minh thêm hàm để xử lí 
     public Material getMaterialIdBy(int mid) {
         String sql = "SELECT * FROM Materials WHERE Material_id = ?";

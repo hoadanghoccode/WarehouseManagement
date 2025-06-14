@@ -15,6 +15,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -92,6 +93,13 @@ public class OrderDetailController extends HttpServlet {
                 return;
             }
 
+            HttpSession session = request.getSession(false);
+            Users currentUser = (Users) session.getAttribute("USER");
+            if (currentUser == null) {
+                response.sendRedirect("login.jsp");
+                return;
+            }
+
             // Business Logic: Lấy thông tin order từ database
             Order order = orderDAO.getOrderById(orderId);
 
@@ -109,13 +117,34 @@ public class OrderDetailController extends HttpServlet {
                     // Không return error, chỉ log warning vì order vẫn có thể hiển thị được
                 }
             }
-            
+
             Supplier supplier = supplierDAO.getSupplierById(order.getSupplier());
-            
-            List<OrderDetail> orderDetailList =  order.getOrderDetails();
+
+            List<OrderDetail> orderDetailList = order.getOrderDetails();
             for (OrderDetail od : orderDetailList) {
-                od.setMaterialName(materialDAO.getMaterialIdBy(od.getMaterialId()).getName());
-                od.setSubUnitName(subUnitDAO.getSubUnitById(od.getSubUnitId()).getName());
+                try {
+                    if (od.getMaterialId() > 0) {
+                        var material = materialDAO.getMaterialIdBy(od.getMaterialId());
+                        if (material != null) {
+                            od.setMaterialName(material.getName());
+                        } else {
+                            od.setMaterialName("Unknown Material");
+                        }
+                    }
+
+                    if (od.getSubUnitId() > 0) {
+                        var subunit = subUnitDAO.getSubUnitById(od.getSubUnitId());
+                        if (subunit != null) {
+                            od.setSubUnitName(subunit.getName());
+                        } else {
+                            od.setSubUnitName("Unknown Unit");
+                        }
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.WARNING, "Error loading detail for OrderDetail ID: " + od.getOrderDetailId(), ex);
+                    od.setMaterialName("N/A");
+                    od.setSubUnitName("N/A");
+                }
             }
 
             // Set attributes và forward đến JSP
@@ -123,6 +152,7 @@ public class OrderDetailController extends HttpServlet {
             request.setAttribute("owner", user);
             request.setAttribute("supplier", supplier);
             request.setAttribute("detail", orderDetailList);
+            request.setAttribute("currentUser", currentUser);
             request.setAttribute("success", true);
 
             request.getRequestDispatcher("orderdetail.jsp").forward(request, response);
@@ -148,9 +178,55 @@ public class OrderDetailController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // POST method không được hỗ trợ cho việc xem chi tiết
-        // Redirect về trang danh sách order
-        response.sendRedirect(request.getContextPath() + "/orderlist");
+        String action = request.getParameter("action");
+        String orderIdParam = request.getParameter("orderId");
+        String adminNote = request.getParameter("adminNote");
+
+        try {
+            if (action == null || orderIdParam == null) {
+                response.sendRedirect("orderlist");
+                return;
+            }
+
+            int orderId = Integer.parseInt(orderIdParam);
+
+            // Kiểm tra quyền admin
+            HttpSession session = request.getSession(false);
+            Users currentUser = (Users) session.getAttribute("USER");
+            if (currentUser == null || currentUser.getRoleId() != 1) {
+                response.sendRedirect("login.jsp");
+                return;
+            }
+
+            boolean success = false;
+            boolean successUpdateNote = false;
+            
+            if(!adminNote.trim().equals(""))
+                successUpdateNote = orderDAO.updateOrderNote(orderId, adminNote);
+            
+            String newStatus = "";
+
+            if ("approve".equals(action) ) {
+                newStatus = "approved";
+                success = orderDAO.updateOrderStatus(orderId, newStatus);
+            } else if ("reject".equals(action)) {
+                newStatus = "rejected";
+                success = orderDAO.updateOrderStatus(orderId, newStatus);
+            }
+
+            if (success && successUpdateNote) {
+                request.setAttribute("successMessage", "Order has been update successfully!");
+            } else {
+                request.setAttribute("errorMessage", "Failed to update order status. Please try again.");
+            }
+
+            // Redirect về trang detail để hiển thị kết quả
+            response.sendRedirect("orderdetail?oid=" + orderId);
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error updating order status", e);
+            response.sendRedirect("orderlist");
+        }
     }
 
     /**
@@ -167,15 +243,16 @@ public class OrderDetailController extends HttpServlet {
             String errorMessage, String errorCode)
             throws ServletException, IOException {
 
+        if (response.isCommitted()) {
+            return; 
+        }
+
         request.setAttribute("error", true);
         request.setAttribute("errorMessage", errorMessage);
         request.setAttribute("errorCode", errorCode);
-//        request.setAttribute("order", null);
 
-        // Log error để debug
-        System.err.println("DetailOrderController Error - Code: " + errorCode + ", Message: " + errorMessage);
+        LOGGER.warning("DetailOrderController Error - " + errorCode + ": " + errorMessage);
 
-        // Forward đến JSP để hiển thị lỗi
         request.getRequestDispatcher("orderdetail.jsp").forward(request, response);
     }
 
