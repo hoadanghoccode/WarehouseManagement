@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="model.Users" %>
 <%@ page session="true" %>
+
 <%
     Users profileUser = (Users) request.getAttribute("userInfo");
     if (profileUser == null) {
@@ -140,12 +141,40 @@
                 <div class="account-settings">
                     <h2>Account Setting</h2>
                     <ul>
-                        <li class="active">My Profile</li>
-                        <li>Detail about you</li>
+                        <li class="${page == 'profile' ? 'active' : ''}">
+        My Profile
+    </li>
+    <li class="${page == 'changepassword' ? 'active' : ''}">
+        <a href="changepassword" style="text-decoration: none; color: inherit;">Change Password</a>
+    </li>
                     </ul>
                 </div>
                 <div class="profile-box">
                     <h2>My Profile</h2>
+                     <!-- Profile Image -->
+                    <div class="info-row" id="imageRow">
+                        <div class="info-label">Profile Image:</div>
+                        <div class="info-value" id="imageText">
+                            <% if (profileUser.getImage() != null && !profileUser.getImage().isEmpty()) { %>
+                            <img id="profilePreview" class="profile-img" src="uploads/<%= profileUser.getImage() %>" alt="Profile Image" style="height: 80px;" />
+                            <% } else { %>
+                            <span id="profilePreview">No image uploaded</span>
+                            <% } %>
+                            <form id="imageForm" class="d-none d-inline">
+                                <input type="file" name="value" accept="image/*" onchange="previewImage(event)" class="form-control-file d-inline" />
+                                <input type="hidden" name="field" value="image" />
+                                <button type="button" class="btn btn-sm btn-success ms-2" onclick="submitImage()">Save</button>
+                                <button type="button" onclick="cancelEdit('image')" class="btn btn-sm btn-secondary ms-1">Cancel</button>
+                            </form>
+                        </div>
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" onclick="toggleDropdown(event, this)"><i class="fas fa-ellipsis-h"></i></button>
+                            <div class="dropdown-menu">
+                                <a href="javascript:void(0)" onclick="toggleEditMode('image')"><i class="fas fa-edit"></i> Edit Image</a>
+                            </div>
+                        </div>
+                    </div>
+
 
                     <% String[][] fields = {
                         {"Full Name", profileUser.getFullName(), "Edit Name", "fullName"},
@@ -192,30 +221,7 @@
                     </div>
                     <% } %>
 
-                    <!-- Profile Image -->
-                    <div class="info-row" id="imageRow">
-                        <div class="info-label">Profile Image:</div>
-                        <div class="info-value" id="imageText">
-                            <% if (profileUser.getImage() != null && !profileUser.getImage().isEmpty()) { %>
-                            <img id="profilePreview" class="profile-img" src="uploads/<%= profileUser.getImage() %>" alt="Profile Image" style="height: 80px;" />
-                            <% } else { %>
-                            <span id="profilePreview">No image uploaded</span>
-                            <% } %>
-                            <form id="imageForm" class="d-none d-inline">
-                                <input type="file" name="value" accept="image/*" onchange="previewImage(event)" class="form-control-file d-inline" />
-                                <input type="hidden" name="field" value="image" />
-                                <button type="button" class="btn btn-sm btn-success ms-2" onclick="submitImage()">Save</button>
-                                <button type="button" onclick="cancelEdit('image')" class="btn btn-sm btn-secondary ms-1">Cancel</button>
-                            </form>
-                        </div>
-                        <div class="dropdown">
-                            <button class="dropdown-toggle" onclick="toggleDropdown(event, this)"><i class="fas fa-ellipsis-h"></i></button>
-                            <div class="dropdown-menu">
-                                <a href="javascript:void(0)" onclick="toggleEditMode('image')"><i class="fas fa-edit"></i> Edit Image</a>
-                            </div>
-                        </div>
-                    </div>
-
+                   
                     <script>
                         function toggleDropdown(event, button) {
                             event.stopPropagation();

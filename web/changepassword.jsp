@@ -1,5 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page session="true" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="page" value="changepassword" />
 <!DOCTYPE html>
 <html>
 <head>
@@ -122,14 +124,6 @@
 <section class="main_content dashboard_part">
     <%@ include file="navbar.jsp" %>
     <div class="main-section">
-        <div class="account-settings">
-          <h2>Account Setting</h2>
-            <ul>
-                <li class="active">Change Password</li>
-                <li>Detail about you</li>
-                
-            </ul>
-        </div>
         <div class="profile-box">
             <h2>Change Password</h2>
             <p class="text-muted">Your password must be at least 8 characters long and include at least one letter, one number, and one special character (!@#$...)</p>
