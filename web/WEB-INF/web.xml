@@ -89,6 +89,16 @@
         <servlet-class>controller.UnitServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>SupplierController</servlet-name>
+        <servlet-class>controller.SupplierController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DeleteSupplierController</servlet-name>
+        <servlet-class>controller.DeleteSupplierController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CreateUserController</servlet-name>
+        <servlet-class>controller.CreateUserController</servlet-class>
         <servlet-name>InventoryServlet</servlet-name>
         <servlet-class>controller.InventoryServlet</servlet-class>
     </servlet>
@@ -196,6 +206,16 @@
         <url-pattern>/unit</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>SupplierController</servlet-name>
+        <url-pattern>/supplier</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DeleteSupplierController</servlet-name>
+        <url-pattern>/deletesupplier</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CreateUserController</servlet-name>
+        <url-pattern>/createuser</url-pattern>
         <servlet-name>InventoryServlet</servlet-name>
         <url-pattern>/inventory</url-pattern>
     </servlet-mapping>

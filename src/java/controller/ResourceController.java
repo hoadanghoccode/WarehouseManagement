@@ -31,7 +31,9 @@ public class ResourceController extends HttpServlet {
         AuthenDAO dao = new AuthenDAO();
 
         // 1) Lấy toàn bộ resources
-        ArrayList<Resource> all = dao.getAllResources();
+        ArrayList<Resource> all = dao.getAllResources(); 
+        
+        System.out.println("resource nè" + all);
 
         // 2) Lọc nếu có search
         ArrayList<Resource> filtered = (search != null && !search.trim().isEmpty())

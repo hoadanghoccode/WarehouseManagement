@@ -10,24 +10,25 @@ package model;
  */
 public class Supplier {
 
-    private int id;
+    private int supplierId;
     private String name;
     private String status;
 
     public Supplier() {
     }
 
-    public Supplier(int id, String name) {
-        this.id = id;
+    public Supplier(int supplierId, String name, String status) {
+        this.supplierId = supplierId;
         this.name = name;
+        this.status = status;
     }
 
-    public int getId() {
-        return id;
+    public int getSupplierId() {
+        return supplierId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
     }
 
     public String getName() {
@@ -46,16 +47,10 @@ public class Supplier {
         this.status = status;
     }
 
-    public int getSupplierId() {
-        return id; 
-    }
 
-    public void setSupplierId(int id) {
-        this.id = id; 
-    }
 
     @Override
     public String toString() {
-        return "Supplier{" + "id=" + id + ", name=" + name + ", status=" + status + '}';
+        return "Supplier{" + "supplierId=" + supplierId + ", name=" + name + ", status=" + status + '}';
     }
 }
