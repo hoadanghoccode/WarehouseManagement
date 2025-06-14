@@ -15,7 +15,9 @@
             <file>file:/E:/SWP392/WarehouseManagement/nbproject/private/private.xml</file>
             <file>file:/E:/SWP392/WarehouseManagement/nbproject/genfiles.properties</file>
             <file>file:/E:/SWP392/WarehouseManagement/web/viewuserinfo.jsp</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/UpdateUserInfoController.java</file>
             <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/UserDAO.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ViewUserInfoController.java</file>
             <file>file:/E:/SWP392/WarehouseManagement/src/java/filter/LoginValidationFilter.java</file>
             <file>file:/E:/SWP392/WarehouseManagement/nbproject/project.properties</file>
         </group>

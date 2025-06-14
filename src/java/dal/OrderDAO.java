@@ -631,18 +631,18 @@ public class OrderDAO extends DBContext {
     public static void main(String[] args) {
         OrderDAO dao = new OrderDAO();
 
-//        // Test get order by ID
-//        Order order = dao.getOrderById(4);
-//        if (order != null) {
-//            System.out.println("Found order: " + dao.getOrderById(1));
-//        } else {
-//            System.out.println("Order not found");
-//        }
+        // Test get order by ID
+        Order order = dao.getOrderById(1);
+        if (order != null) {
+            System.out.println("Found order: " + dao.getOrderById(1));
+        } else {
+            System.out.println("Order not found");
+        }
+
 
         // Test get all orders
         List<Order> ordersByUser = dao.getAllOrdersByUserId(4);
 System.out.println("Orders by user 1: " + ordersByUser.size());
 
     }
-
 }
