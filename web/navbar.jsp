@@ -111,15 +111,21 @@
               </a>
             </li>
           </div>
-          <div class="profile_info">
-            <img src="img/client_img.png" alt="#" />
+          <%
+Users navbarUser = (Users) session.getAttribute("USER");
+String imagePath = (navbarUser != null && navbarUser.getImage() != null && !navbarUser.getImage().isEmpty())
+                   ? "uploads/" + navbarUser.getImage()
+                   : "img/client_img.png";
+%>
+<div class="profile_info">
+  <img src="<%= imagePath %>" alt="Profile" style="height: 40px; border-radius: 50%;" />
             <div class="profile_info_iner">
               <!-- <div class="profile_author_name">
                                 <p>Neurologist </p>
                                 <h5>Dr. Robar Smith</h5>
                             </div> -->
               <div class="profile_info_details">
-                <a href="#">My Profile </a>
+                <a href="viewuserinfo">My Profile </a>
 
                 <a href="changepassword">Change Password </a>
                 <a href="#">Settings</a>
