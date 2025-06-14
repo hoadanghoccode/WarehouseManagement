@@ -1,64 +1,55 @@
-// model/MaterialInventory.java
 package model;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.sql.Date;
 
 public class MaterialInventory {
     private int materialId;
     private int categoryId;
+    private int supplierId;
+    private int subUnitId;
+    private int qualityId;
     private String materialName;
-    private String unitName;
-    private BigDecimal quantity;
-    private Timestamp lastUpdated;
-    private int warehouseId;
     private String categoryName;
+    private String supplierName;
+    private String subUnitName;
+    private String qualityName;
+    private BigDecimal availableQty; 
+    private BigDecimal notAvailableQty;
+    private Date inventoryDate;
+    private String note;
 
-    // Constructor mặc định
     public MaterialInventory() {
+        this.availableQty = BigDecimal.ZERO;
+        this.notAvailableQty = BigDecimal.ZERO;
     }
 
-    // Constructor đầy đủ
-    public MaterialInventory(int materialId, int categoryId, String materialName, String unitName,
-                            BigDecimal quantity, Timestamp lastUpdated, int warehouseId) {
-        this.materialId = materialId;
-        this.categoryId = categoryId;
-        this.materialName = materialName;
-        this.unitName = unitName;
-        this.quantity = quantity;
-        this.lastUpdated = lastUpdated;
-        this.warehouseId = warehouseId;
-    }
-
-    // Getters và Setters
     public int getMaterialId() { return materialId; }
     public void setMaterialId(int materialId) { this.materialId = materialId; }
     public int getCategoryId() { return categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+    public int getSupplierId() { return supplierId; }
+    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
+    public int getSubUnitId() { return subUnitId; }
+    public void setSubUnitId(int subUnitId) { this.subUnitId = subUnitId; }
+    public int getQualityId() { return qualityId; }
+    public void setQualityId(int qualityId) { this.qualityId = qualityId; }
     public String getMaterialName() { return materialName; }
     public void setMaterialName(String materialName) { this.materialName = materialName; }
-    public String getUnitName() { return unitName; }
-    public void setUnitName(String unitName) { this.unitName = unitName; }
-    public BigDecimal getQuantity() { return quantity; }
-    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
-    public Timestamp getLastUpdated() { return lastUpdated; }
-    public void setLastUpdated(Timestamp lastUpdated) { this.lastUpdated = lastUpdated; }
-    public int getWarehouseId() { return warehouseId; }
-    public void setWarehouseId(int warehouseId) { this.warehouseId = warehouseId; }
     public String getCategoryName() { return categoryName; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
-
-    @Override
-    public String toString() {
-        return "MaterialInventory{" +
-               "materialId=" + materialId +
-               ", categoryId=" + categoryId +
-               ", materialName='" + materialName + '\'' +
-               ", unitName='" + unitName + '\'' +
-               ", quantity=" + quantity +
-               ", lastUpdated=" + lastUpdated +
-               ", warehouseId=" + warehouseId +
-               ", categoryName='" + categoryName + '\'' +
-               '}';
-    }
+    public String getSupplierName() { return supplierName; }
+    public void setSupplierName(String supplierName) { this.supplierName = supplierName; }
+    public String getSubUnitName() { return subUnitName; }
+    public void setSubUnitName(String subUnitName) { this.subUnitName = subUnitName; }
+    public String getQualityName() { return qualityName; }
+    public void setQualityName(String qualityName) { this.qualityName = qualityName; }
+    public BigDecimal getAvailableQty() { return availableQty; }
+    public void setAvailableQty(BigDecimal availableQty) { this.availableQty = availableQty; }
+    public BigDecimal getNotAvailableQty() { return notAvailableQty; }
+    public void setNotAvailableQty(BigDecimal notAvailableQty) { this.notAvailableQty = notAvailableQty; }
+    public Date getInventoryDate() { return inventoryDate; }
+    public void setInventoryDate(Date inventoryDate) { this.inventoryDate = inventoryDate; }
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 }

@@ -1,12 +1,12 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Unit List</title>
+    <title>Unit Management</title>
     <link rel="stylesheet" type="text/css" href="css/permissionlist.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -54,6 +54,12 @@
         .detail-item strong { color: #1f2937; width: 110px; }
         .form-group { margin-bottom: 16px; }
         .error { color: red; font-size: 14px; }
+        .nav-tabs .nav-link { font-weight: 500; color: #6b7280; }
+        .nav-tabs .nav-link.active { color: #1f2937; border-bottom: 2px solid #4f46e5; }
+        .pagination { font-size: 14px; }
+        .pagination a, .pagination span { padding: 8px 12px; margin: 0 4px; text-decoration: none; color: #374151; }
+        .pagination span { background-color: #9e9e9e1c; color: white; border-radius: 4px; }
+        .pagination a:hover { background-color: #e5e7eb; border-radius: 4px; }
         @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 600px; } .modal-content { padding: 20px; } }
     </style>
 </head>
@@ -62,102 +68,260 @@
     <section class="main_content dashboard_part">
         <%@ include file="navbar.jsp" %>
         <div class="container">
-            <h1 class="title">Unit List</h1>
-            <div class="row g-2 mb-3 align-items-center">
-                <div class="col-md-4">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search by name..." oninput="filterUnits()">
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select" id="activeFilter" onchange="filterUnits()">
-                        <option value="">All Status</option>
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#editModal"><i class="fas fa-plus"></i> Add Unit</button>
-                </div>
-            </div>
-            <c:if test="${not empty errorMsg}">
-                <div class="alert alert-danger">${errorMsg}</div>
-            </c:if>
-            <div class="table-container mb-4">
-                <table class="table" id="unitsTable">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px">#</th>
-                            <th>Name</th>
-                            <th>Active</th>
-                            <th style="width: 140px">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty units}">
-                                <c:forEach var="unit" items="${units}" varStatus="status">
-                                    <tr data-index="${status.index + 1}" data-unit-id="${unit.unitId}">
-                                        <td class="row-number"><strong>${status.index + 1}</strong></td>
-                                        <td class="unit-name">${unit.name}</td>
-                                        <td class="unit-status">
-                                            <c:choose>
-                                                <c:when test="${unit.active}">
-                                                    <span style="color: #065f46; background-color: #d1fae5; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">Active</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span style="color: #991b1b; background-color: #fee2e2; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">Inactive</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <a href="unit?action=detail&id=${unit.unitId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
-                                                <a href="unit?action=edit&id=${unit.unitId}" class="btn btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
-                                                <form action="unit" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đơn vị này?')">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="id" value="${unit.unitId}">
-                                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <tr>
-                                    <td colspan="4" class="no-data">No units found</td>
-                                </tr>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
-            <div class="pagination" id="pagination"></div>
+            <h1 class="title">Unit Management</h1>
 
-            <!-- Modal for Edit/Add -->
-            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs" id="unitTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="conversions-tab" data-bs-toggle="tab" data-bs-target="#conversions" type="button" role="tab" aria-controls="conversions" aria-selected="true">Unit Conversions</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="subunits-tab" data-bs-toggle="tab" data-bs-target="#subunits" type="button" role="tab" aria-controls="subunits" aria-selected="false">Subunits</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="units-tab" data-bs-toggle="tab" data-bs-target="#units" type="button" role="tab" aria-controls="units" aria-selected="false">Units</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="unitTabsContent">
+                <!-- Unit Conversions Tab -->
+                <div class="tab-pane fade show active" id="conversions" role="tabpanel" aria-labelledby="conversions-tab">
+                    <div class="row g-2 mb-3 align-items-center">
+                        <div class="col-md-4">
+                            <input type="text" id="conversionSearchInput" class="form-control" placeholder="Search by unit/subunit..." oninput="filterUnits('conversion')">
+                        </div>
+                        <div class="col-md-3">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#conversionEditModal" onclick="openAddConversionModal()"><i class="fas fa-plus"></i> Add Conversion</button>
+                        </div>
+                    </div>
+                    <c:if test="${not empty errorMsg}">
+                        <div class="alert alert-danger">${errorMsg}</div>
+                    </c:if>
+                    <div class="table-container mb-4">
+                        <table class="table" id="conversionsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px">#</th>
+                                    <th>Unit</th>
+                                    <th>Subunit</th>
+                                    <th>Factor</th>
+                                    <th style="width: 140px">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty conversions}">
+                                        <c:forEach var="conversion" items="${conversions}" varStatus="status">
+                                            <tr data-index="${status.index + 1}" data-conversion-id="${conversion.unitConversionId}">
+                                                <td class="row-number"><strong>${status.index + 1}</strong></td>
+                                                <td class="conversion-unit">
+                                                    <c:forEach var="unit" items="${units}">
+                                                        <c:if test="${unit.unitId == conversion.unitId}">${unit.name}</c:if>
+                                                    </c:forEach>
+                                                </td>
+                                                <td class="conversion-subunit">
+                                                    <c:forEach var="subunit" items="${subunits}">
+                                                        <c:if test="${subunit.subUnitId == conversion.subUnitId}">${subunit.name}</c:if>
+                                                    </c:forEach>
+                                                </td>
+                                                <td class="conversion-factor">${conversion.factor}</td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <a href="unit?entity=conversion&action=detail&id=${conversion.unitConversionId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
+                                                        <a href="unit?entity=conversion&action=edit&id=${conversion.unitConversionId}" class="btn btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
+                                                        <form action="unit" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this conversion?')">
+                                                            <input type="hidden" name="entity" value="conversion">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="id" value="${conversion.unitConversionId}">
+                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="5" class="no-data">No unit conversions found</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="conversionPagination"></div>
+                </div>
+
+                <!-- Subunits Tab -->
+                <div class="tab-pane fade" id="subunits" role="tabpanel" aria-labelledby="subunits-tab">
+                    <div class="row g-2 mb-3 align-items-center">
+                        <div class="col-md-4">
+                            <input type="text" id="subunitSearchInput" class="form-control" placeholder="Search by name..." oninput="filterUnits('subunit')">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="subunitActiveFilter" onchange="filterUnits('subunit')">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#subunitEditModal" onclick="openAddSubunitModal()"><i class="fas fa-plus"></i> Add Subunit</button>
+                        </div>
+                    </div>
+                    <c:if test="${not empty errorMsg}">
+                        <div class="alert alert-danger">${errorMsg}</div>
+                    </c:if>
+                    <div class="table-container mb-4">
+                        <table class="table" id="subunitsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px">#</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th style="width: 140px">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty subunits}">
+                                        <c:forEach var="subunit" items="${subunits}" varStatus="status">
+                                            <tr data-index="${status.index + 1}" data-subunit-id="${subunit.subUnitId}">
+                                                <td class="row-number"><strong>${status.index + 1}</strong></td>
+                                                <td class="subunit-name">${subunit.name}</td>
+                                                <td class="subunit-status">
+                                                    <span style="color: ${subunit.status == 'active' ? '#065f46' : '#991b1b'}; background-color: ${subunit.status == 'active' ? '#d1fae5' : '#fee2e2'}; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">${subunit.status == 'active' ? 'Active' : 'Inactive'}</span>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <a href="unit?entity=subunit&action=detail&id=${subunit.subUnitId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
+                                                        <a href="unit?entity=subunit&action=edit&id=${subunit.subUnitId}" class="btn btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
+                                                        <form action="unit" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this subunit?')">
+                                                            <input type="hidden" name="entity" value="subunit">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="id" value="${subunit.subUnitId}">
+                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="4" class="no-data">No subunits found</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="subunitPagination"></div>
+                </div>
+
+                <!-- Units Tab -->
+                <div class="tab-pane fade" id="units" role="tabpanel" aria-labelledby="units-tab">
+                    <div class="row g-2 mb-3 align-items-center">
+                        <div class="col-md-4">
+                            <input type="text" id="unitSearchInput" class="form-control" placeholder="Search by name..." oninput="filterUnits('unit')">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="unitActiveFilter" onchange="filterUnits('unit')">
+                                <option value="">All Status</option>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#unitEditModal" onclick="openAddUnitModal()"><i class="fas fa-plus"></i> Add Unit</button>
+                        </div>
+                    </div>
+                    <c:if test="${not empty errorMsg}">
+                        <div class="alert alert-danger">${errorMsg}</div>
+                    </c:if>
+                    <div class="table-container mb-4">
+                        <table class="table" id="unitsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px">#</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th style="width: 140px">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty units}">
+                                        <c:forEach var="unit" items="${units}" varStatus="status">
+                                            <tr data-index="${status.index + 1}" data-unit-id="${unit.unitId}">
+                                                <td class="row-number"><strong>${status.index + 1}</strong></td>
+                                                <td class="unit-name">${unit.name}</td>
+                                                <td class="unit-status">
+                                                    <c:choose>
+                                                        <c:when test="${unit.active}">
+                                                            <span style="color: #065f46; background-color: #d1fae5; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">Active</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span style="color: #991b1b; background-color: #fee2e2; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 500;">Inactive</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <a href="unit?entity=unit&action=detail&id=${unit.unitId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
+                                                        <a href="unit?entity=unit&action=edit&id=${unit.unitId}" class="btn btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
+                                                        <form action="unit" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this unit?')">
+                                                            <input type="hidden" name="entity" value="unit">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="id" value="${unit.unitId}">
+                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="4" class="no-data">No units found</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="unitPagination"></div>
+                </div>
+            </div>
+
+            <!-- Unit Edit/Add Modal -->
+            <div class="modal fade" id="unitEditModal" tabindex="-1" aria-labelledby="unitEditModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editModalLabel">${action == 'edit' ? 'Edit Unit' : 'Add New Unit'}</h5>
+                            <h5 class="modal-title" id="unitEditModalLabel"></h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <form action="unit" method="POST" id="unitForm">
-                                <input type="hidden" name="action" id="modalAction" value="${action == 'edit' ? 'update' : 'add'}">
-                                <input type="hidden" id="editUnitId" name="unitId" value="${unit != null ? unit.unitId : ''}">
+                                <input type="hidden" name="entity" value="unit">
+                                <input type="hidden" name="action" id="unitModalAction">
+                                <input type="hidden" id="editUnitId" name="unitId">
                                 <div class="form-group">
-                                    <label for="name">Name:</label>
-                                    <input type="text" class="form-control" id="name" name="name" value="${unit != null ? unit.name : ''}" required>
+                                    <label for="unitName">Name:</label>
+                                    <input type="text" class="form-control" id="unitName" name="name" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="isActive">Active:</label>
-                                    <select class="form-control" id="isActive" name="isActive" required>
-                                        <option value="true" ${unit != null && unit.active ? 'selected' : ''}>Yes</option>
-                                        <option value="false" ${unit != null && !unit.active ? 'selected' : ''}>No</option>
+                                    <label for="unitIsActive">Status:</label>
+                                    <select class="form-control" id="unitIsActive" name="isActive" required>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
                                     </select>
                                 </div>
-                                <div id="errorMsg" class="error">${errorMsg}</div>
-                                <button type="submit" class="btn btn-primary">Save</button>
+                                <div id="unitErrorMsg" class="error">${errorMsg}</div>
+                                <button type="submit" class="btn btn-primary" id="unitSubmitBtn">Save</button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </form>
                         </div>
@@ -165,18 +329,136 @@
                 </div>
             </div>
 
-            <!-- Modal for Details -->
-            <div class="modal fade" id="unitModal" tabindex="-1" aria-labelledby="unitModalLabel" aria-hidden="true">
+            <!-- Unit Details Modal -->
+            <div class="modal fade" id="unitDetailModal" tabindex="-1" aria-labelledby="unitDetailModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="unitModalLabel">Unit Details</h5>
+                            <h5 class="modal-title" id="unitDetailModalLabel">Unit Details</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="detail-item"><strong>ID:</strong> <span id="modal-unit-id">${unit != null ? unit.unitId : ''}</span></div>
-                            <div class="detail-item"><strong>Name:</strong> <span id="modal-unit-name">${unit != null ? unit.name : ''}</span></div>
-                            <div class="detail-item"><strong>Active:</strong> <span id="modal-unit-active">${unit != null && unit.active ? 'Active' : 'Inactive'}</span></div>
+                            <div class="detail-item"><strong>ID:</strong> <span id="modal-unit-id"></span></div>
+                            <div class="detail-item"><strong>Name:</strong> <span id="modal-unit-name"></span></div>
+                            <div class="detail-item"><strong>Status:</strong> <span id="modal-unit-status"></span></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subunit Edit/Add Modal -->
+            <div class="modal fade" id="subunitEditModal" tabindex="-1" aria-labelledby="subunitEditModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="subunitEditModalLabel"></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="unit" method="POST" id="subunitForm">
+                                <input type="hidden" name="entity" value="subunit">
+                                <input type="hidden" name="action" id="subunitModalAction">
+                                <input type="hidden" id="editSubUnitId" name="subUnitId">
+                                <div class="form-group">
+                                    <label for="subunitName">Name:</label>
+                                    <input type="text" class="form-control" id="subunitName" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="subunitStatus">Status:</label>
+                                    <select class="form-control" id="subunitStatus" name="status" required>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <div id="subunitErrorMsg" class="error">${errorMsg}</div>
+                                <button type="submit" class="btn btn-primary" id="subunitSubmitBtn">Save</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subunit Details Modal -->
+            <div class="modal fade" id="subunitDetailModal" tabindex="-1" aria-labelledby="subunitDetailModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="subunitDetailModalLabel">Subunit Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="detail-item"><strong>ID:</strong> <span id="modal-subunit-id"></span></div>
+                            <div class="detail-item"><strong>Name:</strong> <span id="modal-subunit-name"></span></div>
+                            <div class="detail-item"><strong>Status:</strong> <span id="modal-subunit-status"></span></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unit Conversion Edit/Add Modal -->
+            <div class="modal fade" id="conversionEditModal" tabindex="-1" aria-labelledby="conversionEditModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="conversionEditModalLabel"></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="unit" method="POST" id="conversionForm">
+                                <input type="hidden" name="entity" value="conversion">
+                                <input type="hidden" name="action" id="conversionModalAction">
+                                <input type="hidden" id="editUnitConversionId" name="unitConversionId">
+                                <div class="form-group">
+                                    <label for="conversionUnitId">Unit:</label>
+                                    <select class="form-control" id="conversionUnitId" name="unitId" required>
+                                        <option value="">Select Unit</option>
+                                        <c:forEach var="unit" items="${units}">
+                                            <option value="${unit.unitId}">${unit.name}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="conversionSubUnitId">Subunit:</label>
+                                    <select class="form-control" id="conversionSubUnitId" name="subUnitId" required>
+                                        <option value="">Select Subunit</option>
+                                        <c:forEach var="subunit" items="${subunits}">
+                                            <option value="${subunit.subUnitId}">${subunit.name}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="conversionFactor">Factor:</label>
+                                    <input type="number" step="0.01" class="form-control" id="conversionFactor" name="factor" required>
+                                </div>
+                                <div id="conversionErrorMsg" class="error">${errorMsg}</div>
+                                <button type="submit" class="btn btn-primary" id="conversionSubmitBtn">Save</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unit Conversion Details Modal -->
+            <div class="modal fade" id="conversionDetailModal" tabindex="-1" aria-labelledby="conversionDetailModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="conversionDetailModalLabel">Unit Conversion Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="detail-item"><strong>ID:</strong> <span id="modal-conversion-id"></span></div>
+                            <div class="detail-item"><strong>Unit:</strong> <span id="modal-conversion-unit"></span></div>
+                            <div class="detail-item"><strong>Subunit:</strong> <span id="modal-conversion-subunit"></span></div>
+                            <div class="detail-item"><strong>Factor:</strong> <span id="modal-conversion-factor"></span></div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -189,64 +471,501 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="vendors/datatable/js/jquery.dataTables.min.js"></script>
     <script>
-        function filterUnits() {
-            const search = $('#searchInput').val().toLowerCase();
-            const status = $('#activeFilter').val();
+        // Pagination state for each tab
+        const paginationState = {
+            conversion: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] },
+            subunit: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] },
+            unit: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] }
+        };
 
-            $('#unitsTable tbody tr').each(function () {
-                const name = $(this).find('.unit-name').text().toLowerCase();
-                const isActive = $(this).find('.unit-status span').text().trim() === 'Active';
-                const statusVal = isActive ? 'true' : 'false';
+        // Initialize pagination on page load
+        window.addEventListener("DOMContentLoaded", function () {
+            // Initialize rows for each table
+            paginationState.conversion.allRows = Array.from(document.querySelectorAll("#conversionsTable tbody tr:not(.no-data)"));
+            paginationState.conversion.filteredRows = [...paginationState.conversion.allRows];
+            paginationState.subunit.allRows = Array.from(document.querySelectorAll("#subunitsTable tbody tr:not(.no-data)"));
+            paginationState.subunit.filteredRows = [...paginationState.subunit.allRows];
+            paginationState.unit.allRows = Array.from(document.querySelectorAll("#unitsTable tbody tr:not(.no-data)"));
+            paginationState.unit.filteredRows = [...paginationState.unit.allRows];
 
-                const matchName = name.includes(search);
-                const matchStatus = !status || status === statusVal;
+            // Update tables and pagination
+            updateTable('conversion');
+            updatePagination('conversion');
+            updateTable('subunit');
+            updatePagination('subunit');
+            updateTable('unit');
+            updatePagination('unit');
 
-                $(this).toggle(matchName && matchStatus);
+            console.log("Conversions table loaded with " + paginationState.conversion.allRows.length + " rows");
+            console.log("Subunits table loaded with " + paginationState.subunit.allRows.length + " rows");
+            console.log("Units table loaded with " + paginationState.unit.allRows.length + " rows");
+
+            // Bind filter events
+            document.querySelectorAll("#conversionSearchInput").forEach(el => {
+                el.addEventListener("input", () => filterUnits('conversion'));
+            });
+            document.querySelectorAll("#subunitSearchInput, #subunitActiveFilter").forEach(el => {
+                el.addEventListener("input", () => filterUnits('subunit'));
+                el.addEventListener("change", () => filterUnits('subunit'));
+            });
+            document.querySelectorAll("#unitSearchInput, #unitActiveFilter").forEach(el => {
+                el.addEventListener("input", () => filterUnits('unit'));
+                el.addEventListener("change", () => filterUnits('unit'));
+            });
+        });
+
+        function filterUnits(entity) {
+            let searchInput, statusFilter, tableId, nameClass, statusClass, paginationId;
+            let state = paginationState[entity];
+
+            if (entity === 'unit') {
+                searchInput = '#unitSearchInput';
+                statusFilter = '#unitActiveFilter';
+                tableId = '#unitsTable';
+                nameClass = '.unit-name';
+                statusClass = '.unit-status';
+                paginationId = '#unitPagination';
+            } else if (entity === 'subunit') {
+                searchInput = '#subunitSearchInput';
+                statusFilter = '#subunitActiveFilter';
+                tableId = '#subunitsTable';
+                nameClass = '.subunit-name';
+                statusClass = '.subunit-status';
+                paginationId = '#subunitPagination';
+            } else if (entity === 'conversion') {
+                searchInput = '#conversionSearchInput';
+                tableId = '#conversionsTable';
+                nameClass = '.conversion-unit, .conversion-subunit';
+                paginationId = '#conversionPagination';
+            }
+
+            const search = document.querySelector(searchInput).value.trim().toLowerCase();
+            const status = entity !== 'conversion' ? document.querySelector(statusFilter)?.value : '';
+
+            console.log(`Filter ${entity} - Search: ${search}, Status: ${status || 'none'}`);
+
+            state.filteredRows = state.allRows.filter(row => {
+                let match = true;
+                if (entity === 'conversion') {
+                    const unit = row.querySelector('.conversion-unit').textContent.trim().toLowerCase();
+                    const subunit = row.querySelector('.conversion-subunit').textContent.trim().toLowerCase();
+                    match = unit.includes(search) || subunit.includes(search);
+                } else {
+                    const name = row.querySelector(nameClass).textContent.trim().toLowerCase();
+                    const statusText = row.querySelector(statusClass).textContent.trim().toLowerCase();
+                    const matchName = name.includes(search);
+                    const matchStatus = !status || statusText === status.toLowerCase();
+                    match = matchName && matchStatus;
+                }
+                return match;
+            });
+
+            state.currentPage = 1;
+            updateTable(entity);
+            updatePagination(entity);
+            console.log(`Visible ${entity} Rows: ${state.filteredRows.length}`);
+        }
+
+        function updateTable(entity) {
+            const state = paginationState[entity];
+            let tableId = entity === 'unit' ? '#unitsTable' : entity === 'subunit' ? '#subunitsTable' : '#conversionsTable';
+
+            // Hide all rows
+            state.allRows.forEach(row => {
+                row.style.display = 'none';
+            });
+
+            // Show rows for current page
+            const start = (state.currentPage - 1) * state.pageSize;
+            const end = Math.min(start + state.pageSize, state.filteredRows.length);
+            const rowsToShow = state.filteredRows.slice(start, end);
+
+            rowsToShow.forEach((row, index) => {
+                row.style.display = '';
+                const rowNumberCell = row.querySelector('.row-number strong');
+                rowNumberCell.textContent = start + index + 1;
             });
         }
 
-        $(document).ready(function () {
-            // Filter units on input change
-            $('#searchInput, #activeFilter').on('input change', filterUnits);
+        function updatePagination(entity) {
+            const state = paginationState[entity];
+            const paginationId = entity === 'unit' ? '#unitPagination' : entity === 'subunit' ? '#subunitPagination' : '#conversionPagination';
+            const pagination = document.querySelector(paginationId);
+            pagination.innerHTML = '';
 
+            const totalPages = Math.ceil(state.filteredRows.length / state.pageSize);
+            if (totalPages <= 1) return;
+
+            // First and Previous buttons
+            if (state.currentPage > 1) {
+                const first = document.createElement('a');
+                first.href = '#';
+                first.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+                first.addEventListener('click', e => {
+                    e.preventDefault();
+                    state.currentPage = 1;
+                    updatePagination(entity);
+                    updateTable(entity);
+                });
+                pagination.appendChild(first);
+
+                const prev = document.createElement('a');
+                prev.href = '#';
+                prev.innerHTML = '<i class="fas fa-angle-left"></i>';
+                prev.addEventListener('click', e => {
+                    e.preventDefault();
+                    state.currentPage--;
+                    updatePagination(entity);
+                    updateTable(entity);
+                });
+                pagination.appendChild(prev);
+            } else {
+                const disabledFirst = document.createElement('span');
+                disabledFirst.className = 'text-muted me-2';
+                disabledFirst.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+                pagination.appendChild(disabledFirst);
+
+                const disabledPrev = document.createElement('span');
+                disabledPrev.className = 'text-muted me-2';
+                disabledPrev.innerHTML = '<i class="fas fa-angle-left"></i>';
+                pagination.appendChild(disabledPrev);
+            }
+
+            // Page numbers
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === state.currentPage) {
+                        const current = document.createElement('span');
+                        current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                        current.textContent = i;
+                        pagination.appendChild(current);
+                    } else {
+                        const pageLink = document.createElement('a');
+                        pageLink.href = '#';
+                        pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                        pageLink.textContent = i;
+                        pageLink.addEventListener('click', e => {
+                            e.preventDefault();
+                            state.currentPage = i;
+                            updatePagination(entity);
+                            updateTable(entity);
+                        });
+                        pagination.appendChild(pageLink);
+                    }
+                }
+            } else {
+                if (state.currentPage <= 4) {
+                    for (let i = 1; i <= 5; i++) {
+                        if (i === state.currentPage) {
+                            const current = document.createElement('span');
+                            current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement('a');
+                            pageLink.href = '#';
+                            pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                            pageLink.textContent = i;
+                            pageLink.addEventListener('click', e => {
+                                e.preventDefault();
+                                state.currentPage = i;
+                                updatePagination(entity);
+                                updateTable(entity);
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+                    if (totalPages > 6) {
+                        const dots = document.createElement('span');
+                        dots.className = 'px-2 mx-1 text-muted';
+                        dots.textContent = '...';
+                        pagination.appendChild(dots);
+
+                        const last = document.createElement('a');
+                        last.href = '#';
+                        last.className = 'px-2 mx-1 text-decoration-none text-dark';
+                        last.textContent = totalPages;
+                        last.addEventListener('click', e => {
+                            e.preventDefault();
+                            state.currentPage = totalPages;
+                            updatePagination(entity);
+                            updateTable(entity);
+                        });
+                        pagination.appendChild(last);
+                    }
+                } else if (state.currentPage >= totalPages - 3) {
+                    const first = document.createElement('a');
+                    first.href = '#';
+                    first.className = 'px-2 mx-1 text-decoration-none text-dark';
+                    first.textContent = '1';
+                    first.addEventListener('click', e => {
+                        e.preventDefault();
+                        state.currentPage = 1;
+                        updatePagination(entity);
+                        updateTable(entity);
+                    });
+                    pagination.appendChild(first);
+
+                    if (totalPages > 6) {
+                        const dots = document.createElement('span');
+                        dots.className = 'px-2 mx-1 text-muted';
+                        dots.textContent = '...';
+                        pagination.appendChild(dots);
+                    }
+
+                    for (let i = totalPages - 4; i <= totalPages; i++) {
+                        if (i === state.currentPage) {
+                            const current = document.createElement('span');
+                            current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement('a');
+                            pageLink.href = '#';
+                            pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                            pageLink.textContent = i;
+                            pageLink.addEventListener('click', e => {
+                                e.preventDefault();
+                                state.currentPage = i;
+                                updatePagination(entity);
+                                updateTable(entity);
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+                } else {
+                    const first = document.createElement('a');
+                    first.href = '#';
+                    first.className = 'px-2 mx-1 text-decoration-none text-dark';
+                    first.textContent = '1';
+                    first.addEventListener('click', e => {
+                        e.preventDefault();
+                        state.currentPage = 1;
+                        updatePagination(entity);
+                        updateTable(entity);
+                    });
+                    pagination.appendChild(first);
+
+                    const dots1 = document.createElement('span');
+                    dots1.className = 'px-2 mx-1 text-muted';
+                    dots1.textContent = '...';
+                    pagination.appendChild(dots1);
+
+                    for (let i = state.currentPage - 1; i <= state.currentPage + 1; i++) {
+                        if (i === state.currentPage) {
+                            const current = document.createElement('span');
+                            current.className = 'px-2 mx-1 bg-primary text-white rounded';
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement('a');
+                            pageLink.href = '#';
+                            pageLink.className = 'px-2 mx-1 text-decoration-none text-dark';
+                            pageLink.textContent = i;
+                            pageLink.addEventListener('click', e => {
+                                e.preventDefault();
+                                state.currentPage = i;
+                                updatePagination(entity);
+                                updateTable(entity);
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+
+                    const dots2 = document.createElement('span');
+                    dots2.className = 'px-2 mx-1 text-muted';
+                    dots2.textContent = '...';
+                    pagination.appendChild(dots2);
+
+                    const last = document.createElement('a');
+                    last.href = '#';
+                    last.className = 'px-2 mx-1 text-decoration-none text-dark';
+                    last.textContent = totalPages;
+                    last.addEventListener('click', e => {
+                        e.preventDefault();
+                        state.currentPage = totalPages;
+                        updatePagination(entity);
+                        updateTable(entity);
+                    });
+                    pagination.appendChild(last);
+                }
+            }
+
+            // Next and Last buttons
+            if (state.currentPage < totalPages) {
+                const next = document.createElement('a');
+                next.href = '#';
+                next.innerHTML = '<i class="fas fa-angle-right"></i>';
+                next.className = 'ms-2 text-decoration-none text-dark';
+                next.addEventListener('click', e => {
+                    e.preventDefault();
+                    state.currentPage++;
+                    updatePagination(entity);
+                    updateTable(entity);
+                });
+                pagination.appendChild(next);
+
+                const lastBtn = document.createElement('a');
+                lastBtn.href = '#';
+                lastBtn.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+                lastBtn.className = 'ms-2 text-decoration-none text-dark';
+                lastBtn.addEventListener('click', e => {
+                    e.preventDefault();
+                    state.currentPage = totalPages;
+                    updatePagination(entity);
+                    updateTable(entity);
+                });
+                pagination.appendChild(lastBtn);
+            } else {
+                const disabledNext = document.createElement('span');
+                disabledNext.className = 'ms-2 text-muted';
+                disabledNext.innerHTML = '<i class="fas fa-angle-right"></i>';
+                pagination.appendChild(disabledNext);
+
+                const disabledLast = document.createElement('span');
+                disabledLast.className = 'ms-2 text-muted';
+                disabledLast.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+                pagination.appendChild(disabledLast);
+            }
+        }
+
+        $(document).ready(function () {
             // Show modals based on action
-            <c:if test="${action == 'edit'}">
-                var editModal = new bootstrap.Modal(document.getElementById('editModal'));
-                editModal.show();
-            </c:if>
-            <c:if test="${action == 'detail'}">
-                var unitModal = new bootstrap.Modal(document.getElementById('unitModal'));
-                unitModal.show();
+            <c:if test="${not empty action && not empty entity}">
+                <c:choose>
+                    <c:when test="${entity == 'unit'}">
+                        <c:choose>
+                            <c:when test="${action == 'edit'}">
+                                var editModal = new bootstrap.Modal(document.getElementById('unitEditModal'));
+                                $('#unitEditModalLabel').text('Edit Unit');
+                                $('#unitModalAction').val('update');
+                                $('#editUnitId').val('${unit.unitId}');
+                                $('#unitName').val('${unit.name}');
+                                $('#unitIsActive').val('${unit.active ? 'true' : 'false'}');
+                                $('#unitSubmitBtn').text('Update');
+                                editModal.show();
+                            </c:when>
+                            <c:when test="${action == 'detail'}">
+                                var detailModal = new bootstrap.Modal(document.getElementById('unitDetailModal'));
+                                $('#modal-unit-id').text('${unit.unitId}');
+                                $('#modal-unit-name').text('${unit.name}');
+                                $('#modal-unit-status').text(${unit.active} ? 'Active' : 'Inactive');
+                                detailModal.show();
+                            </c:when>
+                        </c:choose>
+                    </c:when>
+                    <c:when test="${entity == 'subunit'}">
+                        <c:choose>
+                            <c:when test="${action == 'edit'}">
+                                var editModal = new bootstrap.Modal(document.getElementById('subunitEditModal'));
+                                $('#subunitEditModalLabel').text('Edit Subunit');
+                                $('#subunitModalAction').val('update');
+                                $('#editSubUnitId').val('${subunit.subUnitId}');
+                                $('#subunitName').val('${subunit.name}');
+                                $('#subunitStatus').val('${subunit.status}');
+                                $('#subunitSubmitBtn').text('Update');
+                                editModal.show();
+                            </c:when>
+                            <c:when test="${action == 'detail'}">
+                                var detailModal = new bootstrap.Modal(document.getElementById('subunitDetailModal'));
+                                $('#modal-subunit-id').text('${subunit.subUnitId}');
+                                $('#modal-subunit-name').text('${subunit.name}');
+                                $('#modal-subunit-status').text('${subunit.status}');
+                                detailModal.show();
+                            </c:when>
+                        </c:choose>
+                    </c:when>
+                    <c:when test="${entity == 'conversion'}">
+                        <c:choose>
+                            <c:when test="${action == 'edit'}">
+                                var editModal = new bootstrap.Modal(document.getElementById('conversionEditModal'));
+                                $('#conversionEditModalLabel').text('Edit Unit Conversion');
+                                $('#conversionModalAction').val('update');
+                                $('#editUnitConversionId').val('${conversion.unitConversionId}');
+                                $('#conversionUnitId').val('${conversion.unitId}');
+                                $('#conversionSubUnitId').val('${conversion.subUnitId}');
+                                $('#conversionFactor').text('${conversion.factor}');
+                                $('#conversionSubmitBtn').text('Update');
+                                editModal.show();
+                            </c:when>
+                            <c:when test="${action == 'detail'}">
+                                var detailModal = new bootstrap.Modal(document.getElementById('conversionDetailModal'));
+                                $('#modal-conversion-id').text('${conversion.unitConversionId}');
+                                $('#modal-conversion-unit').text(
+                                    <c:forEach var="unit" items="${units}">
+                                        ${unit.unitId == conversion.unitId ? "'".concat(unit.name).concat("'") : ""}
+                                    </c:forEach>
+                                );
+                                $('#modal-conversion-subunit').text(
+                                    <c:forEach var="subunit" items="${subunits}">
+                                        ${subunit.subUnitId == conversion.subUnitId ? "'".concat(subunit.name).concat("'") : ""}
+                                    </c:forEach>
+                                );
+                                $('#modal-conversion-factor').text('${conversion.factor}');
+                                detailModal.show();
+                            </c:when>
+                        </c:choose>
+                    </c:when>
+                </c:choose>
             </c:if>
 
             // Clear modal data when closed
-            $('#editModal, #unitModal').on('hidden.bs.modal', function () {
-                // Reset form fields
+            $('#unitEditModal, #unitDetailModal, #subunitEditModal, #subunitDetailModal, #conversionEditModal, #conversionDetailModal').on('hidden.bs.modal', function () {
+                // Reset forms
                 $('#unitForm')[0].reset();
-                $('#modalAction').val('add');
+                $('#subunitForm')[0].reset();
+                $('#conversionForm')[0].reset();
+                $('#unitModalAction').val('add');
+                $('#subunitModalAction').val('add');
+                $('#conversionModalAction').val('add');
                 $('#editUnitId').val('');
-                $('#editModalLabel').text('Add New Unit');
-                $('#errorMsg').text('');
-                // Clear detail modal
-                $('#modal-unit-id').text('');
-                $('#modal-unit-name').text('');
-                $('#modal-unit-active').text('');
+                $('#editSubUnitId').val('');
+                $('#editUnitConversionId').val('');
+                $('#unitEditModalLabel').text('Add New Unit');
+                $('#subunitEditModalLabel').text('Add New Subunit');
+                $('#conversionEditModalLabel').text('Add New Unit Conversion');
+                $('#unitErrorMsg, #subunitErrorMsg, #conversionErrorMsg').text('');
+                // Clear detail modals
+                $('#modal-unit-id, #modal-unit-name, #modal-unit-status').text('');
+                $('#modal-subunit-id, #modal-subunit-name, #modal-subunit-status').text('');
+                $('#modal-conversion-id, #modal-conversion-unit, #modal-conversion-subunit, #modal-conversion-factor').text('');
                 // Remove backdrop
                 $('.modal-backdrop').remove();
             });
-
-            // Handle Add Unit button
-            $('.btn-success').on('click', function () {
-                $('#unitForm')[0].reset();
-                $('#modalAction').val('add');
-                $('#editUnitId').val('');
-                $('#editModalLabel').text('Add New Unit');
-                $('#errorMsg').text('');
-                var editModal = new bootstrap.Modal(document.getElementById('editModal'));
-                editModal.show();
-            });
         });
+
+        function openAddUnitModal() {
+            $('#unitEditModalLabel').text('Add New Unit');
+            $('#unitModalAction').val('add');
+            $('#editUnitId').val('');
+            $('#unitName').val('');
+            $('#unitIsActive').val('true');
+            $('#unitSubmitBtn').text('Save');
+            $('#unitErrorMsg').text('');
+        }
+
+        function openAddSubunitModal() {
+            $('#subunitEditModalLabel').text('Add New Subunit');
+            $('#subunitModalAction').val('add');
+            $('#editSubUnitId').val('');
+            $('#subunitName').val('');
+            $('#subunitStatus').val('active');
+            $('#subunitSubmitBtn').text('Save');
+            $('#subunitErrorMsg').text('');
+        }
+
+        function openAddConversionModal() {
+            $('#conversionEditModalLabel').text('Add New Unit Conversion');
+            $('#conversionModalAction').val('add');
+            $('#editUnitConversionId').val('');
+            $('#conversionUnitId').val('');
+            $('#conversionSubUnitId').val('');
+            $('#conversionFactor').val('');
+            $('#conversionSubmitBtn').text('Save');
+            $('#conversionErrorMsg').text('');
+        }
     </script>
 </body>
 </html>

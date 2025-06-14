@@ -76,7 +76,23 @@
                 </a>
             </li>
         </c:if>
-        <c:if test="${permissions['Customer_VIEW']}">
+            <c:if test="${permissions['Material_VIEW']}">
+            <li>
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Unit</span>
+                </a>
+            </li>
+        </c:if>
+        <c:if test="${permissions['Material_VIEW']}">
+            <li>
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/inventory">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Current Inventory</span>
+                </a>
+            </li>
+        </c:if>
+            <c:if test="${permissions['Customer_VIEW']}">
             <li>
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/userlist">
                     <img src="img/menu-icon/4.svg" alt="">
@@ -89,22 +105,6 @@
                 <a href="/WarehouseManagement/adminresetlist">
                     <img src="img/menu-icon/your-icon.svg" alt="">
                     <span>Reset List</span>
-                </a>
-            </li>
-        </c:if>
-        <c:if test="${permissions['Material_VIEW']}">
-            <li>
-                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
-                    <img src="img/menu-icon/4.svg" alt="">
-                    <span>Unit</span>
-                </a>
-            </li>
-        </c:if>
-        <c:if test="${permissions['']}">
-            <li>
-                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/inventory">
-                    <img src="img/menu-icon/4.svg" alt="">
-                    <span>Current Inventory</span>
                 </a>
             </li>
         </c:if>
