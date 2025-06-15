@@ -11,10 +11,10 @@ import model.UnitConversion;
 
 public class UnitDAO extends DBContext {
 
-    // Units Methods
-    public List<Units> getAllUnits() {
+    public List<Units> getAllUnits(boolean onlyActive) {
         List<Units> units = new ArrayList<>();
-        String sql = "SELECT Unit_id, Name, Status, Created_at, Updated_at FROM Units";
+        String sql = "SELECT Unit_id, Name, Status, Created_at, Updated_at FROM Units" +
+                     (onlyActive ? " WHERE Status = 'active'" : "");
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -32,6 +32,11 @@ public class UnitDAO extends DBContext {
             e.printStackTrace();
         }
         return units;
+    }
+
+    // Fetch all units (default to all, including inactive)
+    public List<Units> getAllUnits() {
+        return getAllUnits(false);
     }
 
     public Units getUnitById(int unitId) {
@@ -99,10 +104,11 @@ public class UnitDAO extends DBContext {
         }
     }
 
-    // SubUnits Methods
-    public List<SubUnit> getAllSubUnits() {
+    // Fetch all subunits, optionally only active ones
+    public List<SubUnit> getAllSubUnits(boolean onlyActive) {
         List<SubUnit> subUnits = new ArrayList<>();
-        String sql = "SELECT SubUnit_id, Name, Status, Created_at, Updated_at FROM SubUnits";
+        String sql = "SELECT SubUnit_id, Name, Status, Created_at, Updated_at FROM SubUnits" +
+                     (onlyActive ? " WHERE Status = 'active'" : "");
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -120,6 +126,11 @@ public class UnitDAO extends DBContext {
             e.printStackTrace();
         }
         return subUnits;
+    }
+
+    // Fetch all subunits (default to all, including inactive)
+    public List<SubUnit> getAllSubUnits() {
+        return getAllSubUnits(false);
     }
 
     public SubUnit getSubUnitById(int subUnitId) {
@@ -187,7 +198,6 @@ public class UnitDAO extends DBContext {
         }
     }
 
-    // UnitConversion Methods
     public List<UnitConversion> getAllUnitConversions() {
         List<UnitConversion> conversions = new ArrayList<>();
         String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion";
@@ -277,5 +287,77 @@ public class UnitDAO extends DBContext {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public void deleteUnitConversionsBySubUnitId(int subUnitId) {
+        String sql = "DELETE FROM UnitConversion WHERE SubUnit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, subUnitId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting unit conversions for subunit ID " + subUnitId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteUnitConversionsByUnitId(int unitId) {
+        String sql = "DELETE FROM UnitConversion WHERE Unit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, unitId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting unit conversions for unit ID " + unitId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public List<UnitConversion> getUnitConversionsBySubUnitId(int subUnitId) {
+        List<UnitConversion> conversions = new ArrayList<>();
+        String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion WHERE SubUnit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, subUnitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    UnitConversion conversion = new UnitConversion(
+                        rs.getInt("UnitConversion_id"),
+                        rs.getInt("Unit_id"),
+                        rs.getInt("SubUnit_id"),
+                        rs.getDouble("Factor"),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at")
+                    );
+                    conversions.add(conversion);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching unit conversions for subunit ID " + subUnitId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return conversions;
+    }
+
+    public List<UnitConversion> getUnitConversionsByUnitId(int unitId) {
+        List<UnitConversion> conversions = new ArrayList<>();
+        String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion WHERE Unit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, unitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    UnitConversion conversion = new UnitConversion(
+                        rs.getInt("UnitConversion_id"),
+                        rs.getInt("Unit_id"),
+                        rs.getInt("SubUnit_id"),
+                        rs.getDouble("Factor"),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at")
+                    );
+                    conversions.add(conversion);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching unit conversions for unit ID " + unitId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return conversions;
     }
 }

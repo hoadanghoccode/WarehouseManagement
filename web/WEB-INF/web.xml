@@ -99,6 +99,8 @@
     <servlet>
         <servlet-name>CreateUserController</servlet-name>
         <servlet-class>controller.CreateUserController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>InventoryServlet</servlet-name>
         <servlet-class>controller.InventoryServlet</servlet-class>
     </servlet>
@@ -117,6 +119,18 @@
     <servlet>
         <servlet-name>UpdateOrderServlet</servlet-name>
         <servlet-class>controller.UpdateOrderServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UpdateSupplierController</servlet-name>
+        <servlet-class>controller.UpdateSupplierController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>NoPermissionController</servlet-name>
+        <servlet-class>controller.NoPermissionController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetMaterialCategoryServlet</servlet-name>
+        <servlet-class>controller.GetMaterialCategoryServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
@@ -200,7 +214,6 @@
         <servlet-name>DetailDepartmentController</servlet-name>
         <url-pattern>/detaildepartment</url-pattern>
     </servlet-mapping>
-    <!-- Cấu hình thời gian tồn tại của session -->
     <servlet-mapping>
         <servlet-name>UnitServlet</servlet-name>
         <url-pattern>/unit</url-pattern>
@@ -216,6 +229,8 @@
     <servlet-mapping>
         <servlet-name>CreateUserController</servlet-name>
         <url-pattern>/createuser</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>InventoryServlet</servlet-name>
         <url-pattern>/inventory</url-pattern>
     </servlet-mapping>
@@ -234,6 +249,19 @@
     <servlet-mapping>
         <servlet-name>UpdateOrderServlet</servlet-name>
         <url-pattern>/editorder</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateSupplierController</servlet-name>
+        <url-pattern>/updatesupplier</url-pattern>
+    </servlet-mapping>
+    <!-- Cấu hình thời gian tồn tại của session -->
+    <servlet-mapping>
+        <servlet-name>NoPermissionController</servlet-name>
+        <url-pattern>/nopermission</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetMaterialCategoryServlet</servlet-name>
+        <url-pattern>/get-material-category</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

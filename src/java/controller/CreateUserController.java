@@ -12,13 +12,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import dal.UserDAO;
 import dal.DepartmentDAO;
+import dal.EmailDAO;
 import model.Users;
 import model.Department;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.sql.Date;
+import java.time.Year;
+import java.util.HashMap;
+import java.util.Map;
 import org.mindrot.jbcrypt.BCrypt;
 import java.util.regex.Pattern;
+import util.ResetService;
 
 /**
  *
@@ -207,6 +212,24 @@ public class CreateUserController extends HttpServlet {
             user.setRoleId(roleId);
 
             userDAO.createUser(user, departmentId);
+
+            EmailDAO emailDAO = new EmailDAO();
+            String template = emailDAO.getTemplateBodyByType("NEW_USER_ACCOUNT");
+            if (template != null) {
+                Map<String, String> values = new HashMap<>();
+                values.put("user_name", fullName);
+                values.put("user_email", email);
+                values.put("password", password); // Nếu muốn gửi password cho user
+                values.put("login_url", "http://localhost:8080/WarehouseManagement/login");
+//                values.put("support_email", "support@yourdomain.com");
+//                values.put("year", String.valueOf(Year.now().getValue()));
+//                values.put("System Name", "Warehouse Management");
+
+                String emailContent = emailDAO.fillTemplate(template, values);
+
+                ResetService resetService = new ResetService();
+                resetService.sendEmail(email, emailContent, fullName, "Welcome to Directory – Your account details inside");
+            }
 
             response.setStatus(200);
             out.print("{\"message\":\"Tạo user thành công!\"}");

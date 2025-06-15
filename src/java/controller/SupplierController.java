@@ -70,6 +70,7 @@ public class SupplierController extends HttpServlet {
 
         // 1) Lấy toàn bộ suppliers
         ArrayList<Supplier> all = supplierDAO.getAllSuppliers();
+        System.out.println("list ne" + all);
 
         // 2) Lọc nếu có search và status
         ArrayList<Supplier> filtered = all;

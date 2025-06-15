@@ -43,7 +43,7 @@ public class ResetService {
     }
     
     
-    public boolean sendEmail(String to, String content, String name) {
+    public boolean sendEmail(String to, String content, String name, String subject) {
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
@@ -63,7 +63,7 @@ public class ResetService {
             MimeMessage msg = new MimeMessage(session);
         msg.setFrom(from);
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to, false));
-        msg.setSubject("Password Reset Notification", "UTF-8");
+        msg.setSubject(subject, "UTF-8");
         msg.setContent(content, "text/html; charset=UTF-8");
         Transport.send(msg);
         System.out.println("Send successfully");

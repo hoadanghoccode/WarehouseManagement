@@ -229,6 +229,35 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
+        
+        //check update material
+        if (user != null && uri.startsWith(contextPath + "/update-material")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canUpdateMaterial = (perms != null) ? perms.get("Material_UPDATE") : null;
+
+            if (canUpdateMaterial == null || !canUpdateMaterial) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+        
+        
+         //check warehouse
+        if (user != null && uri.startsWith(contextPath + "/inventory")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewWarehouse = (perms != null) ? perms.get("Warehouse_VIEW") : null;
+
+            if (canViewWarehouse == null || !canViewWarehouse) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
 
         //check category
         if (user != null && uri.startsWith(contextPath + "/categorylist")) {
