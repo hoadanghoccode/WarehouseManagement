@@ -36,7 +36,7 @@ public class UserListServlet extends HttpServlet {
             throws ServletException, IOException {
         UserDAO dao = new UserDAO();
         int page = 1;
-        int pageSize = 10;
+        int pageSize = 5;
         String searchQuery = request.getParameter("search");
         Integer departmentId = null;
         Integer roleId = null;
