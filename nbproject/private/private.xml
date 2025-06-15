@@ -32,6 +32,22 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/editorder.jsp</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Supplier.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/SupplierDAO.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/InventoryDAO.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/InventoryServlet.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/MaterialInventory.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/inventory.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/unitlist.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Supplier.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Quality.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/filter/AuthFilter.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/util/ResetService.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/CreateUserController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/role.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/sidebar.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/materialList.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AdminResetPasswordController.java</file>
+
         </group>
     </open-files>
 </project-private>
