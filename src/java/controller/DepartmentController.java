@@ -187,7 +187,7 @@ public class DepartmentController extends HttpServlet {
         // Validate cơ bản
         if (deptName == null || deptName.isEmpty() || roleIdStr == null || roleIdStr.isEmpty()) {
             result.put("success", false);
-            result.put("message", "Tên hoặc Role không hợp lệ");
+            result.put("message", "Invalid Name or Role");
             resp.getWriter().write(gson.toJson(result));
             return;
         }
@@ -198,7 +198,7 @@ public class DepartmentController extends HttpServlet {
             // Kiểm tra xem tên department đã tồn tại chưa
             if (dao.isDepartmentNameExists(deptName)) {
                 result.put("success", false);
-                result.put("message", "Tên Department đã tồn tại trong hệ thống!");
+                result.put("message", "Department name already exists in the system!");
                 resp.getWriter().write(gson.toJson(result));
                 return;
             }
@@ -215,16 +215,17 @@ public class DepartmentController extends HttpServlet {
                 result.put("success", true);
             } else {
                 result.put("success", false);
-                result.put("message", "Không thể thêm Department vào DB.");
+                result.put("message", "Department cannot be added");
             }
         } catch (NumberFormatException e) {
             result.put("success", false);
-            result.put("message", "RoleId không hợp lệ.");
+            result.put("message", "Invalid RoleId.");
+
         } catch (SQLException e) {
             // Bắt lỗi duplicate key trên cột Role_id (MySQL error code = 1062)
             if (e.getErrorCode() == 1062 && e.getMessage().contains("department.Role_id")) {
                 result.put("success", false);
-                result.put("message", "Role này đã được gán cho Department khác.");
+                result.put("message", "This role has been assigned to another Department.");
             } else {
                 result.put("success", false);
                 result.put("message", "Lỗi DB: " + e.getMessage());

@@ -414,16 +414,22 @@
                     const params = new URLSearchParams(formData);
 
                     try {
+                        console.log('Form data:', Object.fromEntries(formData));
+                        console.log('Request URL:', `${pageContext.request.contextPath}/addrole`);
+                        
                         const resp = await fetch(`${pageContext.request.contextPath}/addrole`, {
                             method: 'POST',
-                            headers: {'Accept': 'application/json'},
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
                             body: params
                         });
-
-
-
-
+                        
+                        console.log('Response status:', resp.status);
                         const result = await resp.json();
+                        console.log('Response data:', result);
+
                         if (result.success) {
                             // đóng modal
                             bsModal.hide();

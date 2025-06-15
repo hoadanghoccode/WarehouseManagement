@@ -25,11 +25,7 @@
           class="header_right d-flex justify-content-between align-items-center"
         >
           <div class="header_notification_warp d-flex align-items-center">
-            <li>
-              <a class="bell_notification_clicker" href="#">
-                <img src="img/icon/bell.svg" alt="" />
-                <span>04</span>
-              </a>
+           
               <!-- Menu_NOtification_Wrap  -->
               <div class="Menu_NOtification_Wrap">
                 <div class="notification_Header">
@@ -105,24 +101,22 @@
               </div>
               <!--/ Menu_NOtification_Wrap  -->
             </li>
-            <li>
-              <a class="CHATBOX_open" href="#">
-                <img src="img/icon/msg.svg" alt="" /> <span>01</span>
-              </a>
-            </li>
           </div>
-          <div class="profile_info">
-            <img src="img/client_img.png" alt="#" />
+          <%
+Users navbarUser = (Users) session.getAttribute("USER");
+String imagePath = (navbarUser != null && navbarUser.getImage() != null && !navbarUser.getImage().isEmpty())
+                   ? "uploads/" + navbarUser.getImage()
+                   : "img/client_img.png";
+%>
+<div class="profile_info">
+  <img src="<%= imagePath %>" alt="Profile" style="height: 40px; border-radius: 50%;" />
             <div class="profile_info_iner">
               <!-- <div class="profile_author_name">
                                 <p>Neurologist </p>
                                 <h5>Dr. Robar Smith</h5>
                             </div> -->
               <div class="profile_info_details">
-                <a href="#">My Profile </a>
-
-                <a href="changepassword">Change Password </a>
-                <a href="#">Settings</a>
+                <a href="viewuserinfo">My Profile </a>
                 <a href="logout">Log Out </a>
               </div>
             </div>

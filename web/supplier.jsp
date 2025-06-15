@@ -17,7 +17,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Permission Management</title>
+        <title>Supplier Management</title>
         <link rel="stylesheet" type="text/css" href="css/permissionlist.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -65,45 +65,61 @@
             <%@ include file="navbar.jsp" %>
             <div class="container">
                 <!-- Header + Search + Add -->
-                <div class="header">
-                    <h1 class="title">Resource List</h1>
-                    <div class="header-actions">
-                        <form action="resource" method="get" class="search-form">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" name="search" value="${search}"
-                                   placeholder="Search resources..." class="search-input"/>
+                <div class="header d-flex align-items-center justify-content-between" style="gap: 24px;">
+                    <h1 class="title mb-0">Supplier List</h1>
+                    <div class="header-actions d-flex align-items-center" style="gap: 12px;">
+                        <form action="${pageContext.request.contextPath}/supplier" method="get" class="search-form d-flex align-items-center" style="gap: 8px; margin-bottom: 0;">
+                            <div class="input-group" style="min-width: 180px;">
+                                <span class="input-group-text bg-white">
+                                    <!--<i class="bi bi-search" style="color: #000;"></i>-->
+                                                    <span class="search-icon">🔍</span>
+
+                                </span>
+                                <input type="text" name="search" value="${search}"
+                                       placeholder="Search supplier..." class="search-input form-control border-start-0"/>
+                            </div>
+                            <select name="status" class="form-select me-2" style="min-width: 100px;">
+                                <option value="all" ${status == 'all' || empty status ? 'selected' : ''}>All</option>
+                                <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary">Filter</button>
                         </form>
                         <c:if test="${perms['Permission_ADD']}">
                             <button id="addPermissionBtn"
                                     class="btn btn-success"
                                     data-bs-toggle="modal"
                                     data-bs-target="#addPermissionModal">
-                                Add Permission
+                                Add Supplier
                             </button>
                         </c:if>
-
                     </div>
                 </div>
 
-                <!-- Modal for Adding Permission -->
+
+
+
+                <!-- Modal for Adding Supplier -->
                 <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                            <form id="addPermissionForm">
+                            <form id="addPermissionForm" action="${pageContext.request.contextPath}/supplier">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Add New Permission</h5>
+                                    <h5 class="modal-title">Add New Supplier</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="mb-3">
-                                        <label for="resourceName" class="form-label">Resource Name</label>
-                                        <input type="text" id="resourceName" name="resourceName"
+                                        <label for="resourceName" class="form-label">Supplier Name</label>
+                                        <input type="text" id="resourceName" name="name"
                                                class="form-control" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="description" class="form-label">Description</label>
-                                        <input type="text" id="description" name="description"
-                                               class="form-control" required>
+                                        <label for="status" class="form-label">Status</label>
+                                        <select id="status" name="status" class="form-select" required>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
                                     </div>
                                     <div id="addError" class="text-danger" style="display:none;"></div>
                                 </div>
@@ -116,88 +132,58 @@
                     </div>
                 </div>
 
-
-                <!-- Modal Xác nhận Xóa -->
-                <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <c:if test="${perms['Permission_DELETE']}">  
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Confirm deletion</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    Are you sure you want to delete this permision?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
-                                </div>
-                            </div>
-                        </c:if>
-                        <c:if test="${!perms['Permission_DELETE']}"> 
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Confirm deletion</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    You do not have permission to delete !
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                </div>
-                            </div>
-
-                        </c:if>
-                    </div>
-                </div>
-
-
                 <!-- Stats -->
-                <c:if test="${not empty resourceList}">
+                <c:if test="${not empty supplierList}">
                     <div class="stats-info">
                         <i class="fas fa-info-circle"></i>
                         <c:choose>
                             <c:when test="${not empty search}">
-                                Found <strong>${totalResources}</strong> for "<strong>${search}</strong>"
+                                Found <strong>${totalSuppliers}</strong> for "<strong>${search}</strong>"
                             </c:when>
                             <c:otherwise>
-                                Showing <strong>${resourceList.size()}</strong>
-                                / <strong>${totalResources}</strong> resources
+                                Showing <strong>${supplierList.size()}</strong>
+                                / <strong>${totalSuppliers}</strong> resources
                             </c:otherwise>
                         </c:choose>
                     </div>
                 </c:if>
 
+
+
                 <!-- Table -->
                 <c:choose>
-                    <c:when test="${not empty resourceList}">
+                    <c:when test="${not empty supplierList}">
                         <div class="table-container">
                             <table class="table">
                                 <thead>
                                     <tr>
                                         <th>#</th>
                                         <th>Name</th>
-                                        <th>Description</th>
+                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="res" items="${resourceList}" varStatus="st">
+                                    <c:forEach var="res" items="${supplierList}" varStatus="st">
                                         <tr>
                                             <td><strong>${(page-1)*pageSize + st.index + 1}</strong></td>
                                             <td>${res.name}</td>
-                                            <td>${res.description}</td>
+                                            <td>
+                                                <span class="status-label badge ${res.status == 'active' ? 'bg-success' : 'bg-secondary'}"
+                                                      data-id="${res.supplierId}">
+                                                    ${res.status}
+                                                </span>
+                                            </td>
+
                                             <td class="action-buttons">
-
                                                 <form class="delete-resource-form" style="display:inline;">
-                                                    <input type="hidden" name="resourceId" value="${res.resourceId}"/>
-                                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input toggle-status" type="checkbox"
+                                                               data-id="${res.supplierId}"
+                                                               ${res.status == 'active' ? 'checked' : ''}>
+                                                    </div>
 
+                                                </form>
 
                                             </td>
                                         </tr>
@@ -210,7 +196,7 @@
                     <c:otherwise>
                         <div class="no-data">
                             <i class="fas fa-folder-open fa-3x"></i>
-                            <h3>No resources found</h3>
+                            <h3>No supplier found</h3>
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -219,13 +205,13 @@
                 <c:if test="${numPages > 1}">
                     <div class="pagination">
                         <!-- First / Prev -->
-                        <c:url var="firstUrl" value="/resource">
+                        <c:url var="firstUrl" value="/supplier">
                             <c:param name="page" value="1"/>
                             <c:if test="${not empty search}">
                                 <c:param name="search" value="${search}"/>
                             </c:if>
                         </c:url>
-                        <c:url var="prevUrl" value="/resource">
+                        <c:url var="prevUrl" value="/supplier">
                             <c:param name="page" value="${page-1}"/>
                             <c:if test="${not empty search}">
                                 <c:param name="search" value="${search}"/>
@@ -245,7 +231,7 @@
 
                         <!-- Page numbers -->
                         <c:forEach begin="1" end="${numPages}" var="i">
-                            <c:url var="pageUrl" value="/resource">
+                            <c:url var="pageUrl" value="/supplier">
                                 <c:param name="page" value="${i}"/>
                                 <c:if test="${not empty search}">
                                     <c:param name="search" value="${search}"/>
@@ -262,13 +248,13 @@
                         </c:forEach>
 
                         <!-- Next / Last -->
-                        <c:url var="nextUrl" value="/resource">
+                        <c:url var="nextUrl" value="/supplier">
                             <c:param name="page" value="${page+1}"/>
                             <c:if test="${not empty search}">
                                 <c:param name="search" value="${search}"/>
                             </c:if>
                         </c:url>
-                        <c:url var="lastUrl" value="/resource">
+                        <c:url var="lastUrl" value="/supplier">
                             <c:param name="page" value="${numPages}"/>
                             <c:if test="${not empty search}">
                                 <c:param name="search" value="${search}"/>
@@ -288,7 +274,7 @@
                     </div>
 
                     <div class="page-info">
-                        Page ${page} of ${numPages} (${totalResources} total)
+                        Page ${page} of ${numPages} (${totalSuppliers} total)
                     </div>
                 </c:if>
 
@@ -302,7 +288,7 @@
                 const form = e.target;
                 const data = new URLSearchParams(new FormData(form));
 
-                fetch(form.getAttribute('action') || '${pageContext.request.contextPath}/resource', {
+                fetch(form.getAttribute('action') || '${pageContext.request.contextPath}/supplier', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: data
@@ -323,38 +309,48 @@
                         });
             });
 
-            let resourceIdToDelete = null;
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.toggle-status').forEach(toggle => {
+                    toggle.addEventListener('change', function () {
+                        const supplierId = toggle.getAttribute('data-id');
+                        const newStatus = toggle.checked ? 'active' : 'inactive';
 
-            // When delete button is clicked, store the resource ID
-            document.querySelectorAll('.delete-resource-form button').forEach(button => {
-                button.addEventListener('click', function () {
-                    resourceIdToDelete = this.closest('form').querySelector('input[name="resourceId"]').value;
+                        console.log(">>> supplierId:", supplierId);  // ✅ log chuẩn
+
+                        fetch('${pageContext.request.contextPath}/deletesupplier', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: new URLSearchParams({
+                                supplierId: supplierId,
+                                status: newStatus
+                            })
+                        })
+                                .then(res => res.json())
+                                .then(json => {
+                                    if (json.success) {
+                                        location.reload();
+
+                                        const label = document.querySelector(`.status-label[data-id="${supplierId}"]`);
+                                        if (label) {
+                                            const badgeClass = newStatus === 'active' ? 'bg-success' : 'bg-secondary';
+                                            label.className = `status-label badge ${badgeClass}`;
+                                            label.textContent = newStatus;
+                                        }
+                                    } else {
+                                        alert("Failed to update status");
+                                        toggle.checked = !toggle.checked;
+                                    }
+                                })
+                                .catch(err => {
+                                    alert("Error updating status");
+                                    toggle.checked = !toggle.checked;
+                                });
+                    });
                 });
             });
 
-            // When confirm delete button is clicked
-            document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
-                if (resourceIdToDelete) {
-                    // Create and submit form
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '${pageContext.request.contextPath}/deleteresource';
 
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'resourceId';
-                    input.value = resourceIdToDelete;
 
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-
-                    form.submit();
-                }
-
-                // Close the modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
-                modal.hide();
-            });
         </script>
     </body>
 </html>

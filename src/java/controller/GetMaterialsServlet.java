@@ -4,21 +4,22 @@
  */
 package controller;
 
-import dal.AuthenDAO;
+import com.google.gson.Gson;
+import dal.MaterialDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import model.Role;
+import java.util.List;
+import model.Material;
 
 /**
  *
- * @author PC
+ * @author ADMIN
  */
-public class AddRoleController extends HttpServlet {
+public class GetMaterialsServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,10 +38,10 @@ public class AddRoleController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AddRoleController</title>");
+            out.println("<title>Servlet GetMaterialsServlet</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AddRoleController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet GetMaterialsServlet at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,7 +59,19 @@ public class AddRoleController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+
+        String categoryIdRaw = request.getParameter("categoryId");
+        response.setContentType("application/json;charset=UTF-8");
+
+        try (PrintWriter out = response.getWriter()) {
+            int categoryId = Integer.parseInt(categoryIdRaw);
+            MaterialDAO dao = new MaterialDAO();
+            List<Material> materials = dao.getAllMaterialsByCategoryId(categoryId);
+            Gson gson = new Gson();
+            out.print(gson.toJson(materials));
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
     }
 
     /**
@@ -72,39 +85,7 @@ public class AddRoleController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-         // Charset
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
-        
-        // Lấy input
-        String name        = request.getParameter("name");
-        String description = request.getParameter("description");
-        Role role = new Role();
-        role.setName(name);
-        role.setDescription(description);
-        AuthenDAO dao = new AuthenDAO();
-
-        try (PrintWriter out = response.getWriter()) {
-            dao.insertRole(role);
-            // Trả về JSON thành công, kèm roleId nếu cần
-            out.print("{"
-                    + "\"success\":true,"
-                    + "\"roleId\":" + role.getRoleId()
-                    + "}");
-            out.flush();
-        } catch (SQLException ex) {
-            // Nếu có lỗi, trả status 500 và JSON error
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            try (PrintWriter out = response.getWriter()) {
-                out.print("{"
-                        + "\"success\":false,"
-                        + "\"message\":\"" + ex.getMessage().replace("\"", "\\\"") + "\""
-                        + "}");
-                out.flush();
-            }
-        }
-
-       
+        processRequest(request, response);
     }
 
     /**

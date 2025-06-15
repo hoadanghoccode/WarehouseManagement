@@ -11,8 +11,11 @@
 <%
     Users user = (Users) session.getAttribute("user");
     request.setAttribute("user", user);
+
+    @SuppressWarnings(
+            
     
-    @SuppressWarnings("unchecked")
+    "unchecked")
     Map<String, Boolean> permissions = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
     if (permissions == null) {
         permissions = new java.util.HashMap<>();
@@ -43,13 +46,13 @@
             <ul>
                 <c:if test="${permissions['Permission_VIEW']}">
                     <li><a href="/WarehouseManagement/resource">Permission</a></li>
-                </c:if>
-                <c:if test="${permissions['Role_VIEW']}">
+                    </c:if>
+                    <c:if test="${permissions['Role_VIEW']}">
                     <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
-                </c:if>
-                <c:if test="${permissions['Department_VIEW']}">
+                    </c:if>
+                    <c:if test="${permissions['Department_VIEW']}">
                     <li><a href="/WarehouseManagement/department">Department</a></li>
-                </c:if>
+                    </c:if>
             </ul>
         </li>
         <c:if test="${permissions['Category_VIEW']}">
@@ -76,14 +79,18 @@
                 </a>
             </li>
         </c:if>
-            <c:if test="${permissions['Material_VIEW']}">
-            <li>
-                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
+
+        <c:if test="${permissions['Supplier_VIEW']}">
+            <!--class="mm-active"-->
+            <li >
+                <a href="/WarehouseManagement/supplier">
                     <img src="img/menu-icon/4.svg" alt="">
-                    <span>Unit</span>
+
+                    <span>Supplier</span>
                 </a>
             </li>
-        </c:if>
+        </c:if>    
+
         <c:if test="${permissions['Material_VIEW']}">
             <li>
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/inventory">
@@ -92,7 +99,7 @@
                 </a>
             </li>
         </c:if>
-            <c:if test="${permissions['Customer_VIEW']}">
+        <c:if test="${permissions['Customer_VIEW']}">
             <li>
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/userlist">
                     <img src="img/menu-icon/4.svg" alt="">
@@ -103,57 +110,79 @@
         <c:if test="${permissions['Password_VIEW']}">
             <li>
                 <a href="/WarehouseManagement/adminresetlist">
-                    <img src="img/menu-icon/your-icon.svg" alt="">
+                    <img src="img/menu-icon/4.svg" alt="">
                     <span>Reset List</span>
                 </a>
             </li>
         </c:if>
+
+
+        <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Unit</span>
+                </a>
+            </li>
+        </c:if>
+
+
+
+
+        <c:if test="${permissions['Material_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/orderlist">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Order List</span>
+                </a>
+            </li>
+        </c:if>
+
     </ul>
 </nav>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const currentPath = window.location.pathname;
-    const menuItems = document.querySelectorAll('#sidebar_menu li');
+    document.addEventListener('DOMContentLoaded', function () {
+        const currentPath = window.location.pathname;
+        const menuItems = document.querySelectorAll('#sidebar_menu li');
 
-    menuItems.forEach(item => {
-        const link = item.querySelector('a[href]');
-        if (link) {
-            const href = link.getAttribute('href');
-            if (href === "index.jsp" && (currentPath === "/" || currentPath === "/WarehouseManagement/" || currentPath === "/WarehouseManagement/index.jsp")) {
-                item.classList.add('mm-active');
+        menuItems.forEach(item => {
+            const link = item.querySelector('a[href]');
+            if (link) {
+                const href = link.getAttribute('href');
+                if (href === "index.jsp" && (currentPath === "/" || currentPath === "/WarehouseManagement/" || currentPath === "/WarehouseManagement/index.jsp")) {
+                    item.classList.add('mm-active');
+                } else if (currentPath === href || (href !== '#' && currentPath.startsWith(href))) {
+                    item.classList.add('mm-active');
+
+                    const parentLi = item.closest('li');
+                    if (parentLi) {
+                        const parentLink = parentLi.querySelector('a.has-arrow');
+                        if (parentLink) {
+                            parentLink.setAttribute('aria-expanded', 'true');
+                            const submenu = parentLi.querySelector('ul');
+                            if (submenu) {
+                                submenu.style.display = 'block';
+                            }
+                        }
+                    }
+                } else {
+                    item.classList.remove('mm-active');
+                }
             }
-            else if (currentPath === href || (href !== '#' && currentPath.startsWith(href))) {
-                item.classList.add('mm-active');
-                
-                const parentLi = item.closest('li');
-                if (parentLi) {
-                    const parentLink = parentLi.querySelector('a.has-arrow');
-                    if (parentLink) {
-                        parentLink.setAttribute('aria-expanded', 'true');
-                        const submenu = parentLi.querySelector('ul');
+            const authSubItems = item.querySelectorAll('ul li a');
+            if (authSubItems.length > 0) {
+                authSubItems.forEach(subItem => {
+                    if (currentPath === subItem.getAttribute('href')) {
+                        item.classList.add('mm-active');
+                        item.querySelector('a.has-arrow').setAttribute('aria-expanded', 'true');
+                        const submenu = item.querySelector('ul');
                         if (submenu) {
                             submenu.style.display = 'block';
                         }
                     }
-                }
-            } else {
-                item.classList.remove('mm-active');
+                });
             }
-        }
-        const authSubItems = item.querySelectorAll('ul li a');
-        if (authSubItems.length > 0) {
-            authSubItems.forEach(subItem => {
-                if (currentPath === subItem.getAttribute('href')) {
-                    item.classList.add('mm-active');
-                    item.querySelector('a.has-arrow').setAttribute('aria-expanded', 'true');
-                    const submenu = item.querySelector('ul');
-                    if (submenu) {
-                        submenu.style.display = 'block';
-                    }
-                }
-            });
-        }
+        });
     });
-});
 </script>

@@ -4,21 +4,18 @@
  */
 package controller;
 
-import dal.AuthenDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import model.Role;
 
 /**
  *
- * @author PC
+ * @author ADMIN
  */
-public class AddRoleController extends HttpServlet {
+public class UpdateOrderServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,10 +34,10 @@ public class AddRoleController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AddRoleController</title>");
+            out.println("<title>Servlet UpdateOrderServlet</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AddRoleController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet UpdateOrderServlet at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -72,39 +69,7 @@ public class AddRoleController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-         // Charset
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
-        
-        // Lấy input
-        String name        = request.getParameter("name");
-        String description = request.getParameter("description");
-        Role role = new Role();
-        role.setName(name);
-        role.setDescription(description);
-        AuthenDAO dao = new AuthenDAO();
-
-        try (PrintWriter out = response.getWriter()) {
-            dao.insertRole(role);
-            // Trả về JSON thành công, kèm roleId nếu cần
-            out.print("{"
-                    + "\"success\":true,"
-                    + "\"roleId\":" + role.getRoleId()
-                    + "}");
-            out.flush();
-        } catch (SQLException ex) {
-            // Nếu có lỗi, trả status 500 và JSON error
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            try (PrintWriter out = response.getWriter()) {
-                out.print("{"
-                        + "\"success\":false,"
-                        + "\"message\":\"" + ex.getMessage().replace("\"", "\\\"") + "\""
-                        + "}");
-                out.flush();
-            }
-        }
-
-       
+        processRequest(request, response);
     }
 
     /**
