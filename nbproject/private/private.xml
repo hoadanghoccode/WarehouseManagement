@@ -3,17 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/css/resetPassword.css</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/genfiles.properties</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.properties</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/project.xml</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/userlist.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/css/userList.css</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/resetpassword.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/filter/AuthFilter.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/util/ResetService.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/CreateUserController.java</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/role.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/web/sidebar.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/css/login.css</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/login.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/materialList.jsp</file>
+            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AdminResetPasswordController.java</file>
         </group>
     </open-files>
 </project-private>

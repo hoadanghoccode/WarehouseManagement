@@ -71,11 +71,11 @@
                 </a>
             </li>
         </c:if>
-        <c:if test="${permissions['Material_VIEW']}">
+        <c:if test="${permissions['Import_VIEW']}">
             <li>
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/import-note-list">
                     <img src="img/menu-icon/4.svg" alt="">
-                    <span>Import_note</span>
+                    <span>Import</span>
                 </a>
             </li>
         </c:if>
@@ -85,17 +85,16 @@
             <li >
                 <a href="/WarehouseManagement/supplier">
                     <img src="img/menu-icon/4.svg" alt="">
-
                     <span>Supplier</span>
                 </a>
             </li>
         </c:if>    
 
-        <c:if test="${permissions['Material_VIEW']}">
+        <c:if test="${permissions['Warehouse_VIEW']}">
             <li>
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/inventory">
                     <img src="img/menu-icon/4.svg" alt="">
-                    <span>Current Inventory</span>
+                    <span>Inventory</span>
                 </a>
             </li>
         </c:if>
@@ -111,13 +110,13 @@
             <li>
                 <a href="/WarehouseManagement/adminresetlist">
                     <img src="img/menu-icon/4.svg" alt="">
-                    <span>Reset List</span>
+                    <span>Reset Password</span>
                 </a>
             </li>
         </c:if>
 
 
-        <c:if test="${permissions['Material_VIEW']}">
+        <c:if test="${permissions['Unit_VIEW']}">
             <li class="">
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/unit">
                     <img src="img/menu-icon/4.svg" alt="">
@@ -129,11 +128,11 @@
 
 
 
-        <c:if test="${permissions['Material_VIEW']}">
+        <c:if test="${permissions['Order_VIEW']}">
             <li class="">
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/orderlist">
                     <img src="img/menu-icon/4.svg" alt="">
-                    <span>Order List</span>
+                    <span>Order</span>
                 </a>
             </li>
         </c:if>

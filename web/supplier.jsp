@@ -87,7 +87,7 @@
                             </select>
                             <button type="submit" class="btn btn-primary">Filter</button>
                         </form>
-                        <c:if test="${perms['Permission_ADD']}">
+                        <c:if test="${perms['Supplier_ADD']}">
                             <button id="addPermissionBtn"
                                     class="btn btn-success"
                                     data-bs-toggle="modal"
@@ -197,8 +197,13 @@
                                         <th>#</th>
                                         <th>Name</th>
                                         <th>Status</th>
-                                        <th>Update</th>
-                                        <th>Action</th>
+                                            <c:if test="${perms['Supplier_DELETE']}">
+
+                                            <th>Update</th>
+                                            </c:if>
+                                            <c:if test="${perms['Supplier_UPDATE']}">
+                                            <th>Action</th>
+                                            </c:if>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -212,28 +217,32 @@
                                                     ${res.status}
                                                 </span>
                                             </td>
+                                            <c:if test="${perms['Supplier_DELETE']}">
+                                                <td class="action-buttons">
+                                                    <form class="delete-resource-form" style="display:inline;">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input toggle-status" type="checkbox"
+                                                                   data-id="${res.supplierId}"
+                                                                   ${res.status == 'active' ? 'checked' : ''}>
+                                                        </div>
 
-                                            <td class="action-buttons">
-                                                <form class="delete-resource-form" style="display:inline;">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input toggle-status" type="checkbox"
-                                                               data-id="${res.supplierId}"
-                                                               ${res.status == 'active' ? 'checked' : ''}>
-                                                    </div>
+                                                    </form>
 
-                                                </form>
+                                                </td>
+                                            </c:if>
+                                            <c:if test="${perms['Supplier_UPDATE']}">
+                                                <td>
+                                                    <a href="#" class="btn btn-primary btn-sm edit-supplier" 
+                                                       data-id="${res.supplierId}"
+                                                       data-name="${res.name}"
+                                                       data-status="${res.status}"
+                                                       data-bs-toggle="modal" 
+                                                       data-bs-target="#editSupplierModal">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </td>
+                                            </c:if>
 
-                                            </td>
-                                            <td>
-                                                <a href="#" class="btn btn-primary btn-sm edit-supplier" 
-                                                   data-id="${res.supplierId}"
-                                                   data-name="${res.name}"
-                                                   data-status="${res.status}"
-                                                   data-bs-toggle="modal" 
-                                                   data-bs-target="#editSupplierModal">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            </td>
                                         </tr>
                                     </c:forEach>
 
@@ -402,18 +411,18 @@
 
             // Add edit supplier functionality
             document.querySelectorAll('.edit-supplier').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const supplierId = this.getAttribute('data-id');
                     const name = this.getAttribute('data-name');
                     const status = this.getAttribute('data-status');
-                    
+
                     document.getElementById('editSupplierId').value = supplierId;
                     document.getElementById('editSupplierName').value = name;
                     document.getElementById('editStatus').value = status;
                 });
             });
 
-            document.getElementById('editSupplierForm').addEventListener('submit', function(e) {
+            document.getElementById('editSupplierForm').addEventListener('submit', function (e) {
                 e.preventDefault();
                 const form = e.target;
                 const data = new URLSearchParams(new FormData(form));
@@ -423,30 +432,30 @@
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: data
                 })
-                .then(res => res.json())
-                .then(json => {
-                    if (json.success) {
-                        // Close modal
-                        var modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
-                        modal.hide();
-                        // Show success alert
-                        showAlert(true, "Supplier updated successfully!");
-                        // Reload page after showing alert
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        const err = document.getElementById('editError');
-                        err.textContent = json.message;
-                        err.style.display = 'block';
-                        showAlert(false, json.message || "Failed to update supplier");
-                    }
-                })
-                .catch(error => {
-                    showAlert(false, "Error updating supplier");
-                });
+                        .then(res => res.json())
+                        .then(json => {
+                            if (json.success) {
+                                // Close modal
+                                var modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
+                                modal.hide();
+                                // Show success alert
+                                showAlert(true, "Supplier updated successfully!");
+                                // Reload page after showing alert
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                const err = document.getElementById('editError');
+                                err.textContent = json.message;
+                                err.style.display = 'block';
+                                showAlert(false, json.message || "Failed to update supplier");
+                            }
+                        })
+                        .catch(error => {
+                            showAlert(false, "Error updating supplier");
+                        });
             });
 
         </script>
-        
+
         <script>
             /**
              * Hàm showAlert(status, message):

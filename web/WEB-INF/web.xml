@@ -124,6 +124,10 @@
         <servlet-name>UpdateSupplierController</servlet-name>
         <servlet-class>controller.UpdateSupplierController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>NoPermissionController</servlet-name>
+        <servlet-class>controller.NoPermissionController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -247,8 +251,11 @@
         <url-pattern>/updatesupplier</url-pattern>
     </servlet-mapping>
     <!-- Cấu hình thời gian tồn tại của session -->
+    <servlet-mapping>
+        <servlet-name>NoPermissionController</servlet-name>
+        <url-pattern>/nopermission</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
-    
 </web-app>
