@@ -64,6 +64,8 @@
         <section class="main_content dashboard_part">
             <%@ include file="navbar.jsp" %>
             <div class="container">
+                <!-- Bootstrap Alert Container -->
+                <div class="bootstrap-alert-container" id="alertContainer"></div>
                 <!-- Header + Search + Add -->
                 <div class="header d-flex align-items-center justify-content-between" style="gap: 24px;">
                     <h1 class="title mb-0">Supplier List</h1>
@@ -71,8 +73,8 @@
                         <form action="${pageContext.request.contextPath}/supplier" method="get" class="search-form d-flex align-items-center" style="gap: 8px; margin-bottom: 0;">
                             <div class="input-group" style="min-width: 180px;">
                                 <span class="input-group-text bg-white">
-                                    <!--<i class="bi bi-search" style="color: #000;"></i>-->
-                                                    <span class="search-icon">🔍</span>
+
+                                    <span class="search-icon">🔍</span>
 
                                 </span>
                                 <input type="text" name="search" value="${search}"
@@ -132,6 +134,41 @@
                     </div>
                 </div>
 
+                <!-- Edit Supplier Modal -->
+                <div class="modal fade" id="editSupplierModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form id="editSupplierForm" action="${pageContext.request.contextPath}/updatesupplier">
+                                <input type="hidden" name="action" value="update">
+                                <input type="hidden" id="editSupplierId" name="supplierId">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Supplier</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="editSupplierName" class="form-label">Supplier Name</label>
+                                        <input type="text" id="editSupplierName" name="name"
+                                               class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="editStatus" class="form-label">Status</label>
+                                        <select id="editStatus" name="status" class="form-select" required>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                    <div id="editError" class="text-danger" style="display:none;"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Stats -->
                 <c:if test="${not empty supplierList}">
                     <div class="stats-info">
@@ -160,6 +197,7 @@
                                         <th>#</th>
                                         <th>Name</th>
                                         <th>Status</th>
+                                        <th>Update</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -185,6 +223,16 @@
 
                                                 </form>
 
+                                            </td>
+                                            <td>
+                                                <a href="#" class="btn btn-primary btn-sm edit-supplier" 
+                                                   data-id="${res.supplierId}"
+                                                   data-name="${res.name}"
+                                                   data-status="${res.status}"
+                                                   data-bs-toggle="modal" 
+                                                   data-bs-target="#editSupplierModal">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                     </c:forEach>
@@ -299,13 +347,19 @@
                                 // Close modal
                                 var modal = bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'));
                                 modal.hide();
+                                // Show success alert
+                                showAlert(true, "Supplier added successfully!");
                                 // Reload trang hoặc cập nhật table
-                                location.reload();
+                                setTimeout(() => location.reload(), 1000);
                             } else {
                                 const err = document.getElementById('addError');
                                 err.textContent = json.message;
                                 err.style.display = 'block';
+                                showAlert(false, json.message || "Failed to add supplier");
                             }
+                        })
+                        .catch(error => {
+                            showAlert(false, "Error adding supplier");
                         });
             });
 
@@ -314,8 +368,6 @@
                     toggle.addEventListener('change', function () {
                         const supplierId = toggle.getAttribute('data-id');
                         const newStatus = toggle.checked ? 'active' : 'inactive';
-
-                        console.log(">>> supplierId:", supplierId);  // ✅ log chuẩn
 
                         fetch('${pageContext.request.contextPath}/deletesupplier', {
                             method: 'POST',
@@ -328,29 +380,137 @@
                                 .then(res => res.json())
                                 .then(json => {
                                     if (json.success) {
-                                        location.reload();
-
                                         const label = document.querySelector(`.status-label[data-id="${supplierId}"]`);
                                         if (label) {
                                             const badgeClass = newStatus === 'active' ? 'bg-success' : 'bg-secondary';
                                             label.className = `status-label badge ${badgeClass}`;
                                             label.textContent = newStatus;
                                         }
+                                        showAlert(true, `Supplier status updated successfully`);
                                     } else {
-                                        alert("Failed to update status");
+                                        showAlert(false, json.message || "Failed to update status");
                                         toggle.checked = !toggle.checked;
                                     }
                                 })
                                 .catch(err => {
-                                    alert("Error updating status");
+                                    showAlert(false, "Error updating status");
                                     toggle.checked = !toggle.checked;
                                 });
                     });
                 });
             });
 
+            // Add edit supplier functionality
+            document.querySelectorAll('.edit-supplier').forEach(button => {
+                button.addEventListener('click', function() {
+                    const supplierId = this.getAttribute('data-id');
+                    const name = this.getAttribute('data-name');
+                    const status = this.getAttribute('data-status');
+                    
+                    document.getElementById('editSupplierId').value = supplierId;
+                    document.getElementById('editSupplierName').value = name;
+                    document.getElementById('editStatus').value = status;
+                });
+            });
 
+            document.getElementById('editSupplierForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = e.target;
+                const data = new URLSearchParams(new FormData(form));
+
+                fetch(form.getAttribute('action'), {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: data
+                })
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) {
+                        // Close modal
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
+                        modal.hide();
+                        // Show success alert
+                        showAlert(true, "Supplier updated successfully!");
+                        // Reload page after showing alert
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        const err = document.getElementById('editError');
+                        err.textContent = json.message;
+                        err.style.display = 'block';
+                        showAlert(false, json.message || "Failed to update supplier");
+                    }
+                })
+                .catch(error => {
+                    showAlert(false, "Error updating supplier");
+                });
+            });
 
         </script>
+        
+        <script>
+            /**
+             * Hàm showAlert(status, message):
+             *   - status = true  → alert màu xanh (alert-success)
+             *   - status = false → alert màu đỏ  (alert-danger)
+             * alert sẽ nằm cố định bên phải, tự đóng sau 4s
+             */
+            function showAlert(status, message) {
+                // Xóa alert cũ nếu có
+                const existingAlert = document.querySelector('.custom-alert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+                console.log('here', status);
+                // Tạo alert mới
+                const alertDiv = document.createElement('div');
+                if (status === true) {
+                    alertDiv.className = `alert alert-success alert-dismissible fade show custom-alert`;
+
+                } else {
+                    alertDiv.className = `alert alert-danger alert-dismissible fade show custom-alert`;
+
+                }
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    min-width: 300px;
+                    z-index: 9999;
+                    padding: 1rem;
+                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                    border-radius: 0.375rem;
+                `;
+
+                // Thêm icon
+                const icon = document.createElement('i');
+
+                icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+                alertDiv.appendChild(icon);
+
+                // Thêm message
+                const messageText = document.createTextNode(message);
+                alertDiv.appendChild(messageText);
+
+
+
+                // Thêm vào body
+                document.body.appendChild(alertDiv);
+
+                // Animation khi hiện alert
+                setTimeout(() => {
+                    alertDiv.style.opacity = '1';
+                }, 100);
+
+//                 Tự động đóng sau 4s
+                setTimeout(() => {
+                    if (alertDiv && document.body.contains(alertDiv)) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => alertDiv.remove(), 150);
+                    }
+                }, 4000);
+            }
+        </script>
+
     </body>
 </html>

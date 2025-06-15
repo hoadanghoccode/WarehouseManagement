@@ -27,13 +27,13 @@ public class SupplierDAO extends DBContext {
 
     public ArrayList<Supplier> getAllSuppliers() {
         ArrayList<Supplier> list = new ArrayList<>();
-        String sql = "SELECT * FROM supplier";
+        String sql = "SELECT * FROM Suppliers";
         try {
             PreparedStatement st = conn.prepareStatement(sql);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 Supplier s = new Supplier(
-                        rs.getInt("Id"),
+                        rs.getInt("Supplier_id"),
                         rs.getString("Name"),
                         rs.getString("Status")
                 );
@@ -44,6 +44,20 @@ public class SupplierDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+    
+     public boolean updateSupplier(int supplierId, String name, String status) throws Exception {
+        String sql = "UPDATE Suppliers SET Name = ?, Status = ? WHERE Supplier_id = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            ps.setString(2, status);
+            ps.setInt(3, supplierId);
+
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        }
     }
 
     public ArrayList<Supplier> searchByName(ArrayList<Supplier> list, String keyword) {
@@ -66,7 +80,7 @@ public class SupplierDAO extends DBContext {
     }
 
     public boolean existsSupplier(String name) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM supplier WHERE Name = ?";
+        String sql = "SELECT COUNT(*) FROM Suppliers WHERE Name = ?";
         PreparedStatement st = conn.prepareStatement(sql);
         st.setString(1, name);
         ResultSet rs = st.executeQuery();
@@ -77,7 +91,7 @@ public class SupplierDAO extends DBContext {
     }
 
     public boolean addSupplier(String name, String status) {
-        String sql = "INSERT INTO supplier (Name, Status) VALUES (?, ?)";
+        String sql = "INSERT INTO Suppliers (Name, Status) VALUES (?, ?)";
         try {
             PreparedStatement st = conn.prepareStatement(sql);
             st.setString(1, name);
@@ -90,7 +104,7 @@ public class SupplierDAO extends DBContext {
     }
 
     public boolean deleteSupplierById(int supplierId, String newStatus) throws SQLException {
-        String sql = "UPDATE supplier SET Status = ? WHERE Id = ?";
+        String sql = "UPDATE Suppliers SET Status = ? WHERE Supplier_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setInt(2, supplierId);
