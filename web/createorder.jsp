@@ -33,13 +33,22 @@
 
     </head>
     <body>
+        <%@ include file="navbar.jsp" %>
         <%@ include file="sidebar.jsp" %>
 
         <c:if test="${not empty error}">
             <div class="alert alert-danger">${error}</div>
         </c:if>
 
+
+
         <div class="main-content">
+            <div class="header-actions">
+                <a href="orderlist" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </a>
+            </div>
             <div class="page-header">
                 <h1></i> Create New Order</h1>
                 <p>Fill in the details below to create a new order</p>
@@ -76,28 +85,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!--                        <div class="form-row">
-                                                    <div class="form-group">
-                                                        <label for="status">Status <span class="required">*</span></label>
-                                                        <select class="form-control" id="status" name="status" required>
-                                                            <option value="">Select Status</option>
-                                                            <option value="pending">Pending</option>
-                                                            <option value="approved">Approved</option>
-                                                            <option value="CANCELLED">Cancelled</option>
-                                                        </select>
-                                                    </div>
-                        
-                                                    <div class="form-group">
-                                                        <label for="warehouse">Warehouse <span class="required">*</span></label>
-                                                        <select class="form-control" id="warehouse" name="warehouse" required>
-                                                            <option value="">Select Warehouse</option>
-                                                            <option value="1">Main Warehouse</option>
-                                                            <option value="2">Secondary Warehouse</option>
-                                                            <option value="3">Storage Facility A</option>
-                                                        </select>
-                                                    </div>
-                                                </div>-->
 
                         <div class="form-group">
                             <label for="note">Note</label>
@@ -140,13 +127,44 @@
             </div>
         </div>
 
+        <!-- Modal -->
+        <div id="cancelModal" class="modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Confirm Cancellation</h2>
+                    <span class="close" onclick="hideCancelModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="warning-box">
+                        <div class="warning-header">
+                            <i class="fas fa-exclamation-triangle warning-icon"></i>
+                            <span class="warning-title">Warning</span>
+                        </div>
+                        <div class="warning-content">
+                            Are you sure you want to cancel this order? All unsaved changes will be lost.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="confirmCancel()">
+                        <i class="fas fa-check"></i>
+                        Yes, Cancel Order
+                    </button>
+                    <button type="button" class="btn btn-gray" onclick="hideCancelModal()">
+                        <i class="fas fa-arrow-left"></i>
+                        Continue Editing
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- JavaScript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <!--<script src="js/bootstrap.bundle.min.js"></script>-->
 
         <script>
-                            const categories = ${categoriesJson};
-                            const units = ${unitsJson};
+                        const categories = ${categoriesJson};
+                        const units = ${unitsJson};
         </script>
         <script src="js/createorder.js"></script>
     </body>

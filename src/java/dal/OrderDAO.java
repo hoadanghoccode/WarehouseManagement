@@ -470,6 +470,117 @@ public class OrderDAO extends DBContext {
         return 0;
     }
 
+    public boolean updateOrder(Order order) {
+        String updateOrderSQL = "UPDATE Orders SET Type = ?, Supplier_id = ?, Note = ?, Status = ? WHERE Order_id = ?";
+        String deleteDetailsSQL = "DELETE FROM Order_detail WHERE Order_id = ?";
+        String insertDetailSQL = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, SubUnit_id, Quantity) VALUES (?, ?, ?, ?, ?)";
+
+        PreparedStatement psOrder = null;
+        PreparedStatement psDelete = null;
+        PreparedStatement psInsert = null;
+
+        try {
+            // Start transaction
+            connection.setAutoCommit(false);
+
+            // 1. Update main order table
+            psOrder = connection.prepareStatement(updateOrderSQL);
+            psOrder.setString(1, order.getType());
+
+            // Handle nullable Supplier_id
+            if (order.getSupplier() > 0) {
+                psOrder.setInt(2, order.getSupplier());
+            } else {
+                psOrder.setNull(2, java.sql.Types.INTEGER);
+            }
+
+            psOrder.setString(3, order.getNote());
+            psOrder.setString(4, order.getStatus() != null ? order.getStatus() : "pending");
+            psOrder.setInt(5, order.getOrderId());
+
+            int orderUpdateResult = psOrder.executeUpdate();
+
+            if (orderUpdateResult == 0) {
+                System.err.println("No order found with ID: " + order.getOrderId());
+                connection.rollback();
+                return false;
+            }
+
+            // 2. Delete existing order details
+            psDelete = connection.prepareStatement(deleteDetailsSQL);
+            psDelete.setInt(1, order.getOrderId());
+            psDelete.executeUpdate();
+
+            // 3. Insert new order details
+            if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
+                psInsert = connection.prepareStatement(insertDetailSQL);
+
+                for (OrderDetail detail : order.getOrderDetails()) {
+                    psInsert.setInt(1, detail.getMaterialId());
+                    psInsert.setInt(2, order.getOrderId());
+
+                    // Handle nullable Quality_id
+                    if (detail.getQualityId() > 0) {
+                        psInsert.setInt(3, detail.getQualityId());
+                    } else {
+                        psInsert.setNull(3, java.sql.Types.INTEGER);
+                    }
+
+                    psInsert.setInt(4, detail.getSubUnitId());
+                    psInsert.setInt(5, detail.getQuantity());
+                    psInsert.addBatch();
+                }
+
+                int[] batchResults = psInsert.executeBatch();
+
+                // Check if all inserts were successful
+                for (int result : batchResults) {
+                    if (result == PreparedStatement.EXECUTE_FAILED) {
+                        System.err.println("Failed to insert order detail");
+                        connection.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            // Commit transaction
+            connection.commit();
+            System.out.println("Order updated successfully: " + order.getOrderId());
+            return true;
+
+        } catch (SQLException e) {
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException rollbackEx) {
+                System.err.println("Error during rollback: " + rollbackEx.getMessage());
+            }
+            System.err.println("Error updating order: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Close resources properly
+            try {
+                if (psOrder != null) {
+                    psOrder.close();
+                }
+                if (psDelete != null) {
+                    psDelete.close();
+                }
+                if (psInsert != null) {
+                    psInsert.close();
+                }
+                if (connection != null) {
+                    connection.setAutoCommit(true); // Reset auto-commit
+                    // DON'T close connection here - it should be managed by DBContext
+                }
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
+        }
+    }
+
     // Test method
     public static void main(String[] args) {
         OrderDAO dao = new OrderDAO();
