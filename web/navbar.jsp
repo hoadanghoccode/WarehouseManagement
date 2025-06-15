@@ -25,11 +25,7 @@
           class="header_right d-flex justify-content-between align-items-center"
         >
           <div class="header_notification_warp d-flex align-items-center">
-            <li>
-              <a class="bell_notification_clicker" href="#">
-                <img src="img/icon/bell.svg" alt="" />
-                <span>04</span>
-              </a>
+           
               <!-- Menu_NOtification_Wrap  -->
               <div class="Menu_NOtification_Wrap">
                 <div class="notification_Header">
@@ -105,11 +101,6 @@
               </div>
               <!--/ Menu_NOtification_Wrap  -->
             </li>
-            <li>
-              <a class="CHATBOX_open" href="#">
-                <img src="img/icon/msg.svg" alt="" /> <span>01</span>
-              </a>
-            </li>
           </div>
           <%
 Users navbarUser = (Users) session.getAttribute("USER");
@@ -126,9 +117,6 @@ String imagePath = (navbarUser != null && navbarUser.getImage() != null && !navb
                             </div> -->
               <div class="profile_info_details">
                 <a href="viewuserinfo">My Profile </a>
-
-                <a href="changepassword">Change Password </a>
-                <a href="#">Settings</a>
                 <a href="logout">Log Out </a>
               </div>
             </div>

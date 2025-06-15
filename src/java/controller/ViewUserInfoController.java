@@ -78,6 +78,7 @@ public class ViewUserInfoController extends HttpServlet {
         if (latestUser != null) {
             session.setAttribute("USER", latestUser); // Cập nhật lại trong session
             request.setAttribute("userInfo", latestUser); // Gửi tới JSP
+            request.setAttribute("page", "profile");
             request.getRequestDispatcher("viewuserinfo.jsp").forward(request, response);
         } else {
             response.sendRedirect("login.jsp"); // hoặc lỗi 404
