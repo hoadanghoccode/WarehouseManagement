@@ -12,6 +12,7 @@ import java.sql.Date;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.Part;
 import controller.CloudinaryController;
+import dal.CategoryDAO;
 import java.io.InputStream;
 
 
@@ -23,7 +24,10 @@ public class AddMaterialController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         MaterialDAO dao = new MaterialDAO();
-        request.setAttribute("categories", dao.getAllCategories());
+        CategoryDAO catedao = new CategoryDAO();
+//        request.setAttribute("categories", dao.getAllCategories());
+        request.setAttribute("categories", catedao.getAllSubCategory());
+        request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
         request.setAttribute("suppliers", dao.getAllSuppliers());
         request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
     }
@@ -32,43 +36,68 @@ public class AddMaterialController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         MaterialDAO dao = new MaterialDAO();
-        String name = request.getParameter("name").trim();
-        int categoryId = Integer.parseInt(request.getParameter("categoryId"));
-        int supplierId = Integer.parseInt(request.getParameter("supplierId"));
-        Date createAt = new Date(System.currentTimeMillis());
-        String status = "active";
-        String image = "";
+        CategoryDAO catedao = new CategoryDAO();
+        String name = request.getParameter("name") != null ? request.getParameter("name").trim() : "";
+        String categoryStr = request.getParameter("categoryId");
+        String supplierStr = request.getParameter("supplierId");
+        int categoryId = -1;
+        int supplierId = -1;
+        String error = null;
 
-        // Handle image upload
+        try {
+            categoryId = Integer.parseInt(categoryStr);
+        } catch (NumberFormatException e) {
+            error = "Please select a category.";
+        }
+
+        try {
+            supplierId = Integer.parseInt(supplierStr);
+        } catch (NumberFormatException e) {
+            if (error == null) error = "Please select a supplier.";
+        }
+
+        // Validate name
+        if (error == null) {
+            error = validateInput(name, categoryId, supplierId);
+        }
+        
+        if (error != null) {
+            request.setAttribute("error", error);
+//            request.setAttribute("categories", dao.getAllCategories());
+            request.setAttribute("categories", catedao.getAllSubCategory());
+            request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
+            request.setAttribute("suppliers", dao.getAllSuppliers());
+            request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
+            return;
+        }
+        
+        String image = "";
         Part filePart = request.getPart("imageFile");
         if (filePart != null && filePart.getSize() > 0) {
             try (InputStream fileContent = filePart.getInputStream()) {
                 image = CloudinaryController.uploadToCloudinary(fileContent);
             } catch (Exception e) {
                 request.setAttribute("error", "Image upload failed: " + e.getMessage());
-                request.setAttribute("categories", dao.getAllCategories());
+//                request.setAttribute("categories", dao.getAllCategories());
+                request.setAttribute("categories", catedao.getAllSubCategory());
+                request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
                 request.setAttribute("suppliers", dao.getAllSuppliers());
                 request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
                 return;
             }
         }
 
-        // Validation
-        String error = validateInput(name, categoryId, supplierId);
-        if (error != null) {
-            request.setAttribute("error", error);
-            request.setAttribute("categories", dao.getAllCategories());
-            request.setAttribute("suppliers", dao.getAllSuppliers());
-            request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
-            return;
-        }
+        Date createAt = new Date(System.currentTimeMillis());
+        String status = "active";
 
         Material material = new Material(0, categoryId, supplierId, name, image, createAt, status);
         if (dao.insertMaterial(material)) {
             response.sendRedirect("list-material?success=Material added successfully");
         } else {
-            request.setAttribute("error", "Failed to add material. Please try again.");
-            request.setAttribute("categories", dao.getAllCategories());
+            request.setAttribute("error", "Material name already exists.");
+//            request.setAttribute("categories", dao.getAllCategories());
+            request.setAttribute("categories", catedao.getAllSubCategory());
+            request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
             request.setAttribute("suppliers", dao.getAllSuppliers());
             request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
         }
