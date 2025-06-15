@@ -234,7 +234,24 @@ public class MaterialDAO extends DBContext {
         }
         return null;
     }
-    
+
+
+    public int countMaterialByCategoryId(int cid) {
+        String query = "SELECT COUNT(*) FROM Materials WHERE Category_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, cid);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getInt("COUNT(*)");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+        }
+        return 0;
+    }
+
     public List<Material> getAllMaterialsByCategoryId(int categoryId) {
         List<Material> materials = new ArrayList<>();
         String query = "SELECT * FROM Materials WHERE Category_id = ?";
@@ -314,18 +331,4 @@ public class MaterialDAO extends DBContext {
         return isPending; 
     }
 
-    public int countMaterialByCategoryId(int cid) {
-        String query = "SELECT COUNT(*) FROM Materials WHERE Category_id = ?";
-        try {
-            PreparedStatement ps = connection.prepareStatement(query);
-            ps.setInt(1, cid);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                return rs.getInt("COUNT(*)");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
 }
