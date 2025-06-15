@@ -290,6 +290,66 @@ public class CategoryDAO extends DBContext {
             }
         }
     }
+    
+    //Bạn Giang tạo 2 hàm này để lấy Parent Category với list subCategory status Active của chúng. Đỡ phải sửa code trên bạn Minh <3
+    
+    public List<Category> getActiveSubCategoryByParentId(int parentId) {
+        List<Category> list = new ArrayList<>();
+        String query = "SELECT * FROM Category WHERE Parent_id = ? AND Status = 'active'";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, parentId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Category cate = new Category();
+                cate.setCategoryId(rs.getInt("Category_id"));
+                cate.setName(rs.getString("Name"));
+                cate.setParentId(getCategoryById(rs.getInt("Parent_id")));
+                cate.setStatus(rs.getString("Status"));
+                list.add(cate);
+            }
+        } catch (SQLException e) {
+            System.out.println("getActiveSubCategoryByParentId error: " + e.getMessage());
+        }
+        return list;
+    }
+    
+    public List<Category> getAllParentCategoryWithActiveSubs(String status) {
+        List<Category> list = new ArrayList<>();
+        String query = "SELECT c.Category_id AS Parent_id, c.Name AS Parent_Name, c.Status, " +
+                       "COUNT(sc.Category_id) AS SubCateNum " +
+                       "FROM Category c " +
+                       "LEFT JOIN Category sc ON sc.Parent_id = c.Category_id " +
+                       "WHERE c.Parent_id IS NULL";
+
+        if (status != null && !status.isEmpty()) {
+            query += " AND c.Status = ?";
+        }
+
+        query += " GROUP BY c.Category_id, c.Name, c.Status";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            if (status != null && !status.isEmpty()) {
+                ps.setString(1, status);
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Category cate = new Category();
+                cate.setCategoryId(rs.getInt("Parent_id"));
+                cate.setName(rs.getString("Parent_Name"));
+                cate.setParentId(null);
+                cate.setSubCategories(getActiveSubCategoryByParentId(rs.getInt("Parent_id"))); // <-- dùng hàm mới
+                cate.setSubCategoryCount(rs.getInt("SubCateNum"));
+                cate.setStatus(rs.getString("Status"));
+                list.add(cate);
+            }
+        } catch (SQLException e) {
+            System.out.println("getAllParentCategoryWithActiveSubs error: " + e.getMessage());
+        }
+        return list;
+    }
+
 
     public static void main(String[] args) {
 

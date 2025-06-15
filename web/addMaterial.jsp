@@ -135,20 +135,26 @@
                 <form action="add-material" method="post" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input type="text" id="name" name="name" class="form-control" required>
+                        <input type="text" id="name" name="name" class="form-control" >
                     </div>
                     <div class="form-group">
                         <label for="categoryId">Category</label>
-                        <select id="categoryId" name="categoryId" class="form-control" required>
+                        <select id="categoryId" name="categoryId" class="form-control">
                             <option value="">Select Category</option>
-                            <c:forEach items="${categories}" var="category">
-                                <option value="${category.categoryId}">${category.name}</option>
+                            <c:forEach var="parent" items="${parentCategories}">
+                                <optgroup label="${parent.name}">
+                                    <c:forEach var="sub" items="${parent.subCategories}">
+                                        <option value="${sub.categoryId}" ${param.categoryId == sub.categoryId ? 'selected' : ''}>
+                                            ${sub.name}
+                                        </option>
+                                    </c:forEach>
+                                </optgroup>
                             </c:forEach>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="supplierId">Supplier</label>
-                        <select id="supplierId" name="supplierId" class="form-control" required>
+                        <select id="supplierId" name="supplierId" class="form-control" >
                             <option value="">Select Supplier</option>
                             <c:forEach items="${suppliers}" var="supplier">
                                 <option value="${supplier.supplierId}">${supplier.name}</option>
@@ -157,7 +163,7 @@
                     </div>
                     <div class="form-group">
                         <label for="imageFile">Upload Image</label>
-                        <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control" required>
+                        <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control">
                     </div>
                     <div class="header-actions">
                         <button type="submit" class="btn btn-primary">Add Material</button>

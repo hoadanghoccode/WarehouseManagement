@@ -77,10 +77,14 @@
                     <div class="form-group">
                         <label for="categoryId">Category</label>
                         <select id="categoryId" name="categoryId" class="form-control" required>
-                            <c:forEach items="${categories}" var="category">
-                                <option value="${category.categoryId}" ${material.categoryId == category.categoryId ? 'selected' : ''}>
-                                    ${category.name}
-                                </option>
+                            <c:forEach var="parent" items="${parentCategories}">
+                                <optgroup label="${parent.name}">
+                                    <c:forEach var="sub" items="${parent.subCategories}">
+                                        <option value="${sub.categoryId}" ${material.categoryId == sub.categoryId ? 'selected' : ''}>
+                                            ${sub.name}
+                                        </option>
+                                    </c:forEach>
+                                </optgroup>
                             </c:forEach>
                         </select>
                         <c:if test="${not empty param.error and param.error.contains('category')}">
