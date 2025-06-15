@@ -180,12 +180,16 @@
                                     <i class="fas fa-search search-icon"></i>
                                     <input type="text" name="search" value="${search}" placeholder="Search by name..." class="search-input" />
                                 </div>
-                                <select class="form-select" id="categoryFilter" name="categoryId">
+                                <select class="form-select" name="categoryId" id="categoryFilter">
                                     <option value="">All Categories</option>
-                                    <c:forEach items="${categories}" var="category">
-                                        <option value="${category.categoryId}" ${categoryId == category.categoryId ? 'selected' : ''}>
-                                            ${category.name}
-                                        </option>
+                                    <c:forEach var="parent" items="${parentCategories}">
+                                        <optgroup label="${parent.name}">
+                                            <c:forEach var="sub" items="${parent.subCategories}">
+                                                <option value="${sub.categoryId}" ${categoryId == sub.categoryId ? 'selected' : ''}>
+                                                    ${sub.name}
+                                                </option>
+                                            </c:forEach>
+                                        </optgroup>
                                     </c:forEach>
                                 </select>
                                 <select class="form-select" id="supplierFilter" name="supplierId">

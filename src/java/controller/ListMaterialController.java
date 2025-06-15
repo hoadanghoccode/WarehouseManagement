@@ -1,5 +1,6 @@
 package controller;
 
+import dal.CategoryDAO;
 import dal.MaterialDAO;
 import java.io.IOException;
 import java.util.List;
@@ -43,6 +44,7 @@ public class ListMaterialController extends HttpServlet {
         request.setAttribute("page", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("categories", dao.getAllCategories());
+        request.setAttribute("parentCategories", new CategoryDAO().getAllParentCategory("active"));
         request.setAttribute("suppliers", dao.getAllSuppliers());
         request.getRequestDispatcher("materialList.jsp").forward(request, response);
     }

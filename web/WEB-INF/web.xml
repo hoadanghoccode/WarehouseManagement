@@ -128,6 +128,10 @@
         <servlet-name>NoPermissionController</servlet-name>
         <servlet-class>controller.NoPermissionController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GetMaterialCategoryServlet</servlet-name>
+        <servlet-class>controller.GetMaterialCategoryServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -254,6 +258,10 @@
     <servlet-mapping>
         <servlet-name>NoPermissionController</servlet-name>
         <url-pattern>/nopermission</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetMaterialCategoryServlet</servlet-name>
+        <url-pattern>/get-material-category</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

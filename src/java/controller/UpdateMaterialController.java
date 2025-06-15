@@ -11,6 +11,7 @@ import model.Material;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.Part;
 import controller.CloudinaryController;
+import dal.CategoryDAO;
 import java.io.InputStream;
 
 
@@ -23,17 +24,21 @@ public class UpdateMaterialController extends HttpServlet {
             throws ServletException, IOException {
         int materialId = Integer.parseInt(request.getParameter("id"));
         MaterialDAO dao = new MaterialDAO();
+        CategoryDAO cateDao = new CategoryDAO();
         Material material = dao.getMaterialById(materialId);
         request.setAttribute("material", material);
         request.setAttribute("suppliers", dao.getAllSuppliers());
         request.setAttribute("categories", dao.getAllCategories()); 
+        request.setAttribute("parentCategories", cateDao.getAllParentCategoryWithActiveSubs("active"));
         request.getRequestDispatcher("updateMaterial.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        CategoryDAO cateDao = new CategoryDAO();
         int materialId = Integer.parseInt(request.getParameter("materialId"));
+        request.setAttribute("parentCategories", cateDao.getAllParentCategoryWithActiveSubs("active"));
         String name = request.getParameter("name").trim();
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         int supplierId = Integer.parseInt(request.getParameter("supplierId"));
