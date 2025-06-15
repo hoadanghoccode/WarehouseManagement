@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Unit Management</title>
-    <link rel="stylesheet" type="text/css" href="css/permissionlist.css" />
+    <link rel="stylesheet" href="css/permissionlist.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" href="img/logo.png" type="image/png">
@@ -60,6 +60,10 @@
         .pagination a, .pagination span { padding: 8px 12px; margin: 0 4px; text-decoration: none; color: #374151; }
         .pagination span { background-color: #9e9e9e1c; color: white; border-radius: 4px; }
         .pagination a:hover { background-color: #e5e7eb; border-radius: 4px; }
+        .warning-box { background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        .warning-header { display: flex; align-items: center; gap: 8px; color: #991b1b; font-weight: 500; margin-bottom: 8px; }
+        .warning-icon { font-size: 18px; }
+        .warning-content { color: #374151; font-size: 14px; }
         @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 600px; } .modal-content { padding: 20px; } }
     </style>
 </head>
@@ -90,8 +94,7 @@
                         <div class="col-md-4">
                             <input type="text" id="conversionSearchInput" class="form-control" placeholder="Search by unit/subunit..." oninput="filterUnits('conversion')">
                         </div>
-                        <div class="col-md-3">
-                        </div>
+                        <div class="col-md-3"></div>
                         <div class="col-md-3">
                             <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#conversionEditModal" onclick="openAddConversionModal()"><i class="fas fa-plus"></i> Add Conversion</button>
                         </div>
@@ -105,8 +108,8 @@
                                 <tr>
                                     <th style="width: 40px">#</th>
                                     <th>Unit</th>
-                                    <th>Subunit</th>
                                     <th>Factor</th>
+                                    <th>Subunit</th>
                                     <th style="width: 140px">Action</th>
                                 </tr>
                             </thead>
@@ -121,12 +124,12 @@
                                                         <c:if test="${unit.unitId == conversion.unitId}">${unit.name}</c:if>
                                                     </c:forEach>
                                                 </td>
+                                                <td class="conversion-factor">${conversion.factor}</td>
                                                 <td class="conversion-subunit">
                                                     <c:forEach var="subunit" items="${subunits}">
                                                         <c:if test="${subunit.subUnitId == conversion.subUnitId}">${subunit.name}</c:if>
                                                     </c:forEach>
                                                 </td>
-                                                <td class="conversion-factor">${conversion.factor}</td>
                                                 <td>
                                                     <div class="action-buttons">
                                                         <a href="unit?entity=conversion&action=detail&id=${conversion.unitConversionId}" class="btn btn-info btn-sm" title="View"><i class="fas fa-eye"></i></a>
@@ -320,7 +323,7 @@
                                         <option value="false">No</option>
                                     </select>
                                 </div>
-                                <div id="unitErrorMsg" class="error">${errorMsg}</div>
+                                <div id="unitErrorMsg" class="error"></div>
                                 <button type="submit" class="btn btn-primary" id="unitSubmitBtn">Save</button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </form>
@@ -362,6 +365,7 @@
                                 <input type="hidden" name="entity" value="subunit">
                                 <input type="hidden" name="action" id="subunitModalAction">
                                 <input type="hidden" id="editSubUnitId" name="subUnitId">
+                                <input type="hidden" id="originalSubunitStatus" name="originalStatus">
                                 <div class="form-group">
                                     <label for="subunitName">Name:</label>
                                     <input type="text" class="form-control" id="subunitName" name="name" required>
@@ -373,7 +377,7 @@
                                         <option value="inactive">Inactive</option>
                                     </select>
                                 </div>
-                                <div id="subunitErrorMsg" class="error">${errorMsg}</div>
+                                <div id="subunitErrorMsg" class="error"></div>
                                 <button type="submit" class="btn btn-primary" id="subunitSubmitBtn">Save</button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </form>
@@ -437,7 +441,7 @@
                                     <label for="conversionFactor">Factor:</label>
                                     <input type="number" step="0.01" class="form-control" id="conversionFactor" name="factor" required>
                                 </div>
-                                <div id="conversionErrorMsg" class="error">${errorMsg}</div>
+                                <div id="conversionErrorMsg" class="error"></div>
                                 <button type="submit" class="btn btn-primary" id="conversionSubmitBtn">Save</button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </form>
@@ -457,8 +461,8 @@
                         <div class="modal-body">
                             <div class="detail-item"><strong>ID:</strong> <span id="modal-conversion-id"></span></div>
                             <div class="detail-item"><strong>Unit:</strong> <span id="modal-conversion-unit"></span></div>
-                            <div class="detail-item"><strong>Subunit:</strong> <span id="modal-conversion-subunit"></span></div>
                             <div class="detail-item"><strong>Factor:</strong> <span id="modal-conversion-factor"></span></div>
+                            <div class="detail-item"><strong>Subunit:</strong> <span id="modal-conversion-subunit"></span></div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -466,6 +470,46 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Subunit Deactivation Confirmation Modal -->
+            <div class="modal fade" id="subunitConfirmModal" tabindex="-1" aria-labelledby="subunitConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subunitConfirmModalLabel">Confirm Subunit Deactivation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to deactivate this subunit? Deactivating this subunit will cause the conversions associated with them to disappear.</p>
+                <c:if test="${countConversions > 0}">
+                    <div class="warning-box">
+                        <div class="warning-header">
+                            <i class="fas fa-exclamation-triangle warning-icon"></i>
+                            <span class="warning-title">Warning</span>
+                        </div>
+                        <div class="warning-content">
+                            This subunit has <strong>${countConversions}</strong> related unit conversions.
+                            <br/><br/>
+                            <span style="color: #991b1b;">
+                                All of these unit conversions will be deleted.
+                            </span>
+                        </div>
+                    </div>
+                </c:if>
+            </div>
+            <div class="modal-footer">
+                <form action="unit" method="POST" id="subunitConfirmForm">
+                    <input type="hidden" name="entity" value="subunit">
+                    <input type="hidden" name="action" value="confirmDeactivateSubunit">
+                    <input type="hidden" id="confirmSubUnitId" name="subUnitId">
+                    <input type="hidden" id="confirmNewStatus" name="newStatus" value="inactive">
+                    <button type="submit" class="btn btn-primary">Yes, Deactivate Subunit</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Current</button>
+            </div>
+        </div>
+    </div>
+</div>
         </div>
     </section>
 
@@ -482,7 +526,6 @@
 
         // Initialize pagination on page load
         window.addEventListener("DOMContentLoaded", function () {
-            // Initialize rows for each table
             paginationState.conversion.allRows = Array.from(document.querySelectorAll("#conversionsTable tbody tr:not(.no-data)"));
             paginationState.conversion.filteredRows = [...paginationState.conversion.allRows];
             paginationState.subunit.allRows = Array.from(document.querySelectorAll("#subunitsTable tbody tr:not(.no-data)"));
@@ -490,7 +533,6 @@
             paginationState.unit.allRows = Array.from(document.querySelectorAll("#unitsTable tbody tr:not(.no-data)"));
             paginationState.unit.filteredRows = [...paginationState.unit.allRows];
 
-            // Update tables and pagination
             updateTable('conversion');
             updatePagination('conversion');
             updateTable('subunit');
@@ -498,11 +540,6 @@
             updateTable('unit');
             updatePagination('unit');
 
-            console.log("Conversions table loaded with " + paginationState.conversion.allRows.length + " rows");
-            console.log("Subunits table loaded with " + paginationState.subunit.allRows.length + " rows");
-            console.log("Units table loaded with " + paginationState.unit.allRows.length + " rows");
-
-            // Bind filter events
             document.querySelectorAll("#conversionSearchInput").forEach(el => {
                 el.addEventListener("input", () => filterUnits('conversion'));
             });
@@ -544,8 +581,6 @@
             const search = document.querySelector(searchInput).value.trim().toLowerCase();
             const status = entity !== 'conversion' ? document.querySelector(statusFilter)?.value : '';
 
-            console.log(`Filter ${entity} - Search: ${search}, Status: ${status || 'none'}`);
-
             state.filteredRows = state.allRows.filter(row => {
                 let match = true;
                 if (entity === 'conversion') {
@@ -565,19 +600,16 @@
             state.currentPage = 1;
             updateTable(entity);
             updatePagination(entity);
-            console.log(`Visible ${entity} Rows: ${state.filteredRows.length}`);
         }
 
         function updateTable(entity) {
             const state = paginationState[entity];
             let tableId = entity === 'unit' ? '#unitsTable' : entity === 'subunit' ? '#subunitsTable' : '#conversionsTable';
 
-            // Hide all rows
             state.allRows.forEach(row => {
                 row.style.display = 'none';
             });
 
-            // Show rows for current page
             const start = (state.currentPage - 1) * state.pageSize;
             const end = Math.min(start + state.pageSize, state.filteredRows.length);
             const rowsToShow = state.filteredRows.slice(start, end);
@@ -598,7 +630,6 @@
             const totalPages = Math.ceil(state.filteredRows.length / state.pageSize);
             if (totalPages <= 1) return;
 
-            // First and Previous buttons
             if (state.currentPage > 1) {
                 const first = document.createElement('a');
                 first.href = '#';
@@ -633,7 +664,6 @@
                 pagination.appendChild(disabledPrev);
             }
 
-            // Page numbers
             if (totalPages <= 7) {
                 for (let i = 1; i <= totalPages; i++) {
                     if (i === state.currentPage) {
@@ -793,7 +823,6 @@
                 }
             }
 
-            // Next and Last buttons
             if (state.currentPage < totalPages) {
                 const next = document.createElement('a');
                 next.href = '#';
@@ -831,22 +860,22 @@
             }
         }
 
-        $(document).ready(function () {
-            // Show modals based on action
-            <c:if test="${not empty action && not empty entity}">
+       $(document).ready(function () {
+    <c:if test="${not empty action && not empty entity}">
+        <c:choose>
+            <c:when test="${entity == 'subunit'}">
                 <c:choose>
-                    <c:when test="${entity == 'unit'}">
-                        <c:choose>
-                            <c:when test="${action == 'edit'}">
-                                var editModal = new bootstrap.Modal(document.getElementById('unitEditModal'));
-                                $('#unitEditModalLabel').text('Edit Unit');
-                                $('#unitModalAction').val('update');
-                                $('#editUnitId').val('${unit.unitId}');
-                                $('#unitName').val('${unit.name}');
-                                $('#unitIsActive').val('${unit.active ? 'true' : 'false'}');
-                                $('#unitSubmitBtn').text('Update');
-                                editModal.show();
-                            </c:when>
+                    <c:when test="${action == 'edit'}">
+                        var editModal = new bootstrap.Modal(document.getElementById('subunitEditModal'));
+                        $('#subunitEditModalLabel').text('Edit Subunit');
+                        $('#subunitModalAction').val('update');
+                        $('#editSubUnitId').val('${subunit.subUnitId}');
+                        $('#subunitName').val('${subunit.name}');
+                        $('#subunitStatus').val('${subunit.status}');
+                        $('#originalSubunitStatus').val('${subunit.status}');
+                        $('#subunitSubmitBtn').text('Update');
+                        editModal.show();
+                    </c:when>
                             <c:when test="${action == 'detail'}">
                                 var detailModal = new bootstrap.Modal(document.getElementById('unitDetailModal'));
                                 $('#modal-unit-id').text('${unit.unitId}');
@@ -865,6 +894,7 @@
                                 $('#editSubUnitId').val('${subunit.subUnitId}');
                                 $('#subunitName').val('${subunit.name}');
                                 $('#subunitStatus').val('${subunit.status}');
+                                $('#originalSubunitStatus').val('${subunit.status}');
                                 $('#subunitSubmitBtn').text('Update');
                                 editModal.show();
                             </c:when>
@@ -872,8 +902,13 @@
                                 var detailModal = new bootstrap.Modal(document.getElementById('subunitDetailModal'));
                                 $('#modal-subunit-id').text('${subunit.subUnitId}');
                                 $('#modal-subunit-name').text('${subunit.name}');
-                                $('#modal-subunit-status').text('${subunit.status}');
+                                $('#modal-subunit-status').text('${subunit.status == "active" ? "Active" : "Inactive"}');
                                 detailModal.show();
+                            </c:when>
+                            <c:when test="${action == 'confirmDeactivateSubunit'}">
+                                var confirmModal = new bootstrap.Modal(document.getElementById('subunitConfirmModal'));
+                                $('#confirmSubUnitId').val('${subunit.subUnitId}');
+                                confirmModal.show();
                             </c:when>
                         </c:choose>
                     </c:when>
@@ -886,24 +921,16 @@
                                 $('#editUnitConversionId').val('${conversion.unitConversionId}');
                                 $('#conversionUnitId').val('${conversion.unitId}');
                                 $('#conversionSubUnitId').val('${conversion.subUnitId}');
-                                $('#conversionFactor').text('${conversion.factor}');
+                                $('#conversionFactor').val('${conversion.factor}');
                                 $('#conversionSubmitBtn').text('Update');
                                 editModal.show();
                             </c:when>
                             <c:when test="${action == 'detail'}">
                                 var detailModal = new bootstrap.Modal(document.getElementById('conversionDetailModal'));
                                 $('#modal-conversion-id').text('${conversion.unitConversionId}');
-                                $('#modal-conversion-unit').text(
-                                    <c:forEach var="unit" items="${units}">
-                                        ${unit.unitId == conversion.unitId ? "'".concat(unit.name).concat("'") : ""}
-                                    </c:forEach>
-                                );
-                                $('#modal-conversion-subunit').text(
-                                    <c:forEach var="subunit" items="${subunits}">
-                                        ${subunit.subUnitId == conversion.subUnitId ? "'".concat(subunit.name).concat("'") : ""}
-                                    </c:forEach>
-                                );
-                                $('#modal-conversion-factor').text('${conversion.factor}');
+                                $('#modal-conversion-unit').text(getUnitName(${conversion.unitId}));
+                                $('#modal-conversion-factor').text(${conversion.factor});
+                                $('#modal-conversion-subunit').text(getSubUnitName(${conversion.subUnitId}));
                                 detailModal.show();
                             </c:when>
                         </c:choose>
@@ -911,33 +938,69 @@
                 </c:choose>
             </c:if>
 
-            // Clear modal data when closed
-            $('#unitEditModal, #unitDetailModal, #subunitEditModal, #subunitDetailModal, #conversionEditModal, #conversionDetailModal').on('hidden.bs.modal', function () {
-                // Reset forms
-                $('#unitForm')[0].reset();
-                $('#subunitForm')[0].reset();
-                $('#conversionForm')[0].reset();
-                $('#unitModalAction').val('add');
-                $('#subunitModalAction').val('add');
-                $('#conversionModalAction').val('add');
-                $('#editUnitId').val('');
-                $('#editSubUnitId').val('');
-                $('#editUnitConversionId').val('');
-                $('#unitEditModalLabel').text('Add New Unit');
-                $('#subunitEditModalLabel').text('Add New Subunit');
-                $('#conversionEditModalLabel').text('Add New Unit Conversion');
-                $('#unitErrorMsg, #subunitErrorMsg, #conversionErrorMsg').text('');
-                // Clear detail modals
-                $('#modal-unit-id, #modal-unit-name, #modal-unit-status').text('');
-                $('#modal-subunit-id, #modal-subunit-name, #modal-subunit-status').text('');
-                $('#modal-conversion-id, #modal-conversion-unit, #modal-conversion-subunit, #modal-conversion-factor').text('');
-                // Remove backdrop
-                $('.modal-backdrop').remove();
+            // Handle form submissions with validation
+            $('#unitForm').on('submit', function(e) {
+                let name = $('#unitName').val().trim();
+                if (!name) {
+                    e.preventDefault();
+                    $('#unitErrorMsg').text('Please enter the unit name.');
+                } else {
+                    $('#unitErrorMsg').text('');
+                }
+            });
+
+            $('#subunitForm').on('submit', function(e) {
+                let name = $('#subunitName').val().trim();
+                let status = $('#subunitStatus').val();
+                let originalStatus = $('#originalSubunitStatus').val();
+                let subUnitId = $('#editSubUnitId').val();
+
+                if (!name) {
+                    e.preventDefault();
+                    $('#subunitErrorMsg').text('Please enter the subunit name.');
+                    return;
+                }
+
+                if (originalStatus === 'active' && status === 'inactive' && subUnitId) {
+                    e.preventDefault();
+                    checkSubUnitConversions(subUnitId);
+                } else {
+                    $('#subunitErrorMsg').text('');
+                }
+            });
+
+            $('#conversionForm').on('submit', function(e) {
+                let unitId = $('#conversionUnitId').val();
+                let subUnitId = $('#conversionSubUnitId').val();
+                let factor = parseFloat($('#conversionFactor').val());
+
+                if (!unitId || !subUnitId || isNaN(factor) || factor <= 0) {
+                    e.preventDefault();
+                    $('#conversionErrorMsg').text('Please provide valid unit, subunit, and factor (greater than 0).');
+                } else {
+                    $('#conversionErrorMsg').text('');
+                }
             });
         });
 
+        // Helper functions for modal data
+        function getUnitName(unitId) {
+            <c:forEach var="unit" items="${units}">
+                if (unitId == ${unit.unitId}) return "${unit.name}";
+            </c:forEach>
+            return "Unknown";
+        }
+
+        function getSubUnitName(subUnitId) {
+            <c:forEach var="subunit" items="${subunits}">
+                if (subUnitId == ${subunit.subUnitId}) return "${subunit.name}";
+            </c:forEach>
+            return "Unknown";
+        }
+
+        // Open modals for adding new entities
         function openAddUnitModal() {
-            $('#unitEditModalLabel').text('Add New Unit');
+            $('#unitEditModalLabel').text('Add Unit');
             $('#unitModalAction').val('add');
             $('#editUnitId').val('');
             $('#unitName').val('');
@@ -947,17 +1010,18 @@
         }
 
         function openAddSubunitModal() {
-            $('#subunitEditModalLabel').text('Add New Subunit');
+            $('#subunitEditModalLabel').text('Add Subunit');
             $('#subunitModalAction').val('add');
             $('#editSubUnitId').val('');
             $('#subunitName').val('');
             $('#subunitStatus').val('active');
+            $('#originalSubunitStatus').val('');
             $('#subunitSubmitBtn').text('Save');
             $('#subunitErrorMsg').text('');
         }
 
         function openAddConversionModal() {
-            $('#conversionEditModalLabel').text('Add New Unit Conversion');
+            $('#conversionEditModalLabel').text('Add Unit Conversion');
             $('#conversionModalAction').val('add');
             $('#editUnitConversionId').val('');
             $('#conversionUnitId').val('');
@@ -966,6 +1030,44 @@
             $('#conversionSubmitBtn').text('Save');
             $('#conversionErrorMsg').text('');
         }
+
+        // AJAX to check subunit conversions before deactivation
+        function checkSubUnitConversions(subUnitId) {
+    $.ajax({
+        url: 'unit',
+        type: 'GET',
+        data: {
+            entity: 'subunit',
+            action: 'checkConversions',
+            id: subUnitId
+        },
+        success: function(response) {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(response, 'text/html');
+            var countConversions = $(doc).find('#countConversions').val() || 0;
+            var subUnitIdFromResponse = $(doc).find('#confirmSubUnitId').val() || subUnitId;
+
+            $('#confirmSubUnitId').val(subUnitIdFromResponse);
+            var confirmModal = new bootstrap.Modal(document.getElementById('subunitConfirmModal'));
+            var warningBox = $('#subunitConfirmModal .warning-box');
+
+            if (countConversions > 0) {
+                warningBox.show();
+                warningBox.find('.warning-content strong').text(countConversions);
+            } else {
+                warningBox.hide();
+            }
+
+            confirmModal.show();
+        },
+        error: function(xhr, status, error) {
+            $('#subunitErrorMsg').text('Error checking conversions: ' + error);
+        }
+    });
+}
     </script>
+
+    <!-- Hidden input to pass countConversions for JSP rendering -->
+    <input type="hidden" id="countConversions" value="${countConversions}">
 </body>
 </html>

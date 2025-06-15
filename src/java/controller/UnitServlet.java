@@ -3,15 +3,14 @@ package controller;
 import dal.UnitDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Units;
 import model.SubUnit;
 import model.UnitConversion;
+import java.util.List;
 
-@WebServlet(name = "UnitServlet", urlPatterns = {"/unit"})
 public class UnitServlet extends HttpServlet {
 
     private UnitDAO dao;
@@ -49,7 +48,7 @@ public class UnitServlet extends HttpServlet {
             }
         } catch (Exception e) {
             logError("doGet", e);
-            request.setAttribute("errorMsg", "An error occurred: " + e.getMessage());
+            request.setAttribute("errorMsg", "Error: " + e.getMessage());
             loadAllData(request, response);
         }
     }
@@ -83,7 +82,7 @@ public class UnitServlet extends HttpServlet {
             }
         } catch (Exception e) {
             logError("doPost", e);
-            request.setAttribute("errorMsg", "An error occurred: " + e.getMessage());
+            request.setAttribute("errorMsg", "Error: " + e.getMessage());
             loadAllData(request, response);
         }
     }
@@ -274,6 +273,9 @@ public class UnitServlet extends HttpServlet {
             case "detail":
                 handleSubUnitDetail(request, response);
                 break;
+            case "checkConversions":
+                handleCheckConversions(request, response);
+                break;
             default:
                 loadAllData(request, response);
                 break;
@@ -326,6 +328,33 @@ public class UnitServlet extends HttpServlet {
         loadAllData(request, response);
     }
 
+    private void handleCheckConversions(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String subUnitIdStr = request.getParameter("id");
+        if (subUnitIdStr != null && !subUnitIdStr.isEmpty()) {
+            try {
+                int subUnitId = Integer.parseInt(subUnitIdStr);
+                List<UnitConversion> conversions = dao.getUnitConversionsBySubUnitId(subUnitId);
+                int countConversions = conversions != null ? conversions.size() : 0;
+                SubUnit subUnit = dao.getSubUnitById(subUnitId);
+
+                if (subUnit != null) {
+                    request.setAttribute("countConversions", countConversions);
+                    request.setAttribute("subunit", subUnit);
+                    request.setAttribute("entity", "subunit");
+                    request.setAttribute("action", "confirmDeactivateSubunit");
+                } else {
+                    request.setAttribute("errorMsg", "Subunit not found with ID: " + subUnitId);
+                }
+            } catch (NumberFormatException e) {
+                request.setAttribute("errorMsg", "Invalid subunit ID: " + subUnitIdStr);
+            }
+        } else {
+            request.setAttribute("errorMsg", "Subunit ID not provided");
+        }
+        loadAllData(request, response);
+    }
+
     private void handleSubUnitPostAction(String action, HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         switch (action) {
@@ -337,6 +366,9 @@ public class UnitServlet extends HttpServlet {
                 break;
             case "delete":
                 handleSubUnitDelete(request, response);
+                break;
+            case "confirmDeactivateSubunit":
+                handleConfirmDeactivateSubunit(request, response);
                 break;
             default:
                 request.setAttribute("errorMsg", "Invalid action: " + action);
@@ -380,6 +412,7 @@ public class UnitServlet extends HttpServlet {
         String subUnitIdStr = request.getParameter("subUnitId");
         String name = request.getParameter("name");
         String status = request.getParameter("status");
+        String originalStatus = request.getParameter("originalStatus");
 
         if (subUnitIdStr == null || subUnitIdStr.isEmpty() || name == null || name.trim().isEmpty()) {
             request.setAttribute("errorMsg", "Please provide subunit ID and name");
@@ -394,11 +427,26 @@ public class UnitServlet extends HttpServlet {
 
         try {
             int subUnitId = Integer.parseInt(subUnitIdStr);
-            SubUnit subUnit = new SubUnit();
-            subUnit.setSubUnitId(subUnitId);
+            SubUnit subUnit = dao.getSubUnitById(subUnitId);
+            if (subUnit == null) {
+                request.setAttribute("errorMsg", "Subunit not found with ID: " + subUnitId);
+                loadAllData(request, response);
+                return;
+            }
+
+            if ("active".equals(originalStatus) && "inactive".equals(status)) {
+                List<UnitConversion> conversions = dao.getUnitConversionsBySubUnitId(subUnitId);
+                int countConversions = conversions != null ? conversions.size() : 0;
+                request.setAttribute("countConversions", countConversions);
+                request.setAttribute("subunit", subUnit);
+                request.setAttribute("entity", "subunit");
+                request.setAttribute("action", "confirmDeactivateSubunit");
+                loadAllData(request, response);
+                return;
+            }
+
             subUnit.setName(name.trim());
             subUnit.setStatus(status);
-
             dao.updateSubUnit(subUnit);
             response.sendRedirect("unit");
         } catch (NumberFormatException e) {
@@ -435,6 +483,40 @@ public class UnitServlet extends HttpServlet {
         } catch (Exception e) {
             logError("handleSubUnitDelete", e);
             request.setAttribute("errorMsg", "Error deleting subunit: " + e.getMessage());
+            loadAllData(request, response);
+        }
+    }
+
+    private void handleConfirmDeactivateSubunit(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String subUnitIdStr = request.getParameter("subUnitId");
+        String newStatus = request.getParameter("newStatus");
+
+        if (subUnitIdStr == null || subUnitIdStr.isEmpty() || newStatus == null || !newStatus.equals("inactive")) {
+            request.setAttribute("errorMsg", "Invalid parameters for deactivation");
+            loadAllData(request, response);
+            return;
+        }
+
+        try {
+            int subUnitId = Integer.parseInt(subUnitIdStr);
+            SubUnit subUnit = dao.getSubUnitById(subUnitId);
+            if (subUnit == null) {
+                request.setAttribute("errorMsg", "Subunit not found with ID: " + subUnitId);
+                loadAllData(request, response);
+                return;
+            }
+
+            dao.deleteUnitConversionsBySubUnitId(subUnitId);
+            subUnit.setStatus("inactive");
+            dao.updateSubUnit(subUnit);
+            response.sendRedirect("unit");
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMsg", "Invalid subunit ID: " + subUnitIdStr);
+            loadAllData(request, response);
+        } catch (Exception e) {
+            logError("handleConfirmDeactivateSubunit", e);
+            request.setAttribute("errorMsg", "Error deactivating subunit: " + e.getMessage());
             loadAllData(request, response);
         }
     }

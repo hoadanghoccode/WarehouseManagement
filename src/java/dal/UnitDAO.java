@@ -278,4 +278,40 @@ public class UnitDAO extends DBContext {
             return false;
         }
     }
+
+    public void deleteUnitConversionsBySubUnitId(int subUnitId) {
+        String sql = "DELETE FROM UnitConversion WHERE SubUnit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, subUnitId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting unit conversions for subunit ID " + subUnitId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public List<UnitConversion> getUnitConversionsBySubUnitId(int subUnitId) {
+        List<UnitConversion> conversions = new ArrayList<>();
+        String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion WHERE SubUnit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, subUnitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    UnitConversion conversion = new UnitConversion(
+                        rs.getInt("UnitConversion_id"),
+                        rs.getInt("Unit_id"),
+                        rs.getInt("SubUnit_id"),
+                        rs.getDouble("Factor"),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at")
+                    );
+                    conversions.add(conversion);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching unit conversions for subunit ID " + subUnitId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return conversions;
+    }
 }
