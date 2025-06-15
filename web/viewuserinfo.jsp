@@ -156,7 +156,7 @@
                         <div class="info-label">Profile Image:</div>
                         <div class="info-value" id="imageText">
                             <% if (profileUser.getImage() != null && !profileUser.getImage().isEmpty()) { %>
-                            <img id="profilePreview" class="profile-img" src="uploads/<%= profileUser.getImage() %>" alt="Profile Image" style="height: 80px;" />
+                            <img id="profilePreview" class="profile-img" src="<%= profileUser.getImage() %>" alt="Profile Image" style="height: 80px;" />
                             <% } else { %>
                             <span id="profilePreview">No image uploaded</span>
                             <% } %>
