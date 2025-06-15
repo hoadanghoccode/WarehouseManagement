@@ -4,7 +4,6 @@
  */
 package controller;
 
-import dal.SupplierDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -16,9 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author PC
  */
-public class DeleteSupplierController extends HttpServlet {
-
-    private final SupplierDAO supplierDAO = new SupplierDAO();
+public class NoPermissionController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -31,19 +28,8 @@ public class DeleteSupplierController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet DeleteSupplierController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet DeleteSupplierController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403 Forbidden
+        request.getRequestDispatcher("403.jsp").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -72,29 +58,7 @@ public class DeleteSupplierController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String idRaw = request.getParameter("supplierId");
-        String status = request.getParameter("status");
-
-        response.setContentType("application/json;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            int id = Integer.parseInt(idRaw);
-            boolean success = supplierDAO.deleteSupplierById(id, status);
-
-            if (success) {
-                response.setStatus(HttpServletResponse.SC_OK); // 200 OK
-                out.write("{\"success\":true}");
-            } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400 Bad Request (hoặc chọn code phù hợp)
-                out.write("{\"success\":false,\"message\":\"Xóa thất bại, có thể id không tồn tại hoặc trạng thái không hợp lệ.\"}");
-            }
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
-            response.getWriter().write("{\"success\":false,\"message\":\"supplierId không hợp lệ!\"}");
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
-            response.getWriter().write("{\"success\":false,\"message\":\"Lỗi hệ thống: " + e.getMessage() + "\"}");
-            e.printStackTrace();
-        }
+        processRequest(request, response);
     }
 
     /**

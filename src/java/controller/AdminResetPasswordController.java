@@ -106,7 +106,7 @@ public class AdminResetPasswordController extends HttpServlet {
                     + "<p>Your new password is: <b>" + newPassword + "</b></p>"
                     + "<p><a href='http://localhost:8080/WarehouseManagement/login'>Click here to login</a></p>";
 
-            boolean sent = service.sendEmail(user.getEmail(), content, user.getFullName());
+            boolean sent = service.sendEmail(user.getEmail(), content, user.getFullName(), "Password Reset Notification");
 
             if (sent) {
                 response.sendRedirect("adminresetlist?success=Approved and email sent successfully.");

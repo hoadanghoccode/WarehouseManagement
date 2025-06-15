@@ -54,21 +54,7 @@
         <link rel="stylesheet" href="css/style1.css" />
         <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
         <link rel="stylesheet" type="text/css" href="css/userList.css" />
-        <style>
-            .field-error {
-                color: red;
-                font-size: 0.9em;
-                margin-top: 4px;
-                display: block;
-            }
-            .success-message {
-                color: green;
-                font-weight: bold;
-                margin-top: 8px;
-            }
-
-        </style>
-
+       
     </head>
     <body>
         <%@ include file="sidebar.jsp" %>
