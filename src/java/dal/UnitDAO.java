@@ -360,4 +360,69 @@ public class UnitDAO extends DBContext {
         }
         return conversions;
     }
+    
+    public boolean isDuplicateConversion(int unitId, int subUnitId, Integer excludeId) {
+    String sql = "SELECT COUNT(*) FROM UnitConversion WHERE Unit_id = ? AND SubUnit_id = ?";
+    if (excludeId != null) {
+        sql += " AND UnitConversion_id != ?";
+    }
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setInt(1, unitId);
+        stmt.setInt(2, subUnitId);
+        if (excludeId != null) {
+            stmt.setInt(3, excludeId);
+        }
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+    } catch (SQLException e) {
+        System.err.println("Error checking duplicate conversion: " + e.getMessage());
+        e.printStackTrace();
+    }
+    return false;
+}
+
+    public boolean isDuplicateUnitName(String name, Integer excludeId) {
+    String sql = "SELECT COUNT(*) FROM Units WHERE Name = ?";
+    if (excludeId != null) {
+        sql += " AND Unit_id != ?";
+    }
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setString(1, name);
+        if (excludeId != null) {
+            stmt.setInt(2, excludeId);
+        }
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+    } catch (SQLException e) {
+        System.err.println("Error checking duplicate unit name: " + e.getMessage());
+        e.printStackTrace();
+    }
+    return false;
+}
+
+public boolean isDuplicateSubUnitName(String name, Integer excludeId) {
+    String sql = "SELECT COUNT(*) FROM SubUnits WHERE Name = ?";
+    if (excludeId != null) {
+        sql += " AND SubUnit_id != ?";
+    }
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setString(1, name);
+        if (excludeId != null) {
+            stmt.setInt(2, excludeId);
+        }
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+    } catch (SQLException e) {
+        System.err.println("Error checking duplicate subunit name: " + e.getMessage());
+        e.printStackTrace();
+    }
+    return false;
+}
+
 }

@@ -123,11 +123,24 @@ public class UnitServlet extends HttpServlet {
             case "checkConversions":
                 handleCheckUnitConversions(request, response);
                 break;
+                case "checkDuplicate":
+    handleCheckDuplicateUnitName(request, response);
+    return;
+
             default:
                 loadAllData(request, response);
                 break;
         }
     }
+
+    private void handleCheckDuplicateUnitName(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String name = request.getParameter("name");
+    String idParam = request.getParameter("id");
+    Integer excludeId = (idParam != null && !idParam.isEmpty()) ? Integer.parseInt(idParam) : null;
+    boolean exists = dao.isDuplicateUnitName(name, excludeId);
+    response.setContentType("text/plain");
+    response.getWriter().write(exists ? "exists" : "not exists");
+}
 
     private void handleUnitEdit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -378,11 +391,24 @@ public class UnitServlet extends HttpServlet {
             case "checkConversions":
                 handleCheckConversions(request, response);
                 break;
+            case "checkDuplicate":
+    handleCheckDuplicateSubUnitName(request, response);
+    return;
+
             default:
                 loadAllData(request, response);
                 break;
         }
     }
+
+    private void handleCheckDuplicateSubUnitName(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String name = request.getParameter("name");
+    String idParam = request.getParameter("id");
+    Integer excludeId = (idParam != null && !idParam.isEmpty()) ? Integer.parseInt(idParam) : null;
+    boolean exists = dao.isDuplicateSubUnitName(name, excludeId);
+    response.setContentType("text/plain");
+    response.getWriter().write(exists ? "exists" : "not exists");
+}
 
     private void handleSubUnitEdit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -637,12 +663,30 @@ public class UnitServlet extends HttpServlet {
             case "detail":
                 handleConversionDetail(request, response);
                 break;
+            case "checkDuplicate":
+    handleCheckDuplicateConversion(request, response);
+    break;
+
             default:
                 loadAllData(request, response);
                 break;
         }
     }
 
+    private void handleCheckDuplicateConversion(HttpServletRequest request, HttpServletResponse response)
+        throws IOException {
+    int unitId = Integer.parseInt(request.getParameter("unitId"));
+    int subUnitId = Integer.parseInt(request.getParameter("subUnitId"));
+    String idParam = request.getParameter("id");
+
+    Integer excludeId = (idParam != null && !idParam.isEmpty()) ? Integer.parseInt(idParam) : null;
+    boolean exists = dao.isDuplicateConversion(unitId, subUnitId, excludeId);
+
+    response.setContentType("text/plain");
+    response.getWriter().write(exists ? "exists" : "not exists");
+}
+
+    
     private void handleConversionEdit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String conversionIdStr = request.getParameter("id");

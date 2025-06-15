@@ -7,7 +7,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Current Inventory</title>
-    <link rel="stylesheet" type="text/css" href="css/permissionlist.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" href="img/logo.png" type="image/png">
@@ -53,14 +52,61 @@
         .detail-item { margin-bottom: 14px; display: flex; gap: 8px; }
         .detail-item strong { color: #333; width: 120px; }
         .error { color: #dc3545; font-size: 14px; }
-        .pagination { font-size: 14px; }
-        .pagination a, .pagination span { padding: 8px 12px; margin: 0 4px; text-decoration: none; color: #374151; }
-        .pagination span { background-color: #9e9e9e1c; color: white; border-radius: 4px; }
-        .pagination a:hover { background-color: #e5e7eb; border-radius: 4px; }
+        .action-buttons .btn{
+                padding: 6px 12px;
+                font-size: 12px;
+                border-radius: 10px;
+            }
+        .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 32px;
+}
+
+.pagination a,
+.pagination span {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #374151;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.pagination a:hover {
+    background-color: #f3f4f6;
+}
+
+.pagination .current {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; text-transform: capitalize; }
         .quality-available { background-color: #22c55e; color: white; }
         .quality-notavailable { background-color: #ef4444; color: white; }
-        @media (max-width: 768px) { .title { font-size: 24px; } table.table { min-width: 1000px; } .modal-content { padding: 20px; } }
+        @media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+}
     </style>
 </head>
 <body>
