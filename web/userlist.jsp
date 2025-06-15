@@ -54,7 +54,7 @@
         <link rel="stylesheet" href="css/style1.css" />
         <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
         <link rel="stylesheet" type="text/css" href="css/userList.css" />
-       
+
     </head>
     <body>
         <%@ include file="sidebar.jsp" %>
@@ -296,6 +296,7 @@
                                         const modal = document.getElementById("userDetailModal");
                                         const modalContent = modal.querySelector(".modal-content");
                                         modalContent.innerHTML = '<div>Loading...</div>';
+
                                         fetch('${pageContext.request.contextPath}/userdetail?id=' + userId)
                                                 .then(response => {
                                                     if (!response.ok) {
@@ -306,7 +307,32 @@
                                                 .then(html => {
                                                     modalContent.innerHTML = html;
                                                     modal.style.display = "flex";
+
                                                     initializeDepartmentOptions();
+
+                                                    // preview avatar
+                                                    const avatar = modalContent.querySelector('#avatar');
+                                                    const fileInput = modalContent.querySelector('#fileInput');
+
+                                                    if (avatar && fileInput) {
+                                                        // Click avatar để chọn ảnh
+                                                        avatar.onclick = () => fileInput.click();
+
+                                                        // Hiển thị preview ảnh sau khi chọn
+                                                        fileInput.onchange = (e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file && file.type.startsWith('image/')) {
+                                                                const reader = new FileReader();
+                                                                reader.onload = function (evt) {
+                                                                    avatar.src = evt.target.result;
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            } else {
+                                                                alert('Please select a valid image file.');
+                                                                e.target.value = '';
+                                                            }
+                                                        };
+                                                    }
                                                 })
                                                 .catch(error => {
                                                     console.error('Error fetching user details:', error);
@@ -314,6 +340,7 @@
                                                     modal.style.display = "flex";
                                                 });
                                     }
+
                                     function initializeDepartmentOptions() {
                                         const modalContent = document.querySelector('#userDetailModal .modal-content');
                                         const roleSelect = modalContent.querySelector("#roleId");
