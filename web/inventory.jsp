@@ -160,7 +160,6 @@
                             <div class="detail-item"><strong>Available Quantity:</strong> <span id="modal-available-qty"></span></div>
                             <div class="detail-item"><strong>Not Available Quantity:</strong> <span id="modal-not-available-qty"></span></div>
                             <div class="detail-item"><strong>Date:</strong> <span id="modal-inventory-date"></span></div>
-                            <div class="detail-item"><strong>Note:</strong> <span id="modal-note"></span></div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
