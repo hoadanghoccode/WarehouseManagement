@@ -3,8 +3,150 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/JavaScript.js to edit this template
  */
 
-
 let itemCounter = 0;
+
+// Load existing order items when page loads
+$(document).ready(function() {
+    if (existingOrderDetails && existingOrderDetails.length > 0) {
+        loadExistingOrderItems();
+    }
+});
+
+function loadMaterialCategory(materialId, categorySelect, materialSelect) {
+    // AJAX call to get material's category
+    $.ajax({
+        url: 'get-material-category',
+        type: 'GET',
+        data: { materialId: materialId },
+        dataType: 'json',
+        success: function(data) {
+            console.log('Material category data:', data); // Debug log
+            
+            if (data && data.categoryId) {
+                // Set category value
+                categorySelect.value = data.categoryId;
+                
+                // Load materials for this category and select the current material
+                loadMaterialsAndSelect(data.categoryId, materialSelect, materialId);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load material category:', error);
+            console.error('Response:', xhr.responseText);
+        }
+    });
+}
+
+// Hàm load materials và set selected material
+function loadMaterialsAndSelect(categoryId, materialSelect, selectedMaterialId) {
+    $.ajax({
+        url: 'get-materials',
+        type: 'GET',
+        data: {categoryId: categoryId},
+        dataType: 'json',
+        success: function (data) {
+            console.log('Materials loaded:', data); // Debug log
+            
+            materialSelect.innerHTML = '<option value="">Select Material</option>';
+            
+            let materialFound = false;
+            data.forEach(material => {
+                const option = document.createElement("option");
+                option.value = material.materialId;
+                option.textContent = material.name;
+                
+                // Set selected nếu là material hiện tại
+                if (material.materialId == selectedMaterialId) {
+                    option.selected = true;
+                    materialFound = true;
+                }
+                
+                materialSelect.appendChild(option);
+            });
+            
+            // Nếu không tìm thấy material trong danh sách, có thể material đã bị xóa
+            // Trong trường hợp này, chúng ta vẫn giữ lại để user có thể chọn material khác
+            if (!materialFound && selectedMaterialId) {
+                console.warn('Selected material not found in category materials');
+            }
+            
+            materialSelect.disabled = false;
+        },
+        error: function (xhr, status, error) {
+            console.error('Failed to load materials:', error);
+            console.error('Response:', xhr.responseText);
+            materialSelect.innerHTML = '<option value="">Error loading materials</option>';
+            materialSelect.disabled = true;
+        }
+    });
+}
+
+function loadExistingOrderItems() {
+    console.log('Loading existing order items:', existingOrderDetails); // Debug log
+    
+    const container = document.getElementById("orderItemsContainer");
+    const noMsg = document.getElementById("noItemsMessage");
+    
+    existingOrderDetails.forEach((detail, index) => {
+        itemCounter++;
+        
+        const itemHtml = `
+        <div class="order-item" data-item-id="${itemCounter}">
+            <button type="button" class="remove-item-btn" onclick="removeOrderItem(this)">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="item-header">
+                <span class="item-number">Item #${index + 1}</span>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Category <span class="required">*</span></label>
+                    <select class="form-control" name="category[]" onchange="updateMaterials(this)" required>
+                        <option value="">Select Category</option>
+                        ${categories.map(c => `<option value="${c.categoryId}">${c.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Material <span class="required">*</span></label>
+                    <select class="form-control" name="material[]" required>
+                        <option value="">Loading materials...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Unit <span class="required">*</span></label>
+                    <select class="form-control" name="unit[]" required>
+                        <option value="">Select Unit</option>
+                        ${units.map(u => `<option value="${u.subUnitId}" ${u.subUnitId == detail.subUnitId ? 'selected' : ''}>${u.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity <span class="required">*</span></label>
+                    <div class="quantity-controls">
+                        <button type="button" class="quantity-btn" onclick="adjustQuantity(this, -1)">-</button>
+                        <input type="number" name="quantity[]" class="form-control quantity-input" value="${detail.quantity}" min="1" max="9999" required />
+                        <button type="button" class="quantity-btn" onclick="adjustQuantity(this, 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        
+        container.insertAdjacentHTML("beforeend", itemHtml);
+        
+        // Get references to the newly added item's selects
+        const lastItem = container.lastElementChild;
+        const categorySelect = lastItem.querySelector("select[name='category[]']");
+        const materialSelect = lastItem.querySelector("select[name='material[]']");
+        
+        // Load category and materials for this item
+        loadMaterialCategory(detail.materialId, categorySelect, materialSelect);
+    });
+    
+    if (noMsg) {
+        noMsg.style.display = "none";
+    }
+}
 
 function addOrderItem() {
     itemCounter++;
@@ -23,14 +165,14 @@ function addOrderItem() {
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label for="status">Category <span class="required">*</span></label>
+                <label>Category <span class="required">*</span></label>
                 <select class="form-control" name="category[]" onchange="updateMaterials(this)" required>
                     <option value="">Select Category</option>
                     ${categories.map(c => `<option value="${c.categoryId}">${c.name}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group">
-                <label for="status">Material <span class="required">*</span></label>
+                <label>Material <span class="required">*</span></label>
                 <select class="form-control" name="material[]" disabled required>
                     <option value="">Select Category First</option>
                 </select>
@@ -38,14 +180,14 @@ function addOrderItem() {
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label for="status">Unit <span class="required">*</span></label>
+                <label>Unit <span class="required">*</span></label>
                 <select class="form-control" name="unit[]" required>
                     <option value="">Select Unit</option>
                     ${units.map(u => `<option value="${u.subUnitId}">${u.name}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group">
-                <label for="status">Quantity <span class="required">*</span></label>
+                <label>Quantity <span class="required">*</span></label>
                 <div class="quantity-controls">
                     <button type="button" class="quantity-btn" onclick="adjustQuantity(this, -1)">-</button>
                     <input type="number" name="quantity[]" class="form-control quantity-input" value="1" min="1" max="9999" required />
@@ -56,6 +198,7 @@ function addOrderItem() {
     </div>`;
 
     container.insertAdjacentHTML("beforeend", itemHtml);
+    renumberItems();
 }
 
 function removeOrderItem(btn) {
@@ -86,11 +229,6 @@ function adjustQuantity(button, delta) {
     input.value = val;
 }
 
-function cancelOrder() {
-    if (confirm("Are you sure to cancel this order?")) {
-        window.location.href = "orders.jsp";
-    }
-}
 
 function updateMaterials(selectEl) {
     const itemEl = selectEl.closest(".order-item");
@@ -103,13 +241,19 @@ function updateMaterials(selectEl) {
         return;
     }
 
-    // AJAX bằng jQuery
+    // Show loading state
+    materialSelect.innerHTML = '<option value="">Loading materials...</option>';
+    materialSelect.disabled = true;
+
+    // AJAX call to get materials by category
     $.ajax({
         url: 'get-materials',
         type: 'GET',
         data: {categoryId: categoryId},
         dataType: 'json',
         success: function (data) {
+            console.log('Materials for category ' + categoryId + ':', data); // Debug log
+            
             materialSelect.innerHTML = '<option value="">Select Material</option>';
             data.forEach(material => {
                 const option = document.createElement("option");
@@ -119,12 +263,49 @@ function updateMaterials(selectEl) {
             });
             materialSelect.disabled = false;
         },
-        error: function () {
-            materialSelect.innerHTML = '<option value="">Error loading</option>';
+        error: function (xhr, status, error) {
+            console.error('Failed to load materials for category:', error);
+            console.error('Response:', xhr.responseText);
+            materialSelect.innerHTML = '<option value="">Error loading materials</option>';
             materialSelect.disabled = true;
         }
     });
 }
+
+// Form validation before submit
+$("#orderForm").on("submit", function(e) {
+    const orderItems = document.querySelectorAll(".order-item");
+    
+    // Validate each item
+    let isValid = true;
+    orderItems.forEach((item, index) => {
+        const category = item.querySelector("select[name='category[]']").value;
+        const material = item.querySelector("select[name='material[]']").value;
+        const unit = item.querySelector("select[name='unit[]']").value;
+        const quantity = item.querySelector("input[name='quantity[]']").value;
+        
+        if (!category || !material || !unit || !quantity || quantity < 1) {
+            isValid = false;
+            alert(`Please fill all fields for Item #${index + 1}`);
+            return false;
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Show loading indicator
+//    const submitBtn = document.querySelector(".submit-btn");
+//    if (submitBtn) {
+//        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+//        submitBtn.disabled = true;
+//    }
+    
+    return true;
+});
+
 
 function cancelOrder() {
     showCancelModal();
@@ -166,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
 // Thêm code này vào cuối file createorder.js
 
 // Validation khi submit form
@@ -370,3 +552,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+

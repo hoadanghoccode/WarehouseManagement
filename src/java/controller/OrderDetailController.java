@@ -69,6 +69,7 @@ public class OrderDetailController extends HttpServlet {
             throws ServletException, IOException {
 
         String orderIdParam = request.getParameter("oid");
+        String success = request.getParameter("success");
 
         try {
             // Validation: Kiểm tra parameter có tồn tại không

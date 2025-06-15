@@ -1,16 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2">
+        <file>
+            <url>src/java/dal/CategoryDAO.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>web/categorylist.jsp</url>
+            <bookmark id="2">
+                <name/>
+                <line>108</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/filter/AuthFilter.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/util/ResetService.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/CreateUserController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/role.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/AuthenDAO.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/sidebar.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/materialList.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/AdminResetPasswordController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/WEB-INF/web.xml</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/OrderDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderDetailController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderListController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UpdateOrderServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/QualityDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/createorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/css/createorder.css</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/editorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Supplier.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/SupplierDAO.java</file>
         </group>
     </open-files>
 </project-private>
