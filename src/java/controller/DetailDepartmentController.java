@@ -67,7 +67,7 @@ public class DetailDepartmentController extends HttpServlet {
         String idStr = req.getParameter("departmentId");
         if (idStr == null || idStr.trim().isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\":\"Thiếu parameter departmentId\"}");
+            resp.getWriter().write("{\"error\":\"Missing departmentId parameter\"}");
             return;
         }
 
@@ -77,18 +77,18 @@ public class DetailDepartmentController extends HttpServlet {
 
             if (detail == null) {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().write("{\"error\":\"Không tìm thấy Department với ID " + departmentId + "\"}");
+                resp.getWriter().write("{\"error\":\"Department with ID " + departmentId + " not found\"}");
             } else {
-                // Trả về JSON của đối tượng DepartmentDetail
+                // Return JSON of DepartmentDetail object
                 String json = gson.toJson(detail);
                 resp.getWriter().write(json);
             }
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\":\"departmentId không hợp lệ\"}");
+            resp.getWriter().write("{\"error\":\"Invalid departmentId\"}");
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"error\":\"Lỗi database: " + e.getMessage() + "\"}");
+            resp.getWriter().write("{\"error\":\"Database error: " + e.getMessage() + "\"}");
         }
     }
 
@@ -114,7 +114,7 @@ public class DetailDepartmentController extends HttpServlet {
             roleIdStr == null || roleIdStr.trim().isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
             result.put("success", false);
-            result.put("message", "Tên, mô tả và Role đều là bắt buộc.");
+            result.put("message", "Name, description and Role are required.");
             out.write(gson.toJson(result));
             return;
         }
@@ -124,10 +124,10 @@ public class DetailDepartmentController extends HttpServlet {
             roleId = Integer.parseInt(roleIdStr);
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
-        result.put("success", false);
-        result.put("message", "Role ID không hợp lệ.");
-        out.write(gson.toJson(result));
-        return;
+            result.put("success", false);
+            result.put("message", "Invalid Role ID.");
+            out.write(gson.toJson(result));
+            return;
         }
 
         // 4) Tạo đối tượng Department
@@ -143,11 +143,11 @@ public class DetailDepartmentController extends HttpServlet {
                 boolean inserted = deptDao.insertDepartment(dept);
                 if (inserted) {
                     result.put("success", true);
-                    result.put("message", "Thêm Department thành công.");
+                    result.put("message", "Department added successfully.");
                 } else {
-                       resp.setStatus(HttpServletResponse.SC_CONFLICT); // 409
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT); // 409
                     result.put("success", false);
-                    result.put("message", "Role này đã được gán cho một Department khác, không thể thêm.");
+                    result.put("message", "This role is already assigned to another department, cannot add.");
                 }
             } else {
                 // --- CẬP NHẬT ---
@@ -155,9 +155,9 @@ public class DetailDepartmentController extends HttpServlet {
                 try {
                     deptId = Integer.parseInt(deptIdStr);
                 } catch (NumberFormatException e) {
-                      resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
                     result.put("success", false);
-                    result.put("message", "Department ID không hợp lệ.");
+                    result.put("message", "Invalid Department ID.");
                     out.write(gson.toJson(result));
                     return;
                 }
@@ -165,18 +165,18 @@ public class DetailDepartmentController extends HttpServlet {
                 boolean updated = deptDao.updateDepartment(dept);
                 if (updated) {
                     result.put("success", true);
-                    result.put("message", "Cập nhật Department thành công.");
+                    result.put("message", "Department updated successfully.");
                 } else {
-                     resp.setStatus(HttpServletResponse.SC_CONFLICT); // 409
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT); // 409
                     result.put("success", false);
-                    result.put("message", "Role này đã được gán cho một Department khác, không thể cập nhật.");
+                    result.put("message", "This role is already assigned to another department, cannot update.");
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             result.put("success", false);
-            result.put("message", "Lỗi database: " + e.getMessage());
+            result.put("message", "Database error: " + e.getMessage());
         }
 
         out.write(gson.toJson(result));

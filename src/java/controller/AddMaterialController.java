@@ -9,8 +9,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
 import java.sql.Date;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.Part;
+import controller.CloudinaryController;
+import java.io.InputStream;
+
 
 @WebServlet(name = "AddMaterialController", urlPatterns = {"/add-material"})
+@MultipartConfig
 public class AddMaterialController extends HttpServlet {
 
     @Override
@@ -29,9 +35,23 @@ public class AddMaterialController extends HttpServlet {
         String name = request.getParameter("name").trim();
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         int supplierId = Integer.parseInt(request.getParameter("supplierId"));
-        String image = request.getParameter("image");
         Date createAt = new Date(System.currentTimeMillis());
         String status = "active";
+        String image = "";
+
+        // Handle image upload
+        Part filePart = request.getPart("imageFile");
+        if (filePart != null && filePart.getSize() > 0) {
+            try (InputStream fileContent = filePart.getInputStream()) {
+                image = CloudinaryController.uploadToCloudinary(fileContent);
+            } catch (Exception e) {
+                request.setAttribute("error", "Image upload failed: " + e.getMessage());
+                request.setAttribute("categories", dao.getAllCategories());
+                request.setAttribute("suppliers", dao.getAllSuppliers());
+                request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
+                return;
+            }
+        }
 
         // Validation
         String error = validateInput(name, categoryId, supplierId);
@@ -45,7 +65,7 @@ public class AddMaterialController extends HttpServlet {
 
         Material material = new Material(0, categoryId, supplierId, name, image, createAt, status);
         if (dao.insertMaterial(material)) {
-            response.sendRedirect("list-material");
+            response.sendRedirect("list-material?success=Material added successfully");
         } else {
             request.setAttribute("error", "Failed to add material. Please try again.");
             request.setAttribute("categories", dao.getAllCategories());
@@ -53,6 +73,7 @@ public class AddMaterialController extends HttpServlet {
             request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
         }
     }
+
 
     private String validateInput(String name, int categoryId, int supplierId) {
         if (name == null || name.isEmpty()) return "Name cannot be empty.";

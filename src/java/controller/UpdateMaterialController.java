@@ -8,8 +8,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.Part;
+import controller.CloudinaryController;
+import java.io.InputStream;
+
 
 @WebServlet(name = "UpdateMaterialController", urlPatterns = {"/update-material"})
+@MultipartConfig
 public class UpdateMaterialController extends HttpServlet {
 
     @Override
@@ -31,7 +37,22 @@ public class UpdateMaterialController extends HttpServlet {
         String name = request.getParameter("name").trim();
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         int supplierId = Integer.parseInt(request.getParameter("supplierId"));
-        String image = request.getParameter("image");
+        String image = request.getParameter("image"); 
+        Part filePart = request.getPart("imageFile");
+        if (filePart != null && filePart.getSize() > 0) {
+            try (InputStream fileContent = filePart.getInputStream()) {
+                image = CloudinaryController.uploadToCloudinary(fileContent);
+            } catch (Exception e) {
+                request.setAttribute("error", "Image upload failed: " + e.getMessage());
+                MaterialDAO dao = new MaterialDAO();
+                Material material = dao.getMaterialById(materialId);
+                request.setAttribute("material", material);
+                request.setAttribute("suppliers", dao.getAllSuppliers());
+                request.setAttribute("categories", dao.getAllCategories());
+                request.getRequestDispatcher("updateMaterial.jsp").forward(request, response);
+                return;
+            }
+        }
         String status = request.getParameter("status");
 
         // Validation

@@ -89,12 +89,44 @@
         <servlet-class>controller.UnitServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>SupplierController</servlet-name>
+        <servlet-class>controller.SupplierController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DeleteSupplierController</servlet-name>
+        <servlet-class>controller.DeleteSupplierController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CreateUserController</servlet-name>
+        <servlet-class>controller.CreateUserController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>InventoryServlet</servlet-name>
         <servlet-class>controller.InventoryServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>OrderDetailController</servlet-name>
         <servlet-class>controller.OrderDetailController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CreateOrderServlet</servlet-name>
+        <servlet-class>controller.CreateOrderServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetMaterialsServlet</servlet-name>
+        <servlet-class>controller.GetMaterialsServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UpdateOrderServlet</servlet-name>
+        <servlet-class>controller.UpdateOrderServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UpdateSupplierController</servlet-name>
+        <servlet-class>controller.UpdateSupplierController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>NoPermissionController</servlet-name>
+        <servlet-class>controller.NoPermissionController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
@@ -178,10 +210,21 @@
         <servlet-name>DetailDepartmentController</servlet-name>
         <url-pattern>/detaildepartment</url-pattern>
     </servlet-mapping>
-    <!-- Cấu hình thời gian tồn tại của session -->
     <servlet-mapping>
         <servlet-name>UnitServlet</servlet-name>
         <url-pattern>/unit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SupplierController</servlet-name>
+        <url-pattern>/supplier</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DeleteSupplierController</servlet-name>
+        <url-pattern>/deletesupplier</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CreateUserController</servlet-name>
+        <url-pattern>/createuser</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>InventoryServlet</servlet-name>
@@ -190,6 +233,27 @@
     <servlet-mapping>
         <servlet-name>OrderDetailController</servlet-name>
         <url-pattern>/orderdetail</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CreateOrderServlet</servlet-name>
+        <url-pattern>/createorder</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetMaterialsServlet</servlet-name>
+        <url-pattern>/get-materials</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateOrderServlet</servlet-name>
+        <url-pattern>/editorder</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateSupplierController</servlet-name>
+        <url-pattern>/updatesupplier</url-pattern>
+    </servlet-mapping>
+    <!-- Cấu hình thời gian tồn tại của session -->
+    <servlet-mapping>
+        <servlet-name>NoPermissionController</servlet-name>
+        <url-pattern>/nopermission</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

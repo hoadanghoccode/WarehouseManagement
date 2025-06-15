@@ -4,30 +4,21 @@
  */
 package controller;
 
-import dal.UserDAO;
+import dal.SupplierDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.sql.Date;
-import java.sql.Timestamp;
-import model.Users;
-import util.ResetService;
 
 /**
  *
- * @author duong
+ * @author PC
  */
-@WebServlet(name = "AdminResetPasswordController", urlPatterns = {"/adminresetpassword"})
-public class AdminResetPasswordController extends HttpServlet {
+public class DeleteSupplierController extends HttpServlet {
 
-    UserDAO dao = new UserDAO();
+    private final SupplierDAO supplierDAO = new SupplierDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -46,10 +37,10 @@ public class AdminResetPasswordController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AdminResetPasswordController</title>");
+            out.println("<title>Servlet DeleteSupplierController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AdminResetPasswordController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet DeleteSupplierController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -67,7 +58,7 @@ public class AdminResetPasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-       
+        processRequest(request, response);
     }
 
     /**
@@ -81,49 +72,31 @@ public class AdminResetPasswordController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String idRaw = request.getParameter("supplierId");
+        String status = request.getParameter("status");
 
-        String tokenStr = request.getParameter("token");
-        String action = request.getParameter("action");
-        int userId = Integer.parseInt(request.getParameter("userId"));
+        response.setContentType("application/json;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            int id = Integer.parseInt(idRaw);
+            boolean success = supplierDAO.deleteSupplierById(id, status);
 
-        UserDAO dao = new UserDAO();
-        Users user = dao.getUserByID(userId);
-
-        if (user == null || user.getResetPasswordToken() == null || !user.getResetPasswordToken().equals(tokenStr)) {
-            response.sendRedirect("adminresetlist?error=Invalid token or user.");
-            return;
-        }
-        ResetService service = new ResetService();
-
-        if ("approve".equals(action)) {
-            String newPassword = service.generateRandomPassword();
-
-            dao.updatePasswordbyEmail(user.getEmail(), newPassword);
-            dao.clearResetToken(user.getUserId());
-
-            String content = "<h2>Password Reset Successful</h2>"
-                    + "<p>Hello <b>" + user.getFullName() + "</b>,</p>"
-                    + "<p>Your new password is: <b>" + newPassword + "</b></p>"
-                    + "<p><a href='http://localhost:8080/WarehouseManagement/login'>Click here to login</a></p>";
-
-            boolean sent = service.sendEmail(user.getEmail(), content, user.getFullName(), "Password Reset Notification");
-
-            if (sent) {
-                response.sendRedirect("adminresetlist?success=Approved and email sent successfully.");
+            if (success) {
+                response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+                out.write("{\"success\":true}");
             } else {
-                response.sendRedirect("adminresetlist?error=Password approved but failed to send email.");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400 Bad Request (hoặc chọn code phù hợp)
+                out.write("{\"success\":false,\"message\":\"Xóa thất bại, có thể id không tồn tại hoặc trạng thái không hợp lệ.\"}");
             }
-
-        } else if ("reject".equals(action)) {
-            dao.clearResetToken(user.getUserId());
-
-            response.sendRedirect("adminresetlist?success=Reset request rejected successfully.");
-        } else {
-            response.sendRedirect("adminresetlist?error=Invalid action.");
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            response.getWriter().write("{\"success\":false,\"message\":\"supplierId không hợp lệ!\"}");
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
+            response.getWriter().write("{\"success\":false,\"message\":\"Lỗi hệ thống: " + e.getMessage() + "\"}");
+            e.printStackTrace();
         }
     }
 
-    
     /**
      * Returns a short description of the servlet.
      *

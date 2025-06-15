@@ -6,24 +6,25 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
 import model.Order;
 import model.OrderDetail;
 
 /**
  * Data Access Object for Order operations
+ *
  * @author ADMIN
  */
 public class OrderDAO extends DBContext {
 
-   
     public boolean createOrder(Order order) {
         String orderQuery = "INSERT INTO Orders (Warehouse_id, User_id, Type, Supplier_id, Note, Status) VALUES (?, ?, ?, ?, ?, ?)";
         String orderDetailQuery = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, SubUnit_id, Quantity) VALUES (?, ?, ?, ?, ?)";
 
         PreparedStatement psOrder = null;
         PreparedStatement psOrderDetail = null;
-        
+
         try {
             // Start transaction
             connection.setAutoCommit(false);
@@ -33,14 +34,14 @@ public class OrderDAO extends DBContext {
             psOrder.setInt(1, order.getWarehouseId());
             psOrder.setInt(2, order.getUserId());
             psOrder.setString(3, order.getType());
-            
+
             // Handle null supplier_id
             if (order.getSupplier() > 0) {
                 psOrder.setInt(4, order.getSupplier());
             } else {
                 psOrder.setNull(4, java.sql.Types.INTEGER);
             }
-            
+
             psOrder.setString(5, order.getNote());
             psOrder.setString(6, order.getStatus() != null ? order.getStatus() : "pending");
 
@@ -105,8 +106,12 @@ public class OrderDAO extends DBContext {
         } finally {
             // Close resources
             try {
-                if (psOrder != null) psOrder.close();
-                if (psOrderDetail != null) psOrderDetail.close();
+                if (psOrder != null) {
+                    psOrder.close();
+                }
+                if (psOrderDetail != null) {
+                    psOrderDetail.close();
+                }
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
                 System.err.println("Error in finally block: " + e.getMessage());
@@ -114,12 +119,11 @@ public class OrderDAO extends DBContext {
         }
     }
 
-    
     public Order getOrderById(int orderId) {
         String query = "SELECT * FROM Orders WHERE Order_id = ?";
         PreparedStatement ps = null;
         ResultSet rs = null;
-        
+
         try {
             ps = connection.prepareStatement(query);
             ps.setInt(1, orderId);
@@ -132,13 +136,13 @@ public class OrderDAO extends DBContext {
                 order.setUserId(rs.getInt("User_id"));
                 order.setCreatedAt(rs.getTimestamp("Created_at"));
                 order.setType(rs.getString("Type"));
-                
+
                 // Handle nullable Supplier_id
                 int supplierId = rs.getInt("Supplier_id");
                 if (!rs.wasNull()) {
                     order.setSupplier(supplierId);
                 }
-                
+
                 order.setNote(rs.getString("Note"));
                 order.setStatus(rs.getString("Status"));
 
@@ -156,7 +160,6 @@ public class OrderDAO extends DBContext {
         return null;
     }
 
-    
     public List<OrderDetail> getOrderDetailsByOrderId(int orderId) {
         List<OrderDetail> details = new ArrayList<>();
         String query = "SELECT * FROM Order_detail WHERE Order_id = ?";
@@ -173,13 +176,13 @@ public class OrderDAO extends DBContext {
                 detail.setOrderDetailId(rs.getInt("Order_detail_id"));
                 detail.setMaterialId(rs.getInt("Material_id"));
                 detail.setOrderId(rs.getInt("Order_id"));
-                
+
                 // Handle nullable Quality_id
                 int qualityId = rs.getInt("Quality_id");
                 if (!rs.wasNull()) {
                     detail.setQualityId(qualityId);
                 }
-                
+
                 detail.setSubUnitId(rs.getInt("SubUnit_id"));
                 detail.setQuantity(rs.getInt("Quantity"));
                 details.add(detail);
@@ -194,7 +197,6 @@ public class OrderDAO extends DBContext {
         return details;
     }
 
-    
     public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();
         String query = "SELECT * FROM Orders ORDER BY Created_at DESC";
@@ -219,6 +221,40 @@ public class OrderDAO extends DBContext {
         return orders;
     }
 
+    public List<Order> getAllOrdersByUserId(int userId) {
+           List<Order> orders = new ArrayList<>();
+    String sql = "SELECT o.*, u.Full_name AS User_name, s.Name AS Supplier_name " +
+                 "FROM Orders o " +
+                 "LEFT JOIN Users u ON o.User_id = u.User_id " +
+                 "LEFT JOIN Suppliers s ON o.Supplier_id = s.Supplier_id " +
+                 "WHERE o.User_id = ? " +
+                 "ORDER BY o.Created_at DESC";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, userId);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            Order o = new Order();
+            o.setOrderId(rs.getInt("Order_id"));
+            o.setWarehouseId(rs.getInt("Warehouse_id"));
+            o.setUserId(rs.getInt("User_id"));
+            o.setCreatedAt(rs.getTimestamp("Created_at"));
+            o.setType(rs.getString("Type"));
+            o.setSupplier(rs.getInt("Supplier_id"));
+            o.setNote(rs.getString("Note"));
+            o.setStatus(rs.getString("Status"));
+            o.setUserName(rs.getString("User_name"));
+            o.setSupplierName(rs.getString("Supplier_name"));
+            orders.add(o);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return orders;
+    }
+
     public boolean updateOrderStatus(int orderId, String status) {
         String query = "UPDATE Orders SET Status = ? WHERE Order_id = ?";
         PreparedStatement ps = null;
@@ -239,7 +275,6 @@ public class OrderDAO extends DBContext {
         }
     }
 
-   
     public boolean updateOrderNote(int orderId, String note) {
         String query = "UPDATE Orders SET Note = ? WHERE Order_id = ?";
         PreparedStatement ps = null;
@@ -260,11 +295,10 @@ public class OrderDAO extends DBContext {
         }
     }
 
-   
     public boolean deleteOrder(int orderId) {
         String deleteOrderDetailsQuery = "DELETE FROM Order_detail WHERE Order_id = ?";
         String deleteOrderQuery = "DELETE FROM Orders WHERE Order_id = ?";
-        
+
         PreparedStatement psDetails = null;
         PreparedStatement psOrder = null;
 
@@ -300,8 +334,12 @@ public class OrderDAO extends DBContext {
             return false;
         } finally {
             try {
-                if (psDetails != null) psDetails.close();
-                if (psOrder != null) psOrder.close();
+                if (psDetails != null) {
+                    psDetails.close();
+                }
+                if (psOrder != null) {
+                    psOrder.close();
+                }
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
                 System.err.println("Error in finally block: " + e.getMessage());
@@ -309,27 +347,22 @@ public class OrderDAO extends DBContext {
         }
     }
 
-   
     public List<Order> getOrdersByType(String type) {
         return getOrdersByCondition("Type = ?", type);
     }
 
-  
     public List<Order> getOrdersByStatus(String status) {
         return getOrdersByCondition("Status = ?", status);
     }
 
-   
     public List<Order> getOrdersByUserId(int userId) {
         return getOrdersByCondition("User_id = ?", userId);
     }
 
-  
     public List<Order> getOrdersBySupplierId(int supplierId) {
         return getOrdersByCondition("Supplier_id = ?", supplierId);
     }
 
- 
     private List<Order> getOrdersByCondition(String condition, Object parameter) {
         List<Order> orders = new ArrayList<>();
         String query = "SELECT * FROM Orders WHERE " + condition + " ORDER BY Created_at DESC";
@@ -338,13 +371,13 @@ public class OrderDAO extends DBContext {
 
         try {
             ps = connection.prepareStatement(query);
-            
+
             if (parameter instanceof String) {
                 ps.setString(1, (String) parameter);
             } else if (parameter instanceof Integer) {
                 ps.setInt(1, (Integer) parameter);
             }
-            
+
             rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -363,6 +396,7 @@ public class OrderDAO extends DBContext {
 
     /**
      * Helper method to create Order object from ResultSet
+     *
      * @param rs ResultSet
      * @return Order object
      * @throws SQLException
@@ -374,13 +408,13 @@ public class OrderDAO extends DBContext {
         order.setUserId(rs.getInt("User_id"));
         order.setCreatedAt(rs.getTimestamp("Created_at"));
         order.setType(rs.getString("Type"));
-        
+
         // Handle nullable Supplier_id
         int supplierId = rs.getInt("Supplier_id");
         if (!rs.wasNull()) {
             order.setSupplier(supplierId);
         }
-        
+
         order.setNote(rs.getString("Note"));
         order.setStatus(rs.getString("Status"));
 
@@ -392,13 +426,18 @@ public class OrderDAO extends DBContext {
 
     /**
      * Helper method to close database resources
+     *
      * @param ps PreparedStatement
      * @param rs ResultSet
      */
     private void closeResources(PreparedStatement ps, ResultSet rs) {
         try {
-            if (rs != null) rs.close();
-            if (ps != null) ps.close();
+            if (rs != null) {
+                rs.close();
+            }
+            if (ps != null) {
+                ps.close();
+            }
         } catch (SQLException e) {
             System.err.println("Error closing resources: " + e.getMessage());
         }
@@ -406,6 +445,7 @@ public class OrderDAO extends DBContext {
 
     /**
      * Get Orders by date range
+     *
      * @param startDate Start date
      * @param endDate End date
      * @return List of Order
@@ -438,6 +478,7 @@ public class OrderDAO extends DBContext {
 
     /**
      * Count orders by status
+     *
      * @param status Order status
      * @return Number of orders
      */
@@ -464,10 +505,132 @@ public class OrderDAO extends DBContext {
         return 0;
     }
 
+    public List<Order> getPagedOrderList(String search, String type, String status, Date fromDate, Date toDate,
+            int offset, int limit, String sortColumn, String sortDirection) {
+        List<Order> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT o.*, u.Full_name AS User_name, s.Name AS Supplier_name "
+                + "FROM Orders o "
+                + "LEFT JOIN Users u ON o.User_id = u.User_id "
+                + "LEFT JOIN Suppliers s ON o.Supplier_id = s.Supplier_id WHERE 1=1 ");
+
+        if (search != null && !search.isEmpty()) {
+            sql.append(" AND (o.Note LIKE ? OR o.Type LIKE ? OR u.Full_name LIKE ? OR s.Name LIKE ?) ");
+        }
+        if (type != null && !type.isEmpty()) {
+            sql.append(" AND o.Type = ? ");
+        }
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND o.Status = ? ");
+        }
+        if (fromDate != null) {
+            sql.append(" AND DATE(o.Created_at) >= ? ");
+        }
+        if (toDate != null) {
+            sql.append(" AND DATE(o.Created_at) <= ? ");
+        }
+
+        sql.append(" ORDER BY ").append(sortColumn).append(" ").append(sortDirection).append(" LIMIT ? OFFSET ?");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int index = 1;
+            if (search != null && !search.isEmpty()) {
+                for (int i = 0; i < 4; i++) {
+                    ps.setString(index++, "%" + search + "%");
+                }
+            }
+            if (type != null && !type.isEmpty()) {
+                ps.setString(index++, type);
+            }
+            if (status != null && !status.isEmpty()) {
+                ps.setString(index++, status);
+            }
+            if (fromDate != null) {
+                ps.setDate(index++, fromDate);
+            }
+            if (toDate != null) {
+                ps.setDate(index++, toDate);
+            }
+            ps.setInt(index++, limit);
+            ps.setInt(index, offset);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Order o = new Order();
+                o.setOrderId(rs.getInt("Order_id"));
+                o.setWarehouseId(rs.getInt("Warehouse_id"));
+                o.setUserId(rs.getInt("User_id"));
+                o.setCreatedAt(rs.getTimestamp("Created_at"));
+                o.setType(rs.getString("Type"));
+                o.setSupplier(rs.getInt("Supplier_id"));
+                o.setNote(rs.getString("Note"));
+                o.setStatus(rs.getString("Status"));
+                o.setUserName(rs.getString("User_name"));
+                o.setSupplierName(rs.getString("Supplier_name"));
+                list.add(o);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countOrdersWithFilter(String search, String type, String status, Date fromDate, Date toDate) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM Orders o "
+                + "LEFT JOIN Users u ON o.User_id = u.User_id "
+                + "LEFT JOIN Suppliers s ON o.Supplier_id = s.Supplier_id WHERE 1=1 ");
+
+        if (search != null && !search.isEmpty()) {
+            sql.append(" AND (o.Note LIKE ? OR o.Type LIKE ? OR u.Full_name LIKE ? OR s.Name LIKE ?) ");
+        }
+        if (type != null && !type.isEmpty()) {
+            sql.append(" AND o.Type = ? ");
+        }
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND o.Status = ? ");
+        }
+        if (fromDate != null) {
+            sql.append(" AND DATE(o.Created_at) >= ? ");
+        }
+        if (toDate != null) {
+            sql.append(" AND DATE(o.Created_at) <= ? ");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int index = 1;
+            if (search != null && !search.isEmpty()) {
+                for (int i = 0; i < 4; i++) {
+                    ps.setString(index++, "%" + search + "%");
+                }
+            }
+            if (type != null && !type.isEmpty()) {
+                ps.setString(index++, type);
+            }
+            if (status != null && !status.isEmpty()) {
+                ps.setString(index++, status);
+            }
+            if (fromDate != null) {
+                ps.setDate(index++, fromDate);
+            }
+            if (toDate != null) {
+                ps.setDate(index++, toDate);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     // Test method
     public static void main(String[] args) {
         OrderDAO dao = new OrderDAO();
-        
+
         // Test get order by ID
         Order order = dao.getOrderById(1);
         if (order != null) {
@@ -475,9 +638,11 @@ public class OrderDAO extends DBContext {
         } else {
             System.out.println("Order not found");
         }
-        
+
+
         // Test get all orders
-        List<Order> allOrders = dao.getAllOrders();
-        System.out.println("Total orders: " + dao.getAllOrders());
+        List<Order> ordersByUser = dao.getAllOrdersByUserId(4);
+System.out.println("Orders by user 1: " + ordersByUser.size());
+
     }
 }

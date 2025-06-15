@@ -65,7 +65,7 @@
                     <div class="alert alert-success">${param.success}</div>
                 </c:if>
 
-                <form action="update-material" method="post">
+                <form action="update-material" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="materialId" value="${material.materialId}" />
                     <div class="form-group">
                         <label for="name">Name</label>
@@ -101,11 +101,13 @@
                         </c:if>
                     </div>
                     <div class="form-group">
-                        <label for="image">Image URL</label>
-                        <input type="text" id="image" name="image" class="form-control" value="${material.image}" />
-                        <c:if test="${not empty param.error and param.error.contains('Image')}">
-                            <span class="error">Image URL must not exceed 500 characters.</span>
-                        </c:if>
+                        <label for="imageFile">Upload New Image (optional)</label>
+                        <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control">
+                        <small class="text-muted">Leave blank to keep the current image.</small>
+                        <div class="mt-2">
+                            <strong>Current Image:</strong><br>
+                            <img src="${material.image}" alt="Material Image" style="max-height: 150px;">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="status">Status</label>

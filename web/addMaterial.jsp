@@ -132,7 +132,7 @@
                 <c:if test="${not empty error}">
                     <div class="alert alert-danger">${error}</div>
                 </c:if>
-                <form action="add-material" method="post">
+                <form action="add-material" method="post" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="name">Name</label>
                         <input type="text" id="name" name="name" class="form-control" required>
@@ -156,8 +156,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="image">Image URL</label>
-                        <input type="text" id="image" name="image" class="form-control">
+                        <label for="imageFile">Upload Image</label>
+                        <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control" required>
                     </div>
                     <div class="header-actions">
                         <button type="submit" class="btn btn-primary">Add Material</button>

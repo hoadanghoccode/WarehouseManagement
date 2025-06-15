@@ -22,6 +22,24 @@ public class Order {
     private String status;
     private String note;
     private List<OrderDetail> orderDetails;
+    private String userName;
+    private String supplierName;
+
+   
+
+    public Order(int orderId, int warehouseId, int userId, Timestamp createdAt, String type, int supplier, String status, String note, List<OrderDetail> orderDetails, String userName, String supplierName) {
+        this.orderId = orderId;
+        this.warehouseId = warehouseId;
+        this.userId = userId;
+        this.createdAt = createdAt;
+        this.type = type;
+        this.supplier = supplier;
+        this.status = status;
+        this.note = note;
+        this.orderDetails = orderDetails;
+        this.userName = userName;
+        this.supplierName = supplierName;
+    }
 
     public Order() {
     }
@@ -113,6 +131,22 @@ public class Order {
 
     public void setNote(String note) {
         this.note = note;
+    }
+    
+     public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
     }
 
     @Override

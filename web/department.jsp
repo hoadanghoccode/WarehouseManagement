@@ -135,8 +135,8 @@
                                 Are you sure you want to delete this role?
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
-                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Xoá</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
                             </div>
                         </div>
                     </c:if>
@@ -232,7 +232,7 @@
                                     <label for="viewDepartmentName" class="form-label">Department Name</label>
                                     <input type="text" class="form-control" id="viewDepartmentName" name="departmentName" required>
                                     <div class="invalid-feedback">
-                                        Tên Department không được để trống
+                                        Department name cannot be blank
                                     </div>
                                     <small class="text-danger" id="viewDepartmentNameError"></small>
                                 </div>
@@ -240,7 +240,7 @@
                                     <label for="viewDepartmentDescription" class="form-label">Description</label>
                                     <textarea class="form-control" id="viewDepartmentDescription" name="departmentDescription" rows="3" required></textarea>
                                     <div class="invalid-feedback">
-                                        Mô tả Department không được để trống
+                                        Department Description cannot be blank
                                     </div>
                                     <small class="text-danger" id="viewDepartmentDescError"></small>
                                 </div>
@@ -250,7 +250,7 @@
                                         <option value="">Select a role...</option>
                                     </select>
                                     <div class="invalid-feedback">
-                                        Bạn phải chọn 1 Role cho Department
+                                        You must select 1 Role for the Department
                                     </div>
                                     <small class="text-danger" id="viewDepartmentRoleError"></small>
                                 </div>
@@ -695,21 +695,21 @@
                 // Validate Department Name
                 if (!deptName.value.trim()) {
                     deptName.classList.add('is-invalid');
-                    document.getElementById('departmentNameError').textContent = 'Vui lòng nhập tên phòng ban';
+                    document.getElementById('departmentNameError').textContent = 'Please enter department name';
                     isValid = false;
                 }
 
                 // Validate Description
                 if (!deptDesc.value.trim()) {
                     deptDesc.classList.add('is-invalid');
-                    document.getElementById('departmentDescError').textContent = 'Vui lòng nhập mô tả phòng ban';
+                    document.getElementById('departmentDescError').textContent = 'Please enter department description';
                     isValid = false;
                 }
 
                 // Validate Role
                 if (!roleSelect.value) {
                     roleSelect.classList.add('is-invalid');
-                    document.getElementById('departmentRoleError').textContent = 'Vui lòng chọn một Role cho phòng ban';
+                    document.getElementById('departmentRoleError').textContent = 'Please select a Role for the department';
                     isValid = false;
                 }
 
@@ -732,13 +732,13 @@
                 })
                         .then(response => {
                             if (!response.ok)
-                                throw new Error('Lỗi khi lưu Department.');
+                                throw new Error('Error saving Department.');
                             return response.json();
                         })
                         .then(json => {
                             if (json.success) {
                                 // Nếu backend trả về success: true                             
-                                showAlert(true, 'Thêm Department thành công!');
+                                showAlert(true, 'Department added successfully!');
 
                                 // Đóng modal
                                 const modal = bootstrap.Modal.getInstance(departmentModalEl);
@@ -788,7 +788,7 @@
                                         })
                                         .catch(err => {
                                             console.error("Lỗi khi fetch dữ liệu mới:", err);
-                                            showAlert(false, 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+                                            showAlert(false, 'An error occurred while updating data!');
                                         });
                             } else {
                                 const modal = bootstrap.Modal.getInstance(departmentModalEl);
@@ -797,16 +797,9 @@
                             }
                         })
                         .catch(err => {
-                            showAlert(false, err.message || 'Có lỗi xảy ra khi lưu Department !');
+                            showAlert(false, err.message || 'An error occurred while updating data!s');
                         });
             });
-
-            // Thêm hàm giả sử rằng bạn có 1 table/show list Department ở trang chính, có thể reload khi thành công
-            function loadDepartmentList() {
-                // Ví dụ: fetch('/department/list') rồi populate lại bảng.
-                // Mình tạm để trống vì tuỳ từng project bạn implement.
-                console.log('>>> Refresh lại danh sách Department sau khi thêm.');
-            }
         </script>
         <!--        Xóa phòng ban-->
         <script>
@@ -827,7 +820,7 @@
                     })
                             .then(response => {
                                 if (!response.ok)
-                                    throw new Error('Lỗi khi xóa department');
+                                    throw new Error('Error while deleting department');
                                 return response.json();
                             })
                             .then(data => {
@@ -837,7 +830,7 @@
                                     // Render lại bảng
                                     renderRoleTable();
                                     // Hiển thị thông báo thành công
-                                    showAlert(true, 'Xóa phòng ban thành công!');
+                                    showAlert(true, 'Department deleted successfully!');
 //                                    alert('Xóa phòng ban thành công!');
                                 } else {
 //                                    alert('Xóa phòng ban thất bại: ' + (data.message || ''));
@@ -881,7 +874,7 @@
                             })
                             .catch(err => {
                                 console.error(err);
-                                showAlert(true, 'Không thể tải danh sách role từ server.');
+                                showAlert(true, 'Unable to load role list from server.');
 
                             });
                 } else {
@@ -902,7 +895,9 @@
                 console.log('department', department);
 
                 if (!department) {
-                    alert('Không tìm thấy thông tin phòng ban');
+//                    alert('Không tìm thấy thông tin phòng ban');
+                                                    showAlert(false, 'Department information not found');
+
                     return;
                 }
 
@@ -1128,15 +1123,15 @@
                                 viewModal.hide();
 
                                 // Hiển thị thông báo thành công
-                                showAlert(true, data.message || 'Cập nhật Department thành công nhé!');
+                                showAlert(true, data.message || 'Department update successful');
                             } else {
                                 // Nếu có lỗi nhưng không phải lỗi HTTP
-                                showAlert(false, data.message || 'Cập nhật thất bại');
+                                showAlert(false, data.message || 'Update failed');
                             }
                         })
                         .catch(err => {
                             console.error('Lỗi:', err);
-                            showAlert('danger', err.message || 'Có lỗi xảy ra khi cập nhật Department');
+                            showAlert('danger', err.message || 'An error occurred while updating Department');
                         });
             });
 
