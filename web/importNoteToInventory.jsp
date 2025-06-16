@@ -97,7 +97,7 @@
 </div>
 
 <!-- Toast Container -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
   <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert"
        aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
@@ -109,7 +109,7 @@
 </div>
 
 <!-- Error Toast Container -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
   <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert"
        aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
