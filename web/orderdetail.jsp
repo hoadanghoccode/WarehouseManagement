@@ -128,7 +128,14 @@
 
                                                     <div class="order-item">
                                                         <div class="item-image">
-                                                            <i class="fas fa-cube" style="color: #64748b;"></i>
+                                                            <c:choose>
+                                                                <c:when test="${detail.materialImage != null}">
+                                                                    <img src=${detail.materialImage} width="60px" height="60px"/>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <i class="fas fa-cube" style="color: #64748b;"></i>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </div>
                                                         <div class="item-details">
                                                             <div class="item-name">
