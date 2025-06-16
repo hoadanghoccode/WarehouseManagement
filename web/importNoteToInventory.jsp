@@ -97,11 +97,23 @@
 </div>
 
 <!-- Toast Container -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
   <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert"
        aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
       <div class="toast-body">Thêm vào kho thành công!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Error Toast Container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+  <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert"
+       aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="errorToastBody">Đã xảy ra lỗi!</div>
       <button type="button" class="btn-close btn-close-white me-2 m-auto"
               data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
@@ -126,7 +138,9 @@ $(function(){
         }).get();
 
         if (detailIds.length === 0) {
-            alert('Vui lòng chọn ít nhất 1 mục để thêm vào kho.');
+            $('#errorToastBody').text('Vui lòng chọn ít nhất 1 mục để thêm vào kho.');
+            var errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+            errorToast.show();
             return;
         }
 
