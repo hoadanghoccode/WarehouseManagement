@@ -829,711 +829,691 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="vendors/datatable/js/jquery.dataTables.min.js"></script>
         <script>
-                                                                    // Clear session messages via AJAX and reload page
-                                                                    function clearMessages() {
-                                                                        $.ajax({
-                                                                            url: 'unit',
-                                                                            type: 'POST',
-                                                                            data: {action: 'clearMessages'},
-                                                                            success: function () {
-                                                                                console.log('Session messages cleared');
-                                                                                window.location.reload();
-                                                                            },
-                                                                            error: function (xhr, status, error) {
-                                                                                console.error('Error clearing session messages: ' + error);
-                                                                                window.location.reload();
-                                                                            }
-                                                                        });
-                                                                    }
+    // Clear session messages via AJAX and reload page
+    function clearMessages() {
+        $.ajax({
+            url: 'unit',
+            type: 'POST',
+            data: { action: 'clearMessages' },
+            success: function () {
+                console.log('Session messages cleared');
+                window.location.reload();
+            },
+            error: function (xhr, status, error) {
+                console.error('Error clearing session messages: ' + error);
+                window.location.reload();
+            }
+        });
+    }
 
-                                                                    // Check deletion status for units and subunits
-                                                                    function checkDeleteStatus(entity, id, status) {
-                                                                        if (entity === 'unit' && status === 'true' || entity === 'subunit' && status === 'active') {
-                                                                            let entityName = entity === 'unit' ? 'Unit' : 'Subunit';
-                                                                            $('#activeDeleteErrorMessage').text(`${entityName} is active and cannot be deleted.`);
-                                                                            var errorModal = new bootstrap.Modal(document.getElementById('activeDeleteErrorModal'));
-                                                                            errorModal.show();
-                                                                        } else {
-                                                                            showDeleteConfirmModal(entity, id);
-                                                                        }
-                                                                    }
+    // Check deletion status for units and subunits
+    function checkDeleteStatus(entity, id, status) {
+        if (entity === 'unit' && status === 'true' || entity === 'subunit' && status === 'active') {
+            let entityName = entity === 'unit' ? 'Unit' : 'Subunit';
+            $('#activeDeleteErrorMessage').text(`${entityName} is active and cannot be deleted.`);
+            var errorModal = new bootstrap.Modal(document.getElementById('activeDeleteErrorModal'));
+            errorModal.show();
+        } else {
+            showDeleteConfirmModal(entity, id);
+        }
+    }
 
-                                                                    // Show custom delete confirmation modal
-                                                                    function showDeleteConfirmModal(entity, id) {
-                                                                        let entityName;
-                                                                        switch (entity) {
-                                                                            case 'unit':
-                                                                                entityName = 'Unit';
-                                                                                break;
-                                                                            case 'subunit':
-                                                                                entityName = 'Subunit';
-                                                                                break;
-                                                                            case 'conversion':
-                                                                                entityName = 'Unit Conversion';
-                                                                                break;
-                                                                            default:
-                                                                                entityName = 'Item';
-                                                                        }
-                                                                        $('#deleteConfirmMessage').text(`Are you sure you want to delete this ${entityName}?`);
-                                                                        $('#deleteEntity').val(entity);
-                                                                        $('#deleteId').val(id);
-                                                                        var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-                                                                        deleteModal.show();
-                                                                    }
+    // Show custom delete confirmation modal
+    function showDeleteConfirmModal(entity, id) {
+        let entityName;
+        switch (entity) {
+            case 'unit':
+                entityName = 'Unit';
+                break;
+            case 'subunit':
+                entityName = 'Subunit';
+                break;
+            case 'conversion':
+                entityName = 'Unit Conversion';
+                break;
+            default:
+                entityName = 'Item';
+        }
+        $('#deleteConfirmMessage').text(`Are you sure you want to delete this ${entityName}?`);
+        $('#deleteEntity').val(entity);
+        $('#deleteId').val(id);
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        deleteModal.show();
+    }
 
-                                                                    // Handle modal display for edit/detail actions
-            <c:if test="${not empty action && not empty entity}">
+    // Handle modal display for edit/detail actions
+    <c:if test="${not empty action && not empty entity}">
+        <c:choose>
+            <c:when test="${entity == 'unit'}">
                 <c:choose>
-                    <c:when test="${entity == 'unit'}">
-                        <c:choose>
-                            <c:when test="${action == 'edit'}">
-                                                                    var editModal = new bootstrap.Modal(document.getElementById('unitEditModal'));
-                                                                    $('#unitEditModalLabel').text('Edit Unit');
-                                                                    $('#unitModalAction').val('update');
-                                                                    $('#editUnitId').val('${unit.unitId}');
-                                                                    $('#unitName').val('${unit.name}');
-                                                                    $('#unitIsActive').val('${unit.active}');
-                                                                    $('#originalUnitStatus').val('${unit.active}');
-                                                                    $('#unitSubmitBtn').text('Update');
-                                                                    editModal.show();
-                            </c:when>
-                            <c:when test="${action == 'detail'}">
-                                                                    var detailModal = new bootstrap.Modal(document.getElementById('unitDetailModal'));
-                                                                    $('#modal-unit-id').text('${unit.unitId}');
-                                                                    $('#modal-unit-name').text('${unit.name}');
-                                                                    $('#modal-unit-status').text(${unit.active} ? 'Active' : 'Inactive');
-                                                                    $('#modal-unit-created').text('<fmt:formatDate value="${unit.createdAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
-                                                                    $('#modal-unit-updated').text('<fmt:formatDate value="${unit.updatedAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
-                                                                    detailModal.show();
-                            </c:when>
-                            <c:when test="${action == 'confirmDeactivateUnit'}">
-                                                                    var confirmModal = new bootstrap.Modal(document.getElementById('unitConfirmModal'));
-                                                                    $('#confirmUnitId').val('${unit.unitId}');
-                                                                    confirmModal.show();
-                            </c:when>
-                        </c:choose>
+                    <c:when test="${action == 'edit'}">
+                        var editModal = new bootstrap.Modal(document.getElementById('unitEditModal'));
+                        $('#unitEditModalLabel').text('Edit Unit');
+                        $('#unitModalAction').val('update');
+                        $('#editUnitId').val('${unit.unitId}');
+                        $('#unitName').val('${unit.name}');
+                        $('#unitIsActive').val('${unit.active}');
+                        $('#originalUnitStatus').val('${unit.active}');
+                        $('#unitSubmitBtn').text('Update');
+                        editModal.show();
                     </c:when>
-                    <c:when test="${entity == 'subunit'}">
-                        <c:choose>
-                            <c:when test="${action == 'edit'}">
-                                                                    var editModal = new bootstrap.Modal(document.getElementById('subunitEditModal'));
-                                                                    $('#subunitEditModalLabel').text('Edit Subunit');
-                                                                    $('#subunitModalAction').val('update');
-                                                                    $('#editSubUnitId').val('${subunit.subUnitId}');
-                                                                    $('#subunitName').val('${subunit.name}');
-                                                                    $('#subunitStatus').val('${subunit.status}');
-                                                                    $('#originalSubunitStatus').val('${subunit.status}');
-                                                                    $('#subunitSubmitBtn').text('Update');
-                                                                    editModal.show();
-                            </c:when>
-                            <c:when test="${action == 'detail'}">
-                                                                    var detailModal = new bootstrap.Modal(document.getElementById('subunitDetailModal'));
-                                                                    $('#modal-subunit-id').text('${subunit.subUnitId}');
-                                                                    $('#modal-subunit-name').text('${subunit.name}');
-                                                                    $('#modal-subunit-status').text('${subunit.status == "active" ? "Active" : "Inactive"}');
-                                                                    $('#modal-subunit-created').text('<fmt:formatDate value="${subunit.createdAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
-                                                                    $('#modal-subunit-updated').text('<fmt:formatDate value="${subunit.updatedAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
-                                                                    detailModal.show();
-                            </c:when>
-                            <c:when test="${action == 'confirmDeactivateSubunit'}">
-                                                                    var confirmModal = new bootstrap.Modal(document.getElementById('subunitConfirmModal'));
-                                                                    $('#confirmSubUnitId').val('${subunit.subUnitId}');
-                                                                    confirmModal.show();
-                            </c:when>
-                        </c:choose>
+                    <c:when test="${action == 'detail'}">
+                        var detailModal = new bootstrap.Modal(document.getElementById('unitDetailModal'));
+                        $('#modal-unit-id').text('${unit.unitId}');
+                        $('#modal-unit-name').text('${unit.name}');
+                        $('#modal-unit-status').text(${unit.active} ? 'Active' : 'Inactive');
+                        $('#modal-unit-created').text('<fmt:formatDate value="${unit.createdAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
+                        $('#modal-unit-updated').text('<fmt:formatDate value="${unit.updatedAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
+                        detailModal.show();
                     </c:when>
-                    <c:when test="${entity == 'conversion'}">
-                        <c:choose>
-                            <c:when test="${action == 'edit'}">
-                                                                    var editModal = new bootstrap.Modal(document.getElementById('conversionEditModal'));
-                                                                    $('#conversionEditModalLabel').text('Edit Unit Conversion');
-                                                                    $('#conversionModalAction').val('update');
-                                                                    $('#editUnitConversionId').val('${conversion.unitConversionId}');
-                                                                    $('#conversionUnitId').val('${conversion.unitId}');
-                                                                    $('#conversionSubUnitId').val('${conversion.subUnitId}');
-                                                                    $('#conversionFactor').val('${conversion.factor}');
-                                                                    $('#conversionSubmitBtn').text('Update');
-                                                                    editModal.show();
-                            </c:when>
-                            <c:when test="${action == 'detail'}">
-                                                                    var detailModal = new bootstrap.Modal(document.getElementById('conversionDetailModal'));
-                                                                    $('#modal-conversion-id').text('${conversion.unitConversionId}');
-                                                                    $('#modal-conversion-unit').text(getUnitName(${conversion.unitId}));
-                                                                    $('#modal-conversion-factor').text(${conversion.factor});
-                                                                    $('#modal-conversion-subunit').text(getSubUnitName(${conversion.subUnitId}));
-                                                                    $('#modal-conversion-created').text('<fmt:formatDate value="${conversion.createdAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
-                                                                    $('#modal-conversion-updated').text('<fmt:formatDate value="${conversion.updatedAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
-                                                                    detailModal.show();
-                            </c:when>
-                        </c:choose>
+                    <c:when test="${action == 'confirmDeactivateUnit'}">
+                        var confirmModal = new bootstrap.Modal(document.getElementById('unitConfirmModal'));
+                        $('#confirmUnitId').val('${unit.unitId}');
+                        confirmModal.show();
                     </c:when>
                 </c:choose>
-            </c:if>
+            </c:when>
+            <c:when test="${entity == 'subunit'}">
+                <c:choose>
+                    <c:when test="${action == 'edit'}">
+                        var editModal = new bootstrap.Modal(document.getElementById('subunitEditModal'));
+                        $('#subunitEditModalLabel').text('Edit Subunit');
+                        $('#subunitModalAction').val('update');
+                        $('#editSubUnitId').val('${subunit.subUnitId}');
+                        $('#subunitName').val('${subunit.name}');
+                        $('#subunitStatus').val('${subunit.status}');
+                        $('#originalSubunitStatus').val('${subunit.status}');
+                        $('#subunitSubmitBtn').text('Update');
+                        editModal.show();
+                    </c:when>
+                    <c:when test="${action == 'detail'}">
+                        var detailModal = new bootstrap.Modal(document.getElementById('subunitDetailModal'));
+                        $('#modal-subunit-id').text('${subunit.subUnitId}');
+                        $('#modal-subunit-name').text('${subunit.name}');
+                        $('#modal-subunit-status').text('${subunit.status == "active" ? "Active" : "Inactive"}');
+                        $('#modal-subunit-created').text('<fmt:formatDate value="${subunit.createdAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
+                        $('#modal-subunit-updated').text('<fmt:formatDate value="${subunit.updatedAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
+                        detailModal.show();
+                    </c:when>
+                    <c:when test="${action == 'confirmDeactivateSubunit'}">
+                        var confirmModal = new bootstrap.Modal(document.getElementById('subunitConfirmModal'));
+                        $('#confirmSubUnitId').val('${subunit.subUnitId}');
+                        confirmModal.show();
+                    </c:when>
+                </c:choose>
+            </c:when>
+            <c:when test="${entity == 'conversion'}">
+                <c:choose>
+                    <c:when test="${action == 'edit'}">
+                        var editModal = new bootstrap.Modal(document.getElementById('conversionEditModal'));
+                        $('#conversionEditModalLabel').text('Edit Unit Conversion');
+                        $('#conversionModalAction').val('update');
+                        $('#editUnitConversionId').val('${conversion.unitConversionId}');
+                        $('#conversionUnitId').val('${conversion.unitId}');
+                        $('#conversionSubUnitId').val('${conversion.subUnitId}');
+                        $('#conversionFactor').val('${conversion.factor}');
+                        $('#conversionSubmitBtn').text('Update');
+                        editModal.show();
+                    </c:when>
+                    <c:when test="${action == 'detail'}">
+                        var detailModal = new bootstrap.Modal(document.getElementById('conversionDetailModal'));
+                        $('#modal-conversion-id').text('${conversion.unitConversionId}');
+                        $('#modal-conversion-unit').text(getUnitName(${conversion.unitId}));
+                        $('#modal-conversion-factor').text(${conversion.factor});
+                        $('#modal-conversion-subunit').text(getSubUnitName(${conversion.subUnitId}));
+                        $('#modal-conversion-created').text('<fmt:formatDate value="${conversion.createdAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
+                        $('#modal-conversion-updated').text('<fmt:formatDate value="${conversion.updatedAt}" pattern="dd-MM-yyyy HH:mm:ss"/>');
+                        detailModal.show();
+                    </c:when>
+                </c:choose>
+            </c:when>
+        </c:choose>
+    </c:if>
 
-                                                                    // Validate unit form submission
-                                                                    $('#unitForm').on('submit', function (e) {
-                                                                        e.preventDefault();
-                                                                        let name = $('#unitName').val().trim();
-                                                                        let status = $('#unitIsActive').val();
-                                                                        let originalStatus = $('#originalUnitStatus').val();
-                                                                        let unitId = $('#editUnitId').val();
+    // Validate unit form submission
+    $('#unitForm').on('submit', function (e) {
+        e.preventDefault();
+        let name = $('#unitName').val().trim();
+        let status = $('#unitIsActive').val();
+        let originalStatus = $('#originalUnitStatus').val();
+        let unitId = $('#editUnitId').val();
+        if (!name) {
+            $('#unitErrorMsg').text('Please enter the unit name.');
+            return;
+        }
+        // Check for duplicate unit name
+        $.ajax({
+            url: 'unit',
+            type: 'GET',
+            data: {
+                entity: 'unit',
+                action: 'checkDuplicate',
+                name: name,
+                id: unitId
+            },
+            success: function (response) {
+                if (response === 'exists') {
+                    $('#unitErrorMsg').text('Unit name already exists.');
+                } else {
+                    $('#unitForm')[0].submit();
+                }
+            }
+        });
+    });
 
-                                                                        if (!name) {
-                                                                            $('#unitErrorMsg').text('Please enter the unit name.');
-                                                                            return;
-                                                                        }
+    // Validate subunit form submission
+    $('#subunitForm').on('submit', function (e) {
+        e.preventDefault();
+        let name = $('#subunitName').val().trim();
+        let status = $('#subunitStatus').val();
+        let originalStatus = $('#originalSubunitStatus').val();
+        let subUnitId = $('#editSubUnitId').val();
+        if (!name) {
+            $('#subunitErrorMsg').text('Please enter the subunit name.');
+            return;
+        }
+        // Check for duplicate subunit name
+        $.ajax({
+            url: 'unit',
+            type: 'GET',
+            data: {
+                entity: 'subunit',
+                action: 'checkDuplicate',
+                name: name,
+                id: subUnitId
+            },
+            success: function (response) {
+                if (response === 'exists') {
+                    $('#subunitErrorMsg').text('Subunit name already exists.');
+                } else {
+                    $('#subunitForm')[0].submit();
+                }
+            }
+        });
+    });
 
-                                                                        // Check for duplicate unit name
-                                                                        $.ajax({
-                                                                            url: 'unit',
-                                                                            type: 'GET',
-                                                                            data: {
-                                                                                entity: 'unit',
-                                                                                action: 'checkDuplicate',
-                                                                                name: name,
-                                                                                id: unitId
-                                                                            },
-                                                                            success: function (response) {
-                                                                                if (response === 'exists') {
-                                                                                    $('#unitErrorMsg').text('Unit name already exists.');
-                                                                                } else {
-                                                                                    $('#unitForm')[0].submit();
-                                                                                }
-                                                                            }
-                                                                        });
+    // Validate conversion form submission
+    $('#conversionForm').on('submit', function (e) {
+        e.preventDefault();
+        let unitId = $('#conversionUnitId').val();
+        let subUnitId = $('#conversionSubUnitId').val();
+        let factor = parseFloat($('#conversionFactor').val());
+        let conversionId = $('#editUnitConversionId').val();
+        if (!unitId || !subUnitId) {
+            $('#conversionErrorMsg').text('Please select valid unit and subunit.');
+            return;
+        } else if (unitId === subUnitId) {
+            $('#conversionErrorMsg').text('Unit and subunit cannot be the same.');
+            return;
+        } else if (isNaN(factor) || factor <= 0) {
+            $('#conversionErrorMsg').text('Please provide a valid factor greater than 0.');
+            return;
+        }
+        // Check for duplicate conversion
+        $.ajax({
+            url: 'unit',
+            type: 'GET',
+            data: {
+                entity: 'conversion',
+                action: 'checkDuplicate',
+                unitId: unitId,
+                subUnitId: subUnitId,
+                id: conversionId
+            },
+            success: function (response) {
+                console.log('Duplicate check response:', response); // Debugging
+                if (response.trim() === 'exists') {
+                    $('#conversionErrorMsg').text('This pair of units has been converted.');
+                } else {
+                    $('#conversionErrorMsg').text('');
+                    $('#conversionForm')[0].submit();
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error checking duplicate conversion:', error, xhr.responseText); // Debugging
+                $('#conversionErrorMsg').text('Lỗi khi kiểm tra quy đổi trùng lặp: ' + error);
+            }
+        });
+    });
 
-                                                                    });
+    // Helper functions for modal data
+    function getUnitName(unitId) {
+        <c:forEach var="unit" items="${units}">
+            if (unitId == ${unit.unitId})
+                return "${unit.name}";
+        </c:forEach>
+        return "Unknown";
+    }
 
-                                                                    // Validate subunit form submission
-                                                                    $('#subunitForm').on('submit', function (e) {
-                                                                        e.preventDefault();
-                                                                        let name = $('#subunitName').val().trim();
-                                                                        let status = $('#subunitStatus').val();
-                                                                        let originalStatus = $('#originalSubunitStatus').val();
-                                                                        let subUnitId = $('#editSubUnitId').val();
+    function getSubUnitName(subUnitId) {
+        <c:forEach var="subunit" items="${subunits}">
+            if (subUnitId == ${subunit.subUnitId})
+                return "${subunit.name}";
+        </c:forEach>
+        return "Unknown";
+    }
 
-                                                                        if (!name) {
-                                                                            $('#subunitErrorMsg').text('Please enter the subunit name.');
-                                                                            return;
-                                                                        }
+    // Open modals for adding new entities
+    function openAddUnitModal() {
+        $('#unitEditModalLabel').text('Add Unit');
+        $('#unitModalAction').val('add');
+        $('#editUnitId').val('');
+        $('#unitName').val('');
+        $('#unitIsActive').val('true');
+        $('#originalUnitStatus').val('');
+        $('#unitSubmitBtn').text('Save');
+        $('#unitErrorMsg').text('');
+    }
 
-                                                                        // Check for duplicate subunit name
-                                                                        $.ajax({
-                                                                            url: 'unit',
-                                                                            type: 'GET',
-                                                                            data: {
-                                                                                entity: 'subunit',
-                                                                                action: 'checkDuplicate',
-                                                                                name: name,
-                                                                                id: subUnitId
-                                                                            },
-                                                                            success: function (response) {
-                                                                                if (response === 'exists') {
-                                                                                    $('#subunitErrorMsg').text('Subunit name already exists.');
-                                                                                } else {
-                                                                                    $('#subunitForm')[0].submit();
-                                                                                }
-                                                                            }
-                                                                        });
+    function openAddSubunitModal() {
+        $('#subunitEditModalLabel').text('Add Subunit');
+        $('#subunitModalAction').val('add');
+        $('#editSubUnitId').val('');
+        $('#subunitName').val('');
+        $('#subunitStatus').val('active');
+        $('#originalSubunitStatus').val('');
+        $('#subunitSubmitBtn').text('Save');
+        $('#subunitErrorMsg').text('');
+    }
 
-                                                                    });
+    function openAddConversionModal() {
+        $('#conversionEditModalLabel').text('Add Unit Conversion');
+        $('#conversionModalAction').val('add');
+        $('#editUnitConversionId').val('');
+        $('#conversionUnitId').val('');
+        $('#conversionSubUnitId').val('');
+        $('#conversionFactor').val('');
+        $('#conversionSubmitBtn').text('Save');
+        $('#conversionErrorMsg').text('');
+    }
 
-                                                                    // Validate conversion form submission
-                                                                    $('#conversionForm').on('submit', function (e) {
-                                                                        e.preventDefault();
-                                                                        let unitId = $('#conversionUnitId').val();
-                                                                        let subUnitId = $('#conversionSubUnitId').val();
-                                                                        let factor = parseFloat($('#conversionFactor').val());
-                                                                        let conversionId = $('#editUnitConversionId').val();
+    // AJAX to check unit conversions before deactivation
+    function checkUnitConversions(unitId) {
+        $.ajax({
+            url: 'unit',
+            type: 'GET',
+            data: {
+                entity: 'unit',
+                action: 'checkConversions',
+                id: unitId
+            },
+            success: function (response) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(response, 'text/html');
+                var countConversions = $(doc).find('#countConversions').val() || 0;
+                var unitIdFromResponse = $(doc).find('#confirmUnitId').val() || unitId;
+                $('#confirmUnitId').val(unitIdFromResponse);
+                var confirmModal = new bootstrap.Modal(document.getElementById('unitConfirmModal'));
+                var warningBox = $('#unitConfirmModal .warning-box');
+                if (countConversions > 0) {
+                    warningBox.show();
+                    warningBox.find('.warning-content strong').text(countConversions);
+                } else {
+                    warningBox.hide();
+                }
+                confirmModal.show();
+            },
+            error: function (xhr, status, error) {
+                $('#unitErrorMsg').text('Error checking conversions: ' + error);
+            }
+        });
+    }
 
-                                                                        if (!unitId || !subUnitId) {
-                                                                            $('#conversionErrorMsg').text('Please select valid unit and subunit.');
-                                                                            return;
-                                                                        } else if (unitId === subUnitId) {
-                                                                            $('#conversionErrorMsg').text('Unit and subunit cannot be the same.');
-                                                                            return;
-                                                                        } else if (isNaN(factor) || factor <= 0) {
-                                                                            $('#conversionErrorMsg').text('Please provide a valid factor greater than 0.');
-                                                                            return;
-                                                                        }
+    // AJAX to check subunit conversions before deactivation
+    function checkSubUnitConversions(subUnitId) {
+        $.ajax({
+            url: 'unit',
+            type: 'GET',
+            data: {
+                entity: 'subunit',
+                action: 'checkConversions',
+                id: subUnitId
+            },
+            success: function (response) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(response, 'text/html');
+                var countConversions = $(doc).find('#countConversions').val() || 0;
+                var subUnitIdFromResponse = $(doc).find('#confirmSubUnitId').val() || subUnitId;
+                $('#confirmSubUnitId').val(subUnitIdFromResponse);
+                var confirmModal = new bootstrap.Modal(document.getElementById('subunitConfirmModal'));
+                var warningBox = $('#subunitConfirmModal .warning-box');
+                if (countConversions > 0) {
+                    warningBox.show();
+                    warningBox.find('.warning-content strong').text(countConversions);
+                } else {
+                    warningBox.hide();
+                }
+                confirmModal.show();
+            },
+            error: function (xhr, status, error) {
+                $('#subunitErrorMsg').text('Error checking conversions: ' + error);
+            }
+        });
+    }
 
-                                                                        // Check for duplicate conversion
-                                                                        $.ajax({
-                                                                            url: 'unit',
-                                                                            type: 'GET',
-                                                                            data: {
-                                                                                entity: 'conversion',
-                                                                                action: 'checkDuplicate',
-                                                                                unitId: unitId,
-                                                                                subUnitId: subUnitId,
-                                                                                id: conversionId
-                                                                            },
-                                                                            success: function (response) {
-                                                                                console.log('Duplicate check response:', response); // Debugging
-                                                                                if (response.trim() === 'exists') {
-                                                                                    $('#conversionErrorMsg').text('This pair of units has been converted.');
-                                                                                } else {
-                                                                                    $('#conversionErrorMsg').text('');
-                                                                                    $('#conversionForm')[0].submit();
-                                                                                }
-                                                                            },
-                                                                            error: function (xhr, status, error) {
-                                                                                console.error('Error checking duplicate conversion:', error, xhr.responseText); // Debugging
-                                                                                $('#conversionErrorMsg').text('Lỗi khi kiểm tra quy đổi trùng lặp: ' + error);
-                                                                            }
-                                                                        });
-                                                                    });
+    // Pagination state for each tab
+    const paginationState = {
+        conversion: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] },
+        subunit: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] },
+        unit: { pageSize: 5, currentPage: 1, allRows: [], filteredRows: [] }
+    };
 
-                                                                    // Helper functions for modal data
-                                                                    function getUnitName(unitId) {
-            <c:forEach var="unit" items="${units}">
-                                                                        if (unitId == ${unit.unitId})
-                                                                            return "${unit.name}";
-            </c:forEach>
-                                                                        return "Unknown";
-                                                                    }
+    // Initialize pagination on page load
+    window.addEventListener("DOMContentLoaded", function () {
+        paginationState.conversion.allRows = Array.from(document.querySelectorAll("#conversionsTable tbody tr:not(.no-data)"));
+        paginationState.conversion.filteredRows = [...paginationState.conversion.allRows];
+        paginationState.subunit.allRows = Array.from(document.querySelectorAll("#subunitsTable tbody tr:not(.no-data)"));
+        paginationState.subunit.filteredRows = [...paginationState.subunit.allRows];
+        paginationState.unit.allRows = Array.from(document.querySelectorAll("#unitsTable tbody tr:not(.no-data)"));
+        paginationState.unit.filteredRows = [...paginationState.unit.allRows];
+        updateTable('conversion');
+        updatePagination('conversion');
+        updateTable('subunit');
+        updatePagination('subunit');
+        updateTable('unit');
+        updatePagination('unit');
+        document.querySelectorAll("#conversionSearchInput").forEach(el => {
+            el.addEventListener("input", () => filterUnits('conversion'));
+        });
+        document.querySelectorAll("#subunitSearchInput, #subunitActiveFilter").forEach(el => {
+            el.addEventListener("input", () => filterUnits('subunit'));
+            el.addEventListener("change", () => filterUnits('subunit'));
+        });
+        document.querySelectorAll("#unitSearchInput, #unitActiveFilter").forEach(el => {
+            el.addEventListener("input", () => filterUnits('unit'));
+            el.addEventListener("change", () => filterUnits('unit'));
+        });
 
-                                                                    function getSubUnitName(subUnitId) {
-            <c:forEach var="subunit" items="${subunits}">
-                                                                        if (subUnitId == ${subunit.subUnitId})
-                                                                            return "${subunit.name}";
-            </c:forEach>
-                                                                        return "Unknown";
-                                                                    }
+        // Add event listeners to modal close buttons
+        document.querySelectorAll('.modal .btn-close, .modal .close, .modal').forEach(element => {
+            element.addEventListener('click', function(event) {
+                if (event.target === element || event.target.classList.contains('btn-close') || event.target.classList.contains('close')) {
+                    updateUrlToUnit();
+                }
+            });
+        });
 
-                                                                    // Open modals for adding new entities
-                                                                    function openAddUnitModal() {
-                                                                        $('#unitEditModalLabel').text('Add Unit');
-                                                                        $('#unitModalAction').val('add');
-                                                                        $('#editUnitId').val('');
-                                                                        $('#unitName').val('');
-                                                                        $('#unitIsActive').val('true');
-                                                                        $('#originalUnitStatus').val('');
-                                                                        $('#unitSubmitBtn').text('Save');
-                                                                        $('#unitErrorMsg').text('');
-                                                                    }
+        // Add event listeners to modal close buttons
+        document.querySelectorAll('.modal .btn-secondary').forEach(button => {
+            button.addEventListener('click', updateUrlToUnit);
+        });
+    });
 
-                                                                    function openAddSubunitModal() {
-                                                                        $('#subunitEditModalLabel').text('Add Subunit');
-                                                                        $('#subunitModalAction').val('add');
-                                                                        $('#editSubUnitId').val('');
-                                                                        $('#subunitName').val('');
-                                                                        $('#subunitStatus').val('active');
-                                                                        $('#originalSubunitStatus').val('');
-                                                                        $('#subunitSubmitBtn').text('Save');
-                                                                        $('#subunitErrorMsg').text('');
-                                                                    }
+    function filterUnits(entity) {
+        let searchInput, statusFilter, nameClass, statusClass;
+        const state = paginationState[entity];
+        if (entity === 'unit') {
+            searchInput = '#unitSearchInput';
+            statusFilter = '#unitActiveFilter';
+            nameClass = '.unit-name';
+            statusClass = '.unit-status';
+        } else if (entity === 'subunit') {
+            searchInput = '#subunitSearchInput';
+            statusFilter = '#subunitActiveFilter';
+            nameClass = '.subunit-name';
+            statusClass = '.subunit-status';
+        } else if (entity === 'conversion') {
+            searchInput = '#conversionSearchInput';
+        }
+        const search = document.querySelector(searchInput).value.trim().toLowerCase();
+        const status = entity !== 'conversion' ? document.querySelector(statusFilter).value.trim().toLowerCase() : '';
+        state.filteredRows = state.allRows.filter(row => {
+            if (entity === 'conversion') {
+                const unit = row.querySelector('.conversion-unit')?.textContent.trim().toLowerCase() || '';
+                const subunit = row.querySelector('.conversion-subunit')?.textContent.trim().toLowerCase() || '';
+                return unit.includes(search) || subunit.includes(search);
+            } else {
+                const name = row.querySelector(nameClass)?.textContent.trim().toLowerCase() || '';
+                const statusText = row.querySelector(statusClass)?.textContent.trim().toLowerCase() || '';
+                const matchName = name.includes(search);
+                let matchStatus = true;
+                if (status !== '') {
+                    if (entity === 'unit') {
+                        matchStatus = (status === 'true' && statusText === 'active') ||
+                            (status === 'false' && statusText === 'inactive');
+                    } else if (entity === 'subunit') {
+                        matchStatus = statusText === status;
+                    }
+                }
+                return matchName && matchStatus;
+            }
+        });
+        state.currentPage = 1;
+        updateTable(entity);
+        updatePagination(entity);
+    }
 
-                                                                    function openAddConversionModal() {
-                                                                        $('#conversionEditModalLabel').text('Add Unit Conversion');
-                                                                        $('#conversionModalAction').val('add');
-                                                                        $('#editUnitConversionId').val('');
-                                                                        $('#conversionUnitId').val('');
-                                                                        $('#conversionSubUnitId').val('');
-                                                                        $('#conversionFactor').val('');
-                                                                        $('#conversionSubmitBtn').text('Save');
-                                                                        $('#conversionErrorMsg').text('');
-                                                                    }
+    function updateTable(entity) {
+        const state = paginationState[entity];
+        let tableId = entity === 'unit' ? '#unitsTable' : entity === 'subunit' ? '#subunitsTable' : '#conversionsTable';
+        state.allRows.forEach(row => {
+            row.style.display = 'none';
+        });
+        const start = (state.currentPage - 1) * state.pageSize;
+        const end = Math.min(start + state.pageSize, state.filteredRows.length);
+        const rowsToShow = state.filteredRows.slice(start, end);
+        rowsToShow.forEach((row, index) => {
+            row.style.display = '';
+            const rowNumberCell = row.querySelector('.row-number strong');
+            rowNumberCell.textContent = start + index + 1;
+        });
+    }
 
-                                                                    // AJAX to check unit conversions before deactivation
-                                                                    function checkUnitConversions(unitId) {
-                                                                        $.ajax({
-                                                                            url: 'unit',
-                                                                            type: 'GET',
-                                                                            data: {
-                                                                                entity: 'unit',
-                                                                                action: 'checkConversions',
-                                                                                id: unitId
-                                                                            },
-                                                                            success: function (response) {
-                                                                                var parser = new DOMParser();
-                                                                                var doc = parser.parseFromString(response, 'text/html');
-                                                                                var countConversions = $(doc).find('#countConversions').val() || 0;
-                                                                                var unitIdFromResponse = $(doc).find('#confirmUnitId').val() || unitId;
+    function updatePagination(entity) {
+        const state = paginationState[entity];
+        const paginationId = entity === 'unit' ? '#unitPagination' : entity === 'subunit' ? '#subunitPagination' : '#conversionPagination';
+        const pagination = document.querySelector(paginationId);
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(state.filteredRows.length / state.pageSize);
+        if (totalPages <= 1)
+            return;
+        if (state.currentPage > 1) {
+            const first = document.createElement('a');
+            first.href = '#';
+            first.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+            first.addEventListener('click', e => {
+                e.preventDefault();
+                state.currentPage = 1;
+                updatePagination(entity);
+                updateTable(entity);
+            });
+            pagination.appendChild(first);
+            const prev = document.createElement('a');
+            prev.href = '#';
+            prev.innerHTML = '<i class="fas fa-angle-left"></i>';
+            prev.addEventListener('click', e => {
+                e.preventDefault();
+                state.currentPage--;
+                updatePagination(entity);
+                updateTable(entity);
+            });
+            pagination.appendChild(prev);
+        } else {
+            const disabledFirst = document.createElement('span');
+            disabledFirst.className = 'text-muted me-2';
+            disabledFirst.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+            pagination.appendChild(disabledFirst);
+            const disabledPrev = document.createElement('span');
+            disabledPrev.className = 'text-muted me-2';
+            disabledPrev.innerHTML = '<i class="fas fa-angle-left"></i>';
+            pagination.appendChild(disabledPrev);
+        }
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === state.currentPage) {
+                    const current = document.createElement('span');
+                    current.className = 'current';
+                    current.textContent = i;
+                    pagination.appendChild(current);
+                } else {
+                    const pageLink = document.createElement('a');
+                    pageLink.href = '#';
+                    pageLink.textContent = i;
+                    pageLink.addEventListener('click', e => {
+                        e.preventDefault();
+                        state.currentPage = i;
+                        updatePagination(entity);
+                        updateTable(entity);
+                    });
+                    pagination.appendChild(pageLink);
+                }
+            }
+        } else {
+            if (state.currentPage <= 4) {
+                for (let i = 1; i <= 5; i++) {
+                    if (i === state.currentPage) {
+                        const current = document.createElement('span');
+                        current.className = 'current';
+                        current.textContent = i;
+                        pagination.appendChild(current);
+                    } else {
+                        const pageLink = document.createElement('a');
+                        pageLink.href = '#';
+                        pageLink.textContent = i;
+                        pageLink.addEventListener('click', e => {
+                            e.preventDefault();
+                            state.currentPage = i;
+                            updatePagination(entity);
+                            updateTable(entity);
+                        });
+                        pagination.appendChild(pageLink);
+                    }
+                }
+                if (totalPages > 6) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    pagination.appendChild(dots);
+                    const last = document.createElement('a');
+                    last.href = '#';
+                    last.textContent = totalPages;
+                    last.addEventListener('click', e => {
+                        e.preventDefault();
+                        state.currentPage = totalPages;
+                        updatePagination(entity);
+                        updateTable(entity);
+                    });
+                    pagination.appendChild(last);
+                }
+            } else if (state.currentPage >= totalPages - 3) {
+                const first = document.createElement('a');
+                first.href = '#';
+                first.textContent = '1';
+                first.addEventListener('click', e => {
+                    e.preventDefault();
+                    state.currentPage = 1;
+                    updatePagination(entity);
+                    updateTable(entity);
+                });
+                pagination.appendChild(first);
+                if (totalPages > 6) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    pagination.appendChild(dots);
+                }
+                for (let i = totalPages - 4; i <= totalPages; i++) {
+                    if (i === state.currentPage) {
+                        const current = document.createElement('span');
+                        current.className = 'current';
+                        current.textContent = i;
+                        pagination.appendChild(current);
+                    } else {
+                        const pageLink = document.createElement('a');
+                        pageLink.href = '#';
+                        pageLink.textContent = i;
+                        pageLink.addEventListener('click', e => {
+                            e.preventDefault();
+                            state.currentPage = i;
+                            updatePagination(entity);
+                            updateTable(entity);
+                        });
+                        pagination.appendChild(pageLink);
+                    }
+                }
+            } else {
+                const first = document.createElement('a');
+                first.href = '#';
+                first.textContent = '1';
+                first.addEventListener('click', e => {
+                    e.preventDefault();
+                    state.currentPage = 1;
+                    updatePagination(entity);
+                    updateTable(entity);
+                });
+                pagination.appendChild(first);
+                const dots1 = document.createElement('span');
+                dots1.textContent = '...';
+                pagination.appendChild(dots1);
+                for (let i = state.currentPage - 1; i <= state.currentPage + 1; i++) {
+                    if (i === state.currentPage) {
+                        const current = document.createElement('span');
+                        current.className = 'current';
+                        current.textContent = i;
+                        pagination.appendChild(current);
+                    } else {
+                        const pageLink = document.createElement('a');
+                        pageLink.href = '#';
+                        pageLink.textContent = i;
+                        pageLink.addEventListener('click', e => {
+                            e.preventDefault();
+                            state.currentPage = i;
+                            updatePagination(entity);
+                            updateTable(entity);
+                        });
+                        pagination.appendChild(pageLink);
+                    }
+                }
+                const dots2 = document.createElement('span');
+                dots2.textContent = '...';
+                pagination.appendChild(dots2);
+                const last = document.createElement('a');
+                last.href = '#';
+                last.textContent = totalPages;
+                last.addEventListener('click', e => {
+                    e.preventDefault();
+                    state.currentPage = totalPages;
+                    updatePagination(entity);
+                    updateTable(entity);
+                });
+                pagination.appendChild(last);
+            }
+        }
+        if (state.currentPage < totalPages) {
+            const next = document.createElement('a');
+            next.href = '#';
+            next.innerHTML = '<i class="fas fa-angle-right"></i>';
+            next.addEventListener('click', e => {
+                e.preventDefault();
+                state.currentPage++;
+                updatePagination(entity);
+                updateTable(entity);
+            });
+            pagination.appendChild(next);
+            const lastBtn = document.createElement('a');
+            lastBtn.href = '#';
+            lastBtn.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+            lastBtn.addEventListener('click', e => {
+                e.preventDefault();
+                state.currentPage = totalPages;
+                updatePagination(entity);
+                updateTable(entity);
+            });
+            pagination.appendChild(lastBtn);
+        } else {
+            const disabledNext = document.createElement('span');
+            disabledNext.innerHTML = '<i class="fas fa-angle-right"></i>';
+            pagination.appendChild(disabledNext);
+            const disabledLast = document.createElement('span');
+            disabledLast.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+            pagination.appendChild(disabledLast);
+        }
+    }
 
-                                                                                $('#confirmUnitId').val(unitIdFromResponse);
-                                                                                var confirmModal = new bootstrap.Modal(document.getElementById('unitConfirmModal'));
-                                                                                var warningBox = $('#unitConfirmModal .warning-box');
-
-                                                                                if (countConversions > 0) {
-                                                                                    warningBox.show();
-                                                                                    warningBox.find('.warning-content strong').text(countConversions);
-                                                                                } else {
-                                                                                    warningBox.hide();
-                                                                                }
-
-                                                                                confirmModal.show();
-                                                                            },
-                                                                            error: function (xhr, status, error) {
-                                                                                $('#unitErrorMsg').text('Error checking conversions: ' + error);
-                                                                            }
-                                                                        });
-                                                                    }
-
-                                                                    // AJAX to check subunit conversions before deactivation
-                                                                    function checkSubUnitConversions(subUnitId) {
-                                                                        $.ajax({
-                                                                            url: 'unit',
-                                                                            type: 'GET',
-                                                                            data: {
-                                                                                entity: 'subunit',
-                                                                                action: 'checkConversions',
-                                                                                id: subUnitId
-                                                                            },
-                                                                            success: function (response) {
-                                                                                var parser = new DOMParser();
-                                                                                var doc = parser.parseFromString(response, 'text/html');
-                                                                                var countConversions = $(doc).find('#countConversions').val() || 0;
-                                                                                var subUnitIdFromResponse = $(doc).find('#confirmSubUnitId').val() || subUnitId;
-
-                                                                                $('#confirmSubUnitId').val(subUnitIdFromResponse);
-                                                                                var confirmModal = new bootstrap.Modal(document.getElementById('subunitConfirmModal'));
-                                                                                var warningBox = $('#subunitConfirmModal .warning-box');
-
-                                                                                if (countConversions > 0) {
-                                                                                    warningBox.show();
-                                                                                    warningBox.find('.warning-content strong').text(countConversions);
-                                                                                } else {
-                                                                                    warningBox.hide();
-                                                                                }
-
-                                                                                confirmModal.show();
-                                                                            },
-                                                                            error: function (xhr, status, error) {
-                                                                                $('#subunitErrorMsg').text('Error checking conversions: ' + error);
-                                                                            }
-                                                                        });
-                                                                    }
-
-                                                                    // Pagination state for each tab
-                                                                    const paginationState = {
-                                                                        conversion: {pageSize: 5, currentPage: 1, allRows: [], filteredRows: []},
-                                                                        subunit: {pageSize: 5, currentPage: 1, allRows: [], filteredRows: []},
-                                                                        unit: {pageSize: 5, currentPage: 1, allRows: [], filteredRows: []}
-                                                                    };
-
-                                                                    // Initialize pagination on page load
-                                                                    window.addEventListener("DOMContentLoaded", function () {
-                                                                        paginationState.conversion.allRows = Array.from(document.querySelectorAll("#conversionsTable tbody tr:not(.no-data)"));
-                                                                        paginationState.conversion.filteredRows = [...paginationState.conversion.allRows];
-                                                                        paginationState.subunit.allRows = Array.from(document.querySelectorAll("#subunitsTable tbody tr:not(.no-data)"));
-                                                                        paginationState.subunit.filteredRows = [...paginationState.subunit.allRows];
-                                                                        paginationState.unit.allRows = Array.from(document.querySelectorAll("#unitsTable tbody tr:not(.no-data)"));
-                                                                        paginationState.unit.filteredRows = [...paginationState.unit.allRows];
-
-                                                                        updateTable('conversion');
-                                                                        updatePagination('conversion');
-                                                                        updateTable('subunit');
-                                                                        updatePagination('subunit');
-                                                                        updateTable('unit');
-                                                                        updatePagination('unit');
-
-                                                                        document.querySelectorAll("#conversionSearchInput").forEach(el => {
-                                                                            el.addEventListener("input", () => filterUnits('conversion'));
-                                                                        });
-                                                                        document.querySelectorAll("#subunitSearchInput, #subunitActiveFilter").forEach(el => {
-                                                                            el.addEventListener("input", () => filterUnits('subunit'));
-                                                                            el.addEventListener("change", () => filterUnits('subunit'));
-                                                                        });
-                                                                        document.querySelectorAll("#unitSearchInput, #unitActiveFilter").forEach(el => {
-                                                                            el.addEventListener("input", () => filterUnits('unit'));
-                                                                            el.addEventListener("change", () => filterUnits('unit'));
-                                                                        });
-                                                                    });
-
-                                                                    function filterUnits(entity) {
-                                                                        let searchInput, statusFilter, nameClass, statusClass;
-                                                                        const state = paginationState[entity];
-
-                                                                        if (entity === 'unit') {
-                                                                            searchInput = '#unitSearchInput';
-                                                                            statusFilter = '#unitActiveFilter';
-                                                                            nameClass = '.unit-name';
-                                                                            statusClass = '.unit-status';
-                                                                        } else if (entity === 'subunit') {
-                                                                            searchInput = '#subunitSearchInput';
-                                                                            statusFilter = '#subunitActiveFilter';
-                                                                            nameClass = '.subunit-name';
-                                                                            statusClass = '.subunit-status';
-                                                                        } else if (entity === 'conversion') {
-                                                                            searchInput = '#conversionSearchInput';
-                                                                        }
-
-                                                                        const search = document.querySelector(searchInput).value.trim().toLowerCase();
-                                                                        const status = entity !== 'conversion' ? document.querySelector(statusFilter).value.trim().toLowerCase() : '';
-
-                                                                        state.filteredRows = state.allRows.filter(row => {
-                                                                            if (entity === 'conversion') {
-                                                                                const unit = row.querySelector('.conversion-unit')?.textContent.trim().toLowerCase() || '';
-                                                                                const subunit = row.querySelector('.conversion-subunit')?.textContent.trim().toLowerCase() || '';
-                                                                                return unit.includes(search) || subunit.includes(search);
-                                                                            } else {
-                                                                                const name = row.querySelector(nameClass)?.textContent.trim().toLowerCase() || '';
-                                                                                const statusText = row.querySelector(statusClass)?.textContent.trim().toLowerCase() || '';
-                                                                                const matchName = name.includes(search);
-                                                                                let matchStatus = true;
-
-                                                                                if (status !== '') {
-                                                                                    if (entity === 'unit') {
-                                                                                        matchStatus = (status === 'true' && statusText === 'active') ||
-                                                                                                (status === 'false' && statusText === 'inactive');
-                                                                                    } else if (entity === 'subunit') {
-                                                                                        matchStatus = statusText === status;
-                                                                                    }
-                                                                                }
-
-                                                                                return matchName && matchStatus;
-                                                                            }
-                                                                        });
-
-                                                                        state.currentPage = 1;
-                                                                        updateTable(entity);
-                                                                        updatePagination(entity);
-                                                                    }
-
-                                                                    function updateTable(entity) {
-                                                                        const state = paginationState[entity];
-                                                                        let tableId = entity === 'unit' ? '#unitsTable' : entity === 'subunit' ? '#subunitsTable' : '#conversionsTable';
-
-                                                                        state.allRows.forEach(row => {
-                                                                            row.style.display = 'none';
-                                                                        });
-
-                                                                        const start = (state.currentPage - 1) * state.pageSize;
-                                                                        const end = Math.min(start + state.pageSize, state.filteredRows.length);
-                                                                        const rowsToShow = state.filteredRows.slice(start, end);
-
-                                                                        rowsToShow.forEach((row, index) => {
-                                                                            row.style.display = '';
-                                                                            const rowNumberCell = row.querySelector('.row-number strong');
-                                                                            rowNumberCell.textContent = start + index + 1;
-                                                                        });
-                                                                    }
-
-                                                                    function updatePagination(entity) {
-                                                                        const state = paginationState[entity];
-                                                                        const paginationId = entity === 'unit' ? '#unitPagination' : entity === 'subunit' ? '#subunitPagination' : '#conversionPagination';
-                                                                        const pagination = document.querySelector(paginationId);
-                                                                        pagination.innerHTML = '';
-
-                                                                        const totalPages = Math.ceil(state.filteredRows.length / state.pageSize);
-                                                                        if (totalPages <= 1)
-                                                                            return;
-
-                                                                        if (state.currentPage > 1) {
-                                                                            const first = document.createElement('a');
-                                                                            first.href = '#';
-                                                                            first.innerHTML = '<i class="fas fa-angle-double-left"></i>';
-                                                                            first.addEventListener('click', e => {
-                                                                                e.preventDefault();
-                                                                                state.currentPage = 1;
-                                                                                updatePagination(entity);
-                                                                                updateTable(entity);
-                                                                            });
-                                                                            pagination.appendChild(first);
-
-                                                                            const prev = document.createElement('a');
-                                                                            prev.href = '#';
-                                                                            prev.innerHTML = '<i class="fas fa-angle-left"></i>';
-                                                                            prev.addEventListener('click', e => {
-                                                                                e.preventDefault();
-                                                                                state.currentPage--;
-                                                                                updatePagination(entity);
-                                                                                updateTable(entity);
-                                                                            });
-                                                                            pagination.appendChild(prev);
-                                                                        } else {
-                                                                            const disabledFirst = document.createElement('span');
-                                                                            disabledFirst.className = 'text-muted me-2';
-                                                                            disabledFirst.innerHTML = '<i class="fas fa-angle-double-left"></i>';
-                                                                            pagination.appendChild(disabledFirst);
-
-                                                                            const disabledPrev = document.createElement('span');
-                                                                            disabledPrev.className = 'text-muted me-2';
-                                                                            disabledPrev.innerHTML = '<i class="fas fa-angle-left"></i>';
-                                                                            pagination.appendChild(disabledPrev);
-                                                                        }
-
-                                                                        if (totalPages <= 7) {
-                                                                            for (let i = 1; i <= totalPages; i++) {
-                                                                                if (i === state.currentPage) {
-                                                                                    const current = document.createElement('span');
-                                                                                    current.className = 'current';
-                                                                                    current.textContent = i;
-                                                                                    pagination.appendChild(current);
-                                                                                } else {
-                                                                                    const pageLink = document.createElement('a');
-                                                                                    pageLink.href = '#';
-                                                                                    pageLink.textContent = i;
-                                                                                    pageLink.addEventListener('click', e => {
-                                                                                        e.preventDefault();
-                                                                                        state.currentPage = i;
-                                                                                        updatePagination(entity);
-                                                                                        updateTable(entity);
-                                                                                    });
-                                                                                    pagination.appendChild(pageLink);
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            if (state.currentPage <= 4) {
-                                                                                for (let i = 1; i <= 5; i++) {
-                                                                                    if (i === state.currentPage) {
-                                                                                        const current = document.createElement('span');
-                                                                                        current.className = 'current';
-                                                                                        current.textContent = i;
-                                                                                        pagination.appendChild(current);
-                                                                                    } else {
-                                                                                        const pageLink = document.createElement('a');
-                                                                                        pageLink.href = '#';
-                                                                                        pageLink.textContent = i;
-                                                                                        pageLink.addEventListener('click', e => {
-                                                                                            e.preventDefault();
-                                                                                            state.currentPage = i;
-                                                                                            updatePagination(entity);
-                                                                                            updateTable(entity);
-                                                                                        });
-                                                                                        pagination.appendChild(pageLink);
-                                                                                    }
-                                                                                }
-                                                                                if (totalPages > 6) {
-                                                                                    const dots = document.createElement('span');
-                                                                                    dots.textContent = '...';
-                                                                                    pagination.appendChild(dots);
-
-                                                                                    const last = document.createElement('a');
-                                                                                    last.href = '#';
-                                                                                    last.textContent = totalPages;
-                                                                                    last.addEventListener('click', e => {
-                                                                                        e.preventDefault();
-                                                                                        state.currentPage = totalPages;
-                                                                                        updatePagination(entity);
-                                                                                        updateTable(entity);
-                                                                                    });
-                                                                                    pagination.appendChild(last);
-                                                                                }
-                                                                            } else if (state.currentPage >= totalPages - 3) {
-                                                                                const first = document.createElement('a');
-                                                                                first.href = '#';
-                                                                                first.textContent = '1';
-                                                                                first.addEventListener('click', e => {
-                                                                                    e.preventDefault();
-                                                                                    state.currentPage = 1;
-                                                                                    updatePagination(entity);
-                                                                                    updateTable(entity);
-                                                                                });
-                                                                                pagination.appendChild(first);
-
-                                                                                if (totalPages > 6) {
-                                                                                    const dots = document.createElement('span');
-                                                                                    dots.textContent = '...';
-                                                                                    pagination.appendChild(dots);
-                                                                                }
-
-                                                                                for (let i = totalPages - 4; i <= totalPages; i++) {
-                                                                                    if (i === state.currentPage) {
-                                                                                        const current = document.createElement('span');
-                                                                                        current.className = 'current';
-                                                                                        current.textContent = i;
-                                                                                        pagination.appendChild(current);
-                                                                                    } else {
-                                                                                        const pageLink = document.createElement('a');
-                                                                                        pageLink.href = '#';
-                                                                                        pageLink.textContent = i;
-                                                                                        pageLink.addEventListener('click', e => {
-                                                                                            e.preventDefault();
-                                                                                            state.currentPage = i;
-                                                                                            updatePagination(entity);
-                                                                                            updateTable(entity);
-                                                                                        });
-                                                                                        pagination.appendChild(pageLink);
-                                                                                    }
-                                                                                }
-                                                                            } else {
-                                                                                const first = document.createElement('a');
-                                                                                first.href = '#';
-                                                                                first.textContent = '1';
-                                                                                first.addEventListener('click', e => {
-                                                                                    e.preventDefault();
-                                                                                    state.currentPage = 1;
-                                                                                    updatePagination(entity);
-                                                                                    updateTable(entity);
-                                                                                });
-                                                                                pagination.appendChild(first);
-
-                                                                                const dots1 = document.createElement('span');
-                                                                                dots1.textContent = '...';
-                                                                                pagination.appendChild(dots1);
-
-                                                                                for (let i = state.currentPage - 1; i <= state.currentPage + 1; i++) {
-                                                                                    if (i === state.currentPage) {
-                                                                                        const current = document.createElement('span');
-                                                                                        current.className = 'current';
-                                                                                        current.textContent = i;
-                                                                                        pagination.appendChild(current);
-                                                                                    } else {
-                                                                                        const pageLink = document.createElement('a');
-                                                                                        pageLink.href = '#';
-                                                                                        pageLink.textContent = i;
-                                                                                        pageLink.addEventListener('click', e => {
-                                                                                            e.preventDefault();
-                                                                                            state.currentPage = i;
-                                                                                            updatePagination(entity);
-                                                                                            updateTable(entity);
-                                                                                        });
-                                                                                        pagination.appendChild(pageLink);
-                                                                                    }
-                                                                                }
-
-                                                                                const dots2 = document.createElement('span');
-                                                                                dots2.textContent = '...';
-                                                                                pagination.appendChild(dots2);
-
-                                                                                const last = document.createElement('a');
-                                                                                last.href = '#';
-                                                                                last.textContent = totalPages;
-                                                                                last.addEventListener('click', e => {
-                                                                                    e.preventDefault();
-                                                                                    state.currentPage = totalPages;
-                                                                                    updatePagination(entity);
-                                                                                    updateTable(entity);
-                                                                                });
-                                                                                pagination.appendChild(last);
-                                                                            }
-                                                                        }
-
-                                                                        if (state.currentPage < totalPages) {
-                                                                            const next = document.createElement('a');
-                                                                            next.href = '#';
-                                                                            next.innerHTML = '<i class="fas fa-angle-right"></i>';
-                                                                            next.addEventListener('click', e => {
-                                                                                e.preventDefault();
-                                                                                state.currentPage++;
-                                                                                updatePagination(entity);
-                                                                                updateTable(entity);
-                                                                            });
-                                                                            pagination.appendChild(next);
-
-                                                                            const lastBtn = document.createElement('a');
-                                                                            lastBtn.href = '#';
-                                                                            lastBtn.innerHTML = '<i class="fas fa-angle-double-right"></i>';
-                                                                            lastBtn.addEventListener('click', e => {
-                                                                                e.preventDefault();
-                                                                                state.currentPage = totalPages;
-                                                                                updatePagination(entity);
-                                                                                updateTable(entity);
-                                                                            });
-                                                                            pagination.appendChild(lastBtn);
-                                                                        } else {
-                                                                            const disabledNext = document.createElement('span');
-                                                                            disabledNext.innerHTML = '<i class="fas fa-angle-right"></i>';
-                                                                            pagination.appendChild(disabledNext);
-
-                                                                            const disabledLast = document.createElement('span');
-                                                                            disabledLast.innerHTML = '<i class="fas fa-angle-double-right"></i>';
-                                                                            pagination.appendChild(disabledLast);
-                                                                        }
-                                                                    }
-        </script>
+    // Function to update the URL to /unit when closing modals
+    function updateUrlToUnit() {
+        const newUrl = window.location.origin + '/WarehouseManagement/unit';
+        history.replaceState({}, '', newUrl);
+    }
+</script>
 
         <!-- Hidden input to pass countConversions for JSP rendering -->
         <input type="hidden" id="countConversions" value="${countConversions}">
