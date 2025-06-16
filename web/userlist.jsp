@@ -120,7 +120,7 @@
                         <thead>
                             <tr>
                                 <th style="width:60px;">Avatar</th>
-                                <th>User ID</th>
+                                
                                 <th>Email</th>
                                 <th>Name</th>
                                 <th>Gender</th>
@@ -145,7 +145,6 @@
                                         <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
                                              alt="User Avatar" class="avatar">
                                     </td>
-                                    <td>${user.userId}</td>
                                     <td title="${user.email}">${fn:escapeXml(user.email)}</td>
                                     <td>
                                         <a href="javascript:void(0)" onclick="openUserDetailModal(${user.userId})" class="category-name" title="${user.fullName}">${fn:escapeXml(user.fullName)}</a>
