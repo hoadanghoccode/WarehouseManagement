@@ -850,7 +850,7 @@
     function checkDeleteStatus(entity, id, status) {
         if (entity === 'unit' && status === 'true' || entity === 'subunit' && status === 'active') {
             let entityName = entity === 'unit' ? 'Unit' : 'Subunit';
-            $('#activeDeleteErrorMessage').text(`${entityName} is active and cannot be deleted.`);
+            $('#activeDeleteErrorMessage').text(`${entityName} Is active cannot be deleted.`);
             var errorModal = new bootstrap.Modal(document.getElementById('activeDeleteErrorModal'));
             errorModal.show();
         } else {
