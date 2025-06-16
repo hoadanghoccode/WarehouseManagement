@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 public class CloudinaryController {
+    // Khởi tạo Cloudinary 
     private static final Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
         "cloud_name", "dnzc9p3jj",
         "api_key", "199637772186358",
