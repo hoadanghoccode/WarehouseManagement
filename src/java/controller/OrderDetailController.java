@@ -128,6 +128,7 @@ public class OrderDetailController extends HttpServlet {
                         var material = materialDAO.getMaterialIdBy(od.getMaterialId());
                         if (material != null) {
                             od.setMaterialName(material.getName());
+                            od.setMaterialImage(material.getImage());
                         } else {
                             od.setMaterialName("Unknown Material");
                         }
