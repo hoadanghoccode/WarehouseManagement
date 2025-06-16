@@ -115,93 +115,94 @@ public class Import_noteDAO extends DBContext {
         return qDao.getAllQualities(); // Assume QualityDAO has this method
     }
     
-    /**
- * Import các chi tiết đã chọn vào bảng Material_detail,
- * đánh dấu imported của Import_note_detail và Import_note nếu đã hết.
- */
-public boolean importNoteDetailsToInventory(int importNoteId, List<Integer> detailIds) throws SQLException {
-    // Chuyển sang transaction
-    connection.setAutoCommit(false);
-    try {
-        // Duyệt từng detail
-        String selDetail = "SELECT material_id, subunit_id, quality_id, quantity "
-                         + "FROM import_note_detail "
-                         + "WHERE import_note_detail_id = ? AND imported = false";
-        PreparedStatement psSelDetail = connection.prepareStatement(selDetail);
+    public boolean importNoteDetailsToInventory(int importNoteId, List<Integer> detailIds) throws SQLException {
+        // Chuyển sang transaction
+        connection.setAutoCommit(false);
+        try {
+            // Lấy chi tiết import_note_detail chưa được import
+            String selDetail = "SELECT material_id, subunit_id, quality_id, quantity "
+                             + "FROM import_note_detail "
+                             + "WHERE import_note_detail_id = ? AND imported = false";
+            PreparedStatement psSelDetail = connection.prepareStatement(selDetail);
+            
+            // Kiểm tra xem đã có tồn tại dòng tồn kho tương ứng chưa
+            String selMd = "SELECT material_detail_id, quantity "
+                         + "FROM material_detail "
+                         + "WHERE material_id = ? AND subunit_id = ? AND quality_id = ?";
+            PreparedStatement psSelMd = connection.prepareStatement(selMd);
+            
+            // Cập nhật số lượng trong bảng material_detail
+            String updMd = "UPDATE material_detail SET quantity = ?, last_updated = CURRENT_TIMESTAMP "
+                         + "WHERE material_detail_id = ?";
+            PreparedStatement psUpdMd = connection.prepareStatement(updMd);
 
-        String selMd = "SELECT material_detail_id, quantity "
-                     + "FROM material_detail "
-                     + "WHERE material_id = ? AND subunit_id = ? AND quality_id = ?";
-        PreparedStatement psSelMd = connection.prepareStatement(selMd);
+            // Thêm dòng mới vào material_detail
+            String insMd = "INSERT INTO material_detail (material_id, subunit_id, quality_id, quantity, last_updated) "
+                         + "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
+            PreparedStatement psInsMd = connection.prepareStatement(insMd);
+            
+             // Đánh dấu imported = true cho import_note khi toàn bộ import_note_detail của nó được imported
+            String updInd = "UPDATE import_note_detail SET imported = true WHERE import_note_detail_id = ?";
+            PreparedStatement psUpdInd = connection.prepareStatement(updInd);
 
-        String updMd = "UPDATE material_detail SET quantity = ?, last_updated = CURRENT_TIMESTAMP "
-                     + "WHERE material_detail_id = ?";
-        PreparedStatement psUpdMd = connection.prepareStatement(updMd);
+            for (int detailId : detailIds) {
+                // Lấy thông tin detail
+                psSelDetail.setInt(1, detailId);
+                ResultSet rsDet = psSelDetail.executeQuery();
+                // Nếu đã nhập rồi hoặc không tồn tại, bỏ qua
+                if (!rsDet.next()) continue;  
 
-        String insMd = "INSERT INTO material_detail (material_id, subunit_id, quality_id, quantity, last_updated) "
-                     + "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
-        PreparedStatement psInsMd = connection.prepareStatement(insMd);
+                int mId = rsDet.getInt("material_id");
+                int suId = rsDet.getInt("subunit_id");
+                int qId = rsDet.getInt("quality_id");
+                double qty = rsDet.getDouble("quantity");
 
-        String updInd = "UPDATE import_note_detail SET imported = true WHERE import_note_detail_id = ?";
-        PreparedStatement psUpdInd = connection.prepareStatement(updInd);
-
-        for (int detailId : detailIds) {
-            // Lấy thông tin detail
-            psSelDetail.setInt(1, detailId);
-            ResultSet rsDet = psSelDetail.executeQuery();
-            if (!rsDet.next()) continue;  // đã imported rồi hoặc không tồn tại
-
-            int mId = rsDet.getInt("material_id");
-            int suId = rsDet.getInt("subunit_id");
-            int qId = rsDet.getInt("quality_id");
-            double qty = rsDet.getDouble("quantity");
-
-            // Kiểm tra material_detail
-            psSelMd.setInt(1, mId);
-            psSelMd.setInt(2, suId);
-            psSelMd.setInt(3, qId);
-            ResultSet rsMd = psSelMd.executeQuery();
-            if (rsMd.next()) {
-                int mdId = rsMd.getInt("material_detail_id");
-                double existQty = rsMd.getDouble("quantity");
-                psUpdMd.setDouble(1, existQty + qty);
-                psUpdMd.setInt(2, mdId);
-                psUpdMd.executeUpdate();
-            } else {
-                psInsMd.setInt(1, mId);
-                psInsMd.setInt(2, suId);
-                psInsMd.setInt(3, qId);
-                psInsMd.setDouble(4, qty);
-                psInsMd.executeUpdate();
-            }
-
-            // Đánh dấu detail đã imported
-            psUpdInd.setInt(1, detailId);
-            psUpdInd.executeUpdate();
-        }
-
-        // Nếu tất cả detail đã imported thì cập nhật Import_note
-        String chkRemain = "SELECT 1 FROM import_note_detail "
-                         + "WHERE import_note_id = ? AND imported = false LIMIT 1";
-                PreparedStatement psChk = connection.prepareStatement(chkRemain);
-                psChk.setInt(1, importNoteId);
-                ResultSet rsChk = psChk.executeQuery();
-                if (!rsChk.next()) {
-                    String updNote = "UPDATE import_note SET imported = true, imported_at = CURRENT_TIMESTAMP "
-                                   + "WHERE import_note_id = ?";
-                    PreparedStatement psUpdNote = connection.prepareStatement(updNote);
-                    psUpdNote.setInt(1, importNoteId);
-                    psUpdNote.executeUpdate();
+                // Kiểm tra material_detail
+                psSelMd.setInt(1, mId);
+                psSelMd.setInt(2, suId);
+                psSelMd.setInt(3, qId);
+                ResultSet rsMd = psSelMd.executeQuery();
+                if (rsMd.next()) {
+                    int mdId = rsMd.getInt("material_detail_id");
+                    double existQty = rsMd.getDouble("quantity");
+                    psUpdMd.setDouble(1, existQty + qty);
+                    psUpdMd.setInt(2, mdId);
+                    psUpdMd.executeUpdate();
+                } else {
+                    psInsMd.setInt(1, mId);
+                    psInsMd.setInt(2, suId);
+                    psInsMd.setInt(3, qId);
+                    psInsMd.setDouble(4, qty);
+                    psInsMd.executeUpdate();
                 }
 
-                connection.commit();
-                return true;
-            } catch (SQLException e) {
-                connection.rollback();
-                throw e;
-            } finally {
-                connection.setAutoCommit(true);
+                // Đánh dấu detail đã imported
+                psUpdInd.setInt(1, detailId);
+                psUpdInd.executeUpdate();
             }
-        }
 
+            // Nếu tất cả detail đã imported thì cập nhật Import_note
+            String chkRemain = "SELECT 1 FROM import_note_detail "
+                             + "WHERE import_note_id = ? AND imported = false LIMIT 1";
+                    PreparedStatement psChk = connection.prepareStatement(chkRemain);
+                    psChk.setInt(1, importNoteId);
+                    ResultSet rsChk = psChk.executeQuery();
+                    // Nếu không còn chi tiết nào chưa nhập => đánh dấu cả phiếu là đã nhập
+                    if (!rsChk.next()) {
+                        String updNote = "UPDATE import_note SET imported = true, imported_at = CURRENT_TIMESTAMP "
+                                       + "WHERE import_note_id = ?";
+                        PreparedStatement psUpdNote = connection.prepareStatement(updNote);
+                        psUpdNote.setInt(1, importNoteId);
+                        psUpdNote.executeUpdate();
+                    }
+
+                    connection.commit();
+                    return true;
+                } catch (SQLException e) {
+                    connection.rollback();
+                    throw e;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
+            }
 }
