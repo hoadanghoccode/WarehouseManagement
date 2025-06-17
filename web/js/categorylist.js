@@ -329,11 +329,13 @@ document.addEventListener("DOMContentLoaded", function () {
             if (visibleTooltips.has(id)) {
                 visibleTooltips.delete(id);
                 tooltipRow.style.display = "none";
-                btn.style.backgroundColor = "#007bff";
+//                btn.style.backgroundColor = "#007bff";
+                btn.classList.remove("active");
             } else {
                 visibleTooltips.add(id);
                 tooltipRow.style.display = "table-row";
-                btn.style.backgroundColor = "#28a745";
+//                btn.style.backgroundColor = "#28a745";
+                btn.classList.add("active");
             }
         });
     });
