@@ -81,7 +81,7 @@ public class ViewUserInfoController extends HttpServlet {
             request.setAttribute("page", "profile");
             request.getRequestDispatcher("viewuserinfo.jsp").forward(request, response);
         } else {
-            response.sendRedirect("login.jsp"); // hoặc lỗi 404
+            response.sendRedirect("login.jsp");
         }
     }
     
