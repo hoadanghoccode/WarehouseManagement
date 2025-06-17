@@ -15,36 +15,35 @@ import model.Department;
 import org.mindrot.jbcrypt.BCrypt;
 import java.util.UUID;
 
-
 public class UserDAO extends DBContext {
 
-   public Users getUserById(int userId) {
-        String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
-                     "FROM Users u " +
-                     "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
-                     "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
-                     "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
-                     "WHERE u.User_id = ?";
+    public Users getUserById(int userId) {
+        String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name "
+                + "FROM Users u "
+                + "LEFT JOIN Role r ON u.Role_id = r.Role_id "
+                + "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id "
+                + "LEFT JOIN Department d ON dhu.Department_id = d.Department_id "
+                + "WHERE u.User_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Users user = new Users(
-                        rs.getInt("User_id"),
-                        rs.getInt("Role_id"),
-                        rs.getString("Full_name"),
-                        rs.getString("Email"),
-                        rs.getString("Password"),
-                        rs.getInt("Gender") == 1,
-                        rs.getString("Phone_number"),
-                        rs.getString("Address"),
-                        rs.getDate("Date_of_birth"),
-                        rs.getString("Image"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at"),
-                        rs.getInt("Status") == 1,
-                        rs.getString("Reset_Password_Token"),
-                        rs.getTimestamp("Reset_Password_Expiry")
+                            rs.getInt("User_id"),
+                            rs.getInt("Role_id"),
+                            rs.getString("Full_name"),
+                            rs.getString("Email"),
+                            rs.getString("Password"),
+                            rs.getInt("Gender") == 1,
+                            rs.getString("Phone_number"),
+                            rs.getString("Address"),
+                            rs.getDate("Date_of_birth"),
+                            rs.getString("Image"),
+                            rs.getTimestamp("Created_at"),
+                            rs.getTimestamp("Updated_at"),
+                            rs.getInt("Status") == 1,
+                            rs.getString("Reset_Password_Token"),
+                            rs.getTimestamp("Reset_Password_Expiry")
                     );
                     user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
                     user.setDepartmentId(rs.getInt("Department_id"));
@@ -60,8 +59,8 @@ public class UserDAO extends DBContext {
     }
 
     public void createUser(Users user, int departmentId) {
-        String sql = "INSERT INTO Users (Role_id, Full_name, Email, Password, Gender, Phone_number, Address, Date_of_birth, Image, Created_at, Updated_at, Status) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Users (Role_id, Full_name, Email, Password, Gender, Phone_number, Address, Date_of_birth, Image, Created_at, Updated_at, Status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
             stmt.setInt(1, user.getRoleId());
@@ -108,8 +107,8 @@ public class UserDAO extends DBContext {
                 throw new RuntimeException("Invalid department for role");
             }
         }
-        String sql = "UPDATE Users SET Full_name=?, Password=?, Gender=?, Phone_number=?, Address=?, Date_of_birth=?, Image=?, Updated_at=?, Status=?, Role_id=? " +
-                     "WHERE User_id=?";
+        String sql = "UPDATE Users SET Full_name=?, Password=?, Gender=?, Phone_number=?, Address=?, Date_of_birth=?, Image=?, Updated_at=?, Status=?, Role_id=? "
+                + "WHERE User_id=?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getFullName());
             stmt.setString(2, user.getPassword());
@@ -181,13 +180,12 @@ public class UserDAO extends DBContext {
     public List<Role> getAllRoles() {
         List<Role> list = new ArrayList<>();
         String sql = "SELECT Role_id, Name, Description FROM Role";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new Role(
-                    rs.getInt("Role_id"),
-                    rs.getString("Name"),
-                    rs.getString("Description")
+                        rs.getInt("Role_id"),
+                        rs.getString("Name"),
+                        rs.getString("Description")
                 ));
             }
         } catch (SQLException e) {
@@ -200,14 +198,13 @@ public class UserDAO extends DBContext {
     public List<Departmentt> getAllDepartments() {
         List<Departmentt> list = new ArrayList<>();
         String sql = "SELECT Department_id, Name, Description, Role_id FROM Department";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new Departmentt(
-                    rs.getInt("Department_id"),
-                    rs.getString("Name"),
-                    rs.getString("Description"),
-                    rs.getInt("Role_id")
+                        rs.getInt("Department_id"),
+                        rs.getString("Name"),
+                        rs.getString("Description"),
+                        rs.getInt("Role_id")
                 ));
             }
         } catch (SQLException e) {
@@ -225,10 +222,10 @@ public class UserDAO extends DBContext {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     departments.add(new Departmentt(
-                        rs.getInt("Department_id"),
-                        rs.getString("Name"),
-                        rs.getString("Description"),
-                        roleId
+                            rs.getInt("Department_id"),
+                            rs.getString("Name"),
+                            rs.getString("Description"),
+                            roleId
                     ));
                 }
             }
@@ -258,12 +255,12 @@ public class UserDAO extends DBContext {
     public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer departmentId, Integer roleId, Boolean status, String sortOrder) {
         List<Users> users = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-            "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name " +
-            "FROM Users u " +
-            "LEFT JOIN Role r ON u.Role_id = r.Role_id " +
-            "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id " +
-            "LEFT JOIN Department d ON dhu.Department_id = d.Department_id " +
-            "WHERE 1=1"
+                "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name "
+                + "FROM Users u "
+                + "LEFT JOIN Role r ON u.Role_id = r.Role_id "
+                + "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id "
+                + "LEFT JOIN Department d ON dhu.Department_id = d.Department_id "
+                + "WHERE 1=1"
         );
         List<Object> params = new ArrayList<>();
         if (searchQuery != null && !searchQuery.isEmpty()) {
@@ -286,8 +283,8 @@ public class UserDAO extends DBContext {
             params.add(status ? 1 : 0);
         }
         sql.append(" ORDER BY u.Updated_at ")
-           .append(sortOrder != null && sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC")
-           .append(" LIMIT ? OFFSET ?");
+                .append(sortOrder != null && sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC")
+                .append(" LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
@@ -299,21 +296,21 @@ public class UserDAO extends DBContext {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Users user = new Users(
-                        rs.getInt("User_id"),
-                        rs.getInt("Role_id"),
-                        rs.getString("Full_name"),
-                        rs.getString("Email"),
-                        rs.getString("Password"),
-                        rs.getInt("Gender") == 1,
-                        rs.getString("Phone_number"),
-                        rs.getString("Address"),
-                        rs.getDate("Date_of_birth"),
-                        rs.getString("Image"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at"),
-                        rs.getInt("Status") == 1,
-                        rs.getString("Reset_Password_Token"),
-                        rs.getTimestamp("Reset_Password_Expiry")
+                            rs.getInt("User_id"),
+                            rs.getInt("Role_id"),
+                            rs.getString("Full_name"),
+                            rs.getString("Email"),
+                            rs.getString("Password"),
+                            rs.getInt("Gender") == 1,
+                            rs.getString("Phone_number"),
+                            rs.getString("Address"),
+                            rs.getDate("Date_of_birth"),
+                            rs.getString("Image"),
+                            rs.getTimestamp("Created_at"),
+                            rs.getTimestamp("Updated_at"),
+                            rs.getInt("Status") == 1,
+                            rs.getString("Reset_Password_Token"),
+                            rs.getTimestamp("Reset_Password_Expiry")
                     );
                     user.setRoleName(rs.getString("Role_name") != null ? rs.getString("Role_name") : "");
                     user.setDepartmentId(rs.getInt("Department_id"));
@@ -389,10 +386,10 @@ public class UserDAO extends DBContext {
     }
 
     public String getUserDepartment(int userId) {
-        String sql = "SELECT d.Name " +
-                     "FROM Department d " +
-                     "JOIN Department_has_User dhu ON d.Department_id = dhu.Department_id " +
-                     "WHERE dhu.User_id = ?";
+        String sql = "SELECT d.Name "
+                + "FROM Department d "
+                + "JOIN Department_has_User dhu ON d.Department_id = dhu.Department_id "
+                + "WHERE dhu.User_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -429,18 +426,17 @@ public class UserDAO extends DBContext {
             e.printStackTrace();
         }
     }
-    
-/**
- *
- * @author duong
- */
+
+    /**
+     *
+     * @author duong
+     */
     Connection conn = null;
 
     /**
      *
      * @author duong
      */
-
     PreparedStatement ps = null;
     ResultSet rs = null;
 
@@ -460,16 +456,16 @@ public class UserDAO extends DBContext {
                             rs.getString("full_name"),
                             rs.getString("email"),
                             rs.getString("password"),
-                            rs.getBoolean("gender"), 
+                            rs.getBoolean("gender"),
                             rs.getString("phone_number"),
                             rs.getString("address"),
                             rs.getDate("date_of_birth"),
                             rs.getString("image"),
-                            rs.getTimestamp("created_at"), 
+                            rs.getTimestamp("created_at"),
                             rs.getTimestamp("updated_at"),
                             rs.getBoolean("status"),
                             rs.getString("reset_password_token"),
-                            rs.getTimestamp("reset_password_expiry") 
+                            rs.getTimestamp("reset_password_expiry")
                     );
                 } else {
                     return null;
@@ -553,23 +549,23 @@ public class UserDAO extends DBContext {
             ps.setString(1, email);
             rs = ps.executeQuery();
             if (rs.next()) {
-               return new Users(
-                            rs.getInt("user_id"),
-                            rs.getInt("role_id"),
-                            rs.getString("full_name"),
-                            rs.getString("email"),
-                            rs.getString("password"),
-                            rs.getBoolean("gender"), 
-                            rs.getString("phone_number"),
-                            rs.getString("address"),
-                            rs.getDate("date_of_birth"),
-                            rs.getString("image"),
-                            rs.getTimestamp("created_at"), 
-                            rs.getTimestamp("updated_at"),
-                            rs.getBoolean("status"),
-                            rs.getString("reset_password_token"),
-                            rs.getTimestamp("reset_password_expiry") 
-                    );
+                return new Users(
+                        rs.getInt("user_id"),
+                        rs.getInt("role_id"),
+                        rs.getString("full_name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getBoolean("gender"),
+                        rs.getString("phone_number"),
+                        rs.getString("address"),
+                        rs.getDate("date_of_birth"),
+                        rs.getString("image"),
+                        rs.getTimestamp("created_at"),
+                        rs.getTimestamp("updated_at"),
+                        rs.getBoolean("status"),
+                        rs.getString("reset_password_token"),
+                        rs.getTimestamp("reset_password_expiry")
+                );
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -587,22 +583,22 @@ public class UserDAO extends DBContext {
             rs = ps.executeQuery();
             if (rs.next()) {
                 return new Users(
-                            rs.getInt("user_id"),
-                            rs.getInt("role_id"),
-                            rs.getString("full_name"),
-                            rs.getString("email"),
-                            rs.getString("password"),
-                            rs.getBoolean("gender"), 
-                            rs.getString("phone_number"),
-                            rs.getString("address"),
-                            rs.getDate("date_of_birth"),
-                            rs.getString("image"),
-                            rs.getTimestamp("created_at"), 
-                            rs.getTimestamp("updated_at"),
-                            rs.getBoolean("status"),
-                            rs.getString("reset_password_token"),
-                            rs.getTimestamp("reset_password_expiry") 
-                    );
+                        rs.getInt("user_id"),
+                        rs.getInt("role_id"),
+                        rs.getString("full_name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getBoolean("gender"),
+                        rs.getString("phone_number"),
+                        rs.getString("address"),
+                        rs.getDate("date_of_birth"),
+                        rs.getString("image"),
+                        rs.getTimestamp("created_at"),
+                        rs.getTimestamp("updated_at"),
+                        rs.getBoolean("status"),
+                        rs.getString("reset_password_token"),
+                        rs.getTimestamp("reset_password_expiry")
+                );
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -630,22 +626,22 @@ public class UserDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Users(
-                            rs.getInt("user_id"),
-                            rs.getInt("role_id"),
-                            rs.getString("full_name"),
-                            rs.getString("email"),
-                            rs.getString("password"),
-                            rs.getBoolean("gender"), 
-                            rs.getString("phone_number"),
-                            rs.getString("address"),
-                            rs.getDate("date_of_birth"),
-                            rs.getString("image"),
-                            rs.getTimestamp("created_at"), 
-                            rs.getTimestamp("updated_at"),
-                            rs.getBoolean("status"),
-                            rs.getString("reset_password_token"),
-                            rs.getTimestamp("reset_password_expiry") 
-                    );
+                        rs.getInt("user_id"),
+                        rs.getInt("role_id"),
+                        rs.getString("full_name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getBoolean("gender"),
+                        rs.getString("phone_number"),
+                        rs.getString("address"),
+                        rs.getDate("date_of_birth"),
+                        rs.getString("image"),
+                        rs.getTimestamp("created_at"),
+                        rs.getTimestamp("updated_at"),
+                        rs.getBoolean("status"),
+                        rs.getString("reset_password_token"),
+                        rs.getTimestamp("reset_password_expiry")
+                );
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -681,41 +677,6 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public List<Users> getAllResetRequestsFromUsers() {
-        List<Users> list = new ArrayList<>();
-        try {
-            String sql = "SELECT * FROM Users WHERE Reset_Password_Token IS NOT NULL ORDER BY Updated_at DESC";
-            conn = new DBContext().getConnection();
-            ps = conn.prepareStatement(sql);
-            rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Users user = new Users(
-                            rs.getInt("user_id"),
-                            rs.getInt("role_id"),
-                            rs.getString("full_name"),
-                            rs.getString("email"),
-                            rs.getString("password"),
-                            rs.getBoolean("gender"), 
-                            rs.getString("phone_number"),
-                            rs.getString("address"),
-                            rs.getDate("date_of_birth"),
-                            rs.getString("image"),
-                            rs.getTimestamp("created_at"), 
-                            rs.getTimestamp("updated_at"),
-                            rs.getBoolean("status"),
-                            rs.getString("reset_password_token"),
-                            rs.getTimestamp("reset_password_expiry") 
-                    );
-                list.add(user);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-
-    }
-
     public boolean updateResetToken(int userId, String token, LocalDateTime expiryTime) {
         try {
             String sql = "UPDATE Users SET Reset_Password_Token = ?, Reset_Password_Expiry = ?, Updated_at = NOW() WHERE user_id = ?";
@@ -733,4 +694,43 @@ public class UserDAO extends DBContext {
         return false;
     }
 
+    public List<Users> getAllUsersWithResetRequest() {
+        List<Users> list = new ArrayList<>();
+        String sql = "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name "
+                + "FROM Users u "
+                + "LEFT JOIN Role r ON u.Role_id = r.Role_id "
+                + "LEFT JOIN Department_has_User dhu ON u.User_id = dhu.User_id "
+                + "LEFT JOIN Department d ON dhu.Department_id = d.Department_id "
+                + "WHERE u.Reset_Password_Token IS NOT NULL";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Users user = new Users(
+                        rs.getInt("User_id"),
+                        rs.getInt("Role_id"),
+                        rs.getString("Full_name"),
+                        rs.getString("Email"),
+                        rs.getString("Password"),
+                        rs.getInt("Gender") == 1,
+                        rs.getString("Phone_number"),
+                        rs.getString("Address"),
+                        rs.getDate("Date_of_birth"),
+                        rs.getString("Image"),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at"),
+                        rs.getInt("Status") == 1,
+                        rs.getString("Reset_Password_Token"),
+                        rs.getTimestamp("Reset_Password_Expiry")
+                );
+                user.setRoleName(rs.getString("Role_name"));
+                user.setDepartmentId(rs.getInt("Department_id"));
+                user.setDepartmentName(rs.getString("Department_name"));
+                list.add(user);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 }

@@ -142,195 +142,109 @@
                     <h2>Account Setting</h2>
                     <ul>
                         <li class="${page == 'profile' ? 'active' : ''}">
-        My Profile
-    </li>
-    <li class="${page == 'changepassword' ? 'active' : ''}">
-        <a href="changepassword" style="text-decoration: none; color: inherit;">Change Password</a>
-    </li>
+                            My Profile
+                        </li>
+                        <li class="${page == 'changepassword' ? 'active' : ''}">
+                            <a href="changepassword" style="text-decoration: none; color: inherit;">Change Password</a>
+                        </li>
                     </ul>
                 </div>
                 <div class="profile-box">
                     <h2>My Profile</h2>
-                     <!-- Profile Image -->
-                    <div class="info-row" id="imageRow">
-                        <div class="info-label">Profile Image:</div>
-                        <div class="info-value" id="imageText">
-                            <% if (profileUser.getImage() != null && !profileUser.getImage().isEmpty()) { %>
-                            <img id="profilePreview" class="profile-img" src="<%= profileUser.getImage() %>" alt="Profile Image" style="height: 80px;" />
-                            <% } else { %>
-                            <span id="profilePreview">No image uploaded</span>
-                            <% } %>
-                            <form id="imageForm" class="d-none d-inline">
-                                <input type="file" name="value" accept="image/*" onchange="previewImage(event)" class="form-control-file d-inline" />
-                                <input type="hidden" name="field" value="image" />
-                                <button type="button" class="btn btn-sm btn-success ms-2" onclick="submitImage()">Save</button>
-                                <button type="button" onclick="cancelEdit('image')" class="btn btn-sm btn-secondary ms-1">Cancel</button>
-                            </form>
-                        </div>
-                        <div class="dropdown">
-                            <button class="dropdown-toggle" onclick="toggleDropdown(event, this)"><i class="fas fa-ellipsis-h"></i></button>
-                            <div class="dropdown-menu">
-                                <a href="javascript:void(0)" onclick="toggleEditMode('image')"><i class="fas fa-edit"></i> Edit Image</a>
-                            </div>
-                        </div>
-                    </div>
 
 
                     <% String[][] fields = {
-                        {"Full Name", profileUser.getFullName(), "Edit Name", "fullName"},
-                        {"Email", profileUser.getEmail(), "Edit Email", "email"},
-                        {"Phone", profileUser.getPhoneNumber(), "Edit Phone Number", "phoneNumber"},
-                        {"Address", profileUser.getAddress(), "Edit Address", "address"},
-                        {"Date of Birth", (profileUser.getDateOfBirth() != null ? profileUser.getDateOfBirth().toString().substring(0, 10) : "N/A"), "Edit Date of Birth", "dateOfBirth"},
-                        {"Gender", (profileUser.isGender() ? "Male" : "Female"), "Edit Gender", "gender"},
-                        {"Status", (profileUser.isStatus() ? "Active" : "Inactive"), null, null}
-                    }; %>
+     {"Full Name", profileUser.getFullName(), "Edit Name", "fullName"},
+     {"Email", profileUser.getEmail(), "Edit Email", "email"},
+     {"Phone", profileUser.getPhoneNumber(), "Edit Phone Number", "phoneNumber"},
+     {"Address", profileUser.getAddress(), "Edit Address", "address"},
+     {"Date of Birth", (profileUser.getDateOfBirth() != null ? profileUser.getDateOfBirth().toString().substring(0, 10) : ""), "Edit Date of Birth", "dateOfBirth"},
+     {"Gender", (profileUser.isGender() ? "Male" : "Female"), "Edit Gender", "gender"}
+ }; %>
 
-                    <% for (String[] field : fields) {
-                        String label = field[0];
-                        String value = field[1];
-                        String editLabel = field[2];
-                        String key = field[3];
-                    %>
-                    <div class="info-row" id="<%= key %>Row">
-                        <div class="info-label"><%= label %>:</div>
-                        <div class="info-value" id="<%= key %>Text">
-                            <span id="<%= key %>Display"><%= value %></span>
-                            <form id="<%= key %>Form" class="d-none d-inline" onsubmit="submitEdit(event, '<%= key %>')">
-                                <% if ("gender".equals(key)) { %>
-                                <label><input type="radio" name="genderVal" value="true" <%= "Male".equals(value) ? "checked" : "" %>> Male</label>
-                                <label class="ms-3"><input type="radio" name="genderVal" value="false" <%= "Female".equals(value) ? "checked" : "" %>> Female</label>
-                                    <% } else if ("dateOfBirth".equals(key)) { %>
-                                <input type="date" name="value" value="<%= value %>" class="form-control d-inline w-auto" />
+                    <form id="updateForm" method="post" action="updateuserinfo" enctype="multipart/form-data">
+                        <div class="info-row">
+                            <div class="info-label">Profile Image:</div>
+                            <div class="info-value">
+                                <% if (profileUser.getImage() != null && !profileUser.getImage().isEmpty()) { %>
+                                <img class="profile-img" src="<%= profileUser.getImage() %>" style="height:80px;" id="profilePreview">
                                 <% } else { %>
-                                <input type="text" name="value" value="<%= value %>" class="form-control d-inline w-50" />
+                                <span id="profilePreview">No image uploaded</span>
                                 <% } %>
-                                <input type="hidden" name="field" value="<%= key %>" />
-                                <button type="submit" class="btn btn-sm btn-success ms-2">Save</button>
-                                <button type="button" onclick="cancelEdit('<%= key %>', '<%= value.replace("\"", "&quot;").replace("'", "&#39;") %>')" class="btn btn-sm btn-secondary ms-1">Cancel</button>
-                            </form>
+                                <input type="file" name="imageFile" accept="image/*" class="form-control mt-2 d-none" onchange="previewProfileImage(event)" id="imageInput">
+                            </div>
+                            <div class="dropdown">
+                                <button type="button" class="dropdown-toggle" onclick="toggleImageEdit(this)"><i class="fas fa-ellipsis-h"></i></button>
+                            </div>
                         </div>
-                        <% if (editLabel != null && key != null) { %>
-                        <div class="dropdown">
-                            <button class="dropdown-toggle" onclick="toggleDropdown(event, this)"><i class="fas fa-ellipsis-h"></i></button>
-                            <div class="dropdown-menu">
-                                <a href="javascript:void(0)" onclick="toggleEditMode('<%= key %>')"><i class="fas fa-edit"></i> <%= editLabel %></a>
+
+                        <% for (String[] field : fields) {
+                            String label = field[0];
+                            String value = field[1];
+                            String key = field[3];
+                        %>
+                        <div class="info-row">
+                            <div class="info-label"><%= label %>:</div>
+                            <div class="info-value">
+                                <span id="<%= key %>Display"><%= value %></span>
+                                <% if ("gender".equals(key)) { %>
+                                <div id="<%= key %>Edit" class="d-none">
+                                    <label><input type="radio" name="gender" value="true" <%= "Male".equals(value) ? "checked" : "" %>> Male</label>
+                                    <label class="ms-3"><input type="radio" name="gender" value="false" <%= "Female".equals(value) ? "checked" : "" %>> Female</label>
+                                </div>
+                                <% } else if ("dateOfBirth".equals(key)) { %>
+                                <input type="date" name="<%= key %>" value="<%= value %>" id="<%= key %>Edit" class="form-control d-inline w-auto d-none" />
+                                <% } else { %>
+                                <input type="text" name="<%= key %>" value="<%= value %>" id="<%= key %>Edit" class="form-control d-inline w-50 d-none" />
+                                <% } %>
+                            </div>
+                            <div class="dropdown">
+                                <button type="button" class="dropdown-toggle" onclick="toggleEdit('<%= key %>', this)"><i class="fas fa-ellipsis-h"></i></button>
                             </div>
                         </div>
                         <% } %>
-                    </div>
-                    <% } %>
+                        <div class="info-row">
+                            <button type="submit" class="btn btn-primary">Save All Changes</button>
+                        </div>
+                    </form>
 
-                   
                     <script>
-                        function toggleDropdown(event, button) {
-                            event.stopPropagation();
-                            document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                                if (menu !== button.nextElementSibling)
-                                    menu.classList.remove('show');
-                            });
-                            button.nextElementSibling.classList.toggle('show');
-                        }
-
-                        function toggleEditMode(field) {
-                            document.getElementById(field + 'Display')?.classList.add('d-none');
-                            document.getElementById(field + 'Form')?.classList.remove('d-none');
-                        }
-
-                        function cancelEdit(field, value) {
-                            document.getElementById(field + 'Display')?.classList.remove('d-none');
-                            document.getElementById(field + 'Form')?.classList.add('d-none');
-                        }
-
-                        function submitEdit(e, field) {
-                            e.preventDefault();
-                            const form = e.target;
-                            let value;
-                            if (field === 'gender') {
-                                const selected = form.querySelector('input[name="genderVal"]:checked');
-                                value = selected ? selected.value : '';
-                            } else {
-                                value = form.querySelector('input[name="value"]').value.trim();
+                        function toggleEdit(field, button) {
+                            const display = document.getElementById(field + "Display");
+                            const edit = document.getElementById(field + "Edit");
+                            if (display && edit) {
+                                display.classList.add("d-none");
+                                edit.classList.remove("d-none");
                             }
-
-                            if (!field || !value) {
-                                alert('Missing field or value');
-                                return;
-                            }
-
-                            fetch('updateuserinfo', {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                                body: 'field=' + encodeURIComponent(field) + '&value=' + encodeURIComponent(value)
-                            }).then(res => {
-                                if (res.ok) {
-                                    const newText = (field === 'gender') ? (value === 'true' ? 'Male' : 'Female') : value;
-                                    const displaySpan = document.getElementById(field + 'Display');
-                                    if (displaySpan) {
-                                        displaySpan.textContent = newText;
-                                        displaySpan.classList.remove('d-none');
-                                    }
-                                    document.getElementById(field + 'Form')?.classList.add('d-none');
-                                } else {
-                                    alert('Update failed');
-                                }
-                            }).catch(err => alert('Error: ' + err));
-
-                            cancelEdit(field, value);
+                            const menu = button?.nextElementSibling;
+                            if (menu?.classList.contains("show"))
+                                menu.classList.remove("show");
                         }
 
-                        function previewImage(event) {
-                            const output = document.getElementById('profilePreview');
+                        function toggleImageEdit(button) {
+                            const input = document.getElementById("imageInput");
+                            if (input) {
+                                input.classList.toggle("d-none");
+                            }
+                            const menu = button?.nextElementSibling;
+                            if (menu?.classList.contains("show"))
+                                menu.classList.remove("show");
+                        }
+
+                        function previewProfileImage(event) {
                             const file = event.target.files[0];
-                            if (file && file.type.startsWith('image/')) {
+                            const preview = document.getElementById("profilePreview");
+                            if (file && file.type.startsWith("image/")) {
                                 const reader = new FileReader();
                                 reader.onload = function (e) {
-                                    output.outerHTML = `<img id="profilePreview" class="profile-img" src="${e.target.result}" style="height: 80px;" />`;
+                                    if (preview.tagName.toLowerCase() === 'img') {
+                                        preview.src = e.target.result;
+                                    } else {
+                                        preview.outerHTML = `<img class="profile-img" id="profilePreview" src="${e.target.result}" style="height:80px;" />`;
+                                    }
                                 };
                                 reader.readAsDataURL(file);
                             }
-                        }
-
-                        window.addEventListener('click', () => {
-                            document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
-                        });
-
-                        function submitImage() {
-                            const form = document.getElementById("imageForm");
-                            const fileInput = form.querySelector('input[type="file"]');
-                            const file = fileInput.files[0];
-
-                            if (!file) {
-                                alert("Please select an image.");
-                                return;
-                            }
-
-                            const formData = new FormData(form);
-
-                            fetch('updateuserinfo', {
-                                method: 'POST',
-                                body: formData
-                            }).then(res => {
-                                if (!res.ok)
-                                    throw new Error("Upload failed");
-                                return res.text();
-                            }).then(() => {
-                                // Cập nhật hình ảnh mới bằng URL blob
-                                const newImageURL = URL.createObjectURL(file);
-                                const preview = document.getElementById('profilePreview');
-
-                                if (preview.tagName.toLowerCase() === 'img') {
-                                    preview.src = newImageURL;
-                                } else {
-                                    // Nếu trước đó là span (No image uploaded)
-                                    preview.outerHTML = `<img id="profilePreview" class="profile-img" src="${newImageURL}" style="height: 80px;" />`;
-                                }
-
-                                form.classList.add('d-none');
-                            }).catch(err => {
-                                alert('Upload failed: ' + err.message);
-                            }
-                            );
                         }
                     </script>
 

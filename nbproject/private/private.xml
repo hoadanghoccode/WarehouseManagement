@@ -23,6 +23,23 @@
             <file>file:/D:/semester8/SWP391/WarehouseManagement/web/inventory.jsp</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/util/CloudinaryService.java</file>
             <file>file:/D:/semester8/SWP391/WarehouseManagement/web/index.jsp</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/util/GoogleUtils.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/OrderDAO.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/web/orderlist.jsp</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/OrderListController.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/LoginGoogleController.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/UpdateUserInfoController.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ViewUserInfoController.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ResetPasswordController.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/util/ResetService.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/nbproject/private/private.properties</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/LoginController.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ChangePasswordController.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/web/changepassword.jsp</file>
+            <file>file:/E:/SWP392/WarehouseManagement/web/viewuserinfo.jsp</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/util/CloudinaryService.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/UserDAO.java</file>
+            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/UpdateCategory.java</file>
         </group>
     </open-files>
 </project-private>
