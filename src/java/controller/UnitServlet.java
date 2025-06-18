@@ -93,12 +93,16 @@ public class UnitServlet extends HttpServlet {
     }
 
     private void loadAllData(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setAttribute("units", dao.getAllUnits());
-        request.setAttribute("subunits", dao.getAllSubUnits());
-        request.setAttribute("conversions", dao.getAllUnitConversions());
-        request.getRequestDispatcher("/unitlist.jsp").forward(request, response);
+        throws ServletException, IOException {
+    request.setAttribute("units", dao.getAllUnits());
+    request.setAttribute("subunits", dao.getAllSubUnits());
+    request.setAttribute("conversions", dao.getAllUnitConversions());
+    String activeTab = request.getParameter("activeTab");
+    if (activeTab != null && !activeTab.isEmpty()) {
+        request.setAttribute("activeTab", activeTab);
     }
+    request.getRequestDispatcher("/unitlist.jsp").forward(request, response);
+}
 
     private void setSuccessMessage(HttpServletRequest request, String message) {
         HttpSession session = request.getSession();
