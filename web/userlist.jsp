@@ -21,6 +21,7 @@
         <title>User List</title>
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="css/bootstrap1.min.css" />
+        <link rel="icon" href="img/logo.png" type="image/png">
         <!-- themefy CSS -->
         <link rel="stylesheet" href="vendors/themefy_icon/themify-icons.css" />
         <!-- swiper slider CSS -->
