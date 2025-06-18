@@ -19,8 +19,6 @@
         <div>
             <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
      alt="User Avatar" class="avatar" id="avatar">
-<input type="file" id="fileInput" name="imageFile" style="display:none;" accept="image/*">
-
             <h2>${user.fullName}</h2>
         </div>
         <button class="close-btn" onclick="closeModal('userDetailModal')">×</button>

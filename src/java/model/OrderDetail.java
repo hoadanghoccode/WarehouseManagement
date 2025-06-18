@@ -13,6 +13,7 @@ public class OrderDetail {
     private int orderDetailId;
     private int materialId;
     private String materialName;
+    private String materialImage;
     private int orderId;
     private int subUnitId;
     private String subUnitName;
@@ -31,7 +32,7 @@ public class OrderDetail {
         this.quantity = quantity;
     }
 
-    public OrderDetail(int orderDetailId, int materialId, String materialName, int orderId, int subUnitId, String subUnitName, int qualityId, int quantity) {
+    public OrderDetail(int orderDetailId, int materialId, String materialName, int orderId, int subUnitId, String subUnitName, int qualityId, int quantity, String materialImage) {
         this.orderDetailId = orderDetailId;
         this.materialId = materialId;
         this.materialName = materialName;
@@ -40,6 +41,7 @@ public class OrderDetail {
         this.subUnitName = subUnitName;
         this.qualityId = qualityId;
         this.quantity = quantity;
+        this.materialImage = materialImage;
     }
 
     
@@ -108,6 +110,19 @@ public class OrderDetail {
 
     public void setSubUnitName(String subUnitName) {
         this.subUnitName = subUnitName;
+    }
+
+    public String getMaterialImage() {
+        return materialImage;
+    }
+
+    public void setMaterialImage(String materialImage) {
+        this.materialImage = materialImage;
+    }
+
+    @Override
+    public String toString() {
+        return "OrderDetail{" + "orderDetailId=" + orderDetailId + ", materialId=" + materialId + ", materialName=" + materialName + ", materialImage=" + materialImage + ", orderId=" + orderId + ", subUnitId=" + subUnitId + ", subUnitName=" + subUnitName + ", qualityId=" + qualityId + ", quantity=" + quantity + '}';
     }
 
   

@@ -80,6 +80,7 @@ public class AuthFilter implements Filter {
         boolean isLoginPage = uri.equals(contextPath + "/login.jsp")
                 || uri.equals(contextPath + "/LoginController")
                 || uri.equals(contextPath + "/login")
+                || uri.equals(contextPath + "/indexInventory.jsp")
                 || uri.equals(contextPath + "/403.jsp")                                
                 || uri.equals(contextPath + "/adminresetlist")
                 || uri.equals(contextPath + "/resetpassword")

@@ -227,6 +227,7 @@ public class MaterialDAO extends DBContext {
                 Material material = new Material();
                 material.setMaterialId(rs.getInt("Material_id"));
                 material.setName(rs.getString("Name"));
+                material.setImage(rs.getString("Image"));
                 return material;
             }
         } catch (SQLException e) {

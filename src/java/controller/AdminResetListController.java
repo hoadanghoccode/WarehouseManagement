@@ -57,7 +57,7 @@ public class AdminResetListController extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException{
-        List<Users> list = dao.getAllResetRequestsFromUsers();
+        List<Users> list = dao.getAllUsersWithResetRequest();
         request.setAttribute("resetList", list);
         request.getRequestDispatcher("adminresetlist.jsp").forward(request, response);
     }
