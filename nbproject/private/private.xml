@@ -31,6 +31,10 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/css/categorylist.css</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/categorylist.jsp</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/categorylist.js</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/createorder.js</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/GetMaterialCategoryServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/GetMaterialsServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CreateOrderServlet.java</file>
         </group>
     </open-files>
 </project-private>
