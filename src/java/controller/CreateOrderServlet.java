@@ -19,7 +19,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.Category;
 import model.Material;
 import model.Order;
@@ -168,38 +170,20 @@ public class CreateOrderServlet extends HttpServlet {
             order.setStatus("pending");
             order.setSupplier(supplierId);
             order.setUserId(userId);
-            order.setWarehouseId(1); 
+            order.setWarehouseId(1);
             order.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
-            List<OrderDetail> details = new ArrayList<>();
-            for (int i = 0; i < materialIds.length; i++) {
-                try {
-                    int materialId = Integer.parseInt(materialIds[i]);
-                    int unitId = Integer.parseInt(unitIds[i]);
-                    int quantity = Integer.parseInt(quantities[i]);
+            // 4. Xử lý gộp các item trùng materialId và unitId
+            List<OrderDetail> consolidatedDetails = consolidateOrderItems(materialIds, unitIds, quantities, orderType);
 
-                    if (quantity <= 0) {
-                        returnWithError(request, response, "Quantity must be greater than 0");
-                        return;
-                    }
-
-                    OrderDetail d = new OrderDetail();
-                    d.setMaterialId(materialId);
-                    d.setSubUnitId(unitId);
-                    d.setQuantity(quantity);
-                    d.setQualityId("exportToRepair".equals(orderType) ? 2 : 1);
-
-                    details.add(d);
-
-                } catch (NumberFormatException ex) {
-                    returnWithError(request, response, "Invalid number in order items");
-                    return;
-                }
+            if (consolidatedDetails.isEmpty()) {
+                returnWithError(request, response, "No valid order items found");
+                return;
             }
 
-            order.setOrderDetails(details);
+            order.setOrderDetails(consolidatedDetails);
 
-            // 4. Lưu vào DB
+            // 5. Lưu vào DB
             OrderDAO dao = new OrderDAO();
             boolean success = dao.createOrder(order);
 
@@ -213,6 +197,49 @@ public class CreateOrderServlet extends HttpServlet {
             e.printStackTrace();
             returnWithError(request, response, "Error: " + e.getMessage());
         }
+    }
+
+    private List<OrderDetail> consolidateOrderItems(String[] materialIds, String[] unitIds,
+            String[] quantities, String orderType) throws Exception {
+
+        // Sử dụng Map với key là "materialId_unitId" để gộp các item trùng nhau
+        Map<String, OrderDetail> consolidatedMap = new HashMap<>();
+
+        for (int i = 0; i < materialIds.length; i++) {
+            try {
+                int materialId = Integer.parseInt(materialIds[i]);
+                int unitId = Integer.parseInt(unitIds[i]);
+                int quantity = Integer.parseInt(quantities[i]);
+
+                if (quantity <= 0) {
+                    throw new Exception("Quantity must be greater than 0 for item " + (i + 1));
+                }
+
+                // Tạo key để nhận diện item trùng nhau
+                String key = materialId + "_" + unitId;
+
+                if (consolidatedMap.containsKey(key)) {
+                    // Nếu đã tồn tại item này, cộng thêm số lượng
+                    OrderDetail existingDetail = consolidatedMap.get(key);
+                    existingDetail.setQuantity(existingDetail.getQuantity() + quantity);
+                } else {
+                    // Tạo OrderDetail mới
+                    OrderDetail detail = new OrderDetail();
+                    detail.setMaterialId(materialId);
+                    detail.setSubUnitId(unitId);
+                    detail.setQuantity(quantity);
+                    detail.setQualityId("exportToRepair".equals(orderType) ? 2 : 1);
+
+                    consolidatedMap.put(key, detail);
+                }
+
+            } catch (NumberFormatException ex) {
+                throw new Exception("Invalid number in order item " + (i + 1));
+            }
+        }
+
+        // Chuyển từ Map về List
+        return new ArrayList<>(consolidatedMap.values());
     }
 
     private void returnWithError(HttpServletRequest request, HttpServletResponse response, String message)

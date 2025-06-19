@@ -3,7 +3,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/JavaScript.js to edit this template
  */
 
-
 let itemCounter = 0;
 
 function addOrderItem() {
@@ -31,7 +30,7 @@ function addOrderItem() {
             </div>
             <div class="form-group">
                 <label for="status">Material <span class="required">*</span></label>
-                <select class="form-control" name="material[]" disabled required>
+                <select class="form-control" name="material[]" onchange="checkDuplicateItems()" disabled required>
                     <option value="">Select Category First</option>
                 </select>
             </div>
@@ -39,7 +38,7 @@ function addOrderItem() {
         <div class="form-row">
             <div class="form-group">
                 <label for="status">Unit <span class="required">*</span></label>
-                <select class="form-control" name="unit[]" required>
+                <select class="form-control" name="unit[]" onchange="checkDuplicateItems()" required>
                     <option value="">Select Unit</option>
                     ${units.map(u => `<option value="${u.subUnitId}">${u.name}</option>`).join('')}
                 </select>
@@ -69,6 +68,7 @@ function removeOrderItem(btn) {
     }
 
     renumberItems();
+    checkDuplicateItems(); // Kiểm tra lại duplicate sau khi xóa
 }
 
 function renumberItems() {
@@ -87,9 +87,7 @@ function adjustQuantity(button, delta) {
 }
 
 function cancelOrder() {
-    if (confirm("Are you sure to cancel this order?")) {
-        window.location.href = "orders.jsp";
-    }
+    showCancelModal();
 }
 
 function updateMaterials(selectEl) {
@@ -126,8 +124,65 @@ function updateMaterials(selectEl) {
     });
 }
 
-function cancelOrder() {
-    showCancelModal();
+// Hàm kiểm tra và cảnh báo về duplicate items
+function checkDuplicateItems() {
+    const items = document.querySelectorAll(".order-item");
+    const duplicateGroups = new Map();
+    
+    // Reset tất cả warning trước đó
+    items.forEach(item => {
+        item.classList.remove('duplicate-warning');
+        const existingWarning = item.querySelector('.duplicate-warning-text');
+        if (existingWarning) {
+            existingWarning.remove();
+        }
+    });
+    
+    // Tìm các item trùng lặp
+    items.forEach((item, index) => {
+        const materialSelect = item.querySelector("select[name='material[]']");
+        const unitSelect = item.querySelector("select[name='unit[]']");
+        
+        const materialId = materialSelect.value;
+        const unitId = unitSelect.value;
+        
+        if (materialId && unitId) {
+            const key = `${materialId}_${unitId}`;
+            
+            if (!duplicateGroups.has(key)) {
+                duplicateGroups.set(key, []);
+            }
+            duplicateGroups.get(key).push({item, index});
+        }
+    });
+    
+    // Hiển thị warning cho các nhóm trùng lặp
+    duplicateGroups.forEach((group, key) => {
+        if (group.length > 1) {
+            // Tính tổng số lượng của nhóm trùng lặp
+            let totalQuantity = 0;
+            group.forEach(({item}) => {
+                const quantityInput = item.querySelector("input[name='quantity[]']");
+                totalQuantity += parseInt(quantityInput.value) || 0;
+                
+                // Thêm class warning
+                item.classList.add('duplicate-warning');
+            });
+            
+            // Thêm thông báo warning vào item đầu tiên của nhóm
+            const firstItem = group[0].item;
+            const warningText = document.createElement('div');
+            warningText.className = 'duplicate-warning-text';
+            warningText.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                Duplicate item detected! This material-unit combination appears ${group.length} times 
+                (Total quantity: ${totalQuantity}). These will be merged when saved.
+            `;
+            
+            const itemHeader = firstItem.querySelector('.item-header');
+            itemHeader.appendChild(warningText);
+        }
+    });
 }
 
 function showCancelModal() {
@@ -151,22 +206,36 @@ function confirmCancel() {
     window.location.reload();
 }
 
-// Đóng modal khi click outside
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('cancelModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideCancelModal();
-        }
-    });
+// Hàm hiển thị modal duplicate confirmation
+function showDuplicateModal() {
+    const modal = document.getElementById('duplicateModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+}
 
-    // Đóng modal khi nhấn ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            hideCancelModal();
-        }
-    });
-});
-// Thêm code này vào cuối file createorder.js
+// Hàm ẩn modal duplicate confirmation
+function hideDuplicateModal() {
+    const modal = document.getElementById('duplicateModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+}
+
+// Hàm xác nhận submit với duplicate items
+function confirmDuplicateSubmit() {
+    hideDuplicateModal();
+    // Submit form trực tiếp
+    setTimeout(() => {
+        document.getElementById('orderForm').submit();
+    }, 300);
+}
 
 // Validation khi submit form
 document.addEventListener('DOMContentLoaded', function() {
@@ -185,12 +254,74 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 return false;
             }
+            
+            // Kiểm tra duplicate items và hiển thị modal thay vì alert
+            const duplicateItems = document.querySelectorAll('.duplicate-warning');
+            if (duplicateItems.length > 0) {
+                e.preventDefault(); // Ngăn submit form
+                showDuplicateModal(); // Hiển thị modal confirmation
+                return false;
+            }
         });
     }
     
     // Tạo modal HTML và thêm vào body
     createErrorModal();
+    createDuplicateModal();
+    
+    // Thêm CSS cho duplicate warning
+    addDuplicateWarningStyles();
 });
+
+// Hàm tạo duplicate confirmation modal
+function createDuplicateModal() {
+    const modalHtml = `
+        <div id="duplicateModal" class="modal" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2><i class="fas fa-exclamation-triangle" style="color: #ffc107; margin-right: 10px;"></i>Duplicate Items Detected</h2>
+                    <span class="close" onclick="hideDuplicateModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="warning-box">
+                        <div class="warning-header">
+                            <i class="fas fa-info-circle warning-icon"></i>
+                            <span class="warning-title">Items Will Be Merged</span>
+                        </div>
+                        <div class="warning-content">
+                            You have duplicate items with the same material and unit combination. 
+                            <br><br>
+                            <strong>What will happen:</strong>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Duplicate items will be automatically merged</li>
+                                <li>Their quantities will be combined</li>
+                                <li>Only one item entry will appear in the final order</li>
+                            </ul>
+                            <br>
+                            Do you want to continue with creating the order?
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" onclick="confirmDuplicateSubmit()">
+                        <i class="fas fa-check"></i>
+                        Yes, Create Order
+                    </button>
+                    <button type="button" class="btn btn-gray" onclick="hideDuplicateModal()">
+                        <i class="fas fa-edit"></i>
+                        Review Items
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Thêm modal vào body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Thêm CSS cho duplicate modal
+    addDuplicateModalStyles();
+}
 
 // Hàm tạo modal HTML
 function createErrorModal() {
@@ -219,7 +350,7 @@ function createErrorModal() {
                     </button>
                     <button type="button" class="btn btn-gray" onclick="hideErrorModal()">
                         <i class="fas fa-times"></i>
-                        Đóng
+                        Close
                     </button>
                 </div>
             </div>
@@ -271,6 +402,97 @@ function hideErrorModalAndAddItem() {
             });
         }
     }, 350);
+}
+
+// Hàm thêm CSS cho duplicate warning
+function addDuplicateWarningStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .duplicate-warning {
+            border: 2px solid #ffc107 !important;
+            background-color: #fff8e1;
+        }
+        
+        .duplicate-warning-text {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #856404;
+            display: flex;
+            align-items: center;
+        }
+        
+        .duplicate-warning-text i {
+            color: #f39c12;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        
+        .duplicate-warning .item-header {
+            background-color: #fff8e1;
+            border-bottom: 1px solid #ffc107;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Hàm thêm CSS cho duplicate modal
+function addDuplicateModalStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .warning-box {
+            background: linear-gradient(135deg, #fff8f0 0%, #ffeaa7 100%);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        
+        .warning-box .warning-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .warning-box .warning-icon {
+            font-size: 24px;
+            color: #f39c12;
+            margin-right: 12px;
+        }
+        
+        .warning-box .warning-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .warning-box .warning-content {
+            color: #856404;
+            font-size: 16px;
+            line-height: 1.5;
+            padding-left: 36px;
+        }
+        
+        .warning-box ul {
+            color: #744210;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+            color: #212529;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Hàm thêm CSS cho error modal
@@ -355,17 +577,32 @@ function addErrorModalStyles() {
 document.addEventListener('DOMContentLoaded', function() {
     // Đóng modal khi click outside
     document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'cancelModal') {
+            hideCancelModal();
+        }
         if (e.target && e.target.id === 'errorModal') {
             hideErrorModal();
+        }
+        if (e.target && e.target.id === 'duplicateModal') {
+            hideDuplicateModal();
         }
     });
 
     // Đóng modal khi nhấn ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
+            const cancelModal = document.getElementById('cancelModal');
             const errorModal = document.getElementById('errorModal');
+            const duplicateModal = document.getElementById('duplicateModal');
+            
+            if (cancelModal && cancelModal.style.display === 'flex') {
+                hideCancelModal();
+            }
             if (errorModal && errorModal.style.display === 'flex') {
                 hideErrorModal();
+            }
+            if (duplicateModal && duplicateModal.style.display === 'flex') {
+                hideDuplicateModal();
             }
         }
     });
