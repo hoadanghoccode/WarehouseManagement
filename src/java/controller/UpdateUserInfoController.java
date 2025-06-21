@@ -23,6 +23,8 @@ import java.sql.Date;
 import model.Users;
 import util.CloudinaryService;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
  *
@@ -80,67 +82,61 @@ public class UpdateUserInfoController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-      request.setCharacterEncoding("UTF-8");
-        HttpSession session = request.getSession(false);
-        Users user = (Users) session.getAttribute("USER");
+        request.setCharacterEncoding("UTF-8");
+    HttpSession session = request.getSession(false);
 
-        if (user == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
-        String field = request.getParameter("field");
-
-        try {
-            if ("image".equals(field)) {
-                Part filePart = request.getPart("value");
-                if (filePart == null || filePart.getSize() == 0) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No file provided.");
-                    return;
-                }
-
-                // Upload to Cloudinary
-                InputStream inputStream = filePart.getInputStream();
-                String cloudImageUrl = CloudinaryService.uploadToCloudinary(inputStream);
-                user.setImage(cloudImageUrl);
-
-            } else {
-                String value = request.getParameter("value");
-                if (field == null || value == null || value.isEmpty()) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing field or value");
-                    return;
-                }
-
-                switch (field) {
-                    case "fullName":
-                        user.setFullName(value); break;
-                    case "email":
-                        user.setEmail(value); break;
-                    case "phoneNumber":
-                        user.setPhoneNumber(value); break;
-                    case "address":
-                        user.setAddress(value); break;
-                    case "dateOfBirth":
-                        user.setDateOfBirth(Date.valueOf(value)); break;
-                    case "gender":
-                        user.setGender(Boolean.parseBoolean(value)); break;
-                    default:
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid field");
-                        return;
-                }
-            }
-
-            // Cập nhật DB và session
-            new UserDAO().updateUser(user, 0);
-            session.setAttribute("USER", user);
-            response.setStatus(HttpServletResponse.SC_OK);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error: " + e.getMessage());
-        }
-    
+    if (session == null || session.getAttribute("USER") == null) {
+        response.sendRedirect("login.jsp");
+        return;
     }
+
+    Users user = (Users) session.getAttribute("USER");
+    UserDAO userDAO = new UserDAO();
+
+    try {
+        // Xử lý ảnh đại diện (nếu có)
+        Part imagePart = request.getPart("imageFile");
+        if (imagePart != null && imagePart.getSize() > 0) {
+            InputStream inputStream = imagePart.getInputStream();
+            String uploadedImageUrl = CloudinaryService.uploadToCloudinary(inputStream);
+            user.setImage(uploadedImageUrl);
+        }
+
+        // Lấy các giá trị text từ form
+        String fullName = request.getParameter("fullName");
+        String email = request.getParameter("email");
+        String phoneNumber = request.getParameter("phoneNumber");
+        String address = request.getParameter("address");
+        String dateOfBirth = request.getParameter("dateOfBirth");
+        String gender = request.getParameter("gender");
+
+        if (fullName != null) user.setFullName(fullName);
+        if (email != null) user.setEmail(email);
+        if (phoneNumber != null) user.setPhoneNumber(phoneNumber);
+        if (address != null) user.setAddress(address);
+        if (dateOfBirth != null && !dateOfBirth.isEmpty()) {
+            try {
+                java.util.Date utilDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth);
+                user.setDateOfBirth(new java.sql.Date(utilDate.getTime()));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        if (gender != null) user.setGender(Boolean.parseBoolean(gender));
+
+        // Cập nhật DB và session
+        userDAO.updateUser(user, 0);
+        session.setAttribute("USER", user);
+        response.sendRedirect("viewuserinfo");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Update failed: " + e.getMessage());
+    }
+    }
+        
+    
+    
     
     
 

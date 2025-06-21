@@ -128,7 +128,14 @@
 
                                                     <div class="order-item">
                                                         <div class="item-image">
-                                                            <i class="fas fa-cube" style="color: #64748b;"></i>
+                                                            <c:choose>
+                                                                <c:when test="${detail.materialImage != null}">
+                                                                    <img src=${detail.materialImage} width="60px" height="60px"/>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <i class="fas fa-cube" style="color: #64748b;"></i>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </div>
                                                         <div class="item-details">
                                                             <div class="item-name">
@@ -225,16 +232,16 @@
                                                 <div class="admin-actions">
                                                     <!-- Approve -->
                                                     <button type="button" class="btn btn-success" onclick="openApproveModal()">
-                                                        <i class="fas fa-check-circle"></i> Approve
+                                                        <i class="fas fa-check-circle"></i> Approve Order
                                                     </button>
 
-                                                    <button type="button" class="btn btn-warning" style="color: white">
+<!--                                                    <button type="button" class="btn btn-warning" style="color: white">
                                                         <i class="fas fa-list-check"></i> Partial Approve
-                                                    </button>
+                                                    </button>-->
 
                                                     <!-- Reject -->
                                                     <button type="button" class="btn btn-danger" onclick="openRejectModal()">
-                                                        <i class="fas fa-times-circle"></i> Reject
+                                                        <i class="fas fa-times-circle"></i> Reject Order
                                                     </button>
 
                                                 </div>
