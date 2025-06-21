@@ -87,7 +87,7 @@ public class AdminResetPasswordController extends HttpServlet {
         int userId = Integer.parseInt(request.getParameter("userId"));
 
         UserDAO dao = new UserDAO();
-        Users user = dao.getUserByID(userId);
+        Users user = dao.getUserById(userId);
 
         if (user == null || user.getResetPasswordToken() == null || !user.getResetPasswordToken().equals(tokenStr)) {
             response.sendRedirect("adminresetlist?error=Invalid token or user.");
@@ -135,3 +135,4 @@ public class AdminResetPasswordController extends HttpServlet {
     }// </editor-fold>
 
 }
+  
