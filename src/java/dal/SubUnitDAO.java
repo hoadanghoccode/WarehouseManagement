@@ -120,9 +120,8 @@ public class SubUnitDAO extends DBContext {
 
     public boolean deleteSubUnit(int subUnitId) {
         try {
-            connection.setAutoCommit(false); // Start transaction
+            connection.setAutoCommit(false); 
             try {
-                // Delete associated units
                 String deleteUnitsSql = "DELETE FROM Units WHERE SubUnit_id = ?";
                 try (PreparedStatement stmt = connection.prepareStatement(deleteUnitsSql)) {
                     stmt.setInt(1, subUnitId);
@@ -130,25 +129,24 @@ public class SubUnitDAO extends DBContext {
                     Logger.getLogger(SubUnitDAO.class.getName()).log(Level.INFO, "Deleted {0} Units records for SubUnit_id: {1}", new Object[]{deletedUnits, subUnitId});
                 }
 
-                // Deactivate the subunit
                 String sql = "UPDATE SubUnits SET Status = 'inactive', Updated_at = ? WHERE SubUnit_id = ?";
                 try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                     stmt.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
                     stmt.setInt(2, subUnitId);
                     int affectedRows = stmt.executeUpdate();
                     if (affectedRows > 0) {
-                        connection.commit(); // Commit transaction
+                        connection.commit(); 
                         Logger.getLogger(SubUnitDAO.class.getName()).log(Level.INFO, "Deactivated SubUnit_id: {0}", subUnitId);
                         return true;
                     } else {
-                        connection.rollback(); // Rollback if no rows affected
+                        connection.rollback();
                         Logger.getLogger(SubUnitDAO.class.getName()).log(Level.WARNING, "No subunit found to deactivate for SubUnit_id: {0}", subUnitId);
                         return false;
                     }
                 }
             } catch (SQLException e) {
                 try {
-                    connection.rollback(); // Rollback on error
+                    connection.rollback(); 
                     Logger.getLogger(SubUnitDAO.class.getName()).log(Level.WARNING, "Transaction rolled back for SubUnit_id: {0}", subUnitId);
                 } catch (SQLException rollbackEx) {
                     Logger.getLogger(SubUnitDAO.class.getName()).log(Level.SEVERE, "Error rolling back transaction: {0}, SQLState: {1}, ErrorCode: {2}", new Object[]{rollbackEx.getMessage(), rollbackEx.getSQLState(), rollbackEx.getErrorCode()});
@@ -157,7 +155,7 @@ public class SubUnitDAO extends DBContext {
                 return false;
             } finally {
                 try {
-                    connection.setAutoCommit(true); // Restore auto-commit
+                    connection.setAutoCommit(true); 
                 } catch (SQLException e) {
                     Logger.getLogger(SubUnitDAO.class.getName()).log(Level.SEVERE, "Error restoring auto-commit: {0}, SQLState: {1}, ErrorCode: {2}", new Object[]{e.getMessage(), e.getSQLState(), e.getErrorCode()});
                 }
@@ -170,7 +168,7 @@ public class SubUnitDAO extends DBContext {
 
     public boolean permanentDeleteSubUnit(int subUnitId) {
         try {
-            connection.setAutoCommit(false); // Start transaction
+            connection.setAutoCommit(false); 
             try {
                 // Delete associated units
                 String deleteUnitsSql = "DELETE FROM Units WHERE SubUnit_id = ?";
@@ -186,7 +184,7 @@ public class SubUnitDAO extends DBContext {
                     stmt.setInt(1, subUnitId);
                     int affectedRows = stmt.executeUpdate();
                     if (affectedRows > 0) {
-                        connection.commit(); // Commit transaction
+                        connection.commit(); 
                         Logger.getLogger(SubUnitDAO.class.getName()).log(Level.INFO, "Permanently deleted SubUnit_id: {0}", subUnitId);
                         return true;
                     } else {
