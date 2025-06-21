@@ -23,6 +23,10 @@ import model.Order;
 import model.OrderDetail;
 import model.Supplier;
 import model.Users;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  * Controller xử lý hiển thị chi tiết đơn hàng
@@ -57,19 +61,110 @@ public class OrderDetailController extends HttpServlet {
     }
 
     /**
+     * Inner class để lưu thông tin stock availability
+     */
+    public static class StockInfo {
+        private int materialId;
+        private String materialName;
+        private int subUnitId;
+        private String subUnitName;
+        private int qualityId;
+        private double requestedQuantity;
+        private double availableQuantity;
+        private boolean hasStock;
+
+        public StockInfo(int materialId, String materialName, int subUnitId, String subUnitName, 
+                        int qualityId, double requestedQuantity, double availableQuantity) {
+            this.materialId = materialId;
+            this.materialName = materialName;
+            this.subUnitId = subUnitId;
+            this.subUnitName = subUnitName;
+            this.qualityId = qualityId;
+            this.requestedQuantity = requestedQuantity;
+            this.availableQuantity = availableQuantity;
+            this.hasStock = availableQuantity >= requestedQuantity;
+        }
+
+        // Getters
+        public int getMaterialId() { return materialId; }
+        public String getMaterialName() { return materialName; }
+        public int getSubUnitId() { return subUnitId; }
+        public String getSubUnitName() { return subUnitName; }
+        public int getQualityId() { return qualityId; }
+        public double getRequestedQuantity() { return requestedQuantity; }
+        public double getAvailableQuantity() { return availableQuantity; }
+        public boolean hasStock() { return hasStock; }
+    }
+
+    /**
+     * Kiểm tra stock availability cho export order
+     */
+    private List<StockInfo> checkExportStockAvailability(int orderId) throws Exception {
+        Order order = orderDAO.getOrderById(orderId);
+        if (order == null) {
+            throw new Exception("Order not found");
+        }
+
+        List<StockInfo> stockInfoList = new ArrayList<>();
+        
+        String getMaterialStockQuery = """
+            SELECT md.Quantity as available_quantity 
+            FROM Material_detail md 
+            WHERE md.Material_id = ? AND md.SubUnit_id = ? AND md.Quality_id = ?
+            """;
+
+        try (PreparedStatement ps = orderDAO.getConnection().prepareStatement(getMaterialStockQuery)) {
+            for (OrderDetail detail : order.getOrderDetails()) {
+                ps.setInt(1, detail.getMaterialId());
+                ps.setInt(2, detail.getSubUnitId());
+                ps.setInt(3, detail.getQualityId() > 0 ? detail.getQualityId() : 1);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    double availableQuantity = 0;
+                    if (rs.next()) {
+                        availableQuantity = rs.getDouble("available_quantity");
+                    }
+
+                    // Lấy tên material và subunit
+                    String materialName = detail.getMaterialName();
+                    if (materialName == null || materialName.trim().isEmpty()) {
+                        var material = materialDAO.getMaterialIdBy(detail.getMaterialId());
+                        materialName = material != null ? material.getName() : "Unknown Material";
+                    }
+
+                    String subUnitName = detail.getSubUnitName();
+                    if (subUnitName == null || subUnitName.trim().isEmpty()) {
+                        var subunit = subUnitDAO.getSubUnitById(detail.getSubUnitId());
+                        subUnitName = subunit != null ? subunit.getName() : "Unknown Unit";
+                    }
+
+                    StockInfo stockInfo = new StockInfo(
+                        detail.getMaterialId(),
+                        materialName,
+                        detail.getSubUnitId(),
+                        subUnitName,
+                        detail.getQualityId() > 0 ? detail.getQualityId() : 1,
+                        detail.getQuantity(),
+                        availableQuantity
+                    );
+                    
+                    stockInfoList.add(stockInfo);
+                }
+            }
+        }
+
+        return stockInfoList;
+    }
+
+    /**
      * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String orderIdParam = request.getParameter("oid");
-        String success = request.getParameter("success");
+        String checkStock = request.getParameter("checkStock");
 
         try {
             // Validation: Kiểm tra parameter có tồn tại không
@@ -115,7 +210,6 @@ public class OrderDetailController extends HttpServlet {
                 user = userDAO.getUserById(order.getUserId());
                 if (user == null) {
                     LOGGER.warning("User not found for order ID: " + orderId + ", User ID: " + order.getUserId());
-                    // Không return error, chỉ log warning vì order vẫn có thể hiển thị được
                 }
             }
 
@@ -149,6 +243,27 @@ public class OrderDetailController extends HttpServlet {
                 }
             }
 
+            // Kiểm tra stock cho export order nếu được yêu cầu
+            if ("true".equals(checkStock) && 
+                ("export".equals(order.getType()) || "exportToRepair".equals(order.getType()))) {
+                
+                try {
+                    List<StockInfo> stockInfoList = checkExportStockAvailability(orderId);
+                    request.setAttribute("stockInfoList", stockInfoList);
+                    
+                    // Kiểm tra xem có item nào thiếu stock không
+                    boolean hasInsufficientStock = stockInfoList.stream()
+                        .anyMatch(stock -> !stock.hasStock());
+                    
+                    request.setAttribute("hasInsufficientStock", hasInsufficientStock);
+                    request.setAttribute("showStockModal", true);
+                    
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Error checking stock availability", e);
+                    request.setAttribute("errorMessage", "Unable to check stock availability");
+                }
+            }
+
             // Set attributes và forward đến JSP
             request.setAttribute("order", order);
             request.setAttribute("owner", user);
@@ -160,21 +275,13 @@ public class OrderDetailController extends HttpServlet {
             request.getRequestDispatcher("orderdetail.jsp").forward(request, response);
 
         } catch (Exception e) {
-            // Log lỗi chi tiết
             LOGGER.log(Level.SEVERE, "Unexpected error in OrderDetailController.doGet() for order ID: " + orderIdParam, e);
-
             handleError(request, response, "An unexpected error occurred while retrieving order details", "ERROR_SYSTEM");
         }
     }
 
     /**
-     * Handles the HTTP <code>POST</code> method. Redirect POST requests to GET
-     * method
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * Handles the HTTP <code>POST</code> method.
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -191,6 +298,7 @@ public class OrderDetailController extends HttpServlet {
             }
 
             int orderId = Integer.parseInt(orderIdParam);
+            Order order = orderDAO.getOrderById(orderId);
 
             // Kiểm tra quyền admin
             HttpSession session = request.getSession(false);
@@ -203,21 +311,32 @@ public class OrderDetailController extends HttpServlet {
             boolean success = false;
             boolean successUpdateNote = false;
             
-            if(!adminNote.trim().equals(""))
+            if (!adminNote.trim().equals("")) {
                 successUpdateNote = orderDAO.updateOrderNote(orderId, adminNote);
+            }
             
             String newStatus = "";
 
-            if ("approve".equals(action) ) {
-                newStatus = "approved";
-                success = orderDAO.updateOrderStatus(orderId, newStatus);
+            if ("approve".equals(action)) {
+                if (order.getType().equalsIgnoreCase("import")) {
+                    // Import order - approve normally
+                    success = orderDAO.approveOrderAndCreateImportNote(orderId, currentUser.getUserId());
+                } else if ("export".equals(order.getType()) || "exportToRepair".equals(order.getType())) {
+                    // Export order - use partial export method
+                    success = orderDAO.approveOrderAndCreateExportNote(orderId, currentUser.getUserId(), 
+                              order.getUserName()!= null ? order.getUserName(): "");
+                }
+            } else if ("checkStock".equals(action)) {
+                // Redirect to check stock availability
+                response.sendRedirect("orderdetail?oid=" + orderId + "&checkStock=true");
+                return;
             } else if ("reject".equals(action)) {
                 newStatus = "rejected";
                 success = orderDAO.updateOrderStatus(orderId, newStatus);
             }
 
-            if (success && successUpdateNote) {
-                request.setAttribute("successMessage", "Order has been update successfully!");
+            if (success || successUpdateNote) {
+                request.setAttribute("successMessage", "Order has been updated successfully!");
             } else {
                 request.setAttribute("errorMessage", "Failed to update order status. Please try again.");
             }
@@ -233,13 +352,6 @@ public class OrderDetailController extends HttpServlet {
 
     /**
      * Xử lý các trường hợp lỗi
-     *
-     * @param request
-     * @param response
-     * @param errorMessage
-     * @param errorCode
-     * @throws ServletException
-     * @throws IOException
      */
     private void handleError(HttpServletRequest request, HttpServletResponse response,
             String errorMessage, String errorCode)
@@ -260,8 +372,6 @@ public class OrderDetailController extends HttpServlet {
 
     /**
      * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
      */
     @Override
     public String getServletInfo() {
