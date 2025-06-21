@@ -234,7 +234,7 @@ public class InventoryDAO extends DBContext {
                 SubUnit unit = new SubUnit();
                 unit.setSubUnitId(rs.getInt("SubUnit_id"));
                 unit.setName(rs.getString("Name"));
-                unit.setStatus(rs.getString("Status"));
+//                unit.setStatus(rs.getString("Status"));
                 subUnits.add(unit);
             }
             System.out.println("SubUnits fetched: " + subUnits.size());

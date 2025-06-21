@@ -1,892 +1,327 @@
 package controller;
 
 import dal.UnitDAO;
-import java.io.IOException;
+import dal.SubUnitDAO;
+import model.Units;
+import model.SubUnit;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Units;
-import model.SubUnit;
-import model.UnitConversion;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import com.google.gson.Gson;
 
 public class UnitServlet extends HttpServlet {
-
-    private UnitDAO dao;
+    private static final int PAGE_SIZE = 5;
+    private UnitDAO unitDAO;
+    private SubUnitDAO subUnitDAO;
 
     @Override
     public void init() throws ServletException {
-        dao = new UnitDAO();
+        unitDAO = new UnitDAO();
+        subUnitDAO = new SubUnitDAO();
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String entity = request.getParameter("entity");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
-        if (entity == null || action == null) {
-            loadAllData(request, response);
-            return;
-        }
-
-        try {
-            switch (entity) {
-                case "unit":
-                    handleUnitAction(action, request, response);
-                    break;
-                case "subunit":
-                    handleSubUnitAction(action, request, response);
-                    break;
-                case "conversion":
-                    handleConversionAction(action, request, response);
-                    break;
-                default:
-                    setErrorMessage(request, "Invalid entity: " + entity);
-                    loadAllData(request, response);
-                    break;
-            }
-        } catch (Exception e) {
-            logError("doGet", e);
-            setErrorMessage(request, "Error: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String entity = request.getParameter("entity");
-        String action = request.getParameter("action");
-        if ("clearMessages".equals(action)) {
-            handleClearMessages(request, response);
-            return;
-        }
-        if (entity == null || action == null) {
-            setErrorMessage(request, "Entity or action not provided");
-            loadAllData(request, response);
-            return;
-        }
-
-        try {
-            switch (entity) {
-                case "unit":
-                    handleUnitPostAction(action, request, response);
-                    break;
-                case "subunit":
-                    handleSubUnitPostAction(action, request, response);
-                    break;
-                case "conversion":
-                    handleConversionPostAction(action, request, response);
-                    break;
-                default:
-                    setErrorMessage(request, "Invalid entity: " + entity);
-                    loadAllData(request, response);
-                    break;
-            }
-        } catch (Exception e) {
-            logError("doPost", e);
-            setErrorMessage(request, "Error: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    private void loadAllData(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    request.setAttribute("units", dao.getAllUnits());
-    request.setAttribute("subunits", dao.getAllSubUnits());
-    request.setAttribute("conversions", dao.getAllUnitConversions());
-    String activeTab = request.getParameter("activeTab");
-    if (activeTab != null && !activeTab.isEmpty()) {
-        request.setAttribute("activeTab", activeTab);
-    }
-    request.getRequestDispatcher("/unitlist.jsp").forward(request, response);
-}
-
-    private void setSuccessMessage(HttpServletRequest request, String message) {
-        HttpSession session = request.getSession();
-        session.setAttribute("successMsg", message);
-    }
-
-    private void setErrorMessage(HttpServletRequest request, String message) {
-        HttpSession session = request.getSession();
-        session.setAttribute("errorMsg", message);
-    }
-
-    // Unit Actions
-    private void handleUnitAction(String action, HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        switch (action) {
-            case "edit":
-                handleUnitEdit(request, response);
-                break;
-            case "detail":
-                handleUnitDetail(request, response);
-                break;
-            case "checkConversions":
-                handleCheckUnitConversions(request, response);
-                break;
-                case "checkDuplicate":
-    handleCheckDuplicateUnitName(request, response);
-    return;
-
-            default:
-                loadAllData(request, response);
-                break;
-        }
-    }
-
-    private void handleCheckDuplicateUnitName(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String name = request.getParameter("name");
-    String idParam = request.getParameter("id");
-    Integer excludeId = (idParam != null && !idParam.isEmpty()) ? Integer.parseInt(idParam) : null;
-    boolean exists = dao.isDuplicateUnitName(name, excludeId);
-    response.setContentType("text/plain");
-    response.getWriter().write(exists ? "exists" : "not exists");
-}
-
-    private void handleUnitEdit(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String unitIdStr = request.getParameter("id");
-        if (unitIdStr != null && !unitIdStr.isEmpty()) {
-            try {
-                int unitId = Integer.parseInt(unitIdStr);
-                Units unit = dao.getUnitById(unitId);
-                if (unit != null) {
-                    request.setAttribute("unit", unit);
-                    request.setAttribute("action", "edit");
-                    request.setAttribute("entity", "unit");
-                } else {
-                    setErrorMessage(request, "Unit not found with ID: " + unitId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid unit ID: " + unitIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Unit ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleUnitDetail(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String unitIdStr = request.getParameter("id");
-        if (unitIdStr != null && !unitIdStr.isEmpty()) {
-            try {
-                int unitId = Integer.parseInt(unitIdStr);
-                Units unit = dao.getUnitById(unitId);
-                if (unit != null) {
-                    request.setAttribute("unit", unit);
-                    request.setAttribute("action", "detail");
-                    request.setAttribute("entity", "unit");
-                } else {
-                    setErrorMessage(request, "Unit not found with ID: " + unitId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid unit ID: " + unitIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Unit ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleCheckUnitConversions(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String unitIdStr = request.getParameter("id");
-        if (unitIdStr != null && !unitIdStr.isEmpty()) {
-            try {
-                int unitId = Integer.parseInt(unitIdStr);
-                List<UnitConversion> conversions = dao.getUnitConversionsByUnitId(unitId);
-                int countConversions = conversions != null ? conversions.size() : 0;
-                Units unit = dao.getUnitById(unitId);
-
-                if (unit != null) {
-                    request.setAttribute("countConversions", countConversions);
-                    request.setAttribute("unit", unit);
-                    request.setAttribute("entity", "unit");
-                    request.setAttribute("action", "confirmDeactivateUnit");
-                } else {
-                    setErrorMessage(request, "Unit not found with ID: " + unitId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid unit ID: " + unitIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Unit ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleUnitPostAction(String action, HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+        if (action == null) action = "list";
         switch (action) {
             case "add":
-                handleUnitAdd(request, response);
+                showAddForm(request, response);
                 break;
-            case "update":
-                handleUnitUpdate(request, response);
+            case "edit":
+                showEditForm(request, response);
                 break;
-            case "delete":
-                handleUnitDelete(request, response);
-                break;
-            case "confirmDeactivateUnit":
-                handleConfirmDeactivateUnit(request, response);
+            case "view":
+                viewUnitDetails(request, response);
                 break;
             default:
-                setErrorMessage(request, "Invalid action: " + action);
-                loadAllData(request, response);
+                listUnits(request, response);
                 break;
         }
     }
 
-    private void handleUnitAdd(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String name = request.getParameter("name");
-        String isActiveStr = request.getParameter("isActive");
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        if (action == null) action = "list";
+        switch (action) {
+            case "add":
+                addUnit(request, response);
+                break;
+            case "edit":
+                updateUnit(request, response);
+                break;
+            case "deactivate":
+                deactivateUnit(request, response);
+                break;
+            case "permanentDelete":
+                permanentDeleteUnit(request, response);
+                break;
+            default:
+                listUnits(request, response);
+                break;
+        }
+    }
 
-        if (name == null || name.trim().isEmpty()) {
-            setErrorMessage(request, "Please enter the unit name");
-            loadAllData(request, response);
-            return;
+    private void listUnits(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String search = request.getParameter("search");
+        String subUnitIdStr = request.getParameter("subUnitId");
+        String status = request.getParameter("status");
+        int page = 1;
+        try {
+            String pageStr = request.getParameter("page");
+            if (pageStr != null) page = Integer.parseInt(pageStr);
+        } catch (NumberFormatException e) {
+            page = 1;
         }
 
-        boolean isActive = "true".equalsIgnoreCase(isActiveStr);
+        // Use the new getAllUnits method with status filter
+        List<Units> units = unitDAO.getAllUnits(status);
+
+        if (search != null && !search.isEmpty()) {
+            units.removeIf(u -> !u.getName().toLowerCase().contains(search.toLowerCase()));
+        }
+        if (subUnitIdStr != null && !subUnitIdStr.isEmpty()) {
+            try {
+                int subUnitId = Integer.parseInt(subUnitIdStr);
+                units.removeIf(u -> u.getSubUnitId() != subUnitId);
+            } catch (NumberFormatException e) {
+                // Ignore invalid subUnitId
+            }
+        }
+
+        int totalUnits = units.size();
+        int totalPages = (int) Math.ceil((double) totalUnits / PAGE_SIZE);
+        if (page < 1) page = 1;
+        if (page > totalPages && totalPages > 0) page = totalPages;
+        int start = (page - 1) * PAGE_SIZE;
+        int end = Math.min(start + PAGE_SIZE, totalUnits);
+        List<Units> paginatedUnits = units.subList(start, end);
+        List<SubUnit> subUnits = subUnitDAO.getAllSubUnits(true); // SubUnits for filter dropdown
+        request.setAttribute("units", paginatedUnits);
+        request.setAttribute("subUnits", subUnits);
+        request.setAttribute("totalUnits", totalUnits);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("search", search);
+        request.setAttribute("subUnitId", subUnitIdStr);
+        request.setAttribute("status", status);
+        request.getRequestDispatcher("/unit.jsp").forward(request, response);
+    }
+
+    private void showAddForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<SubUnit> subUnits = subUnitDAO.getAllSubUnits(true);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);
+        responseMap.put("subUnits", subUnits);
+        sendJsonResponse(response, responseMap);
+    }
+
+    private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int unitId;
+        try {
+            unitId = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException e) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Invalid unit ID");
+            sendJsonResponse(response, responseMap);
+            return;
+        }
+        Units unit = unitDAO.getUnitById(unitId);
+        if (unit == null) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Unit not found");
+            sendJsonResponse(response, responseMap);
+            return;
+        }
+        List<SubUnit> subUnits = subUnitDAO.getAllSubUnits(true);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);
+        responseMap.put("unit", unit);
+        responseMap.put("subUnits", subUnits);
+        sendJsonResponse(response, responseMap);
+    }
+
+    private void addUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String name = request.getParameter("name");
+        String status = request.getParameter("status");
+        int subUnitId;
+        double factor;
+        try {
+            subUnitId = Integer.parseInt(request.getParameter("subUnitId"));
+            factor = Double.parseDouble(request.getParameter("factor"));
+        } catch (NumberFormatException e) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Invalid input data");
+            sendJsonResponse(response, responseMap);
+            return;
+        }
+        if (name == null || name.trim().isEmpty()) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Unit name is required");
+            sendJsonResponse(response, responseMap);
+            return;
+        }
+        if (unitDAO.isDuplicateUnitName(name.trim(), null)) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Unit name already exists");
+            sendJsonResponse(response, responseMap);
+            return;
+        }
         Units unit = new Units();
         unit.setName(name.trim());
-        unit.setActive(isActive);
-
-        try {
-            dao.createUnit(unit);
-            setSuccessMessage(request, "Unit added successfully");
-            response.sendRedirect("unit");
-        } catch (Exception e) {
-            logError("handleUnitAdd", e);
-            setErrorMessage(request, "Error adding unit: " + e.getMessage());
-            loadAllData(request, response);
-        }
+        unit.setSubUnitId(subUnitId);
+        unit.setFactor(factor);
+        unit.setIsActive(status != null && status.equalsIgnoreCase("active"));
+        unit.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        unit.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        boolean isSuccess = unitDAO.createUnit(unit);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", isSuccess);
+        responseMap.put("message", isSuccess ? "Unit created successfully" : "Error creating unit");
+        sendJsonResponse(response, responseMap);
     }
 
-    private void handleUnitUpdate(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String unitIdStr = request.getParameter("unitId");
-        String name = request.getParameter("name");
-        String isActiveStr = request.getParameter("isActive");
-        String originalStatus = request.getParameter("originalStatus");
-
-        if (unitIdStr == null || unitIdStr.isEmpty() || name == null || name.trim().isEmpty()) {
-            setErrorMessage(request, "Please provide unit ID and name");
-            loadAllData(request, response);
+    private void updateUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int unitId;
+        try {
+            unitId = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException e) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Invalid unit ID");
+            sendJsonResponse(response, responseMap);
             return;
         }
-
-        try {
-            int unitId = Integer.parseInt(unitIdStr);
-            boolean isActive = "true".equalsIgnoreCase(isActiveStr);
-
-            Units unit = dao.getUnitById(unitId);
-            if (unit == null) {
-                setErrorMessage(request, "Unit not found with ID: " + unitId);
-                loadAllData(request, response);
-                return;
-            }
-
-            if ("true".equals(originalStatus) && !isActive) {
-                List<UnitConversion> conversions = dao.getUnitConversionsByUnitId(unitId);
-                int countConversions = conversions != null ? conversions.size() : 0;
-                request.setAttribute("countConversions", countConversions);
-                request.setAttribute("unit", unit);
-                request.setAttribute("entity", "unit");
-                request.setAttribute("action", "confirmDeactivateUnit");
-                loadAllData(request, response);
-                return;
-            }
-
-            unit.setName(name.trim());
-            unit.setActive(isActive);
-            dao.updateUnit(unit);
-            setSuccessMessage(request, "Unit updated successfully");
-            response.sendRedirect("unit");
-        } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid unit ID: " + unitIdStr);
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleUnitUpdate", e);
-            setErrorMessage(request, "Error updating unit: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    private void handleUnitDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String unitIdStr = request.getParameter("id");
-        if (unitIdStr == null || unitIdStr.isEmpty()) {
-            setErrorMessage(request, "Unit ID not provided");
-            loadAllData(request, response);
-            return;
-        }
-
-        try {
-            int unitId = Integer.parseInt(unitIdStr);
-            boolean success = dao.deleteUnit(unitId);
-            if (!success) {
-                setErrorMessage(request, "Cannot delete unit with ID " + unitId + ". Unit may not exist or is in use.");
-                loadAllData(request, response);
-            } else {
-                setSuccessMessage(request, "Unit deleted successfully");
-                response.sendRedirect("unit");
-            }
-        } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid unit ID: " + unitIdStr);
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleUnitDelete", e);
-            setErrorMessage(request, "Error deleting unit: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    private void handleConfirmDeactivateUnit(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String unitIdStr = request.getParameter("unitId");
-        String newStatus = request.getParameter("newStatus");
-
-        if (unitIdStr == null || unitIdStr.isEmpty() || newStatus == null || !newStatus.equals("false")) {
-            setErrorMessage(request, "Invalid parameters for deactivation");
-            loadAllData(request, response);
-            return;
-        }
-
-        try {
-            int unitId = Integer.parseInt(unitIdStr);
-            Units unit = dao.getUnitById(unitId);
-            if (unit == null) {
-                setErrorMessage(request, "Unit not found with ID: " + unitId);
-                loadAllData(request, response);
-                return;
-            }
-
-            dao.deleteUnitConversionsByUnitId(unitId);
-            unit.setActive(false);
-            dao.updateUnit(unit);
-            setSuccessMessage(request, "Unit deactivated successfully");
-            response.sendRedirect("unit");
-        } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid unit ID: " + unitIdStr);
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleConfirmDeactivateUnit", e);
-            setErrorMessage(request, "Error deactivating unit: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    // SubUnit Actions
-    private void handleSubUnitAction(String action, HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        switch (action) {
-            case "edit":
-                handleSubUnitEdit(request, response);
-                break;
-            case "detail":
-                handleSubUnitDetail(request, response);
-                break;
-            case "checkConversions":
-                handleCheckConversions(request, response);
-                break;
-            case "checkDuplicate":
-    handleCheckDuplicateSubUnitName(request, response);
-    return;
-
-            default:
-                loadAllData(request, response);
-                break;
-        }
-    }
-
-    private void handleCheckDuplicateSubUnitName(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String name = request.getParameter("name");
-    String idParam = request.getParameter("id");
-    Integer excludeId = (idParam != null && !idParam.isEmpty()) ? Integer.parseInt(idParam) : null;
-    boolean exists = dao.isDuplicateSubUnitName(name, excludeId);
-    response.setContentType("text/plain");
-    response.getWriter().write(exists ? "exists" : "not exists");
-}
-
-    private void handleSubUnitEdit(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String subUnitIdStr = request.getParameter("id");
-        if (subUnitIdStr != null && !subUnitIdStr.isEmpty()) {
-            try {
-                int subUnitId = Integer.parseInt(subUnitIdStr);
-                SubUnit subUnit = dao.getSubUnitById(subUnitId);
-                if (subUnit != null) {
-                    request.setAttribute("subunit", subUnit);
-                    request.setAttribute("action", "edit");
-                    request.setAttribute("entity", "subunit");
-                } else {
-                    setErrorMessage(request, "Subunit not found with ID: " + subUnitId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid subunit ID: " + subUnitIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Subunit ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleSubUnitDetail(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String subUnitIdStr = request.getParameter("id");
-        if (subUnitIdStr != null && !subUnitIdStr.isEmpty()) {
-            try {
-                int subUnitId = Integer.parseInt(subUnitIdStr);
-                SubUnit subUnit = dao.getSubUnitById(subUnitId);
-                if (subUnit != null) {
-                    request.setAttribute("subunit", subUnit);
-                    request.setAttribute("action", "detail");
-                    request.setAttribute("entity", "subunit");
-                } else {
-                    setErrorMessage(request, "Subunit not found with ID: " + subUnitId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid subunit ID: " + subUnitIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Subunit ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleCheckConversions(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String subUnitIdStr = request.getParameter("id");
-        if (subUnitIdStr != null && !subUnitIdStr.isEmpty()) {
-            try {
-                int subUnitId = Integer.parseInt(subUnitIdStr);
-                List<UnitConversion> conversions = dao.getUnitConversionsBySubUnitId(subUnitId);
-                int countConversions = conversions != null ? conversions.size() : 0;
-                SubUnit subUnit = dao.getSubUnitById(subUnitId);
-
-                if (subUnit != null) {
-                    request.setAttribute("countConversions", countConversions);
-                    request.setAttribute("subunit", subUnit);
-                    request.setAttribute("entity", "subunit");
-                    request.setAttribute("action", "confirmDeactivateSubunit");
-                } else {
-                    setErrorMessage(request, "Subunit not found with ID: " + subUnitId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid subunit ID: " + subUnitIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Subunit ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleSubUnitPostAction(String action, HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        switch (action) {
-            case "add":
-                handleSubUnitAdd(request, response);
-                break;
-            case "update":
-                handleSubUnitUpdate(request, response);
-                break;
-            case "delete":
-                handleSubUnitDelete(request, response);
-                break;
-            case "confirmDeactivateSubunit":
-                handleConfirmDeactivateSubunit(request, response);
-                break;
-            default:
-                setErrorMessage(request, "Invalid action: " + action);
-                loadAllData(request, response);
-                break;
-        }
-    }
-
-    private void handleSubUnitAdd(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
         String name = request.getParameter("name");
         String status = request.getParameter("status");
-
+        int subUnitId;
+        double factor;
+        try {
+            subUnitId = Integer.parseInt(request.getParameter("subUnitId"));
+            factor = Double.parseDouble(request.getParameter("factor"));
+        } catch (NumberFormatException e) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Invalid input data");
+            sendJsonResponse(response, responseMap);
+            return;
+        }
         if (name == null || name.trim().isEmpty()) {
-            setErrorMessage(request, "Please enter the subunit name");
-            loadAllData(request, response);
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Unit name is required");
+            sendJsonResponse(response, responseMap);
             return;
         }
-        if (status == null || (!status.equals("active") && !status.equals("inactive"))) {
-            setErrorMessage(request, "Invalid status");
-            loadAllData(request, response);
+        if (unitDAO.isDuplicateUnitName(name.trim(), unitId)) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Unit name already exists");
+            sendJsonResponse(response, responseMap);
             return;
         }
-
-        SubUnit subUnit = new SubUnit();
-        subUnit.setName(name.trim());
-        subUnit.setStatus(status);
-
-        try {
-            dao.createSubUnit(subUnit);
-            setSuccessMessage(request, "Subunit added successfully");
-            response.sendRedirect("unit");
-        } catch (Exception e) {
-            logError("handleSubUnitAdd", e);
-            setErrorMessage(request, "Error adding subunit: " + e.getMessage());
-            loadAllData(request, response);
+        Units unit = unitDAO.getUnitById(unitId);
+        if (unit == null) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Unit not found");
+            sendJsonResponse(response, responseMap);
+            return;
         }
+        unit.setName(name.trim());
+        unit.setSubUnitId(subUnitId);
+        unit.setFactor(factor);
+        unit.setIsActive(status != null && status.equalsIgnoreCase("active"));
+        unit.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        boolean isSuccess = unitDAO.updateUnit(unit);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", isSuccess);
+        responseMap.put("message", isSuccess ? "Unit updated successfully" : "Error updating unit");
+        sendJsonResponse(response, responseMap);
     }
 
-    private void handleSubUnitUpdate(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String subUnitIdStr = request.getParameter("subUnitId");
-        String name = request.getParameter("name");
-        String status = request.getParameter("status");
-        String originalStatus = request.getParameter("originalStatus");
-
-        if (subUnitIdStr == null || subUnitIdStr.isEmpty() || name == null || name.trim().isEmpty()) {
-            setErrorMessage(request, "Please provide subunit ID and name");
-            loadAllData(request, response);
-            return;
-        }
-        if (status == null || (!status.equals("active") && !status.equals("inactive"))) {
-            setErrorMessage(request, "Invalid status");
-            loadAllData(request, response);
-            return;
-        }
-
+    private void deactivateUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int unitId;
         try {
-            int subUnitId = Integer.parseInt(subUnitIdStr);
-            SubUnit subUnit = dao.getSubUnitById(subUnitId);
-            if (subUnit == null) {
-                setErrorMessage(request, "Subunit not found with ID: " + subUnitId);
-                loadAllData(request, response);
-                return;
-            }
-
-            if ("active".equals(originalStatus) && "inactive".equals(status)) {
-                List<UnitConversion> conversions = dao.getUnitConversionsBySubUnitId(subUnitId);
-                int countConversions = conversions != null ? conversions.size() : 0;
-                request.setAttribute("countConversions", countConversions);
-                request.setAttribute("subunit", subUnit);
-                request.setAttribute("entity", "subunit");
-                request.setAttribute("action", "confirmDeactivateSubunit");
-                loadAllData(request, response);
-                return;
-            }
-
-            subUnit.setName(name.trim());
-            subUnit.setStatus(status);
-            dao.updateSubUnit(subUnit);
-            setSuccessMessage(request, "Subunit updated successfully");
-            response.sendRedirect("unit");
+            unitId = Integer.parseInt(request.getParameter("id"));
         } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid subunit ID: " + subUnitIdStr);
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleSubUnitUpdate", e);
-            setErrorMessage(request, "Error updating subunit: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    private void handleSubUnitDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String subUnitIdStr = request.getParameter("id");
-        if (subUnitIdStr == null || subUnitIdStr.isEmpty()) {
-            setErrorMessage(request, "Subunit ID not provided");
-            loadAllData(request, response);
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Invalid unit ID");
+            sendJsonResponse(response, responseMap);
             return;
         }
-
-        try {
-            int subUnitId = Integer.parseInt(subUnitIdStr);
-            boolean success = dao.deleteSubUnit(subUnitId);
-            if (!success) {
-                setErrorMessage(request, "Cannot delete subunit with ID " + subUnitId + ". Subunit may not exist or is in use.");
-                loadAllData(request, response);
-            } else {
-                setSuccessMessage(request, "Subunit deleted successfully");
-                response.sendRedirect("unit");
-            }
-        } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid subunit ID: " + subUnitIdStr);
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleSubUnitDelete", e);
-            setErrorMessage(request, "Error deleting subunit: " + e.getMessage());
-            loadAllData(request, response);
-        }
+        boolean isSuccess = unitDAO.deleteUnit(unitId);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", isSuccess);
+        responseMap.put("message", isSuccess ? "Unit deactivated successfully" : "Error deactivating unit");
+        sendJsonResponse(response, responseMap);
     }
 
-    private void handleConfirmDeactivateSubunit(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String subUnitIdStr = request.getParameter("subUnitId");
-        String newStatus = request.getParameter("newStatus");
-
-        if (subUnitIdStr == null || subUnitIdStr.isEmpty() || newStatus == null || !newStatus.equals("inactive")) {
-            setErrorMessage(request, "Invalid parameters for deactivation");
-            loadAllData(request, response);
+    private void permanentDeleteUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int unitId;
+        try {
+            unitId = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException e) {
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("success", false);
+            responseMap.put("message", "Invalid unit ID");
+            sendJsonResponse(response, responseMap);
             return;
         }
+        boolean isSuccess = unitDAO.permanentDeleteUnit(unitId);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", isSuccess);
+        responseMap.put("message", isSuccess ? "Unit permanently deleted" : "Error permanently deleting unit");
+        sendJsonResponse(response, responseMap);
+    }
 
+    private void viewUnitDetails(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int unitId;
         try {
-            int subUnitId = Integer.parseInt(subUnitIdStr);
-            SubUnit subUnit = dao.getSubUnitById(subUnitId);
-            if (subUnit == null) {
-                setErrorMessage(request, "Subunit not found with ID: " + subUnitId);
-                loadAllData(request, response);
-                return;
-            }
-
-            dao.deleteUnitConversionsBySubUnitId(subUnitId);
-            subUnit.setStatus("inactive");
-            dao.updateSubUnit(subUnit);
-            setSuccessMessage(request, "Subunit deactivated successfully");
-            response.sendRedirect("unit");
+            unitId = Integer.parseInt(request.getParameter("id"));
         } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid subunit ID: " + subUnitIdStr);
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleConfirmDeactivateSubunit", e);
-            setErrorMessage(request, "Error deactivating subunit: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    // UnitConversion Actions
-    private void handleConversionAction(String action, HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        switch (action) {
-            case "edit":
-                handleConversionEdit(request, response);
-                break;
-            case "detail":
-                handleConversionDetail(request, response);
-                break;
-            case "checkDuplicate":
-    handleCheckDuplicateConversion(request, response);
-    break;
-
-            default:
-                loadAllData(request, response);
-                break;
-        }
-    }
-
-    private void handleCheckDuplicateConversion(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
-    int unitId = Integer.parseInt(request.getParameter("unitId"));
-    int subUnitId = Integer.parseInt(request.getParameter("subUnitId"));
-    String idParam = request.getParameter("id");
-
-    Integer excludeId = (idParam != null && !idParam.isEmpty()) ? Integer.parseInt(idParam) : null;
-    boolean exists = dao.isDuplicateConversion(unitId, subUnitId, excludeId);
-
-    response.setContentType("text/plain");
-    response.getWriter().write(exists ? "exists" : "not exists");
-}
-
-    
-    private void handleConversionEdit(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String conversionIdStr = request.getParameter("id");
-        if (conversionIdStr != null && !conversionIdStr.isEmpty()) {
-            try {
-                int conversionId = Integer.parseInt(conversionIdStr);
-                UnitConversion conversion = dao.getUnitConversionById(conversionId);
-                if (conversion != null) {
-                    request.setAttribute("conversion", conversion);
-                    request.setAttribute("action", "edit");
-                    request.setAttribute("entity", "conversion");
-                } else {
-                    setErrorMessage(request, "Unit conversion not found with ID: " + conversionId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid unit conversion ID: " + conversionIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Unit conversion ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleConversionDetail(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String conversionIdStr = request.getParameter("id");
-        if (conversionIdStr != null && !conversionIdStr.isEmpty()) {
-            try {
-                int conversionId = Integer.parseInt(conversionIdStr);
-                UnitConversion conversion = dao.getUnitConversionById(conversionId);
-                if (conversion != null) {
-                    request.setAttribute("conversion", conversion);
-                    request.setAttribute("action", "detail");
-                    request.setAttribute("entity", "conversion");
-                } else {
-                    setErrorMessage(request, "Unit conversion not found with ID: " + conversionId);
-                }
-            } catch (NumberFormatException e) {
-                setErrorMessage(request, "Invalid unit conversion ID: " + conversionIdStr);
-            }
-        } else {
-            setErrorMessage(request, "Unit conversion ID not provided");
-        }
-        loadAllData(request, response);
-    }
-
-    private void handleConversionPostAction(String action, HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        switch (action) {
-            case "add":
-                handleConversionAdd(request, response);
-                break;
-            case "update":
-                handleConversionUpdate(request, response);
-                break;
-            case "delete":
-                handleConversionDelete(request, response);
-                break;
-            default:
-                setErrorMessage(request, "Invalid action: " + action);
-                loadAllData(request, response);
-                break;
-        }
-    }
-
-    private void handleConversionAdd(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String unitIdStr = request.getParameter("unitId");
-        String subUnitIdStr = request.getParameter("subUnitId");
-        String factorStr = request.getParameter("factor");
-
-        if (unitIdStr == null || subUnitIdStr == null || factorStr == null ||
-            unitIdStr.isEmpty() || subUnitIdStr.isEmpty() || factorStr.isEmpty()) {
-            setErrorMessage(request, "Please provide all unit conversion details");
-            loadAllData(request, response);
+            sendJsonResponse(response, Map.of("success", false, "message", "Invalid unit ID"));
             return;
         }
-
-        try {
-            int unitId = Integer.parseInt(unitIdStr);
-            int subUnitId = Integer.parseInt(subUnitIdStr);
-            double factor = Double.parseDouble(factorStr);
-
-            if (factor <= 0) {
-                setErrorMessage(request, "Conversion factor must be greater than 0");
-                loadAllData(request, response);
-                return;
-            }
-
-            UnitConversion conversion = new UnitConversion();
-            conversion.setUnitId(unitId);
-            conversion.setSubUnitId(subUnitId);
-            conversion.setFactor(factor);
-
-            dao.createUnitConversion(conversion);
-            setSuccessMessage(request, "Unit conversion added successfully");
-            response.sendRedirect("unit");
-        } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid data: Unit ID, Subunit ID, or factor is not in correct format");
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleConversionAdd", e);
-            setErrorMessage(request, "Error adding unit conversion: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    private void handleConversionUpdate(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String conversionIdStr = request.getParameter("unitConversionId");
-        String unitIdStr = request.getParameter("unitId");
-        String subUnitIdStr = request.getParameter("subUnitId");
-        String factorStr = request.getParameter("factor");
-
-        if (conversionIdStr == null || unitIdStr == null || subUnitIdStr == null || factorStr == null ||
-            conversionIdStr.isEmpty() || unitIdStr.isEmpty() || subUnitIdStr.isEmpty() || factorStr.isEmpty()) {
-            setErrorMessage(request, "Please provide all unit conversion details");
-            loadAllData(request, response);
+        Units unit = unitDAO.getUnitById(unitId);
+        if (unit == null) {
+            sendJsonResponse(response, Map.of("success", false, "message", "Unit not found"));
             return;
         }
-
-        try {
-            int conversionId = Integer.parseInt(conversionIdStr);
-            int unitId = Integer.parseInt(unitIdStr);
-            int subUnitId = Integer.parseInt(subUnitIdStr);
-            double factor = Double.parseDouble(factorStr);
-
-            if (factor <= 0) {
-                setErrorMessage(request, "Conversion factor must be greater than 0");
-                loadAllData(request, response);
-                return;
-            }
-
-            UnitConversion conversion = new UnitConversion();
-            conversion.setUnitConversionId(conversionId);
-            conversion.setUnitId(unitId);
-            conversion.setSubUnitId(subUnitId);
-            conversion.setFactor(factor);
-
-            dao.updateUnitConversion(conversion);
-            setSuccessMessage(request, "Unit conversion updated successfully");
-            response.sendRedirect("unit");
-        } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid data: Conversion ID, Unit ID, Subunit ID, or factor is not in correct format");
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleConversionUpdate", e);
-            setErrorMessage(request, "Error updating unit conversion: " + e.getMessage());
-            loadAllData(request, response);
-        }
+        SubUnit subUnit = subUnitDAO.getSubUnitById(unit.getSubUnitId());
+        Map<String, Object> unitMap = new HashMap<>();
+        unitMap.put("name", unit.getName());
+        unitMap.put("subUnitName", subUnit != null ? subUnit.getName() : "N/A");
+        unitMap.put("factor", unit.getFactor());
+        unitMap.put("status", unit.getIsActive() ? "Active" : "Inactive");
+        unitMap.put("createdAt", unit.getCreatedAt() != null ? unit.getCreatedAt().toString() : "N/A");
+        unitMap.put("updatedAt", unit.getUpdatedAt() != null ? unit.getUpdatedAt().toString() : "N/A");
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);
+        responseMap.put("unit", unitMap);
+        sendJsonResponse(response, responseMap);
     }
 
-    private void handleConversionDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String conversionIdStr = request.getParameter("id");
-        if (conversionIdStr == null || conversionIdStr.isEmpty()) {
-            setErrorMessage(request, "Unit conversion ID not provided");
-            loadAllData(request, response);
-            return;
-        }
-
-        try {
-            int conversionId = Integer.parseInt(conversionIdStr);
-            boolean success = dao.deleteUnitConversion(conversionId);
-            if (!success) {
-                setErrorMessage(request, "Cannot delete unit conversion with ID " + conversionId + ". Conversion may not exist.");
-                loadAllData(request, response);
-            } else {
-                setSuccessMessage(request, "Unit conversion deleted successfully");
-                response.sendRedirect("unit");
-            }
-        } catch (NumberFormatException e) {
-            setErrorMessage(request, "Invalid unit conversion ID: " + conversionIdStr);
-            loadAllData(request, response);
-        } catch (Exception e) {
-            logError("handleConversionDelete", e);
-            setErrorMessage(request, "Error deleting unit conversion: " + e.getMessage());
-            loadAllData(request, response);
-        }
-    }
-
-    private void logError(String method, Exception e) {
-        System.err.println("UnitServlet Error in " + method + ": " + e.getMessage());
-        e.printStackTrace();
-    }
-
-    private void handleClearMessages(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        session.removeAttribute("successMsg");
-        session.removeAttribute("errorMsg");
-        response.setStatus(HttpServletResponse.SC_OK);
-    }
-
-    @Override
-    public String getServletInfo() {
-        return "Handles CRUD operations for Units, SubUnits, and UnitConversions";
+    private void sendJsonResponse(HttpServletResponse response, Map<String, Object> responseMap) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        Gson gson = new Gson();
+        PrintWriter out = response.getWriter();
+        out.print(gson.toJson(responseMap));
+        out.flush();
     }
 }
