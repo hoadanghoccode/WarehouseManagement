@@ -437,6 +437,37 @@
             </div>
         </div>
 
+        <!-- Approve Order Modal -->
+        <div id="approveOrderModal" class="modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>Approve Order</h2>
+                    <span class="close" onclick="closeModal('approveOrderModal')">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to approve this order?</p>
+                    <div class="warning-box">
+                        <div class="warning-header">
+                            <i class="fas fa-check-circle warning-icon" style="color: #10b981;"></i>
+                            <span class="warning-title" style="color: #047857;">Confirmation</span>
+                        </div>
+                        <div class="warning-content" style="color: #047857;">
+                            This action will approve the order and notify the order owner. This action cannot be undone.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <form action="orderdetail" method="post" style="display: inline;">
+                        <input type="hidden" name="action" value="approve"/>
+                        <input type="hidden" name="orderId" value="${order.orderId}"/>
+                        <input type="hidden" name="adminNote" id="approveAdminNote" value=""/>
+                        <button type="submit" class="btn btn-blue">Yes, Approve Order</button>
+                    </form>
+                    <button type="button" class="btn btn-gray" onclick="closeModal('approveOrderModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Reject Order Modal -->
         <div id="rejectOrderModal" class="modal">
             <div class="modal-card">
@@ -467,360 +498,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Stock Check Modal cho Export Orders -->
-        <c:if test="${order.type eq 'export' or order.type eq 'exportToRepair'}">
-            <!-- Normal Approve Modal cho trường hợp đủ stock hoặc import -->
-            <div id="approveOrderModal" class="modal">
-                <div class="modal-card">
-                    <div class="modal-header">
-                        <h2>Approve Order</h2>
-                        <span class="close" onclick="closeModal('approveOrderModal')">&times;</span>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to approve this order?</p>
-                        <div class="warning-box">
-                            <div class="warning-header">
-                                <i class="fas fa-check-circle warning-icon" style="color: #10b981;"></i>
-                                <span class="warning-title" style="color: #047857;">Confirmation</span>
-                            </div>
-                            <div class="warning-content" style="color: #047857;">
-                                This action will approve the order and notify the order owner. This action cannot be undone.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <!-- Nút Check Stock cho Export Orders -->
-                        <form action="orderdetail" method="post" style="display: inline;">
-                            <input type="hidden" name="action" value="checkStock"/>
-                            <input type="hidden" name="orderId" value="${order.orderId}"/>
-                            <button type="submit" class="btn btn-yellow">
-                                <i class="fas fa-boxes"></i> Check Stock First
-                            </button>
-                        </form>
-
-                        <!-- Nút Approve trực tiếp -->
-                        <form action="orderdetail" method="post" style="display: inline;">
-                            <input type="hidden" name="action" value="approve"/>
-                            <input type="hidden" name="orderId" value="${order.orderId}"/>
-                            <input type="hidden" name="adminNote" id="approveAdminNote" value=""/>
-                            <button type="submit" class="btn btn-blue">Yes, Approve Order</button>
-                        </form>
-                        <button type="button" class="btn btn-gray" onclick="closeModal('approveOrderModal')">Cancel</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stock Availability Modal -->
-            <c:if test="${showStockModal}">
-                <div id="stockCheckModal" class="modal" style="display: block;">
-                    <div class="modal-card" style="max-width: 800px;">
-                        <div class="modal-header">
-                            <h2>Stock Availability Check</h2>
-                            <span class="close" onclick="closeModal('stockCheckModal')">&times;</span>
-                        </div>
-                        <div class="modal-body">
-                            <c:choose>
-                                <c:when test="${hasInsufficientStock}">
-                                    <div class="warning-box" style="border-color: #f59e0b; background-color: #fef3c7;">
-                                        <div class="warning-header">
-                                            <i class="fas fa-exclamation-triangle warning-icon" style="color: #d97706;"></i>
-                                            <span class="warning-title" style="color: #92400e;">Insufficient Stock Warning</span>
-                                        </div>
-                                        <div class="warning-content" style="color: #92400e;">
-                                            Some items in this export order have insufficient stock. Please review the details below:
-                                        </div>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="warning-box">
-                                        <div class="warning-header">
-                                            <i class="fas fa-check-circle warning-icon" style="color: #10b981;"></i>
-                                            <span class="warning-title" style="color: #047857;">Stock Available</span>
-                                        </div>
-                                        <div class="warning-content" style="color: #047857;">
-                                            All items have sufficient stock available for export.
-                                        </div>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
-
-                            <!-- Stock Details Table -->
-                            <div class="table-container" style="margin-top: 20px;">
-                                <table class="stock-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Material</th>
-                                            <th>Unit</th>
-                                            <th>Requested</th>
-                                            <th>Available</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:forEach var="stockInfo" items="${stockInfoList}">
-                                            <tr class="${stockInfo.hasStock() ? 'stock-sufficient' : 'stock-insufficient'}">
-                                                <td>
-                                                    <div class="material-info">
-                                                        <strong>${stockInfo.materialName}</strong>
-                                                        <small>ID: ${stockInfo.materialId}</small>
-                                                    </div>
-                                                </td>
-                                                <td>${stockInfo.subUnitName}</td>
-                                                <td>
-                                                    <span class="quantity-badge requested">
-                                                        ${stockInfo.requestedQuantity}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <span class="quantity-badge available ${stockInfo.hasStock() ? 'sufficient' : 'insufficient'}">
-                                                        ${stockInfo.availableQuantity}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <c:choose>
-                                                        <c:when test="${stockInfo.hasStock()}">
-                                                            <span class="status-badge status-success">
-                                                                <i class="fas fa-check"></i> Sufficient
-                                                            </span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span class="status-badge status-warning">
-                                                                <i class="fas fa-exclamation-triangle"></i> 
-                                                                Short by ${stockInfo.requestedQuantity - stockInfo.availableQuantity}
-                                                            </span>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <c:if test="${hasInsufficientStock}">
-                                <div class="info-box" style="margin-top: 20px; background-color: #e0f2fe; border-color: #0284c7;">
-                                    <div class="info-header">
-                                        <i class="fas fa-info-circle" style="color: #0284c7;"></i>
-                                        <span style="color: #0c4a6e;">Partial Export Information</span>
-                                    </div>
-                                    <div class="info-content" style="color: #0c4a6e;">
-                                        If you proceed with approval, the system will:
-                                        <ul style="margin: 10px 0; padding-left: 20px;">
-                                            <li>Export available quantities immediately</li>
-                                            <li>Keep remaining quantities in the order for future export</li>
-                                            <li>Update the order status to "pending" for remaining items</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </c:if>
-                        </div>
-                        <div class="modal-footer">
-                            <c:choose>
-                                <c:when test="${hasInsufficientStock}">
-                                    <form action="orderdetail" method="post" style="display: inline;">
-                                        <input type="hidden" name="action" value="approve"/>
-                                        <input type="hidden" name="orderId" value="${order.orderId}"/>
-                                        <input type="hidden" name="adminNote" id="stockCheckAdminNote" value=""/>
-                                        <button type="submit" class="btn btn-orange">
-                                            <i class="fas fa-shipping-fast"></i> Approve Partial Export
-                                        </button>
-                                    </form>
-                                </c:when>
-                                <c:otherwise>
-                                    <form action="orderdetail" method="post" style="display: inline;">
-                                        <input type="hidden" name="action" value="approve"/>
-                                        <input type="hidden" name="orderId" value="${order.orderId}"/>
-                                        <input type="hidden" name="adminNote" id="stockCheckAdminNote2" value=""/>
-                                        <button type="submit" class="btn btn-blue">
-                                            <i class="fas fa-check"></i> Approve Full Export
-                                        </button>
-                                    </form>
-                                </c:otherwise>
-                            </c:choose>
-                            <button type="button" class="btn btn-gray" onclick="closeModal('stockCheckModal')">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </c:if>
-        </c:if>
-
-        <!-- Import Order hoặc không cần check stock -->
-        <c:if test="${order.type eq 'import'}">
-            <div id="approveOrderModal" class="modal">
-                <div class="modal-card" >
-                    <div class="modal-header">
-                        <h2>Approve Order</h2>
-                        <span class="close" onclick="closeModal('approveOrderModal')">&times;</span>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to approve this import order?</p>
-                        <div class="warning-box">
-                            <div class="warning-header">
-                                <i class="fas fa-check-circle warning-icon" style="color: #10b981;"></i>
-                                <span class="warning-title" style="color: #047857;">Confirmation</span>
-                            </div>
-                            <div class="warning-content" style="color: #047857;">
-                                This action will approve the order and create an import note. This action cannot be undone.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <form action="orderdetail" method="post" style="display: inline;">
-                            <input type="hidden" name="action" value="approve"/>
-                            <input type="hidden" name="orderId" value="${order.orderId}"/>
-                            <input type="hidden" name="adminNote" id="importApproveAdminNote" value=""/>
-                            <button type="submit" class="btn btn-blue">Yes, Approve Order</button>
-                        </form>
-                        <button type="button" class="btn btn-gray" onclick="closeModal('approveOrderModal')">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </c:if>
-
-        <style>
-            /* Stock Table Styles */
-            .stock-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 15px;
-            }
-
-            .stock-table th,
-            .stock-table td {
-                padding: 12px;
-                text-align: left;
-                border-bottom: 1px solid #e5e7eb;
-            }
-
-            .stock-table th {
-                background-color: #f9fafb;
-                font-weight: 600;
-                color: #374151;
-            }
-
-            .stock-insufficient {
-                background-color: #fef2f2;
-            }
-
-            .stock-sufficient {
-                background-color: #f0fdf4;
-            }
-
-            .material-info strong {
-                display: block;
-                color: #111827;
-            }
-
-            .material-info small {
-                color: #6b7280;
-            }
-
-            .quantity-badge {
-                display: inline-block;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-weight: 600;
-                font-size: 0.875rem;
-            }
-
-            .quantity-badge.requested {
-                background-color: #dbeafe;
-                color: #1e40af;
-            }
-
-            .quantity-badge.available.sufficient {
-                background-color: #dcfce7;
-                color: #166534;
-            }
-
-            .quantity-badge.available.insufficient {
-                background-color: #fef3c7;
-                color: #92400e;
-            }
-
-            .status-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 0.875rem;
-                font-weight: 500;
-            }
-
-            .status-success {
-                background-color: #dcfce7;
-                color: #166534;
-            }
-
-            .status-warning {
-                background-color: #fef3c7;
-                color: #92400e;
-            }
-
-            .info-box {
-                border: 1px solid;
-                border-radius: 8px;
-                padding: 16px;
-            }
-
-            .info-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-weight: 600;
-                margin-bottom: 8px;
-            }
-
-            .info-content ul {
-                list-style-type: disc;
-            }
-
-            .btn-yellow {
-                background-color: #fbbf24;
-                color: #92400e;
-                border: 1px solid #f59e0b;
-            }
-
-            .btn-yellow:hover {
-                background-color: #f59e0b;
-                color: white;
-            }
-
-            .btn-orange {
-                background-color: #fb923c;
-                color: white;
-                border: 1px solid #ea580c;
-            }
-
-            .btn-orange:hover {
-                background-color: #ea580c;
-            }
-        </style>
-
-        <script>
-            function closeModal(modalId) {
-                document.getElementById(modalId).style.display = 'none';
-
-                // Nếu đóng stock modal, redirect về trang không có checkStock parameter
-                if (modalId === 'stockCheckModal') {
-                    const url = new URL(window.location);
-                    url.searchParams.delete('checkStock');
-                    window.history.replaceState({}, '', url);
-                }
-            }
-
-        // Đóng modal khi click outside
-            window.onclick = function (event) {
-                const modals = document.querySelectorAll('.modal');
-                modals.forEach(modal => {
-                    if (event.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            }
-        </script>
 
         <!-- JavaScript Libraries -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
