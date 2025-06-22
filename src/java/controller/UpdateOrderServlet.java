@@ -67,7 +67,7 @@ public class UpdateOrderServlet extends HttpServlet {
             // Get supporting data
             List<Supplier> supplierList = supplierDAO.getAllSuppliers();
             List<Category> categoryList = categoryDAO.getAllSubCategory();
-            List<SubUnit> unitList = subUnitDAO.getAllSubUnits();
+            List<SubUnit> unitList = subUnitDAO.getAllSubUnits("active");
             for (OrderDetail orderDetail : order.getOrderDetails()) {
                 orderDetail.setMaterialName(materialDAO.getMaterialById(orderDetail.getMaterialId()).getName());
             }
@@ -260,7 +260,7 @@ public class UpdateOrderServlet extends HttpServlet {
                 if (order != null) {
                     List<Supplier> supplierList = supplierDAO.getAllSuppliers();
                     List<Category> categoryList = categoryDAO.getAllSubCategory();
-                    List<SubUnit> unitList = subUnitDAO.getAllSubUnits();
+                    List<SubUnit> unitList = subUnitDAO.getAllSubUnits("active");
                     
                     for (OrderDetail orderDetail : order.getOrderDetails()) {
                         orderDetail.setMaterialName(materialDAO.getMaterialById(orderDetail.getMaterialId()).getName());

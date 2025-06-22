@@ -44,8 +44,6 @@ public class OrderDetail {
         this.materialImage = materialImage;
     }
 
-    
-    
 
     public int getMaterialId() {
         return materialId;
@@ -62,7 +60,6 @@ public class OrderDetail {
     public void setOrderId(int orderId) {
         this.orderId = orderId;
     }
-
 
     public int getQuantity() {
         return quantity;
@@ -124,7 +121,5 @@ public class OrderDetail {
     public String toString() {
         return "OrderDetail{" + "orderDetailId=" + orderDetailId + ", materialId=" + materialId + ", materialName=" + materialName + ", materialImage=" + materialImage + ", orderId=" + orderId + ", subUnitId=" + subUnitId + ", subUnitName=" + subUnitName + ", qualityId=" + qualityId + ", quantity=" + quantity + '}';
     }
-
-  
 
 }

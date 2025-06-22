@@ -58,18 +58,12 @@ public class OrderDetailController extends HttpServlet {
 
     /**
      * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String orderIdParam = request.getParameter("oid");
-        String success = request.getParameter("success");
 
         try {
             // Validation: Kiểm tra parameter có tồn tại không
@@ -115,7 +109,6 @@ public class OrderDetailController extends HttpServlet {
                 user = userDAO.getUserById(order.getUserId());
                 if (user == null) {
                     LOGGER.warning("User not found for order ID: " + orderId + ", User ID: " + order.getUserId());
-                    // Không return error, chỉ log warning vì order vẫn có thể hiển thị được
                 }
             }
 
@@ -160,23 +153,14 @@ public class OrderDetailController extends HttpServlet {
             request.getRequestDispatcher("orderdetail.jsp").forward(request, response);
 
         } catch (Exception e) {
-            // Log lỗi chi tiết
             LOGGER.log(Level.SEVERE, "Unexpected error in OrderDetailController.doGet() for order ID: " + orderIdParam, e);
-
             handleError(request, response, "An unexpected error occurred while retrieving order details", "ERROR_SYSTEM");
         }
     }
 
     /**
-     * Handles the HTTP <code>POST</code> method. Redirect POST requests to GET
-     * method
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * Handles the HTTP <code>POST</code> method.
      */
-    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -191,6 +175,7 @@ public class OrderDetailController extends HttpServlet {
             }
 
             int orderId = Integer.parseInt(orderIdParam);
+            Order order = orderDAO.getOrderById(orderId);
 
             // Kiểm tra quyền admin
             HttpSession session = request.getSession(false);
@@ -202,24 +187,46 @@ public class OrderDetailController extends HttpServlet {
 
             boolean success = false;
             boolean successUpdateNote = false;
-            
-            if(!adminNote.trim().equals(""))
-                successUpdateNote = orderDAO.updateOrderNote(orderId, adminNote);
-            
-            String newStatus = "";
+            String message = "";
 
-            if ("approve".equals(action) ) {
-                newStatus = "approved";
-                success = orderDAO.updateOrderStatus(orderId, newStatus);
-            } else if ("reject".equals(action)) {
-                newStatus = "rejected";
-                success = orderDAO.updateOrderStatus(orderId, newStatus);
+            // Update admin note if provided
+            if (adminNote != null && !adminNote.trim().equals("")) {
+                successUpdateNote = orderDAO.updateOrderNote(orderId, adminNote);
             }
 
-            if (success && successUpdateNote) {
-                request.setAttribute("successMessage", "Order has been update successfully!");
+            if ("approve".equals(action)) {
+                if (order.getType().equalsIgnoreCase("import")) {
+                    // Import order - approve normally
+                    success = orderDAO.approveOrderAndCreateImportNote(orderId, currentUser.getUserId());
+                    if (success) {
+                        message = "Import order approved successfully!";
+                    } else {
+                        message = "Failed to approve import order. Please try again.";
+                    }
+                } else if ("export".equals(order.getType()) || "exportToRepair".equals(order.getType())) {
+                    // Export order - approve normally
+                    success = orderDAO.approveOrderAndCreateExportNote(orderId, currentUser.getUserId());
+                    if (success) {
+                        message = "Export order approved successfully!";
+                    } else {
+                        message = "Failed to approve export order. Please try again.";
+                    }
+                }
+            } else if ("reject".equals(action)) {
+                String newStatus = "rejected";
+                success = orderDAO.updateOrderStatus(orderId, newStatus);
+                if (success) {
+                    message = "Order rejected successfully!";
+                } else {
+                    message = "Failed to reject order. Please try again.";
+                }
+            }
+
+            // Set success/error message
+            if (success || successUpdateNote) {
+                request.getSession().setAttribute("successMessage", message);
             } else {
-                request.setAttribute("errorMessage", "Failed to update order status. Please try again.");
+                request.getSession().setAttribute("errorMessage", message.isEmpty() ? "Operation failed. Please try again." : message);
             }
 
             // Redirect về trang detail để hiển thị kết quả
@@ -227,26 +234,20 @@ public class OrderDetailController extends HttpServlet {
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating order status", e);
+            request.getSession().setAttribute("errorMessage", "An unexpected error occurred while processing the order.");
             response.sendRedirect("orderlist");
         }
     }
 
     /**
      * Xử lý các trường hợp lỗi
-     *
-     * @param request
-     * @param response
-     * @param errorMessage
-     * @param errorCode
-     * @throws ServletException
-     * @throws IOException
      */
     private void handleError(HttpServletRequest request, HttpServletResponse response,
             String errorMessage, String errorCode)
             throws ServletException, IOException {
 
         if (response.isCommitted()) {
-            return; 
+            return;
         }
 
         request.setAttribute("error", true);
@@ -260,8 +261,6 @@ public class OrderDetailController extends HttpServlet {
 
     /**
      * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
      */
     @Override
     public String getServletInfo() {

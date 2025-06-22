@@ -84,7 +84,7 @@ public class CreateOrderServlet extends HttpServlet {
 
         List<Supplier> supplierList = supplierDAO.getAllSuppliers();
         List<Category> categoryList = categoryDAO.getAllSubCategory();
-        List<SubUnit> unitList = subUnitDAO.getAllSubUnits();
+        List<SubUnit> unitList = subUnitDAO.getAllSubUnits("active");
 
         if (cateId != null && !cateId.equals(cateId.trim())) {
             int categoryId = Integer.parseInt(cateId);
@@ -252,7 +252,7 @@ public class CreateOrderServlet extends HttpServlet {
 
         request.setAttribute("suppliers", supplierDAO.getAllSuppliers());
         request.setAttribute("categoriesJson", gson.toJson(categoryDAO.getAllSubCategory()));
-        request.setAttribute("unitsJson", gson.toJson(subUnitDAO.getAllSubUnits()));
+        request.setAttribute("unitsJson", gson.toJson(subUnitDAO.getAllSubUnits("active")));
         request.setAttribute("error", message);
 
         request.getRequestDispatcher("createorder.jsp").forward(request, response);

@@ -106,7 +106,7 @@ public class Import_noteDAO extends DBContext {
     // Get all sub units
     public List<SubUnit> getAllSubUnits() {
         SubUnitDAO suDao = new SubUnitDAO();
-        return suDao.getAllSubUnits(); // Assume SubUnitDAO has this method
+        return suDao.getAllSubUnits("active"); // Assume SubUnitDAO has this method
     }
 
     // Get all qualities
