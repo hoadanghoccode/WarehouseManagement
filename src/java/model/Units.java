@@ -7,6 +7,7 @@ public class Units {
     private int unitId;
     private String name;
     private int subUnitId;
+    private String subUnitName;
     private double factor;
     private boolean isActive;
     private Timestamp createdAt;
@@ -25,6 +26,17 @@ public class Units {
         this.updatedAt = updatedAt;
     }
 
+    public Units(int unitId, String name, int subUnitId, String subUnitName, double factor, boolean isActive, Timestamp createdAt, Timestamp updatedAt) {
+        this.unitId = unitId;
+        this.name = name;
+        this.subUnitId = subUnitId;
+        this.subUnitName = subUnitName;
+        this.factor = factor;
+        this.isActive = isActive;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+    
     public int getUnitId() {
         return unitId;
     }
@@ -81,9 +93,17 @@ public class Units {
         this.updatedAt = updatedAt;
     }
 
+    public String getSubUnitName() {
+        return subUnitName;
+    }
+
+    public void setSubUnitName(String subUnitName) {
+        this.subUnitName = subUnitName;
+    }
+
     @Override
     public String toString() {
-        return "Units{" + "unitId=" + unitId + ", name=" + name + ", subUnitId=" + subUnitId
-                + ", factor=" + factor + ", isActive=" + isActive + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+        return "Units{" + "unitId=" + unitId + ", name=" + name + ", subUnitId=" + subUnitId + ", subUnitName=" + subUnitName + ", factor=" + factor + ", isActive=" + isActive + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
     }
+    
 }

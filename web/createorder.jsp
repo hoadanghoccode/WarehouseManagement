@@ -77,10 +77,10 @@
 
                             <div class="form-group">
                                 <label for="status">Supplier <span class="required">*</span></label>
-                                <select class="form-control" id="supplier" name="supplier">
+                                <select class="form-control" id="supplier" name="supplier" required>
                                     <option value="">Select Supplier</option>
                                     <c:forEach var="supplier" items="${suppliers}">
-                                        <option value=${supplier.supplierId}>${supplier.name}</option>
+                                        <option value="${supplier.supplierId}">${supplier.name}</option>
                                     </c:forEach>
                                 </select>
                             </div>

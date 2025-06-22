@@ -33,6 +33,8 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/SubUnitDAO.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/SubUnit.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UnitServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CreateOrderServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
         </group>
     </open-files>
 </project-private>

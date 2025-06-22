@@ -11,19 +11,18 @@ public class UnitDAO extends DBContext {
 
     public List<Units> getAllUnits(boolean onlyActive) {
         List<Units> units = new ArrayList<>();
-        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units" +
-                     (onlyActive ? " WHERE Status = 'active'" : "");
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units"
+                + (onlyActive ? " WHERE Status = 'active'" : "");
+        try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 units.add(new Units(
-                    rs.getInt("Unit_id"),
-                    rs.getString("Name"),
-                    rs.getInt("SubUnit_id"),
-                    rs.getDouble("Factor"),
-                    "active".equals(rs.getString("Status")),
-                    rs.getTimestamp("Created_at"),
-                    rs.getTimestamp("Updated_at")
+                        rs.getInt("Unit_id"),
+                        rs.getString("Name"),
+                        rs.getInt("SubUnit_id"),
+                        rs.getDouble("Factor"),
+                        "active".equals(rs.getString("Status")),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at")
                 ));
             }
         } catch (SQLException e) {
@@ -45,13 +44,13 @@ public class UnitDAO extends DBContext {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     units.add(new Units(
-                        rs.getInt("Unit_id"),
-                        rs.getString("Name"),
-                        rs.getInt("SubUnit_id"),
-                        rs.getDouble("Factor"),
-                        "active".equals(rs.getString("Status")),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at")
+                            rs.getInt("Unit_id"),
+                            rs.getString("Name"),
+                            rs.getInt("SubUnit_id"),
+                            rs.getDouble("Factor"),
+                            "active".equals(rs.getString("Status")),
+                            rs.getTimestamp("Created_at"),
+                            rs.getTimestamp("Updated_at")
                     ));
                 }
             }
@@ -68,13 +67,13 @@ public class UnitDAO extends DBContext {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Units(
-                        rs.getInt("Unit_id"),
-                        rs.getString("Name"),
-                        rs.getInt("SubUnit_id"),
-                        rs.getDouble("Factor"),
-                        "active".equals(rs.getString("Status")),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at")
+                            rs.getInt("Unit_id"),
+                            rs.getString("Name"),
+                            rs.getInt("SubUnit_id"),
+                            rs.getDouble("Factor"),
+                            "active".equals(rs.getString("Status")),
+                            rs.getTimestamp("Created_at"),
+                            rs.getTimestamp("Updated_at")
                     );
                 }
             }
@@ -167,5 +166,44 @@ public class UnitDAO extends DBContext {
             System.err.println("Error checking duplicate unit name: " + e.getMessage());
         }
         return false;
+    }
+    
+    //B Minh cần hàm này nên đừng xóa
+    public List<Units> getAllUnitsWithSubUnit(String status) {
+        List<Units> units = new ArrayList<>();
+        String sql = "SELECT u.Unit_id, u.Name, u.Status, u.SubUnit_id, s.Name as SubUnit_Name, "
+                + "u.Factor, u.Created_at, u.Updated_at "
+                + "FROM Units u "
+                + "INNER JOIN SubUnits s ON u.SubUnit_id = s.SubUnit_id";
+
+        if (status != null && !status.isEmpty()) {
+            sql += " WHERE u.Status = ?";
+        }
+
+        sql += " ORDER BY u.Name";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            if (status != null && !status.isEmpty()) {
+                stmt.setString(1, status);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Units unit = new Units();
+                    unit.setUnitId(rs.getInt("Unit_id"));
+                    unit.setName(rs.getString("Name"));
+                    unit.setSubUnitId(rs.getInt("SubUnit_id"));
+                    unit.setSubUnitName(rs.getString("SubUnit_Name"));
+                    unit.setFactor(rs.getDouble("Factor"));
+                    unit.setIsActive(rs.getString("Status").equals("active"));
+                    unit.setCreatedAt(rs.getTimestamp("Created_at"));
+                    unit.setUpdatedAt(rs.getTimestamp("Updated_at"));
+
+                    units.add(unit);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching units with status " + status + ": " + e.getMessage());
+        }
+        return units;
     }
 }
