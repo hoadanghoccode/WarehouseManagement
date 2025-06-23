@@ -132,6 +132,10 @@
         <servlet-name>GetMaterialCategoryServlet</servlet-name>
         <servlet-class>controller.GetMaterialCategoryServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>SubUnitServlet</servlet-name>
+        <servlet-class>controller.SubUnitServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -262,6 +266,10 @@
     <servlet-mapping>
         <servlet-name>GetMaterialCategoryServlet</servlet-name>
         <url-pattern>/get-material-category</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SubUnitServlet</servlet-name>
+        <url-pattern>/subunit</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

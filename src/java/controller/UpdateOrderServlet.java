@@ -14,7 +14,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.Category;
 import model.Order;
 import model.OrderDetail;
@@ -65,7 +67,7 @@ public class UpdateOrderServlet extends HttpServlet {
             // Get supporting data
             List<Supplier> supplierList = supplierDAO.getAllSuppliers();
             List<Category> categoryList = categoryDAO.getAllSubCategory();
-            List<SubUnit> unitList = subUnitDAO.getAllSubUnits();
+            List<SubUnit> unitList = subUnitDAO.getAllSubUnits("active");
             for (OrderDetail orderDetail : order.getOrderDetails()) {
                 orderDetail.setMaterialName(materialDAO.getMaterialById(orderDetail.getMaterialId()).getName());
             }
@@ -96,131 +98,186 @@ public class UpdateOrderServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        request.setCharacterEncoding("UTF-8");
+        
         try {
             // Get order ID
             String orderIdParam = request.getParameter("orderId");
             if (orderIdParam == null || orderIdParam.trim().isEmpty()) {
-                request.setAttribute("error", "Order ID is required");
-                doGet(request, response);
+                returnWithError(request, response, -1, "Order ID is required");
                 return;
             }
             
             int orderId = Integer.parseInt(orderIdParam);
             
-            // Get form parameters
+            // 1. Lấy thông tin cơ bản
             String orderType = request.getParameter("orderType");
-            String supplierParam = request.getParameter("supplier");
             String note = request.getParameter("note");
+            String supplierRaw = request.getParameter("supplier");
             
-            // Validate required fields
+            // Nếu không chọn loại đơn hàng
             if (orderType == null || orderType.trim().isEmpty()) {
-                request.setAttribute("error", "Order type is required");
-                doGet(request, response);
+                returnWithError(request, response, orderId, "You must select Order Type");
                 return;
             }
             
-            if (supplierParam == null || supplierParam.trim().isEmpty()) {
-                request.setAttribute("error", "Supplier is required");
-                doGet(request, response);
-                return;
-            }
-            
-            int supplierId = Integer.parseInt(supplierParam);
-            
-            // Get order items
-            String[] categories = request.getParameterValues("category[]");
-            String[] materials = request.getParameterValues("material[]");
-            String[] units = request.getParameterValues("unit[]");
-            String[] quantities = request.getParameterValues("quantity[]");
-            
-            // Validate order items
-            if (categories == null || categories.length == 0) {
-                request.setAttribute("error", "At least one order item is required");
-                doGet(request, response);
-                return;
-            }
-            
-            // Validate arrays have same length
-            if (categories.length != materials.length || 
-                materials.length != units.length || 
-                units.length != quantities.length) {
-                request.setAttribute("error", "Invalid order items data");
-                doGet(request, response);
-                return;
-            }
-            
-            // Create order details list
-            List<OrderDetail> orderDetails = new ArrayList<>();
-            for (int i = 0; i < materials.length; i++) {
-                if (materials[i] != null && !materials[i].trim().isEmpty() &&
-                    units[i] != null && !units[i].trim().isEmpty() &&
-                    quantities[i] != null && !quantities[i].trim().isEmpty()) {
-                    
-                    try {
-                        OrderDetail detail = new OrderDetail();
-                        detail.setOrderId(orderId);
-                        detail.setMaterialId(Integer.parseInt(materials[i]));
-                        detail.setSubUnitId(Integer.parseInt(units[i]));
-                        detail.setQuantity(Integer.parseInt(quantities[i]));
-                        detail.setQualityId(1); // Default quality ID
-                        
-                        orderDetails.add(detail);
-                    } catch (NumberFormatException e) {
-                        request.setAttribute("error", "Invalid data in order item " + (i + 1));
-                        doGet(request, response);
-                        return;
-                    }
-                }
-            }
-            
-            if (orderDetails.isEmpty()) {
-                request.setAttribute("error", "At least one valid order item is required");
-                doGet(request, response);
-                return;
-            }
-            
-            // Get current user ID from session
-             HttpSession session = request.getSession(false);
+            // Lấy session và kiểm tra đăng nhập
+            HttpSession session = request.getSession(false);
             Users user = (Users) session.getAttribute("USER");
             if (user == null) {
                 response.sendRedirect("login.jsp");
                 return;
             }
+            int userId = user.getUserId();
             
-            // Create updated order object
-            OrderDAO orderDAO = new OrderDAO();
-            Order existingOrder = orderDAO.getOrderById(orderId);
-            if (existingOrder == null) {
-                request.setAttribute("error", "Order not found");
-                doGet(request, response);
+            // Lấy và validate supplier
+            int supplierId = -1;
+            if (supplierRaw != null && !supplierRaw.trim().isEmpty()) {
+                try {
+                    supplierId = Integer.parseInt(supplierRaw);
+                } catch (NumberFormatException e) {
+                    returnWithError(request, response, orderId, "Invalid supplier");
+                    return;
+                }
+            } else {
+                returnWithError(request, response, orderId, "You must select a Supplier");
                 return;
             }
             
-            // Update order fields
-            existingOrder.setType(orderType);
-            existingOrder.setSupplier(supplierId);
-            existingOrder.setNote(note != null ? note.trim() : "");
-            existingOrder.setOrderDetails(orderDetails);
+            // 2. Lấy danh sách các item
+            String[] materialIds = request.getParameterValues("material[]");
+            String[] unitIds = request.getParameterValues("unit[]");
+            String[] quantities = request.getParameterValues("quantity[]");
             
-            // Update order in database
+            if (materialIds == null || materialIds.length == 0) {
+                returnWithError(request, response, orderId, "You must add at least one order item");
+                return;
+            }
+            
+            // 3. Get existing order
+            OrderDAO orderDAO = new OrderDAO();
+            Order existingOrder = orderDAO.getOrderById(orderId);
+            if (existingOrder == null) {
+                returnWithError(request, response, orderId, "Order not found");
+                return;
+            }
+            
+            // 4. Xử lý gộp các item trùng materialId và unitId
+            List<OrderDetail> consolidatedDetails = consolidateOrderItems(materialIds, unitIds, quantities, orderType, orderId);
+            
+            if (consolidatedDetails.isEmpty()) {
+                returnWithError(request, response, orderId, "No valid order items found");
+                return;
+            }
+            
+            // 5. Update order fields
+            existingOrder.setType(orderType);
+            existingOrder.setNote(note);
+            existingOrder.setSupplier(supplierId);
+            existingOrder.setOrderDetails(consolidatedDetails);
+            
+            // 6. Lưu vào DB
             boolean success = orderDAO.updateOrder(existingOrder);
             
             if (success) {
-                // Redirect to orders list with success message
-                response.sendRedirect("orderdetail?oid=" + orderId +"&success=Order updated successfully");
+                response.sendRedirect("orderdetail?oid=" + orderId + "&success=Order updated successfully");
             } else {
-                request.setAttribute("error", "Failed to update order. Please try again.");
-                doGet(request, response);
+                returnWithError(request, response, orderId, "Failed to update order due to database issue");
             }
             
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "Invalid number format in form data");
-            doGet(request, response);
+            String orderIdParam = request.getParameter("orderId");
+            int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty()) ? 
+                          Integer.parseInt(orderIdParam) : -1;
+            returnWithError(request, response, orderId, "Invalid number format in form data");
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Error updating order: " + e.getMessage());
-            doGet(request, response);
+            String orderIdParam = request.getParameter("orderId");
+            int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty()) ? 
+                          Integer.parseInt(orderIdParam) : -1;
+            returnWithError(request, response, orderId, "Error updating order: " + e.getMessage());
         }
+    }
+    
+    private List<OrderDetail> consolidateOrderItems(String[] materialIds, String[] unitIds,
+            String[] quantities, String orderType, int orderId) throws Exception {
+
+        // Sử dụng Map với key là "materialId_unitId" để gộp các item trùng nhau
+        Map<String, OrderDetail> consolidatedMap = new HashMap<>();
+
+        for (int i = 0; i < materialIds.length; i++) {
+            try {
+                int materialId = Integer.parseInt(materialIds[i]);
+                int unitId = Integer.parseInt(unitIds[i]);
+                int quantity = Integer.parseInt(quantities[i]);
+
+                if (quantity <= 0) {
+                    throw new Exception("Quantity must be greater than 0 for item " + (i + 1));
+                }
+
+                // Tạo key để nhận diện item trùng nhau
+                String key = materialId + "_" + unitId;
+
+                if (consolidatedMap.containsKey(key)) {
+                    // Nếu đã tồn tại item này, cộng thêm số lượng
+                    OrderDetail existingDetail = consolidatedMap.get(key);
+                    existingDetail.setQuantity(existingDetail.getQuantity() + quantity);
+                } else {
+                    // Tạo OrderDetail mới
+                    OrderDetail detail = new OrderDetail();
+                    detail.setOrderId(orderId);
+                    detail.setMaterialId(materialId);
+                    detail.setSubUnitId(unitId);
+                    detail.setQuantity(quantity);
+                    detail.setQualityId("exportToRepair".equals(orderType) ? 2 : 1);
+
+                    consolidatedMap.put(key, detail);
+                }
+
+            } catch (NumberFormatException ex) {
+                throw new Exception("Invalid number in order item " + (i + 1));
+            }
+        }
+
+        // Chuyển từ Map về List
+        return new ArrayList<>(consolidatedMap.values());
+    }
+    
+    private void returnWithError(HttpServletRequest request, HttpServletResponse response, 
+                               int orderId, String message) throws ServletException, IOException {
+
+        // Nếu có orderId, load lại order data để hiển thị form
+        if (orderId > 0) {
+            try {
+                OrderDAO orderDAO = new OrderDAO();
+                SupplierDAO supplierDAO = new SupplierDAO();
+                CategoryDAO categoryDAO = new CategoryDAO();
+                SubUnitDAO subUnitDAO = new SubUnitDAO();
+                MaterialDAO materialDAO = new MaterialDAO();
+                Gson gson = new Gson();
+
+                Order order = orderDAO.getOrderById(orderId);
+                if (order != null) {
+                    List<Supplier> supplierList = supplierDAO.getAllSuppliers();
+                    List<Category> categoryList = categoryDAO.getAllSubCategory();
+                    List<SubUnit> unitList = subUnitDAO.getAllSubUnits("active");
+                    
+                    for (OrderDetail orderDetail : order.getOrderDetails()) {
+                        orderDetail.setMaterialName(materialDAO.getMaterialById(orderDetail.getMaterialId()).getName());
+                    }
+
+                    request.setAttribute("order", order);
+                    request.setAttribute("suppliers", supplierList);
+                    request.setAttribute("categoriesJson", gson.toJson(categoryList));
+                    request.setAttribute("unitsJson", gson.toJson(unitList));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        request.setAttribute("error", message);
+        request.getRequestDispatcher("editorder.jsp").forward(request, response);
     }
 
     /**

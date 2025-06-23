@@ -6,423 +6,204 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Units;
-import model.SubUnit;
-import model.UnitConversion;
 
 public class UnitDAO extends DBContext {
 
     public List<Units> getAllUnits(boolean onlyActive) {
         List<Units> units = new ArrayList<>();
-        String sql = "SELECT Unit_id, Name, Status, Created_at, Updated_at FROM Units" +
-                     (onlyActive ? " WHERE Status = 'active'" : "");
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units"
+                + (onlyActive ? " WHERE Status = 'active'" : "");
+        try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                Units unit = new Units(
-                    rs.getInt("Unit_id"),
-                    rs.getString("Name"),
-                    rs.getString("Status").equals("active"),
-                    rs.getTimestamp("Created_at"),
-                    rs.getTimestamp("Updated_at")
-                );
-                units.add(unit);
+                units.add(new Units(
+                        rs.getInt("Unit_id"),
+                        rs.getString("Name"),
+                        rs.getInt("SubUnit_id"),
+                        rs.getDouble("Factor"),
+                        "active".equals(rs.getString("Status")),
+                        rs.getTimestamp("Created_at"),
+                        rs.getTimestamp("Updated_at")
+                ));
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching all units: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error fetching units: " + e.getMessage());
         }
         return units;
     }
 
-    // Fetch all units (default to all, including inactive)
-    public List<Units> getAllUnits() {
-        return getAllUnits(false);
+    public List<Units> getAllUnits(String status) {
+        List<Units> units = new ArrayList<>();
+        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units";
+        if (status != null && !status.isEmpty()) {
+            sql += " WHERE Status = ?";
+        }
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            if (status != null && !status.isEmpty()) {
+                stmt.setString(1, status);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    units.add(new Units(
+                            rs.getInt("Unit_id"),
+                            rs.getString("Name"),
+                            rs.getInt("SubUnit_id"),
+                            rs.getDouble("Factor"),
+                            "active".equals(rs.getString("Status")),
+                            rs.getTimestamp("Created_at"),
+                            rs.getTimestamp("Updated_at")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching units with status " + status + ": " + e.getMessage());
+        }
+        return units;
     }
 
     public Units getUnitById(int unitId) {
-        String sql = "SELECT Unit_id, Name, Status, Created_at, Updated_at FROM Units WHERE Unit_id = ?";
+        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units WHERE Unit_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Units(
-                        rs.getInt("Unit_id"),
-                        rs.getString("Name"),
-                        rs.getString("Status").equals("active"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at")
+                            rs.getInt("Unit_id"),
+                            rs.getString("Name"),
+                            rs.getInt("SubUnit_id"),
+                            rs.getDouble("Factor"),
+                            "active".equals(rs.getString("Status")),
+                            rs.getTimestamp("Created_at"),
+                            rs.getTimestamp("Updated_at")
                     );
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching unit with ID " + unitId + ": " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error fetching unit ID " + unitId + ": " + e.getMessage());
         }
         return null;
     }
 
-    public void createUnit(Units unit) {
-        String sql = "INSERT INTO Units (Name, Status) VALUES (?, ?)";
+    public boolean createUnit(Units unit) {
+        String sql = "INSERT INTO Units (Name, SubUnit_id, Factor, Status, Created_at, Updated_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, unit.getName());
-            stmt.setString(2, unit.isActive() ? "active" : "inactive");
-            stmt.executeUpdate();
+            stmt.setInt(2, unit.getSubUnitId());
+            stmt.setDouble(3, unit.getFactor());
+            stmt.setString(4, unit.getIsActive() ? "active" : "inactive");
+            stmt.setTimestamp(5, unit.getCreatedAt());
+            stmt.setTimestamp(6, unit.getUpdatedAt());
+            int affectedRows = stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     unit.setUnitId(rs.getInt(1));
                 }
             }
+            return affectedRows > 0;
         } catch (SQLException e) {
             System.err.println("Error creating unit: " + e.getMessage());
-            e.printStackTrace();
+            return false;
         }
     }
 
-    public void updateUnit(Units unit) {
-        String sql = "UPDATE Units SET Name = ?, Status = ? WHERE Unit_id = ?";
+    public boolean updateUnit(Units unit) {
+        String sql = "UPDATE Units SET Name = ?, SubUnit_id = ?, Factor = ?, Status = ?, Updated_at = ? WHERE Unit_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, unit.getName());
-            stmt.setString(2, unit.isActive() ? "active" : "inactive");
-            stmt.setInt(3, unit.getUnitId());
-            stmt.executeUpdate();
+            stmt.setInt(2, unit.getSubUnitId());
+            stmt.setDouble(3, unit.getFactor());
+            stmt.setString(4, unit.getIsActive() ? "active" : "inactive");
+            stmt.setTimestamp(5, unit.getUpdatedAt());
+            stmt.setInt(6, unit.getUnitId());
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Error updating unit with ID " + unit.getUnitId() + ": " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error updating unit ID " + unit.getUnitId() + ": " + e.getMessage());
+            return false;
         }
     }
 
     public boolean deleteUnit(int unitId) {
+        String sql = "UPDATE Units SET Status = 'inactive', Updated_at = ? WHERE Unit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
+            stmt.setInt(2, unitId);
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting unit ID " + unitId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean permanentDeleteUnit(int unitId) {
         String sql = "DELETE FROM Units WHERE Unit_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, unitId);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Error deleting unit with ID " + unitId + ": " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error permanently deleting unit ID " + unitId + ": " + e.getMessage());
             return false;
         }
     }
-
-    // Fetch all subunits, optionally only active ones
-    public List<SubUnit> getAllSubUnits(boolean onlyActive) {
-        List<SubUnit> subUnits = new ArrayList<>();
-        String sql = "SELECT SubUnit_id, Name, Status, Created_at, Updated_at FROM SubUnits" +
-                     (onlyActive ? " WHERE Status = 'active'" : "");
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                SubUnit subUnit = new SubUnit(
-                    rs.getInt("SubUnit_id"),
-                    rs.getString("Name"),
-                    rs.getString("Status"),
-                    rs.getTimestamp("Created_at"),
-                    rs.getTimestamp("Updated_at")
-                );
-                subUnits.add(subUnit);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching all subunits: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return subUnits;
-    }
-
-    // Fetch all subunits (default to all, including inactive)
-    public List<SubUnit> getAllSubUnits() {
-        return getAllSubUnits(false);
-    }
-
-    public SubUnit getSubUnitById(int subUnitId) {
-        String sql = "SELECT SubUnit_id, Name, Status, Created_at, Updated_at FROM SubUnits WHERE SubUnit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, subUnitId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new SubUnit(
-                        rs.getInt("SubUnit_id"),
-                        rs.getString("Name"),
-                        rs.getString("Status"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching subunit with ID " + subUnitId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public void createSubUnit(SubUnit subUnit) {
-        String sql = "INSERT INTO SubUnits (Name, Status) VALUES (?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, subUnit.getName());
-            stmt.setString(2, subUnit.getStatus());
-            stmt.executeUpdate();
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    subUnit.setSubUnitId(rs.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error creating subunit: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public void updateSubUnit(SubUnit subUnit) {
-        String sql = "UPDATE SubUnits SET Name = ?, Status = ? WHERE SubUnit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, subUnit.getName());
-            stmt.setString(2, subUnit.getStatus());
-            stmt.setInt(3, subUnit.getSubUnitId());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error updating subunit with ID " + subUnit.getSubUnitId() + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public boolean deleteSubUnit(int subUnitId) {
-        String sql = "DELETE FROM SubUnits WHERE SubUnit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, subUnitId);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            System.err.println("Error deleting subunit with ID " + subUnitId + ": " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public List<UnitConversion> getAllUnitConversions() {
-        List<UnitConversion> conversions = new ArrayList<>();
-        String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                UnitConversion conversion = new UnitConversion(
-                    rs.getInt("UnitConversion_id"),
-                    rs.getInt("Unit_id"),
-                    rs.getInt("SubUnit_id"),
-                    rs.getDouble("Factor"),
-                    rs.getTimestamp("Created_at"),
-                    rs.getTimestamp("Updated_at")
-                );
-                conversions.add(conversion);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching all unit conversions: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return conversions;
-    }
-
-    public UnitConversion getUnitConversionById(int unitConversionId) {
-        String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion WHERE UnitConversion_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, unitConversionId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new UnitConversion(
-                        rs.getInt("UnitConversion_id"),
-                        rs.getInt("Unit_id"),
-                        rs.getInt("SubUnit_id"),
-                        rs.getDouble("Factor"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching unit conversion with ID " + unitConversionId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public void createUnitConversion(UnitConversion conversion) {
-        String sql = "INSERT INTO UnitConversion (Unit_id, SubUnit_id, Factor) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            stmt.setInt(1, conversion.getUnitId());
-            stmt.setInt(2, conversion.getSubUnitId());
-            stmt.setDouble(3, conversion.getFactor());
-            stmt.executeUpdate();
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    conversion.setUnitConversionId(rs.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error creating unit conversion: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public void updateUnitConversion(UnitConversion conversion) {
-        String sql = "UPDATE UnitConversion SET Unit_id = ?, SubUnit_id = ?, Factor = ? WHERE UnitConversion_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, conversion.getUnitId());
-            stmt.setInt(2, conversion.getSubUnitId());
-            stmt.setDouble(3, conversion.getFactor());
-            stmt.setInt(4, conversion.getUnitConversionId());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error updating unit conversion with ID " + conversion.getUnitConversionId() + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public boolean deleteUnitConversion(int unitConversionId) {
-        String sql = "DELETE FROM UnitConversion WHERE UnitConversion_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, unitConversionId);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            System.err.println("Error deleting unit conversion with ID " + unitConversionId + ": " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public void deleteUnitConversionsBySubUnitId(int subUnitId) {
-        String sql = "DELETE FROM UnitConversion WHERE SubUnit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, subUnitId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error deleting unit conversions for subunit ID " + subUnitId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public void deleteUnitConversionsByUnitId(int unitId) {
-        String sql = "DELETE FROM UnitConversion WHERE Unit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, unitId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error deleting unit conversions for unit ID " + unitId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public List<UnitConversion> getUnitConversionsBySubUnitId(int subUnitId) {
-        List<UnitConversion> conversions = new ArrayList<>();
-        String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion WHERE SubUnit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, subUnitId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    UnitConversion conversion = new UnitConversion(
-                        rs.getInt("UnitConversion_id"),
-                        rs.getInt("Unit_id"),
-                        rs.getInt("SubUnit_id"),
-                        rs.getDouble("Factor"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at")
-                    );
-                    conversions.add(conversion);
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching unit conversions for subunit ID " + subUnitId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-        return conversions;
-    }
-
-    public List<UnitConversion> getUnitConversionsByUnitId(int unitId) {
-        List<UnitConversion> conversions = new ArrayList<>();
-        String sql = "SELECT UnitConversion_id, Unit_id, SubUnit_id, Factor, Created_at, Updated_at FROM UnitConversion WHERE Unit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, unitId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    UnitConversion conversion = new UnitConversion(
-                        rs.getInt("UnitConversion_id"),
-                        rs.getInt("Unit_id"),
-                        rs.getInt("SubUnit_id"),
-                        rs.getDouble("Factor"),
-                        rs.getTimestamp("Created_at"),
-                        rs.getTimestamp("Updated_at")
-                    );
-                    conversions.add(conversion);
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching unit conversions for unit ID " + unitId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-        return conversions;
-    }
-    
-    public boolean isDuplicateConversion(int unitId, int subUnitId, Integer excludeId) {
-    String sql = "SELECT COUNT(*) FROM UnitConversion WHERE Unit_id = ? AND SubUnit_id = ?";
-    if (excludeId != null) {
-        sql += " AND UnitConversion_id != ?";
-    }
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-        stmt.setInt(1, unitId);
-        stmt.setInt(2, subUnitId);
-        if (excludeId != null) {
-            stmt.setInt(3, excludeId);
-        }
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getInt(1) > 0;
-        }
-    } catch (SQLException e) {
-        System.err.println("Error checking duplicate conversion: " + e.getMessage());
-        e.printStackTrace();
-    }
-    return false;
-}
 
     public boolean isDuplicateUnitName(String name, Integer excludeId) {
-    String sql = "SELECT COUNT(*) FROM Units WHERE Name = ?";
-    if (excludeId != null) {
-        sql += " AND Unit_id != ?";
-    }
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-        stmt.setString(1, name);
+        String sql = "SELECT COUNT(*) FROM Units WHERE Name = ?";
         if (excludeId != null) {
-            stmt.setInt(2, excludeId);
+            sql += " AND Unit_id != ?";
         }
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getInt(1) > 0;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            if (excludeId != null) {
+                stmt.setInt(2, excludeId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking duplicate unit name: " + e.getMessage());
         }
-    } catch (SQLException e) {
-        System.err.println("Error checking duplicate unit name: " + e.getMessage());
-        e.printStackTrace();
+        return false;
     }
-    return false;
-}
+    
+    //B Minh cần hàm này nên đừng xóa
+    public List<Units> getAllUnitsWithSubUnit(String status) {
+        List<Units> units = new ArrayList<>();
+        String sql = "SELECT u.Unit_id, u.Name, u.Status, u.SubUnit_id, s.Name as SubUnit_Name, "
+                + "u.Factor, u.Created_at, u.Updated_at "
+                + "FROM Units u "
+                + "INNER JOIN SubUnits s ON u.SubUnit_id = s.SubUnit_id";
 
-public boolean isDuplicateSubUnitName(String name, Integer excludeId) {
-    String sql = "SELECT COUNT(*) FROM SubUnits WHERE Name = ?";
-    if (excludeId != null) {
-        sql += " AND SubUnit_id != ?";
-    }
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-        stmt.setString(1, name);
-        if (excludeId != null) {
-            stmt.setInt(2, excludeId);
+        if (status != null && !status.isEmpty()) {
+            sql += " WHERE u.Status = ?";
         }
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getInt(1) > 0;
-        }
-    } catch (SQLException e) {
-        System.err.println("Error checking duplicate subunit name: " + e.getMessage());
-        e.printStackTrace();
-    }
-    return false;
-}
 
+        sql += " ORDER BY u.Name";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            if (status != null && !status.isEmpty()) {
+                stmt.setString(1, status);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Units unit = new Units();
+                    unit.setUnitId(rs.getInt("Unit_id"));
+                    unit.setName(rs.getString("Name"));
+                    unit.setSubUnitId(rs.getInt("SubUnit_id"));
+                    unit.setSubUnitName(rs.getString("SubUnit_Name"));
+                    unit.setFactor(rs.getDouble("Factor"));
+                    unit.setIsActive(rs.getString("Status").equals("active"));
+                    unit.setCreatedAt(rs.getTimestamp("Created_at"));
+                    unit.setUpdatedAt(rs.getTimestamp("Updated_at"));
+
+                    units.add(unit);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching units with status " + status + ": " + e.getMessage());
+        }
+        return units;
+    }
 }

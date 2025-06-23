@@ -232,16 +232,16 @@
                                                 <div class="admin-actions">
                                                     <!-- Approve -->
                                                     <button type="button" class="btn btn-success" onclick="openApproveModal()">
-                                                        <i class="fas fa-check-circle"></i> Approve
+                                                        <i class="fas fa-check-circle"></i> Approve Order
                                                     </button>
 
-                                                    <button type="button" class="btn btn-warning" style="color: white">
-                                                        <i class="fas fa-list-check"></i> Partial Approve
-                                                    </button>
+                                                    <!--                                                    <button type="button" class="btn btn-warning" style="color: white">
+                                                                                                            <i class="fas fa-list-check"></i> Partial Approve
+                                                                                                        </button>-->
 
                                                     <!-- Reject -->
                                                     <button type="button" class="btn btn-danger" onclick="openRejectModal()">
-                                                        <i class="fas fa-times-circle"></i> Reject
+                                                        <i class="fas fa-times-circle"></i> Reject Order
                                                     </button>
 
                                                 </div>
@@ -436,9 +436,6 @@
                 </div>
             </div>
         </div>
-
-
-
 
         <!-- Approve Order Modal -->
         <div id="approveOrderModal" class="modal">

@@ -239,7 +239,7 @@
                     </table>
                 </div>
 
-                <c:if test="${totalPages > 1}">
+                <%--<c:if test="${totalPages > 1}">--%>
                     <div class="pagination">
                         <c:choose>
                             <c:when test="${page > 1}">
@@ -352,7 +352,7 @@
                             (${totalNotes} total import notes)
                         </c:if>
                     </div>
-                </c:if>
+                <%--</c:if>--%>
 
                 <!-- Import Note Detail Modal -->
                 <div class="modal fade" id="importNoteModal" tabindex="-1" aria-hidden="true">

@@ -197,30 +197,6 @@ public class OrderDAO extends DBContext {
         return details;
     }
 
-    public List<Order> getAllOrders() {
-        List<Order> orders = new ArrayList<>();
-        String query = "SELECT * FROM Orders ORDER BY Created_at DESC";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            ps = connection.prepareStatement(query);
-            rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Order order = createOrderFromResultSet(rs);
-                orders.add(order);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting all orders: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            closeResources(ps, rs);
-        }
-
-        return orders;
-    }
-
     public List<Order> getAllOrdersByUserId(int userId) {
         List<Order> orders = new ArrayList<>();
         String sql = "SELECT o.*, u.Full_name AS User_name, s.Name AS Supplier_name "
@@ -347,53 +323,6 @@ public class OrderDAO extends DBContext {
         }
     }
 
-    public List<Order> getOrdersByType(String type) {
-        return getOrdersByCondition("Type = ?", type);
-    }
-
-    public List<Order> getOrdersByStatus(String status) {
-        return getOrdersByCondition("Status = ?", status);
-    }
-
-    public List<Order> getOrdersByUserId(int userId) {
-        return getOrdersByCondition("User_id = ?", userId);
-    }
-
-    public List<Order> getOrdersBySupplierId(int supplierId) {
-        return getOrdersByCondition("Supplier_id = ?", supplierId);
-    }
-
-    private List<Order> getOrdersByCondition(String condition, Object parameter) {
-        List<Order> orders = new ArrayList<>();
-        String query = "SELECT * FROM Orders WHERE " + condition + " ORDER BY Created_at DESC";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            ps = connection.prepareStatement(query);
-
-            if (parameter instanceof String) {
-                ps.setString(1, (String) parameter);
-            } else if (parameter instanceof Integer) {
-                ps.setInt(1, (Integer) parameter);
-            }
-
-            rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Order order = createOrderFromResultSet(rs);
-                orders.add(order);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting orders by condition: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            closeResources(ps, rs);
-        }
-
-        return orders;
-    }
-
     /**
      * Helper method to create Order object from ResultSet
      *
@@ -474,35 +403,6 @@ public class OrderDAO extends DBContext {
         }
 
         return orders;
-    }
-
-    /**
-     * Count orders by status
-     *
-     * @param status Order status
-     * @return Number of orders
-     */
-    public int countOrdersByStatus(String status) {
-        String query = "SELECT COUNT(*) FROM Orders WHERE Status = ?";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            ps = connection.prepareStatement(query);
-            ps.setString(1, status);
-            rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error counting orders by status: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            closeResources(ps, rs);
-        }
-
-        return 0;
     }
 
     public List<Order> getPagedOrderList(String search, String type, String status, Date fromDate, Date toDate,
@@ -734,6 +634,261 @@ public class OrderDAO extends DBContext {
                 }
             } catch (SQLException e) {
                 System.err.println("Error closing resources: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Approve order and create import note for import type orders
+     *
+     * @param orderId Order ID to approve
+     * @param userId User ID who approves the order
+     * @return true if successful, false otherwise
+     */
+    public boolean approveOrderAndCreateImportNote(int orderId, int userId) {
+        PreparedStatement psUpdateOrder = null;
+        PreparedStatement psInsertImportNote = null;
+        PreparedStatement psInsertImportDetail = null;
+
+        try {
+            // Start transaction
+            connection.setAutoCommit(false);
+
+            // 1. Get order details first
+            Order order = getOrderById(orderId);
+            if (order == null) {
+                System.err.println("Order not found with ID: " + orderId);
+                connection.rollback();
+                return false;
+            }
+
+            // 2. Update order status to approved
+            String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
+            psUpdateOrder = connection.prepareStatement(updateOrderQuery);
+            psUpdateOrder.setInt(1, orderId);
+
+            int orderUpdateResult = psUpdateOrder.executeUpdate();
+            if (orderUpdateResult == 0) {
+                System.err.println("Failed to update order status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Create import note only for import type orders
+            if ("import".equals(order.getType())) {
+                String insertImportNoteQuery = "INSERT INTO Import_note (Order_id, User_id, Warehouse_id) VALUES (?, ?, ?)";
+                psInsertImportNote = connection.prepareStatement(insertImportNoteQuery, Statement.RETURN_GENERATED_KEYS);
+                psInsertImportNote.setInt(1, orderId);
+                psInsertImportNote.setInt(2, userId);
+                psInsertImportNote.setInt(3, order.getWarehouseId());
+
+                int importNoteResult = psInsertImportNote.executeUpdate();
+                if (importNoteResult > 0) {
+                    // Get generated Import_note_id
+                    ResultSet generatedKeys = psInsertImportNote.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        int importNoteId = generatedKeys.getInt(1);
+
+                        // 4. Create import note details
+                        if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
+                            String insertImportDetailQuery = "INSERT INTO Import_note_detail (Import_note_id, Material_id, SubUnit_id, Quantity, Quality_id) VALUES (?, ?, ?, ?, ?)";
+                            psInsertImportDetail = connection.prepareStatement(insertImportDetailQuery);
+
+                            for (OrderDetail detail : order.getOrderDetails()) {
+                                psInsertImportDetail.setInt(1, importNoteId);
+                                psInsertImportDetail.setInt(2, detail.getMaterialId());
+                                psInsertImportDetail.setInt(3, detail.getSubUnitId());
+                                psInsertImportDetail.setInt(4, detail.getQuantity());
+
+                                // Handle Quality_id - use default quality if not specified
+                                if (detail.getQualityId() > 0) {
+                                    psInsertImportDetail.setInt(5, detail.getQualityId());
+                                } else {
+                                    // You might want to set a default quality ID or handle this differently
+                                    psInsertImportDetail.setInt(5, 1); // Assuming 1 is default quality
+                                }
+
+                                psInsertImportDetail.addBatch();
+                            }
+
+                            int[] detailResults = psInsertImportDetail.executeBatch();
+
+                            // Check if all import details were created successfully
+                            for (int result : detailResults) {
+                                if (result <= 0) {
+                                    System.err.println("Failed to create import note detail");
+                                    connection.rollback();
+                                    return false;
+                                }
+                            }
+                        }
+
+                        System.out.println("Import note created successfully with ID: " + importNoteId);
+                    } else {
+                        System.err.println("Failed to get generated import note ID");
+                        connection.rollback();
+                        return false;
+                    }
+                } else {
+                    System.err.println("Failed to create import note");
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            // Commit transaction
+            connection.commit();
+            System.out.println("Order approved successfully: " + orderId);
+            return true;
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Rollback failed: " + rollbackEx.getMessage());
+            }
+            System.err.println("Error approving order and creating import note: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Close resources
+            try {
+                if (psUpdateOrder != null) {
+                    psUpdateOrder.close();
+                }
+                if (psInsertImportNote != null) {
+                    psInsertImportNote.close();
+                }
+                if (psInsertImportDetail != null) {
+                    psInsertImportDetail.close();
+                }
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("Error in finally block: " + e.getMessage());
+            }
+        }
+    }
+
+    public boolean approveOrderAndCreateExportNote(int orderId, int userId) {
+        PreparedStatement psUpdateOrder = null;
+        PreparedStatement psInsertExportNote = null;
+        PreparedStatement psInsertExportDetail = null;
+
+        try {
+            // Start transaction
+            connection.setAutoCommit(false);
+
+            // 1. Get order details first
+            Order order = getOrderById(orderId);
+            if (order == null) {
+                System.err.println("Order not found with ID: " + orderId);
+                connection.rollback();
+                return false;
+            }
+
+            // 2. Update order status to approved
+            String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
+            psUpdateOrder = connection.prepareStatement(updateOrderQuery);
+            psUpdateOrder.setInt(1, orderId);
+
+            int orderUpdateResult = psUpdateOrder.executeUpdate();
+            if (orderUpdateResult == 0) {
+                System.err.println("Failed to update order status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Create export note for export or exportToRepair type orders
+            if ("export".equals(order.getType()) || "exportToRepair".equals(order.getType())) {
+                String insertExportNoteQuery = "INSERT INTO Export_note (Order_id, User_id, Warehouse_id) VALUES (?, ?, ?)";
+                psInsertExportNote = connection.prepareStatement(insertExportNoteQuery, Statement.RETURN_GENERATED_KEYS);
+                psInsertExportNote.setInt(1, orderId);
+                psInsertExportNote.setInt(2, userId);
+                psInsertExportNote.setInt(3, order.getWarehouseId());
+
+                int exportNoteResult = psInsertExportNote.executeUpdate();
+                if (exportNoteResult > 0) {
+                    // Get generated Export_note_id
+                    ResultSet generatedKeys = psInsertExportNote.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        int exportNoteId = generatedKeys.getInt(1);
+
+                        // 4. Create export note details
+                        if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
+                            String insertExportDetailQuery = "INSERT INTO Export_note_detail (Export_note_id, Material_id, SubUnit_id, Quantity, Quality_id) VALUES (?, ?, ?, ?, ?)";
+                            psInsertExportDetail = connection.prepareStatement(insertExportDetailQuery);
+
+                            for (OrderDetail detail : order.getOrderDetails()) {
+                                psInsertExportDetail.setInt(1, exportNoteId);
+                                psInsertExportDetail.setInt(2, detail.getMaterialId());
+                                psInsertExportDetail.setInt(3, detail.getSubUnitId());
+                                psInsertExportDetail.setInt(4, detail.getQuantity());
+
+                                // Handle Quality_id - use default quality if not specified
+                                if (detail.getQualityId() > 0) {
+                                    psInsertExportDetail.setInt(5, detail.getQualityId());
+                                } else {
+                                    // You might want to set a default quality ID or handle this differently
+                                    psInsertExportDetail.setInt(5, 1); // Assuming 1 is default quality
+                                }
+
+                                psInsertExportDetail.addBatch();
+                            }
+
+                            int[] detailResults = psInsertExportDetail.executeBatch();
+
+                            // Check if all export details were created successfully
+                            for (int result : detailResults) {
+                                if (result <= 0) {
+                                    System.err.println("Failed to create export note detail");
+                                    connection.rollback();
+                                    return false;
+                                }
+                            }
+                        }
+
+                        System.out.println("Export note created successfully with ID: " + exportNoteId);
+                    } else {
+                        System.err.println("Failed to get generated export note ID");
+                        connection.rollback();
+                        return false;
+                    }
+                } else {
+                    System.err.println("Failed to create export note");
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            // Commit transaction
+            connection.commit();
+            System.out.println("Order approved successfully: " + orderId);
+            return true;
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Rollback failed: " + rollbackEx.getMessage());
+            }
+            System.err.println("Error approving order and creating export note: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Close resources
+            try {
+                if (psUpdateOrder != null) {
+                    psUpdateOrder.close();
+                }
+                if (psInsertExportNote != null) {
+                    psInsertExportNote.close();
+                }
+                if (psInsertExportDetail != null) {
+                    psInsertExportDetail.close();
+                }
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("Error in finally block: " + e.getMessage());
             }
         }
     }

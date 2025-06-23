@@ -1,30 +1,22 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
 import java.sql.Timestamp;
 
-/**
- *
- * @author ADMIN
- */
 public class SubUnit {
 
     private int subUnitId;
     private String name;
-    private String status;
+    private boolean isActive;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
     public SubUnit() {
     }
 
-    public SubUnit(int subUnitId, String name, String status, Timestamp createdAt, Timestamp updatedAt) {
+    public SubUnit(int subUnitId, String name, boolean isActive, Timestamp createdAt, Timestamp updatedAt) {
         this.subUnitId = subUnitId;
         this.name = name;
-        this.status = status;
+        this.isActive = isActive;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -45,13 +37,13 @@ public class SubUnit {
         this.name = name;
     }
 
-    public String getStatus() {
-        return status;
-    }
+    public boolean getIsActive() {
+        return isActive;
+    } 
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    } 
 
     public Timestamp getCreatedAt() {
         return createdAt;
@@ -71,9 +63,7 @@ public class SubUnit {
 
     @Override
     public String toString() {
-        return "SubUnit{" + "subUnitId=" + subUnitId + ", name=" + name + ", status=" + status + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+        return "SubUnit{" + "subUnitId=" + subUnitId + ", name=" + name + ", isActive=" + isActive
+                + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
     }
-    
-    
-
 }

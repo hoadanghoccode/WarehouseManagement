@@ -129,7 +129,7 @@ public class Import_noteDAO extends DBContext {
         return new MaterialDAO().getAllMaterials(null, null, null, null);
     }
     public List<SubUnit> getAllSubUnits() {
-        return new SubUnitDAO().getAllSubUnits();
+        return new SubUnitDAO().getAllSubUnits(false);
     }
     public List<Quality> getAllQualities() {
         return new QualityDAO().getAllQualities();
