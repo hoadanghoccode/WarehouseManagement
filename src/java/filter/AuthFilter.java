@@ -273,6 +273,19 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
+        //check audit
+        if (user != null && uri.startsWith(contextPath + "/inventoryaudit")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewAudit = (perms != null) ? perms.get("Audit_VIEW") : null;
+
+            if (canViewAudit == null || !canViewAudit) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
         //check update material
         if (user != null && uri.startsWith(contextPath + "/update-material")) {
             @SuppressWarnings("unchecked")
