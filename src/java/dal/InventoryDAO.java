@@ -116,24 +116,33 @@ public class InventoryDAO extends DBContext {
 
     public MaterialInventory getLatestInventoryDetails(int materialId, int subUnitId) {
         MaterialInventory inventory = null;
-        String sql = "SELECT imd.Material_detail_id, m.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, imd.SubUnit_id AS subunit_id, " +
+        String sql = "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, md.SubUnit_id AS subunit_id, " +
                      "m.Name AS material_name, c.Name AS category_name, s.Name AS supplier_name, su.Name AS subunit_name, " +
-                     "imd.Ending_qty AS closing_qty, imd.Import_qty AS import_qty, imd.Export_qty AS export_qty, " +
-                     "imd.Inventory_Material_date AS inventory_date, imd.Note AS note, " +
-                     "(SELECT md.Quantity FROM Material_detail md JOIN Quality q ON md.Quality_id = q.Quality_id " +
-                     "WHERE md.Material_id = m.Material_id AND md.SubUnit_id = imd.SubUnit_id AND q.Quality_name = 'notAvailable' LIMIT 1) AS damaged_quantity " +
+                     "imd.Ending_qty AS available_qty, " +
+                     "(SELECT COALESCE(SUM(md2.Quantity), 0) FROM Material_detail md2 " +
+                     "JOIN Quality q ON md2.Quality_id = q.Quality_id " +
+                     "WHERE md2.Material_id = m.Material_id AND md2.SubUnit_id = md.SubUnit_id AND q.Quality_name = 'notAvailable') AS not_available_qty, " +
+                     "imd.Import_qty AS import_qty, imd.Export_qty AS export_qty, " +
+                     "imd.Inventory_Material_date AS inventory_date, imd.Note AS note " +
                      "FROM InventoryMaterialDaily imd " +
                      "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
                      "JOIN Materials m ON md.Material_id = m.Material_id " +
                      "JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id " +
                      "JOIN Category c ON m.Category_id = c.Category_id " +
                      "JOIN Suppliers s ON m.SupplierId = s.Supplier_id " +
-                     "WHERE m.Material_id = ? AND imd.SubUnit_id = ? " +
-                     "ORDER BY imd.Inventory_Material_date DESC LIMIT 1";
+                     "WHERE m.Material_id = ? AND md.SubUnit_id = ? " +
+                     "AND imd.Inventory_Material_date = (" +
+                     "    SELECT MAX(Inventory_Material_date) " +
+                     "    FROM InventoryMaterialDaily imd2 " +
+                     "    JOIN Material_detail md2 ON imd2.Material_detail_id = md2.Material_detail_id " +
+                     "    WHERE md2.Material_id = ? AND md2.SubUnit_id = ?" +
+                     ")";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, materialId);
             stmt.setInt(2, subUnitId);
+            stmt.setInt(3, materialId);
+            stmt.setInt(4, subUnitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     inventory = new MaterialInventory();
@@ -145,12 +154,12 @@ public class InventoryDAO extends DBContext {
                     inventory.setCategoryName(rs.getString("category_name"));
                     inventory.setSupplierName(rs.getString("supplier_name"));
                     inventory.setSubUnitName(rs.getString("subunit_name"));
-                    inventory.setAvailableQty(rs.getBigDecimal("closing_qty") != null ? rs.getBigDecimal("closing_qty") : BigDecimal.ZERO);
-                    inventory.setNotAvailableQty(rs.getBigDecimal("damaged_quantity") != null ? rs.getBigDecimal("damaged_quantity") : BigDecimal.ZERO);
+                    inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
+                    inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
                     inventory.setImportQty(rs.getBigDecimal("import_qty") != null ? rs.getBigDecimal("import_qty") : BigDecimal.ZERO);
                     inventory.setExportQty(rs.getBigDecimal("export_qty") != null ? rs.getBigDecimal("export_qty") : BigDecimal.ZERO);
                     inventory.setInventoryDate(rs.getDate("inventory_date"));
-                    inventory.setNote(rs.getString("note"));
+                    inventory.setNote(rs.getString("note") != null ? rs.getString("note") : "No recent transactions");
                 }
             }
         } catch (SQLException e) {
