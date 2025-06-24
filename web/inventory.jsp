@@ -771,54 +771,73 @@
             }
 
             function viewDetails(materialId, subUnitId) {
-                $.ajax({
-                    url: '/inventory',
-                    type: 'GET',
-                    data: {
-                        action: 'getLatestDetails',
-                        materialId: materialId,
-                        subUnitId: subUnitId
-                    },
-                    success: function (response) {
-                        if (response) {
-                            document.getElementById("modal-material-name").textContent = response.materialName || 'N/A';
-                            document.getElementById("modal-category-name").textContent = response.categoryName || 'N/A';
-                            document.getElementById("modal-supplier-name").textContent = response.supplierName || 'N/A';
-                            document.getElementById("modal-subunit-name").textContent = response.subUnitName || 'N/A';
-                            document.getElementById("modal-available-qty").textContent = response.availableQty ? response.availableQty.toFixed(2) : '0.00';
-                            document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? response.notAvailableQty.toFixed(2) : '0.00';
-                            document.getElementById("modal-import-qty").textContent = response.importQty ? response.importQty.toFixed(2) : '0.00';
-                            document.getElementById("modal-export-qty").textContent = response.exportQty ? response.exportQty.toFixed(2) : '0.00';
-                            document.getElementById("modal-inventory-date").textContent = response.inventoryDate ? new Date(response.inventoryDate).toLocaleDateString('en-GB') : 'N/A';
-                            document.getElementById("modal-note").textContent = response.note || 'N/A';
-                        } else {
-                            document.getElementById("modal-material-name").textContent = 'N/A';
-                            document.getElementById("modal-category-name").textContent = 'N/A';
-                            document.getElementById("modal-supplier-name").textContent = 'N/A';
-                            document.getElementById("modal-subunit-name").textContent = 'N/A';
-                            document.getElementById("modal-available-qty").textContent = '0.00';
-                            document.getElementById("modal-not-available-qty").textContent = '0.00';
-                            document.getElementById("modal-import-qty").textContent = '0.00';
-                            document.getElementById("modal-export-qty").textContent = '0.00';
-                            document.getElementById("modal-inventory-date").textContent = 'N/A';
-                            document.getElementById("modal-note").textContent = 'N/A';
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error fetching details: " + error);
-                        document.getElementById("modal-material-name").textContent = 'N/A';
-                        document.getElementById("modal-category-name").textContent = 'N/A';
-                        document.getElementById("modal-supplier-name").textContent = 'N/A';
-                        document.getElementById("modal-subunit-name").textContent = 'N/A';
-                        document.getElementById("modal-available-qty").textContent = '0.00';
-                        document.getElementById("modal-not-available-qty").textContent = '0.00';
-                        document.getElementById("modal-import-qty").textContent = '0.00';
-                        document.getElementById("modal-export-qty").textContent = '0.00';
-                        document.getElementById("modal-inventory-date").textContent = 'N/A';
-                        document.getElementById("modal-note").textContent = 'N/A';
-                    }
-                });
+        console.log(`viewDetails - Fetching data for materialId=${materialId}, subUnitId=${subUnitId}`);
+        $.ajax({
+            url: '/inventory',
+            type: 'GET',
+            data: {
+                action: 'getLatestDetails',
+                materialId: materialId,
+                subUnitId: subUnitId
+            },
+            success: function (response) {
+                console.log("viewDetails - AJAX success, response:", response);
+                // Xóa thông báo lỗi cũ nếu có
+                const modalBody = document.querySelector(".modal-body");
+                const existingAlert = modalBody.querySelector(".alert");
+                if (existingAlert) existingAlert.remove();
+
+                if (response && response.materialId) {
+                    document.getElementById("modal-material-name").textContent = response.materialName || 'N/A';
+                    document.getElementById("modal-category-name").textContent = response.categoryName || 'N/A';
+                    document.getElementById("modal-supplier-name").textContent = response.supplierName || 'N/A';
+                    document.getElementById("modal-subunit-name").textContent = response.subUnitName || 'N/A';
+                    document.getElementById("modal-available-qty").textContent = response.availableQty ? parseFloat(response.availableQty).toFixed(2) : '0.00';
+                    document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? parseFloat(response.notAvailableQty).toFixed(2) : '0.00';
+                    document.getElementById("modal-import-qty").textContent = response.importQty ? parseFloat(response.importQty).toFixed(2) : '0.00';
+                    document.getElementById("modal-export-qty").textContent = response.exportQty ? parseFloat(response.exportQty).toFixed(2) : '0.00';
+                    document.getElementById("modal-inventory-date").textContent = response.inventoryDate ? 
+                        new Date(response.inventoryDate).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        }) : 'N/A';
+                    document.getElementById("modal-note").textContent = response.note || 'No recent transactions';
+                } else {
+                    console.warn("viewDetails - No valid data received");
+                    document.getElementById("modal-material-name").textContent = 'N/A';
+                    document.getElementById("modal-category-name").textContent = 'N/A';
+                    document.getElementById("modal-supplier-name").textContent = 'N/A';
+                    document.getElementById("modal-subunit-name").textContent = 'N/A';
+                    document.getElementById("modal-available-qty").textContent = '0.00';
+                    document.getElementById("modal-not-available-qty").textContent = '0.00';
+                    document.getElementById("modal-import-qty").textContent = '0.00';
+                    document.getElementById("modal-export-qty").textContent = '0.00';
+                    document.getElementById("modal-inventory-date").textContent = 'N/A';
+                    document.getElementById("modal-note").textContent = 'No recent transactions';
+                    modalBody.insertAdjacentHTML('afterbegin', 
+                        '<div class="alert alert-warning">No recent inventory data found for this material and unit.</div>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("viewDetails - AJAX error:", status, error, xhr.responseText);
+                const modalBody = document.querySelector(".modal-body");
+                const existingAlert = modalBody.querySelector(".alert");
+                if (existingAlert) existingAlert.remove();
+                modalBody.insertAdjacentHTML('afterbegin', 
+                    '<div class="alert alert-danger">Error fetching inventory details: ' + error + '</div>');
+                document.getElementById("modal-material-name").textContent = 'N/A';
+                document.getElementById("modal-category-name").textContent = 'N/A';
+                document.getElementById("modal-supplier-name").textContent = 'N/A';
+                document.getElementById("modal-subunit-name").textContent = 'N/A';
+                document.getElementById("modal-available-qty").textContent = '0.00';
+                document.getElementById("modal-not-available-qty").textContent = '0.00';
+                document.getElementById("modal-import-qty").textContent = '0.00';
+                document.getElementById("modal-export-qty").textContent = '0.00';
+                document.getElementById("modal-inventory-date").textContent = 'N/A';
+                document.getElementById("modal-note").textContent = 'No recent transactions';
             }
-        </script>
+        });
+    }        </script>
     </body>
 </html>
