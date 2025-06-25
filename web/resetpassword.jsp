@@ -88,7 +88,12 @@ duong --%> <%@page contentType="text/html" pageEncoding="UTF-8"%>
             </div>
             <button type="submit">Send Reset Link</button>
           </form>
-
+            <div style="margin-top: 16px;">
+            <a href="login.jsp" style="font-weight: bold; text-decoration: none; color: #1d4ed8;">
+                ← Back to Login
+            </a>
+        </div>
+        </form>
           <div class="message">
             <p>${message}</p>
           </div>

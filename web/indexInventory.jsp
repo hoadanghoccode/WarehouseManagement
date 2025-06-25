@@ -151,9 +151,10 @@
                             <p class="text-muted mb-0">Welcome back! Here's what's happening in your warehouse today.</p>
                         </div>
                         <div>
-                            <button class="btn btn-primary me-2">
+                            <button  class="btn btn-primary me-2">
                                 <i class="fas fa-plus me-1"></i>
-                                New Order
+                                <a href="createorder" style="text-decoration: none; color: white;" >New Order</a>
+                           
                             </button>
                             <button class="btn btn-outline-primary">
                                 <i class="fas fa-download me-1"></i>
@@ -258,6 +259,61 @@
                     </div>
 
                     <!-- Charts and Tables Row -->
+                    
+                    <!-- Charts and Tables Row -->
+<!-- Dropdown chọn vật tư -->
+<select id="materialSelect" class="form-select mb-3">
+    <option value="">-- Tất cả vật tư --</option>
+    <c:forEach var="m" items="${materials}">
+        <option value="${m.materialId}">${m.name}</option>
+    </c:forEach>
+</select>
+
+<!-- Canvas biểu đồ -->
+<canvas id="importChart" height="100"></canvas>
+    
+<hr class="my-4"/>
+
+<h5 class="mt-4">🍩 Tình trạng sử dụng vật tư</h5>
+
+<!-- Dropdown chọn vật tư -->
+<select id="materialSelectPie" class="form-select mb-3" onchange="drawPieChart()">
+    <c:forEach var="m" items="${materials}" varStatus="loop">
+        <option value="${m.materialId}" ${loop.index == 0 ? "selected" : ""}>
+            ${m.name}
+        </option>
+    </c:forEach>
+</select>
+
+<!-- Canvas biểu đồ pie -->
+<style>
+  /* Container để căn giữa biểu đồ */
+  .chart-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  /* Canvas biểu đồ */
+  #materialPieChart {
+    width: 500px !important;
+    height: 500px !important;
+  }
+
+  /* Tăng kích thước chữ phần chú thích */
+  .chart-legend-text {
+    font-size: 18px !important;
+    font-weight: bold;
+  }
+</style>
+
+<div class="chart-container">
+  <canvas id="materialPieChart"></canvas>
+</div>
+
+  
+
                     <div class="row">
                         <!-- Recent Orders -->
                         <div class="col-lg-8 mb-4">
@@ -523,5 +579,179 @@
             }, 30000); // Update every 30 seconds
         });
     </script>
+    
+      <!-- Chart.js + script gọi dữ liệu -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    async function drawChart(materialId = "") {
+        try {
+            const res = await fetch(
+              '${pageContext.request.contextPath}/importchart' + (materialId ? '?materialId=' + materialId : '')
+            );
+            const data = await res.json();
+
+            const labels = data.map(item => "VT-" + item.materialId);
+            const values = data.map(item => item.totalQuantity);
+
+            const ctx = document.getElementById("importChart").getContext('2d');
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Số lượng nhập',
+                        data: values,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error("Lỗi khi load biểu đồ:", err);
+        }
+    }
+
+    // Vẽ mặc định
+    drawChart();
+
+    // Khi chọn vật tư
+    document.getElementById("materialSelect").addEventListener("change", function () {
+        const selected = this.value;
+        drawChart(selected);
+    });
+</script>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Script vẽ biểu đồ -->
+<script>
+    async function drawChart(materialId = "") {
+        try {
+            const url = '${pageContext.request.contextPath}/importchart' + (materialId ? '?materialId=' + materialId : '');
+            const res = await fetch(url);
+            const data = await res.json();
+
+            const labels = data.map(item => "VT-" + item.materialId);
+            const values = data.map(item => item.totalQuantity);
+
+            const ctx = document.getElementById("importChart").getContext('2d');
+            if (window.myChart) window.myChart.destroy();
+
+            window.myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Số lượng nhập',
+                        data: values,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error("❌ Lỗi khi load biểu đồ cột:", err);
+        }
+    }
+
+    async function drawPieChart() {
+        const select = document.getElementById("materialSelectPie");
+        if (!select) {
+            console.error("Không tìm thấy dropdown 'materialSelectPie'");
+            return;
+        }
+
+        const materialId = select.value;
+        console.log("📥 Selected materialId =", materialId);
+
+        if (!materialId || materialId.trim() === "") {
+            alert("Vui lòng chọn vật tư hợp lệ!");
+            return;
+        }
+
+        try {
+            const url = '${pageContext.request.contextPath}/materialqualitychart?materialId=' + materialId;
+            console.log("📡 Fetching URL:", url);
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            console.log("📦 Server response:", data);
+
+            if (data.error) {
+                alert("❌ Lỗi: " + data.error);
+                return;
+            }
+
+            const ctx = document.getElementById("materialPieChart").getContext("2d");
+            if (window.pieChart) window.pieChart.destroy();
+
+            window.pieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Tình trạng',
+                        data: Object.values(data),
+                        backgroundColor: ['#36A2EB', '#FF6384']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+        } catch (e) {
+            console.error("❌ Lỗi khi gọi API:", e);
+            alert("Không thể vẽ biểu đồ tròn");
+        }
+    }
+
+    window.onload = function () {
+        // Vẽ biểu đồ cột
+        drawChart();
+
+        // Gán sự kiện thay đổi dropdown biểu đồ cột
+        const selectBar = document.getElementById("materialSelect");
+        if (selectBar) {
+            selectBar.addEventListener("change", function () {
+                drawChart(this.value);
+            });
+        }
+
+        // Gán sự kiện và vẽ biểu đồ tròn
+        const selectPie = document.getElementById("materialSelectPie");
+        if (selectPie) {
+            selectPie.addEventListener("change", drawPieChart);
+        }
+
+        drawPieChart();
+    };
+</script>
+
 </body>
 </html>
