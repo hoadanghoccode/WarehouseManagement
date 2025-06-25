@@ -100,7 +100,16 @@
                             <input type="hidden" name="sortOrder" value="${sortOrder}">
                         </form>
                     </div>
-                    <c:if test="${not empty sessionScope.success}">
+                    <div class="sort-controls">
+                        <button class="btn btn-info" onclick="toggleSortOrder()">
+                            <i class="fas ${sortOrder == 'asc' ? 'fa-angle-up' : 'fa-angle-down'}"></i>
+                            Sort by updated (${sortOrder == 'asc' ? 'Ascending' : 'Descending'})
+                        </button>
+                    </div>
+                        <div class="stats-info">
+                        <i class="fas fa-users"></i> Showing <strong>${fn:length(users)}</strong> of <strong>${totalUsers}</strong> users
+                    </div>
+                        <c:if test="${not empty sessionScope.success}">
                         <div class="success-message">
                             ${sessionScope.success}
                             <button class="dismiss-btn" onclick="dismissNotification()">×</button>
@@ -114,15 +123,6 @@
                         </div>
                         <c:remove var="error" scope="session" />
                     </c:if>
-                    <div class="stats-info">
-                        <i class="fas fa-users"></i> Showing <strong>${fn:length(users)}</strong> of <strong>${totalUsers}</strong> users
-                    </div>
-                    <div class="sort-controls">
-                        <button class="btn btn-info" onclick="toggleSortOrder()">
-                            <i class="fas ${sortOrder == 'asc' ? 'fa-angle-up' : 'fa-angle-down'}"></i>
-                            Sort by updated (${sortOrder == 'asc' ? 'Ascending' : 'Descending'})
-                        </button>
-                    </div>
                     <div class="table-container">
                         <table class="table">
                             <thead>
