@@ -200,15 +200,34 @@
                                 <div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
                             </div>                           
                             <div class="modal-footer" id="auditDetailFooter">
-                                <c:if test="${sessionScope.roleId == 1}">
+                                <c:if test="${sessionScope.roleId == 2 && audit.status == 'draft'}">
                                     <button type="button" class="btn btn-danger" id="btnRejectAudit">
                                         <i class="fas fa-times"></i> Reject
                                     </button>
                                     <button type="button" class="btn btn-success" id="btnApproveAudit">
                                         <i class="fas fa-check"></i> Approve
                                     </button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 </c:if>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal Confirm Approve -->
+                <div class="modal fade" id="confirmApproveModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Approval</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to approve this audit record?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="confirmApproveBtn" class="btn btn-success">Approve</button>
                             </div>
                         </div>
                     </div>
@@ -230,9 +249,6 @@
                     </div>
                 </c:if>
 
-
-
-
                 <!-- Table -->
                 <c:choose>
                     <c:when test="${not empty auditList}">
@@ -241,6 +257,7 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
+                                        <th>Audit code</th>
                                         <th>Created By</th>
                                         <th>Date</th>                                        
                                         <th>Status</th>
@@ -253,6 +270,7 @@
                                     <c:forEach var="audit" items="${auditList}" varStatus="st">
                                         <tr>
                                             <td><strong>${(page-1)*pageSize + st.index + 1}</strong></td>
+                                            <td>${audit.auditCode}</td>
                                             <td>${audit.createdByName}</td>
 
                                             <td>${audit.auditDate}</td>
@@ -387,8 +405,9 @@
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
-                            // data should be an object containing audit info & detail list                    
-                            var html = '<div class="mb-3"><b>Created By:</b> ' + data.audit.createdByName + '</div>';
+                            // data should be an object containing audit info & detail list
+                            var html = '<div class="mb-3"><b>Audit Code:</b> ' + data.audit.auditCode + '</div>';
+                            html += '<div class="mb-3"><b>Created By nè:</b> ' + data.audit.createdByName + '</div>';
                             html += '<div class="mb-3"><b>Audit Date:</b> ' + data.audit.auditDate + '</div>';
                             html += '<hr>';
                             html += '<h6>Audit Material Details:</h6>';
@@ -416,22 +435,27 @@
                 // Gắn sự kiện Approve
                 $('#auditDetailModal').on('click', '#btnApproveAudit', function () {
                     if (!currentAuditId) {
-                        alert("Cannot find Audit ID!");
+                        showAlert(false, "Cannot find Audit ID!");
                         return;
                     }
-                    if (!confirm('Are you sure to approve this audit?'))
-                        return;
+                    $('#confirmApproveModal').modal('show');
+                });
+                // Xác nhận approve trong modal
+                $('#confirmApproveBtn').click(function () {
+                    if (!currentAuditId) return;
                     $.ajax({
-                        url: '${pageContext.request.contextPath}/approveaudit', // Đổi sang servlet đúng
+                        url: '${pageContext.request.contextPath}/approveaudit',
                         type: 'POST',
                         data: {auditId: currentAuditId},
                         success: function (data) {
-                            alert('Approved successfully!');
+                            showAlert(true, 'Approved successfully!');
                             $('#auditDetailModal').modal('hide');
-                            location.reload(); // reload lại list nếu cần
+                            $('#confirmApproveModal').modal('hide');
+                            location.reload();
                         },
                         error: function () {
-                            alert('Approve failed!');
+                            showAlert(false, 'Approve failed!');
+                            $('#confirmApproveModal').modal('hide');
                         }
                     });
                 });
@@ -517,11 +541,11 @@
                     contentType: 'application/json',
                     data: JSON.stringify(data),
                     success: function () {
-                        alert('Saved successfully!');
+                        showAlert(true, 'Saved successfully!');
                         $('#auditModal').modal('hide');
                     },
                     error: function () {
-                        alert('An error occurred!');
+                        showAlert(false, 'An error occurred!');
                     }
                 });
             });
@@ -595,9 +619,70 @@
                 }
             });
         </script>
+        <script>
+            /**
+             * Hàm showAlert(status, message):
+             *   - status = true  → alert màu xanh (alert-success)
+             *   - status = false → alert màu đỏ  (alert-danger)
+             * alert sẽ nằm cố định bên phải, tự đóng sau 4s
+             */
+            function showAlert(status, message) {
+                // Xóa alert cũ nếu có
+                const existingAlert = document.querySelector('.custom-alert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+                console.log('here', status);
+                // Tạo alert mới
+                const alertDiv = document.createElement('div');
+                if (status === true) {
+                    alertDiv.className = `alert alert-success alert-dismissible fade show custom-alert`;
 
+                } else {
+                    alertDiv.className = `alert alert-danger alert-dismissible fade show custom-alert`;
+
+                }
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    min-width: 300px;
+                    z-index: 9999;
+                    padding: 1rem;
+                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                    border-radius: 0.375rem;
+                `;
+
+                // Thêm icon
+                const icon = document.createElement('i');
+
+                icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+                alertDiv.appendChild(icon);
+
+                // Thêm message
+                const messageText = document.createTextNode(message);
+                alertDiv.appendChild(messageText);
+
+
+
+                // Thêm vào body
+                document.body.appendChild(alertDiv);
+
+                // Animation khi hiện alert
+                setTimeout(() => {
+                    alertDiv.style.opacity = '1';
+                }, 100);
+
+//                 Tự động đóng sau 4s
+                setTimeout(() => {
+                    if (alertDiv && document.body.contains(alertDiv)) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => alertDiv.remove(), 150);
+                    }
+                }, 4000);
+            }
+        </script>
 
     </body>
-
-
 </html>

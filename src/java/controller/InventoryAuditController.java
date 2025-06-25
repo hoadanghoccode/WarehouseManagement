@@ -90,7 +90,6 @@ public class InventoryAuditController extends HttpServlet {
                 
                 int availableDetailId = dao.getMaterialDetailIdByMaterialIdAndQuality(item.materialId, 1);      // 1 = available
                 int notAvailableDetailId = dao.getMaterialDetailIdByMaterialIdAndQuality(item.materialId, 2);   // 2 = notAvailable
-                System.out.println("item nè" + item + "avai" + availableDetailId + "notAvai" + notAvailableDetailId);
                 // Kiểm tra nếu không tồn tại material_detail_id thì bỏ qua hoặc báo lỗi
                 if (availableDetailId == -1 || notAvailableDetailId == -1) {
                     resp.setStatus(400);
@@ -107,7 +106,6 @@ public class InventoryAuditController extends HttpServlet {
                 detailAvail.setReason(item.reason); // hoặc có thể tách riêng lý do cho từng loại nếu muốn
                 detailAvail.setQualityId(1); // 1 = available
                 detailList.add(detailAvail);
-
                 // NotAvailable
                 InventoryAuditDetail detailNotAvail = new InventoryAuditDetail();
                 detailNotAvail.setMaterialDetailId(notAvailableDetailId);
@@ -117,7 +115,6 @@ public class InventoryAuditController extends HttpServlet {
                 detailNotAvail.setReason(item.reason);
                 detailNotAvail.setQualityId(2); // 2 = notAvailable
                 detailList.add(detailNotAvail);
-                System.out.println("detailList nè" + detailList);
             }
             dao.saveInventoryAudit(userId, sqlDate, detailList);
 
@@ -132,7 +129,6 @@ public class InventoryAuditController extends HttpServlet {
 
 // Inner class để map dữ liệu json
     static class InventoryAuditItem {
-
         public int materialId;
         public double availableSystem;    // số lượng tồn tốt hệ thống
         public double availableActual;    // số lượng kiểm thực tế còn tốt

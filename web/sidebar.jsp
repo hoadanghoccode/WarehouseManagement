@@ -38,23 +38,25 @@
             </a>
         </li>
 
-        <li>
-            <a class="has-arrow" href="#" aria-expanded="false">
-                <img src="img/menu-icon/4.svg" alt="">
-                <span>Authentication</span>
-            </a>
-            <ul>
-                <c:if test="${permissions['Permission_VIEW']}">
-                    <li><a href="/WarehouseManagement/resource">Permission</a></li>
+        <c:if test="${permissions['Permission_VIEW'] or permissions['Role_VIEW'] or permissions['Department_VIEW']}">
+            <li>
+                <a class="has-arrow" href="#" aria-expanded="false">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Authentication</span>
+                </a>
+                <ul>
+                    <c:if test="${permissions['Permission_VIEW']}">
+                        <li><a href="/WarehouseManagement/resource">Permission</a></li>
                     </c:if>
                     <c:if test="${permissions['Role_VIEW']}">
-                    <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
+                        <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
                     </c:if>
                     <c:if test="${permissions['Department_VIEW']}">
-                    <li><a href="/WarehouseManagement/department">Department</a></li>
+                        <li><a href="/WarehouseManagement/department">Department</a></li>
                     </c:if>
-            </ul>
-        </li>
+                </ul>
+            </li>
+        </c:if>
         <c:if test="${permissions['Category_VIEW']}">
             <li>
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/categorylist">
@@ -114,7 +116,14 @@
                 </a>
             </li>
         </c:if>
-
+        <c:if test="${permissions['InventoryAudit_VIEW']}">         
+            <li >
+                <a href="/WarehouseManagement/auditlist">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Audit</span>
+                </a>
+            </li>
+        </c:if>
 
         <c:if test="${permissions['Unit_VIEW']}">
             <li class="">
@@ -124,9 +133,6 @@
                 </a>
             </li>
         </c:if>
-
-
-
 
         <c:if test="${permissions['Order_VIEW']}">
             <li class="">
