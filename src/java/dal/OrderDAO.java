@@ -1,5 +1,6 @@
 package dal;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,6 +18,13 @@ import model.OrderDetail;
  * @author ADMIN
  */
 public class OrderDAO extends DBContext {
+
+    private Connection conn;
+
+    public OrderDAO() {
+        // Khởi tạo connection từ DBContext
+        conn = new DBContext().getConnection();
+    }
 
     public boolean createOrder(Order order) {
         String orderQuery = "INSERT INTO Orders (Warehouse_id, User_id, Type, Supplier_id, Note, Status) VALUES (?, ?, ?, ?, ?, ?)";
@@ -625,6 +633,35 @@ public class OrderDAO extends DBContext {
             e.printStackTrace();
         }
         return 0;
+    }  
+
+    public int insertOrder(Order order) throws SQLException {
+        String sql = "INSERT INTO Orders (Warehouse_id, User_id, Type, Note, Status, Created_at) VALUES (?, ?, ?, ?, ?, NOW())";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, order.getWarehouseId());
+            ps.setInt(2, order.getUserId());
+            ps.setString(3, order.getType());
+            ps.setString(4, order.getNote());
+            ps.setString(5, order.getStatus());
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1); // Trả về id vừa insert
+            }
+        }
+        return -1; // Không thành công
+    }
+
+    public void insertOrderDetail(OrderDetail detail) throws SQLException {
+        String sql = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, SubUnit_id, Quantity) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, detail.getMaterialId());
+            ps.setInt(2, detail.getOrderId());
+            ps.setInt(3, detail.getQualityId());
+            ps.setInt(4, detail.getSubUnitId());
+            ps.setDouble(5, detail.getQuantity());
+            ps.executeUpdate();
+        }
     }
 
     public boolean updateOrder(Order order) {

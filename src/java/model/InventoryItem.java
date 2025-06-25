@@ -9,8 +9,10 @@ package model;
  * @author PC
  */
 public class InventoryItem {
-     private int materialId;
+
+    private int materialId;
     private String materialName;
+    private String materialImage;
     private String unitName;
     private double availableQty;
     private double notAvailableQty;
@@ -18,9 +20,10 @@ public class InventoryItem {
     public InventoryItem() {
     }
 
-    public InventoryItem(int materialId, String materialName, String unitName, double availableQty, double notAvailableQty) {
+    public InventoryItem(int materialId, String materialName, String materialImage, String unitName, double availableQty, double notAvailableQty) {
         this.materialId = materialId;
         this.materialName = materialName;
+        this.materialImage = materialImage;
         this.unitName = unitName;
         this.availableQty = availableQty;
         this.notAvailableQty = notAvailableQty;
@@ -40,6 +43,14 @@ public class InventoryItem {
 
     public void setMaterialName(String materialName) {
         this.materialName = materialName;
+    }
+
+    public String getMaterialImage() {
+        return materialImage;
+    }
+
+    public void setMaterialImage(String materialImage) {
+        this.materialImage = materialImage;
     }
 
     public String getUnitName() {
@@ -65,6 +76,5 @@ public class InventoryItem {
     public void setNotAvailableQty(double notAvailableQty) {
         this.notAvailableQty = notAvailableQty;
     }
-    
-    
+
 }
