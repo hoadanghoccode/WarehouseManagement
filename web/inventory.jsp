@@ -207,6 +207,23 @@
                 border-color: #3b82f6;
                 box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
             }
+            .input-group .btn-search {
+                background-color:#0f3151; 
+                padding: 8px 16px;
+                font-size: 14px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: background-color 0.2s ease, transform 0.2s ease;
+            }
+            .input-group .btn-search:hover {
+                background-color: #2563eb;
+                transform: translateY(-1px);
+            }
+            .input-group .btn-search:active {
+                transform: translateY(0);
+            }
             @media (max-width: 768px) {
                 .main_content {
                     margin-left: 0;
@@ -228,12 +245,16 @@
                     flex-direction: column;
                     gap: 4px;
                 }
+                .input-group .btn-search {
+                    padding: 6px 12px;
+                    font-size: 12px;
+                }
             }
         </style>
     </head>
     <body>
         <jsp:include page="sidebar.jsp" flush="true" />
-        <section class="main-layout">
+        <section class="main-content">
             <%@ include file="navbar.jsp" %>
             <div class="container">
                 <h1 class="title">Current Inventory</h1>
@@ -254,10 +275,10 @@
                 </div>
 
                 <!-- Filters -->
-                <form action="/inventory" method="get" id="filterForm">
+                <form action="${pageContext.request.contextPath}/inventory" method="get" id="filterForm">
                     <div class="row g-3 mb-3">
                         <div class="col-md-3">
-                            <select class="form-select" id="categoryFilter" name="categoryId" onchange="submitFilter()">
+                            <select class="form-select" id="categoryFilter" name="categoryId">
                                 <option value="0" ${categoryId == 0 ? 'selected' : ''}>All Categories</option>
                                 <c:forEach var="category" items="${categoryList}">
                                     <option value="${category.categoryId}" ${category.categoryId == categoryId ? 'selected' : ''}><c:out value="${category.name}"/></option>
@@ -265,15 +286,15 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select" id="supplierFilter" name="supplierId" onchange="submitFilter()">
+                            <select class="form-select" id="supplierFilter" name="supplierId">
                                 <option value="0" ${supplierId == 0 ? 'selected' : ''}>All Suppliers</option>
                                 <c:forEach var="supplier" items="${supplierList}">
-                                    <option value="${supplier.supplierId}" ${supplier.supplierId == supplierId ? 'selected' : ''}><c:out value="${supplier.name}"/></option>
+                                    <option value="${supplier.supplierId}" ${supplier.supplierId == supplierId ? 'selected' : ''}><c:out value="${category.name}"/></option>
                                 </c:forEach>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select" id="qualityFilter" name="qualityId" onchange="submitFilter()">
+                            <select class="form-select" id="qualityFilter" name="qualityId">
                                 <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
                                 <c:forEach var="quality" items="${qualityList}">
                                     <option value="${quality.qualityId}" ${quality.qualityId == qualityId ? 'selected' : ''}><c:out value="${quality.qualityName}"/></option>
@@ -281,9 +302,24 @@
                             </select>
                         </div>
                         <div class="col-md-3">
+                            <select class="form-select" id="sortByFilter" name="sortBy">
+                                <option value="material_id ASC" ${sortBy == 'material_id ASC' ? 'selected' : ''}>Material ID (Asc)</option>
+                                <option value="material_id DESC" ${sortBy == 'material_id DESC' ? 'selected' : ''}>Material ID (Desc)</option>
+                                <option value="material_name ASC" ${sortBy == 'material_name ASC' ? 'selected' : ''}>Material Name (Asc)</option>
+                                <option value="material_name DESC" ${sortBy == 'material_name DESC' ? 'selected' : ''}>Material Name (Desc)</option>
+                                <option value="available_qty ASC" ${sortBy == 'available_qty ASC' ? 'selected' : ''}>Available Qty (Asc)</option>
+                                <option value="available_qty DESC" ${sortBy == 'available_qty DESC' ? 'selected' : ''}>Available Qty (Desc)</option>
+                                <option value="not_available_qty ASC" ${sortBy == 'not_available_qty ASC' ? 'selected' : ''}>Not Available Qty (Asc)</option>
+                                <option value="not_available_qty DESC" ${sortBy == 'not_available_qty DESC' ? 'selected' : ''}>Not Available Qty (Desc)</option>
+                            </select>
+                        </div>
+                            
+                            <div class="col-md-5">
                             <div class="input-group">
-                                <input type="text" id="searchInput" name="searchTerm" class="form-control" placeholder="Search..." value="${searchTerm}" oninput="if(this.value.length >= 3 || this.value.length === 0) submitFilter()">
-                                <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+                                <input type="text" id="searchInput" name="searchTerm" class="form-control" placeholder="Search..." value="${searchTerm}">
+                                <button style="margin-left: 5px;" class="btn btn-primary btn-md rounded-pill btn-search" type="submit">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -341,7 +377,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="9" class="no-data">No inventory items found</td>
+                                        <td colspan="8" class="no-data">No inventory items found</td>
                                     </tr>
                                 </c:otherwise>
                             </c:choose>
@@ -418,89 +454,16 @@
             let pageSize = 5;
             let currentPage = 1;
             let allRows = [];
-            let filteredRows = [];
 
             window.addEventListener("DOMContentLoaded", function () {
                 allRows = Array.from(document.querySelectorAll("#inventoryTable tbody tr:not(.no-data)"));
-                filteredRows = [...allRows];
                 updatePagination();
                 updateTable();
                 console.log("Inventory table loaded with " + allRows.length + " rows");
-                updateSummary();
-
-                document.querySelectorAll("#categoryFilter, #supplierFilter, #qualityFilter, #searchInput").forEach((element) => {
-                    element.addEventListener("input", filterInventory);
-                    element.addEventListener("change", filterInventory);
-                });
             });
 
-            function updateSummary() {
-                $.ajax({
-                    url: '/inventory',
-                    type: 'GET',
-                    data: { action: 'getInventorySummary' },
-                    success: function (response) {
-                        if (response) {
-                            document.getElementById("usableItems").textContent = response.availableQty.toFixed(2);
-                            document.getElementById("notUsableItems").textContent = response.notAvailableQty.toFixed(2);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error fetching summary: " + error);
-                    }
-                });
-            }
-
-            function filterInventory() {
-                let searchText = document.getElementById("searchInput").value.trim().toLowerCase();
-                let categoryValue = document.getElementById("categoryFilter").value;
-                let supplierValue = document.getElementById("supplierFilter").value;
-                let qualityValue = document.getElementById("qualityFilter").value;
-
-                console.log("Filter - Category: " + (categoryValue || "empty") + ", Supplier: " + (supplierValue || "empty") + ", Quality: " + (qualityValue || "empty") + ", Search: " + searchText);
-
-                filteredRows = allRows.filter((row) => {
-                    let match = true;
-                    let materialId = row.getAttribute("data-material-id") || "";
-                    let subUnitId = row.getAttribute("data-subunit-id") || "";
-                    let categoryId = row.getAttribute("data-category-id") || "";
-                    let supplierId = row.getAttribute("data-supplier-id") || "";
-                    let cells = row.querySelectorAll("td");
-                    let materialName = cells[1]?.textContent.trim().toLowerCase() || "";
-                    let categoryName = cells[2]?.textContent.trim().toLowerCase() || "";
-                    let supplierName = cells[3]?.textContent.trim().toLowerCase() || "";
-                    let subUnitName = cells[4]?.textContent.trim().toLowerCase() || "";
-                    let availableQty = cells[5]?.textContent.trim().replace(/,/g, "") || "";
-                    let notAvailableQty = cells[6]?.textContent.trim().replace(/,/g, "") || "";
-                    let lastUpdated = cells[7]?.textContent.trim().toLowerCase() || "";
-
-                    if (searchText) {
-                        match = materialId.includes(searchText) || materialName.includes(searchText) ||
-                                categoryName.includes(searchText) || supplierName.includes(searchText) ||
-                                subUnitId.includes(searchText) || subUnitName.includes(searchText) ||
-                                availableQty.includes(searchText) || notAvailableQty.includes(searchText) ||
-                                lastUpdated.includes(searchText);
-                    }
-
-                    if (categoryValue && categoryValue !== "0") {
-                        match = match && categoryId === categoryValue;
-                    }
-
-                    if (supplierValue && supplierValue !== "0") {
-                        match = match && supplierId === supplierValue;
-                    }
-
-                    return match;
-                });
-
-                currentPage = 1;
-                updatePagination();
-                updateTable();
-                console.log("Filtered rows: " + filteredRows.length);
-            }
-
             function updateTable() {
-                if (filteredRows.length === 0) {
+                if (allRows.length === 0) {
                     console.log("No rows to display");
                     return;
                 }
@@ -510,8 +473,8 @@
                 });
 
                 const start = (currentPage - 1) * pageSize;
-                const end = Math.min(start + pageSize, filteredRows.length);
-                const rowsToShow = filteredRows.slice(start, end);
+                const end = Math.min(start + pageSize, allRows.length);
+                const rowsToShow = allRows.slice(start, end);
 
                 rowsToShow.forEach((row, index) => {
                     row.style.display = "";
@@ -519,11 +482,11 @@
                     rowNumberCell.textContent = start + index + 1;
                 });
 
-                console.log(`Displaying rows ${start + 1} to ${end} of ${filteredRows.length}`);
+                console.log(`Displaying rows ${start + 1} to ${end} of ${allRows.length}`);
             }
 
             function updatePagination() {
-                const totalPages = Math.ceil(filteredRows.length / pageSize);
+                const totalPages = Math.ceil(allRows.length / pageSize);
                 const pagination = document.getElementById("pagination");
                 pagination.innerHTML = "";
 
@@ -760,68 +723,62 @@
                 }
             }
 
-            function submitFilter() {
-                document.getElementById("filterForm").submit();
-            }
-
             function viewDetails(materialId, subUnitId) {
-    console.log(`viewDetails - Fetching data for materialId=${materialId}, subUnitId=${subUnitId}`);
-    $.ajax({
-        url: '${pageContext.request.contextPath}/inventory',
-        method: 'GET',
-        data: {
-            action: 'getLatestDetails',
-            materialId: materialId,
-            subUnitId: subUnitId
-        },
-        success: function (response) {
-            console.log("viewDetails - AJAX success, response:", response);
-            const modalBody = document.querySelector(".modal-body");
-            const existingAlert = modalBody.querySelector(".alert");
-            if (existingAlert) existingAlert.remove();
+                console.log(`viewDetails - Fetching data for materialId=${materialId}, subUnitId=${subUnitId}`);
+                $.ajax({
+                    url: '${pageContext.request.contextPath}/inventory',
+                    method: 'GET',
+                    data: {
+                        action: 'getLatestDetails',
+                        materialId: materialId,
+                        subUnitId: subUnitId
+                    },
+                    success: function (response) {
+                        console.log("viewDetails - AJAX success, response:", response);
+                        const modalBody = document.querySelector(".modal-body");
+                        const existingAlert = modalBody.querySelector(".alert");
+                        if (existingAlert) existingAlert.remove();
 
-            if (response && (response.materialId || response.materialName)) { // Check for valid response
-                document.getElementById("modal-material-name").textContent = response.materialName || 'N/A';
-                document.getElementById("modal-category-name").textContent = response.categoryName || 'N/A';
-                document.getElementById("modal-supplier-name").textContent = response.supplierName || 'N/A';
-                document.getElementById("modal-subunit-name").textContent = response.subUnitName || 'N/A';
-                document.getElementById("modal-available-qty").textContent = response.availableQty ? parseFloat(response.availableQty).toFixed(2) : '0.00';
-                document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? parseFloat(response.notAvailableQty).toFixed(2) : '0.00';
-                document.getElementById("modal-import-qty").textContent = response.importQty ? parseFloat(response.importQty).toFixed(2) : '0.00';
-                document.getElementById("modal-export-qty").textContent = response.exportQty ? parseFloat(response.exportQty).toFixed(2) : '0.00';
-                document.getElementById("modal-inventory-date").textContent = response.inventoryDate ? 
-                    new Date(response.inventoryDate).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    }) : 'N/A';
-                document.getElementById("modal-note").textContent = response.note || 'No recent transactions';
-            } else {
-                console.warn("viewDetails - No valid data received");
-                modalBody.insertAdjacentHTML('afterbegin', 
-                    '<div class="alert alert-warning">No recent inventory data found.</div>');
+                        if (response && (response.materialId || response.materialName)) {
+                            document.getElementById("modal-material-name").textContent = response.materialName || 'N/A';
+                            document.getElementById("modal-category-name").textContent = response.categoryName || 'N/A';
+                            document.getElementById("modal-supplier-name").textContent = response.supplierName || 'N/A';
+                            document.getElementById("modal-subunit-name").textContent = response.subUnitName || 'N/A';
+                            document.getElementById("modal-available-qty").textContent = response.availableQty ? parseFloat(response.availableQty).toFixed(2) : '0.00';
+                            document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? parseFloat(response.notAvailableQty).toFixed(2) : '0.00';
+                            document.getElementById("modal-import-qty").textContent = response.importQty ? parseFloat(response.importQty).toFixed(2) : '0.00';
+                            document.getElementById("modal-export-qty").textContent = response.exportQty ? parseFloat(response.exportQty).toFixed(2) : '0.00';
+                            document.getElementById("modal-inventory-date").textContent = response.inventoryDate ? 
+                                new Date(response.inventoryDate).toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                }) : 'N/A';
+                        } else {
+                            console.warn("viewDetails - No valid data received");
+                            modalBody.insertAdjacentHTML('afterbegin', 
+                                '<div class="alert alert-warning">No recent inventory data found.</div>');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("viewDetails - AJAX error:", status, error, xhr.responseText);
+                        const modalBody = document.querySelector(".modal-body");
+                        const existingAlert = modalBody.querySelector(".alert");
+                        if (existingAlert) existingAlert.remove();
+                        modalBody.insertAdjacentHTML('afterbegin', 
+                            '<div class="alert alert-danger">Error fetching inventory details: ' + error + '</div>');
+                        document.getElementById("modal-material-name").textContent = 'N/A';
+                        document.getElementById("modal-category-name").textContent = 'N/A';
+                        document.getElementById("modal-supplier-name").textContent = 'N/A';
+                        document.getElementById("modal-subunit-name").textContent = 'N/A';
+                        document.getElementById("modal-available-qty").textContent = '0.00';
+                        document.getElementById("modal-not-available-qty").textContent = '0.00';
+                        document.getElementById("modal-import-qty").textContent = '0.00';
+                        document.getElementById("modal-export-qty").textContent = '0.00';
+                        document.getElementById("modal-inventory-date").textContent = 'N/A';
+                    }
+                });
             }
-        },
-        error: function (xhr, status, error) {
-            console.error("viewDetails - AJAX error:", status, error, xhr.responseText);
-            const modalBody = document.querySelector(".modal-body");
-            const existingAlert = modalBody.querySelector(".alert");
-            if (existingAlert) existingAlert.remove();
-            modalBody.insertAdjacentHTML('afterbegin', 
-                '<div class="alert alert-danger">Error fetching inventory details: ' + error + '</div>');
-            document.getElementById("modal-material-name").textContent = 'N/A';
-            document.getElementById("modal-category-name").textContent = 'N/A';
-            document.getElementById("modal-supplier-name").textContent = 'N/A';
-            document.getElementById("modal-subunit-name").textContent = 'N/A';
-            document.getElementById("modal-available-qty").textContent = '0.00';
-            document.getElementById("modal-not-available-qty").textContent = '0.00';
-            document.getElementById("modal-import-qty").textContent = '0.00';
-            document.getElementById("modal-export-qty").textContent = '0.00';
-            document.getElementById("modal-inventory-date").textContent = 'N/A';
-            document.getElementById("modal-note").textContent = 'No recent transactions';
-        }
-    });
-}    
         </script>
     </body>
 </html>
