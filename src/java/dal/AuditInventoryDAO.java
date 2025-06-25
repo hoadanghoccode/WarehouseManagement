@@ -115,16 +115,36 @@ public class AuditInventoryDAO {
         return list;
     }
 
-    // Lưu phiếu kiểm kê (InventoryAudit) và list chi tiết
+    public String generateAuditCode(java.sql.Date auditDate) throws SQLException {
+        // Đếm số phiếu đã tạo hôm nay để lấy số thứ tự tiếp theo
+        String sql = "SELECT COUNT(*) FROM InventoryAudit WHERE Audit_date = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDate(1, auditDate);
+            ResultSet rs = stmt.executeQuery();
+            int count = 0;
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+            rs.close();
+            // Format: AUDITyyyymmddNNN
+            String dateStr = new java.text.SimpleDateFormat("yyyyMMdd").format(auditDate);
+            return String.format("AUDIT%s%03d", dateStr, count + 1);
+        }
+    }
+
     public void saveInventoryAudit(int userId, java.sql.Date auditDate, List<InventoryAuditDetail> details) throws SQLException {
-        String auditSql = "INSERT INTO InventoryAudit (Created_by, Audit_date, Status) VALUES (?, ?, 'draft')";
+        // 1. Sinh mã code tự động theo ngày + số thứ tự
+        String auditCode = generateAuditCode(auditDate);
+
+        String auditSql = "INSERT INTO InventoryAudit (Audit_code, Created_by, Audit_date, Status) VALUES (?, ?, ?, 'draft')";
         String detailSql = "INSERT INTO InventoryAuditDetail (Inventory_audit_id, Material_detail_id, Quality_id, System_qty, Actual_qty, Difference, Reason) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         conn.setAutoCommit(false); // Transaction
         try (PreparedStatement auditStmt = conn.prepareStatement(auditSql, Statement.RETURN_GENERATED_KEYS)) {
-            // 1. Insert master
-            auditStmt.setInt(1, userId);
-            auditStmt.setDate(2, auditDate);
+            // Insert master
+            auditStmt.setString(1, auditCode);
+            auditStmt.setInt(2, userId);
+            auditStmt.setDate(3, auditDate);
             auditStmt.executeUpdate();
             ResultSet rs = auditStmt.getGeneratedKeys();
             int auditId = 0;
@@ -133,7 +153,7 @@ public class AuditInventoryDAO {
             }
             rs.close();
 
-            // 2. Insert details
+            // Insert details
             try (PreparedStatement detailStmt = conn.prepareStatement(detailSql)) {
                 for (InventoryAuditDetail d : details) {
                     detailStmt.setInt(1, auditId);
