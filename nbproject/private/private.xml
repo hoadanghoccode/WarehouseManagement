@@ -34,7 +34,15 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/SubUnit.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UnitServlet.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CreateOrderServlet.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/createorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/createorder.js</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/UnitDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Units.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/WEB-INF/web.xml</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/index.html</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/index.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/getMaterial.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LoginController.java</file>
         </group>
     </open-files>
 </project-private>
