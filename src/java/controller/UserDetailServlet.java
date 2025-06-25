@@ -6,7 +6,6 @@ import dal.UserDAO;
 import model.Users;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +20,6 @@ import java.util.Map;
 import model.Departmentt;
 
 @MultipartConfig
-@WebServlet(name = "UserDetailServlet", urlPatterns = {"/userdetail"})
 public class UserDetailServlet extends HttpServlet {
     private Cloudinary cloudinary;
 
@@ -142,6 +140,13 @@ public class UserDetailServlet extends HttpServlet {
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
             boolean hasUpdatePermission = perms != null && perms.getOrDefault("Customer_UPDATE", false);
 
+            // Director (roleId = 2) cannot edit users with roleId <= 2, including themselves
+            if (loggedInUser.getRoleId() == 2 && (isEditingSelf || existingUser.getRoleId() <= 2)) {
+                session.setAttribute("error", "You do not have permission to edit this user.");
+                response.sendRedirect("userlist");
+                return;
+            }
+
             if (!isEditingSelf && !hasUpdatePermission) {
                 session.setAttribute("error", "You do not have permission to edit other users' profiles.");
                 response.sendRedirect("userlist");
@@ -177,73 +182,49 @@ public class UserDetailServlet extends HttpServlet {
                 }
             }
 
-            if (isEditingSelf) {
-                // For self-editing, only allow departmentId and image to be updated
-                boolean updated = false;
-                if (departmentId > 0) {
-                    // Validate department belongs to user's role
-                    String checkSql = "SELECT COUNT(*) FROM Department WHERE Department_id = ? AND Role_id = ?";
-                    try (java.sql.Connection conn = dao.getConnection();
-                         java.sql.PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                        checkStmt.setInt(1, departmentId);
-                        checkStmt.setInt(2, existingUser.getRoleId());
-                        try (java.sql.ResultSet rs = checkStmt.executeQuery()) {
-                            if (rs.next() && rs.getInt(1) == 0) {
-                                throw new IllegalArgumentException("Department does not belong to your role");
-                            }
-                        }
-                    }
-                    dao.updateUserDepartment(userId, departmentId);
-                    updated = true;
-                }
-                if (!image.equals(existingUser.getImage())) {
-                    // Update image in database
-                    dao.updateUserImage(userId, image);
-                    updated = true;
-                }
-                if (updated) {
-                    session.setAttribute("success", "Profile updated successfully");
-                } else {
-                    session.setAttribute("error", "No changes made to department or avatar");
-                }
-            } else {
-                // For editing other users, allow full updates
-                String roleIdRaw = request.getParameter("roleId");
-                if (roleIdRaw == null || roleIdRaw.trim().isEmpty()) {
-                    throw new IllegalArgumentException("Role is required");
-                }
-                int roleId = Integer.parseInt(roleIdRaw);
-
-                String statusRaw = request.getParameter("status");
-                if (statusRaw == null || (!statusRaw.equals("true") && !statusRaw.equals("false"))) {
-                    throw new IllegalArgumentException("Invalid status value");
-                }
-                boolean status = Boolean.parseBoolean(statusRaw);
-
-                String phoneNumber = request.getParameter("phoneNumber");
-                if (phoneNumber == null) {
-                    phoneNumber = "";
-                } else if (!phoneNumber.isEmpty() && !phoneNumber.matches("^0\\d{9}$")) {
-                    throw new IllegalArgumentException("Phone number must start with 0, followed by exactly 9 digits");
-                }
-
-                String address = request.getParameter("address");
-                if (address == null) {
-                    address = "";
-                }
-
-                java.util.Date dateOfBirth = null;
-                String dateOfBirthStr = request.getParameter("dateOfBirth");
-                if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
-                    dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
-                }
-
-                Users user = new Users(userId, roleId, existingUser.getFullName(), email, existingUser.getPassword(),
-                        existingUser.isGender(), phoneNumber, address, dateOfBirth, image, null,
-                        new java.sql.Timestamp(System.currentTimeMillis()), status, null, null);
-                dao.updateUser(user, departmentId);
-                session.setAttribute("success", "User updated successfully");
+            // For editing other users with roleId > 2
+            String roleIdRaw = request.getParameter("roleId");
+            if (roleIdRaw == null || roleIdRaw.trim().isEmpty()) {
+                throw new IllegalArgumentException("Role is required");
             }
+            int roleId = Integer.parseInt(roleIdRaw);
+
+            // Director cannot assign roleId <= 2 to others
+            if (loggedInUser.getRoleId() == 2 && roleId <= 2) {
+                session.setAttribute("error", "You cannot assign this role to other users.");
+                response.sendRedirect("userlist");
+                return;
+            }
+
+            String statusRaw = request.getParameter("status");
+            if (statusRaw == null || (!statusRaw.equals("true") && !statusRaw.equals("false"))) {
+                throw new IllegalArgumentException("Invalid status value");
+            }
+            boolean status = Boolean.parseBoolean(statusRaw);
+
+            String phoneNumber = request.getParameter("phoneNumber");
+            if (phoneNumber == null) {
+                phoneNumber = "";
+            } else if (!phoneNumber.isEmpty() && !phoneNumber.matches("^0\\d{9}$")) {
+                throw new IllegalArgumentException("Phone number must start with 0, followed by exactly 9 digits");
+            }
+
+            String address = request.getParameter("address");
+            if (address == null) {
+                address = "";
+            }
+
+            java.util.Date dateOfBirth = null;
+            String dateOfBirthStr = request.getParameter("dateOfBirth");
+            if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
+                dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
+            }
+
+            Users user = new Users(userId, roleId, existingUser.getFullName(), email, existingUser.getPassword(),
+                    existingUser.isGender(), phoneNumber, address, dateOfBirth, image, null,
+                    new java.sql.Timestamp(System.currentTimeMillis()), status, null, null);
+            dao.updateUser(user, departmentId);
+            session.setAttribute("success", "User updated successfully");
             response.sendRedirect("userlist");
         } catch (IllegalArgumentException e) {
             System.err.println("Validation error updating user: " + e.getMessage());

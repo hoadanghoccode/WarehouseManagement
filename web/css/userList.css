@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -186,6 +185,7 @@ body {
     z-index: 1000;
 }
 .modal-content {
+    position: relative;
     background-color: #ffffff;
     padding: 24px;
     border-radius: 12px;
@@ -207,11 +207,31 @@ body {
     color: #1e293b;
 }
 .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background-color: #e5e7eb;
+    color: #374151;
     font-size: 18px;
-    color: #6b7280;
-    background: none;
+    font-weight: 600;
     border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.close-btn:hover {
+    background-color: #dc2626; /* Red-600, matching error-message */
+    color: #ffffff; /* White for icon on hover */
+    transform: scale(1.1); /* Slight scale effect, consistent with avatar */
+}
+.close-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); /* Matching input focus style */
 }
 .form-group {
     margin-bottom: 16px;
@@ -345,7 +365,6 @@ body {
 .form-actions button:hover {
     background-color: #d1d5db;
 }
-
 .field-error {
     color: red;
     font-size: 0.9em;

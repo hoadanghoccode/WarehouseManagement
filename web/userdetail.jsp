@@ -9,85 +9,221 @@
     Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
     if (perms == null) {
         perms = new HashMap<>();
-    }        
-    // Set attribute để có thể truy cập trong JSP
+    }
     request.setAttribute("perms", perms);
+
+    // Get logged-in user from session
+    model.Users loggedInUser = (model.Users) session.getAttribute("USER");
+    boolean isEditingSelf = loggedInUser != null && loggedInUser.getUserId() == ((model.Users) request.getAttribute("user")).getUserId();
+    request.setAttribute("isEditingSelf", isEditingSelf);
+    request.setAttribute("loggedInUser", loggedInUser);
 %>
 
 <div class="form-container">
     <div class="header">
         <div>
             <img src="${empty user.image || user.image == '' ? 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' : user.image}"
-     alt="User Avatar" class="avatar" id="avatar">
+                 alt="User Avatar" class="avatar" id="avatar">
             <h2>${user.fullName}</h2>
         </div>
-        <button class="close-btn" onclick="closeModal('userDetailModal')">×</button>
+        <button class="close-btn" onclick="closeModal('userDetailModal')" aria-label="Close modal">×</button>
     </div>
-    <form id="userForm" action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="userId" value="${user.userId}" />
-        <input type="hidden" name="email" value="${user.email}" />
-        <input type="hidden" name="userDepartmentId" value="${userDepartmentId}" />
-        <input type="file" id="fileInput" name="imageFile" style="display:none;" accept="image/*" onchange="previewImage(event)" />
-        <div class="grid-container">
-            <div class="form-group">
-                <label>Email</label>
-                <p class="text-gray-800">${user.email}</p>
+
+    <c:choose>
+        <c:when test="${loggedInUser.roleId == 2 && (isEditingSelf || user.roleId <= 2)}">
+            <div class="form-container">
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <p class="text-gray-800">${user.email}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <p class="text-gray-800">${user.status ? 'Active' : 'Inactive'}</p>
+                    </div>
+                </div>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <p class="text-gray-800">${empty user.dateOfBirth ? 'Not specified' : user.dateOfBirth}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <p class="text-gray-800">
+                            <c:forEach var="role" items="${roles}">
+                                <c:if test="${role.roleId == user.roleId}">${role.name}</c:if>
+                            </c:forEach>
+                        </p>
+                    </div>
+                </div>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <p class="text-gray-800">${user.gender ? 'Male' : 'Female'}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <p class="text-gray-800">
+                            <c:forEach var="department" items="${departments}">
+                                <c:if test="${department.departmentId == userDepartmentId}">${department.name}</c:if>
+                            </c:forEach>
+                            <c:if test="${empty userDepartmentId}">Not specified</c:if>
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <p class="text-gray-800">${empty user.phoneNumber ? 'Not specified' : user.phoneNumber}</p>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <p class="text-gray-800">${empty user.address ? 'Not specified' : user.address}</p>
+                </div>
+                <div class="error-message">
+                    <p>You do not have permission to edit this user.</p>
+                    <button class="close-btn"type="button" onclick="closeModal('userDetailModal')" aria-label="Close modal">Close</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select name="status" id="status">
-                    <option value="true" ${user.status ? 'selected' : ''}>Active</option>
-                    <option value="false" ${!user.status ? 'selected' : ''}>Inactive</option>
-                </select>
-            </div>
-        </div>
-        <div class="grid-container">
-            <div class="form-group">
-                <label>Date of Birth</label>
-                <p class="text-gray-800">${empty user.dateOfBirth ? 'Not specified' : user.dateOfBirth}</p>
-                <input type="hidden" name="dateOfBirth" value="${empty user.dateOfBirth ? '' : user.dateOfBirth}">
-            </div>
-            <div class="form-group">
-                <label for="roleId">Role</label>
-                <select name="roleId" id="roleId">
-                    <c:forEach var="role" items="${roles}">
-                        <option value="${role.roleId}" ${role.roleId == user.roleId ? 'selected' : ''}>${role.name}</option>
-                    </c:forEach>
-                </select>
-            </div>
-        </div>
-        <div class="grid-container">
-            <div class="form-group">
-                <label>Gender</label>
-                <p class="text-gray-800">${user.gender ? 'Male' : 'Female'}</p>
-            </div>
-            <div class="form-group">
-                <label for="departmentId">Department</label>
-                <select name="departmentId" id="departmentId">
-                    <option value="">Select a department</option>
-                    <c:forEach var="department" items="${departments}">
-                        <option value="${department.departmentId}" ${department.departmentId == userDepartmentId ? 'selected' : ''}>${department.name}</option>
-                    </c:forEach>
-                </select>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="phoneNumber">Phone Number</label>
-            <input type="text" name="phoneNumber" id="phoneNumber" value="${user.phoneNumber}" />
-        </div>
-        <div class="form-group">
-            <label for="address">Address</label>
-            <input type="text" name="address" id="address" value="${user.address}" />
-        </div>
-       
-        <div class="form-actions">
-             <c:if test="${perms['Customer_UPDATE']}"> 
-            <input type="submit" value="Update User" />
-            </c:if>
-            
-            <button type="button" onclick="closeModal('userDetailModal')">Cancel</button>
-        </div>
-    </form>
+        </c:when>
+        <c:when test="${isEditingSelf}">
+            <form id="userForm" action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="userId" value="${user.userId}" />
+                <input type="hidden" name="email" value="${user.email}" />
+                <input type="hidden" name="roleId" value="${user.roleId}" />
+                <input type="hidden" name="status" value="${user.status}" />
+                <input type="hidden" name="phoneNumber" value="${user.phoneNumber}" />
+                <input type="hidden" name="address" value="${user.address}" />
+                <input type="hidden" name="dateOfBirth" value="${empty user.dateOfBirth ? '' : user.dateOfBirth}" />
+                <input type="file" id="fileInput" name="imageFile" style="display:none;" accept="image/*" onchange="previewImage(event)" />
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <p class="text-gray-800">${user.email}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <p class="text-gray-800">${user.status ? 'Active' : 'Inactive'}</p>
+                    </div>
+                </div>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <p class="text-gray-800">${empty user.dateOfBirth ? 'Not specified' : user.dateOfBirth}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <p class="text-gray-800">
+                            <c:forEach var="role" items="${roles}">
+                                <c:if test="${role.roleId == user.roleId}">${role.name}</c:if>
+                            </c:forEach>
+                        </p>
+                    </div>
+                </div>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <p class="text-gray-800">${user.gender ? 'Male' : 'Female'}</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="departmentId">Department</label>
+                        <select name="departmentId" id="departmentId">
+                            <option value="">Select a department</option>
+                            <c:forEach var="department" items="${departments}">
+                                <option value="${department.departmentId}" ${department.departmentId == userDepartmentId ? 'selected' : ''}>${department.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <p class="text-gray-800">${empty user.phoneNumber ? 'Not specified' : user.phoneNumber}</p>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <p class="text-gray-800">${empty user.address ? 'Not specified' : user.address}</p>
+                </div>
+                <div class="form-actions">
+                    <input type="submit" value="Update Profile" />
+                    <button type="button" onclick="closeModal('userDetailModal')" aria-label="Cancel">Cancel</button>
+                </div>
+            </form>
+        </c:when>
+        <c:otherwise>
+            <c:choose>
+                <c:when test="${not perms['Customer_UPDATE']}">
+                    <div class="error-message">
+                        <p>You do not have permission to edit other users' profiles.</p>
+                        <button type="button" onclick="closeModal('userDetailModal')" aria-label="Close modal">Close</button>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <form id="userForm" action="${pageContext.request.contextPath}/userdetail" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="userId" value="${user.userId}" />
+                        <input type="hidden" name="email" value="${user.email}" />
+                        <input type="hidden" name="userDepartmentId" value="${userDepartmentId}" />
+                        <input type="file" id="fileInput" name="imageFile" style="display:none;" accept="image/*" onchange="previewImage(event)" />
+                        <div class="grid-container">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <p class="text-gray-800">${user.email}</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select name="status" id="status">
+                                    <option value="true" ${user.status ? 'selected' : ''}>Active</option>
+                                    <option value="false" ${!user.status ? 'selected' : ''}>Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid-container">
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <p class="text-gray-800">${empty user.dateOfBirth ? 'Not specified' : user.dateOfBirth}</p>
+                                <input type="hidden" name="dateOfBirth" value="${empty user.dateOfBirth ? '' : user.dateOfBirth}">
+                            </div>
+                            <div class="form-group">
+                                <label for="roleId">Role</label>
+                                <select name="roleId" id="roleId">
+                                    <c:forEach var="role" items="${roles}">
+                                        <c:if test="${loggedInUser.roleId != 2 || role.roleId > 2}">
+                                            <option value="${role.roleId}" ${role.roleId == user.roleId ? 'selected' : ''}>${role.name}</option>
+                                        </c:if>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid-container">
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <p class="text-gray-800">${user.gender ? 'Male' : 'Female'}</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="departmentId">Department</label>
+                                <select name="departmentId" id="departmentId">
+                                    <option value="">Select a department</option>
+                                    <c:forEach var="department" items="${departments}">
+                                        <option value="${department.departmentId}" ${department.departmentId == userDepartmentId ? 'selected' : ''}>${department.name}</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="phoneNumber">Phone Number</label>
+                            <input type="text" name="phoneNumber" id="phoneNumber" value="${user.phoneNumber}" />
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" name="address" id="address" value="${user.address}" />
+                        </div>
+                        <div class="form-actions">
+                            <input type="submit" value="Update User" />
+                            <button type="button" onclick="closeModal('userDetailModal')" aria-label="Cancel">Cancel</button>
+                        </div>
+                    </form>
+                </c:otherwise>
+            </c:choose>
+        </c:otherwise>
+    </c:choose>
 </div>
 
 <script>
@@ -97,7 +233,7 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('avatar').src = e.target.result;
-            }
+            };
             reader.readAsDataURL(file);
         } else {
             alert('Please select a valid image file.');
