@@ -124,7 +124,7 @@ public class AuditListController extends HttpServlet {
         request.setAttribute("createdBy", createdBy);
 
         // Forward tới JSP (chỉ chạy khi không có lỗi)
-        request.getRequestDispatcher("/inventoryaudit.jsp").forward(request, response);
+        request.getRequestDispatcher("/InventoryAudit.jsp").forward(request, response);
     }
 
     /**

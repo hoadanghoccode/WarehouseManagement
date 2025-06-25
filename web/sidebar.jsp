@@ -114,7 +114,7 @@
                 </a>
             </li>
         </c:if>
-        <c:if test="${permissions['Customer_VIEW']}">         
+        <c:if test="${permissions['InventoryAudit_VIEW']}">         
             <li >
                 <a href="/WarehouseManagement/auditlist">
                     <img src="img/menu-icon/4.svg" alt="">
@@ -131,9 +131,6 @@
                 </a>
             </li>
         </c:if>
-
-
-
 
         <c:if test="${permissions['Order_VIEW']}">
             <li class="">
