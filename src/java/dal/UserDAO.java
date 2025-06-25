@@ -426,6 +426,36 @@ public class UserDAO extends DBContext {
             e.printStackTrace();
         }
     }
+     //Update department,image in userlist
+    public void updateUserDepartment(int userId, int departmentId) {
+    try {
+        removeUserFromAllDepartments(userId);
+        if (departmentId > 0) {
+            assignUserToDepartment(userId, departmentId);
+        }
+    } catch (Exception e) {
+        System.err.println("Error updating department for user ID " + userId + ": " + e.getMessage());
+        e.printStackTrace();
+        throw new RuntimeException("Failed to update department");
+    }
+}
+   
+    public void updateUserImage(int userId, String imageUrl) {
+        String sql = "UPDATE Users SET Image = ? WHERE User_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, imageUrl);
+            stmt.setInt(2, userId);
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No user found with ID " + userId);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error updating image for user ID " + userId + ": " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update user image");
+        }
+    }
 
     /**
      *
