@@ -60,6 +60,11 @@
             <label for="email">Email address</label>
             <input type="email" id="email" name="email" required>
             <button type="submit">Send Reset Link</button>
+            <div style="margin-top: 16px;">
+            <a href="login.jsp" style="font-weight: bold; text-decoration: none; color: #1d4ed8;">
+                ← Back to Login
+            </a>
+        </div>
         </form>
 
         <div class="message">

@@ -11,6 +11,8 @@ import model.MaterialDetail;
 import model.Supplier;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MaterialDAO extends DBContext {
 
@@ -331,5 +333,38 @@ public class MaterialDAO extends DBContext {
         }
         return isPending; 
     }
+     public Map<String, Double> getQualityDistributionByMaterialId(int materialId) {
+        Map<String, Double> map = new HashMap<>();
+        String sql = "SELECT q.Quality_name, SUM(md.Quantity) AS total "
+                   + "FROM material_detail md "
+                   + "JOIN quality q ON q.Quality_id = md.Quality_id "
+                   + "WHERE md.Material_id = ? "
+                   + "GROUP BY q.Quality_name";
 
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, materialId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                map.put(rs.getString("Quality_name"), rs.getDouble("total"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+public static void main(String[] args) {
+        MaterialDAO dao = new MaterialDAO();
+
+        int materialIdToTest = 1;
+        Map<String, Double> result = dao.getQualityDistributionByMaterialId(materialIdToTest);
+
+        if (result.isEmpty()) {
+            System.out.println("❌ Không có dữ liệu cho Material ID: " + materialIdToTest);
+        } else {
+            System.out.println("✅ Kết quả phân bổ chất lượng vật tư (Material ID = " + materialIdToTest + "):");
+            for (Map.Entry<String, Double> entry : result.entrySet()) {
+                System.out.println("- " + entry.getKey() + ": " + entry.getValue());
+            }
+        }
+}
 }

@@ -1,10 +1,12 @@
 package dal;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.ImportStatistic;
 import model.Import_note;
 import model.Import_note_detail;
 import model.Material;
@@ -22,7 +24,7 @@ public class Import_noteDAO extends DBContext {
         }
         if (sortOrder != null && !sortOrder.isEmpty()) {
             sql.append(" ORDER BY created_at ")
-               .append(sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC");
+                    .append(sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC");
         }
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
@@ -32,13 +34,13 @@ public class Import_noteDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Import_note in = new Import_note(
-                    rs.getInt("import_note_id"),
-                    rs.getInt("order_id"),
-                    rs.getInt("user_id"),
-                    rs.getInt("warehouse_id"),
-                    rs.getDate("created_at"),
-                    rs.getBoolean("imported"),
-                    rs.getDate("imported_at")
+                        rs.getInt("import_note_id"),
+                        rs.getInt("order_id"),
+                        rs.getInt("user_id"),
+                        rs.getInt("warehouse_id"),
+                        rs.getDate("created_at"),
+                        rs.getBoolean("imported"),
+                        rs.getDate("imported_at")
                 );
                 list.add(in);
             }
@@ -114,34 +116,34 @@ public class Import_noteDAO extends DBContext {
         QualityDAO qDao = new QualityDAO();
         return qDao.getAllQualities(); // Assume QualityDAO has this method
     }
-    
+
     public boolean importNoteDetailsToInventory(int importNoteId, List<Integer> detailIds) throws SQLException {
         // Chuyển sang transaction
         connection.setAutoCommit(false);
         try {
             // Lấy chi tiết import_note_detail chưa được import
             String selDetail = "SELECT material_id, subunit_id, quality_id, quantity "
-                             + "FROM import_note_detail "
-                             + "WHERE import_note_detail_id = ? AND imported = false";
+                    + "FROM import_note_detail "
+                    + "WHERE import_note_detail_id = ? AND imported = false";
             PreparedStatement psSelDetail = connection.prepareStatement(selDetail);
-            
+
             // Kiểm tra xem đã có tồn tại dòng tồn kho tương ứng chưa
             String selMd = "SELECT material_detail_id, quantity "
-                         + "FROM material_detail "
-                         + "WHERE material_id = ? AND subunit_id = ? AND quality_id = ?";
+                    + "FROM material_detail "
+                    + "WHERE material_id = ? AND subunit_id = ? AND quality_id = ?";
             PreparedStatement psSelMd = connection.prepareStatement(selMd);
-            
+
             // Cập nhật số lượng trong bảng material_detail
             String updMd = "UPDATE material_detail SET quantity = ?, last_updated = CURRENT_TIMESTAMP "
-                         + "WHERE material_detail_id = ?";
+                    + "WHERE material_detail_id = ?";
             PreparedStatement psUpdMd = connection.prepareStatement(updMd);
 
             // Thêm dòng mới vào material_detail
             String insMd = "INSERT INTO material_detail (material_id, subunit_id, quality_id, quantity, last_updated) "
-                         + "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
+                    + "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
             PreparedStatement psInsMd = connection.prepareStatement(insMd);
-            
-             // Đánh dấu imported = true cho import_note khi toàn bộ import_note_detail của nó được imported
+
+            // Đánh dấu imported = true cho import_note khi toàn bộ import_note_detail của nó được imported
             String updInd = "UPDATE import_note_detail SET imported = true WHERE import_note_detail_id = ?";
             PreparedStatement psUpdInd = connection.prepareStatement(updInd);
 
@@ -150,7 +152,9 @@ public class Import_noteDAO extends DBContext {
                 psSelDetail.setInt(1, detailId);
                 ResultSet rsDet = psSelDetail.executeQuery();
                 // Nếu đã nhập rồi hoặc không tồn tại, bỏ qua
-                if (!rsDet.next()) continue;  
+                if (!rsDet.next()) {
+                    continue;
+                }
 
                 int mId = rsDet.getInt("material_id");
                 int suId = rsDet.getInt("subunit_id");
@@ -183,26 +187,75 @@ public class Import_noteDAO extends DBContext {
 
             // Nếu tất cả detail đã imported thì cập nhật Import_note
             String chkRemain = "SELECT 1 FROM import_note_detail "
-                             + "WHERE import_note_id = ? AND imported = false LIMIT 1";
-                    PreparedStatement psChk = connection.prepareStatement(chkRemain);
-                    psChk.setInt(1, importNoteId);
-                    ResultSet rsChk = psChk.executeQuery();
-                    // Nếu không còn chi tiết nào chưa nhập => đánh dấu cả phiếu là đã nhập
-                    if (!rsChk.next()) {
-                        String updNote = "UPDATE import_note SET imported = true, imported_at = CURRENT_TIMESTAMP "
-                                       + "WHERE import_note_id = ?";
-                        PreparedStatement psUpdNote = connection.prepareStatement(updNote);
-                        psUpdNote.setInt(1, importNoteId);
-                        psUpdNote.executeUpdate();
-                    }
-
-                    connection.commit();
-                    return true;
-                } catch (SQLException e) {
-                    connection.rollback();
-                    throw e;
-                } finally {
-                    connection.setAutoCommit(true);
-                }
+                    + "WHERE import_note_id = ? AND imported = false LIMIT 1";
+            PreparedStatement psChk = connection.prepareStatement(chkRemain);
+            psChk.setInt(1, importNoteId);
+            ResultSet rsChk = psChk.executeQuery();
+            // Nếu không còn chi tiết nào chưa nhập => đánh dấu cả phiếu là đã nhập
+            if (!rsChk.next()) {
+                String updNote = "UPDATE import_note SET imported = true, imported_at = CURRENT_TIMESTAMP "
+                        + "WHERE import_note_id = ?";
+                PreparedStatement psUpdNote = connection.prepareStatement(updNote);
+                psUpdNote.setInt(1, importNoteId);
+                psUpdNote.executeUpdate();
             }
+
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+
+  public List<ImportStatistic> getTotalImportPerMaterial(Integer filterMaterialId) {
+    List<ImportStatistic> list = new ArrayList<>();
+    String sql = "SELECT Material_id, SUM(Quantity) AS TotalQty " +
+                 "FROM import_note_detail WHERE Imported = 1 ";
+    if (filterMaterialId != null) {
+        sql += "AND Material_id = ? ";
+    }
+    sql += "GROUP BY Material_id";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        if (filterMaterialId != null) {
+            ps.setInt(1, filterMaterialId);
+        }
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ImportStatistic stat = new ImportStatistic();
+                stat.setMaterialId(rs.getInt("Material_id"));
+                stat.setTotalQuantity(rs.getDouble("TotalQty"));
+                list.add(stat);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+  
+  public List<Material> getAllMaterial() {
+    List<Material> list = new ArrayList<>();
+    String sql = "SELECT Material_id, Name FROM materials WHERE Status = 'active'";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            Material m = new Material();
+            m.setMaterialId(rs.getInt("Material_id"));
+            m.setName(rs.getString("Name"));
+            list.add(m);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
 }
