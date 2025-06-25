@@ -71,7 +71,7 @@ public class ApproveAuditController extends HttpServlet {
             throws ServletException, IOException {
         // Đảm bảo Admin mới được phép
         Users user = (Users) request.getSession().getAttribute("USER");
-        if (user == null || user.getRoleId() != 1) {
+        if (user == null || user.getRoleId() != 2) {
             response.setStatus(403);
             response.getWriter().write("{\"msg\":\"Access denied!\"}");
             return;
@@ -91,7 +91,6 @@ public class ApproveAuditController extends HttpServlet {
         try {
             // 1. Lấy chi tiết kiểm kê (nếu cần log, kiểm tra)
             List<InventoryAuditDetail> details = auditDao.getDetailsByAuditId(auditId);
-            System.out.println("test get detail"+ details);
 
             // 2. Tạo Order điều chỉnh tồn kho tự động qua DAO
             auditDao.createAdjustmentOrdersAfterAuditApproved(auditId, user.getUserId());
