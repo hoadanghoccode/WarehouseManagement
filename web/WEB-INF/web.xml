@@ -137,6 +137,23 @@
         <servlet-class>controller.SubUnitServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>InventoryAuditController</servlet-name>
+        <servlet-class>controller.InventoryAuditController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AuditListController</servlet-name>
+        <servlet-class>controller.AuditListController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>InventoryAuditDetailController</servlet-name>
+        <servlet-class>controller.InventoryAuditDetailController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ApproveAuditController</servlet-name>
+        <servlet-class>controller.ApproveAuditController</servlet-class>
+        
+    </servlet>
+    <servlet>
         <servlet-name>InventoryHistoryServlet</servlet-name>
         <servlet-class>controller.InventoryHistoryServlet</servlet-class>
     </servlet>
@@ -274,6 +291,22 @@
     <servlet-mapping>
         <servlet-name>SubUnitServlet</servlet-name>
         <url-pattern>/subunit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InventoryAuditController</servlet-name>
+        <url-pattern>/inventoryaudit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AuditListController</servlet-name>
+        <url-pattern>/auditlist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InventoryAuditDetailController</servlet-name>
+        <url-pattern>/inventoryauditdetail</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ApproveAuditController</servlet-name>
+        <url-pattern>/approveaudit</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>InventoryHistoryServlet</servlet-name>
