@@ -1,4 +1,3 @@
-
 package controller;
 
 import com.cloudinary.Cloudinary;
@@ -22,6 +21,7 @@ import java.util.Map;
 import model.Departmentt;
 
 @MultipartConfig
+@WebServlet(name = "UserDetailServlet", urlPatterns = {"/userdetail"})
 public class UserDetailServlet extends HttpServlet {
     private Cloudinary cloudinary;
 
@@ -132,42 +132,32 @@ public class UserDetailServlet extends HttpServlet {
             if (existingUser == null) {
                 throw new IllegalArgumentException("User not found");
             }
+
+            // Check if the user is editing their own profile
+            Users loggedInUser = (Users) session.getAttribute("USER");
+            boolean isEditingSelf = loggedInUser != null && loggedInUser.getUserId() == userId;
+
+            // Check permissions for editing other users
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            boolean hasUpdatePermission = perms != null && perms.getOrDefault("Customer_UPDATE", false);
+
+            if (!isEditingSelf && !hasUpdatePermission) {
+                session.setAttribute("error", "You do not have permission to edit other users' profiles.");
+                response.sendRedirect("userlist");
+                return;
+            }
+
             String departmentIdRaw = request.getParameter("departmentId");
             int departmentId = 0;
             if (departmentIdRaw != null && !departmentIdRaw.trim().isEmpty()) {
                 departmentId = Integer.parseInt(departmentIdRaw);
             }
-            String roleIdRaw = request.getParameter("roleId");
-            if (roleIdRaw == null || roleIdRaw.trim().isEmpty()) {
-                throw new IllegalArgumentException("Role is required");
-            }
-            int roleId = Integer.parseInt(roleIdRaw);
-            String phoneNumber = request.getParameter("phoneNumber");
-            if (phoneNumber == null) {
-                phoneNumber = "";
-            } else if (!phoneNumber.isEmpty() && !phoneNumber.matches("^0\\d{9}$")) {
-                throw new IllegalArgumentException("Phone number must start with 0, followed by exactly 9 digits");
-            }
-            String address = request.getParameter("address");
-            if (address == null) {
-                address = "";
-            }
+
             String image = existingUser.getImage(); // Default to existing image
-            String statusRaw = request.getParameter("status");
-            if (statusRaw == null || (!statusRaw.equals("true") && !statusRaw.equals("false"))) {
-                throw new IllegalArgumentException("Invalid status value");
-            }
-            boolean status = Boolean.parseBoolean(statusRaw);
-            String dateOfBirthStr = request.getParameter("dateOfBirth");
-            java.util.Date dateOfBirth = null;
-            if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
-                dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
-            }
-            // Handle file upload only if a new file is selected
             Part filePart = request.getPart("imageFile");
             if (filePart != null && filePart.getSize() > 0) {
                 try (InputStream fileContent = filePart.getInputStream()) {
-                    // Convert InputStream to byte[]
                     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                     byte[] data = new byte[1024];
                     int nRead;
@@ -176,7 +166,6 @@ public class UserDetailServlet extends HttpServlet {
                     }
                     buffer.flush();
                     byte[] fileBytes = buffer.toByteArray();
-                    // Upload fileBytes to Cloudinary
                     Map uploadResult = cloudinary.uploader().upload(fileBytes, ObjectUtils.asMap(
                         "resource_type", "auto"
                     ));
@@ -187,20 +176,85 @@ public class UserDetailServlet extends HttpServlet {
                     session.setAttribute("error", "Image upload failed: " + e.getMessage());
                 }
             }
-            Users user = new Users(userId, roleId, existingUser.getFullName(), email, existingUser.getPassword(),
-                    existingUser.isGender(), phoneNumber, address, dateOfBirth, image, null,
-                    new java.sql.Timestamp(System.currentTimeMillis()), status, null, null);
-            dao.updateUser(user, departmentId);
-            session.setAttribute("success", "User updated successfully");
+
+            if (isEditingSelf) {
+                // For self-editing, only allow departmentId and image to be updated
+                boolean updated = false;
+                if (departmentId > 0) {
+                    // Validate department belongs to user's role
+                    String checkSql = "SELECT COUNT(*) FROM Department WHERE Department_id = ? AND Role_id = ?";
+                    try (java.sql.Connection conn = dao.getConnection();
+                         java.sql.PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                        checkStmt.setInt(1, departmentId);
+                        checkStmt.setInt(2, existingUser.getRoleId());
+                        try (java.sql.ResultSet rs = checkStmt.executeQuery()) {
+                            if (rs.next() && rs.getInt(1) == 0) {
+                                throw new IllegalArgumentException("Department does not belong to your role");
+                            }
+                        }
+                    }
+                    dao.updateUserDepartment(userId, departmentId);
+                    updated = true;
+                }
+                if (!image.equals(existingUser.getImage())) {
+                    // Update image in database
+                    dao.updateUserImage(userId, image);
+                    updated = true;
+                }
+                if (updated) {
+                    session.setAttribute("success", "Profile updated successfully");
+                } else {
+                    session.setAttribute("error", "No changes made to department or avatar");
+                }
+            } else {
+                // For editing other users, allow full updates
+                String roleIdRaw = request.getParameter("roleId");
+                if (roleIdRaw == null || roleIdRaw.trim().isEmpty()) {
+                    throw new IllegalArgumentException("Role is required");
+                }
+                int roleId = Integer.parseInt(roleIdRaw);
+
+                String statusRaw = request.getParameter("status");
+                if (statusRaw == null || (!statusRaw.equals("true") && !statusRaw.equals("false"))) {
+                    throw new IllegalArgumentException("Invalid status value");
+                }
+                boolean status = Boolean.parseBoolean(statusRaw);
+
+                String phoneNumber = request.getParameter("phoneNumber");
+                if (phoneNumber == null) {
+                    phoneNumber = "";
+                } else if (!phoneNumber.isEmpty() && !phoneNumber.matches("^0\\d{9}$")) {
+                    throw new IllegalArgumentException("Phone number must start with 0, followed by exactly 9 digits");
+                }
+
+                String address = request.getParameter("address");
+                if (address == null) {
+                    address = "";
+                }
+
+                java.util.Date dateOfBirth = null;
+                String dateOfBirthStr = request.getParameter("dateOfBirth");
+                if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
+                    dateOfBirth = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirthStr);
+                }
+
+                Users user = new Users(userId, roleId, existingUser.getFullName(), email, existingUser.getPassword(),
+                        existingUser.isGender(), phoneNumber, address, dateOfBirth, image, null,
+                        new java.sql.Timestamp(System.currentTimeMillis()), status, null, null);
+                dao.updateUser(user, departmentId);
+                session.setAttribute("success", "User updated successfully");
+            }
+            response.sendRedirect("userlist");
         } catch (IllegalArgumentException e) {
             System.err.println("Validation error updating user: " + e.getMessage());
             session.setAttribute("error", e.getMessage());
+            response.sendRedirect("userlist");
         } catch (Exception e) {
             System.err.println("Error updating user: " + e.getMessage());
             e.printStackTrace();
             session.setAttribute("error", "Update failed: " + e.getMessage());
+            response.sendRedirect("userlist");
         }
-        response.sendRedirect("userlist");
     }
 
     @Override

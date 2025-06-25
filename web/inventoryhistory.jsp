@@ -570,8 +570,8 @@
                             <thead>
                                 <tr>
                                     <th>Period</th>
-                                    <th>Available Qty (Latest)</th>
-                                    <th>Not Available Qty (Latest)</th>
+                                    <th>Available</th>
+                                    <th>Not Available</th>
                                     <th>Total Import</th>
                                     <th>Total Export</th>
                                     <th>Net Change</th>
