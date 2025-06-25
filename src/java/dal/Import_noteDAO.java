@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.ImportStatistic;
 import model.Import_note;
 import model.Import_note_detail;
 import model.Material;
@@ -14,6 +15,7 @@ import model.Quality;
 
 public class Import_noteDAO extends DBContext {
 
+   
     /** Cho phép Controller lấy Connection và tự quản lý transaction */
     public Connection getConnection() {
         return this.connection;
@@ -129,7 +131,7 @@ public class Import_noteDAO extends DBContext {
         return new MaterialDAO().getAllMaterials(null, null, null, null);
     }
     public List<SubUnit> getAllSubUnits() {
-        return new SubUnitDAO().getAllSubUnits(false);
+        return new SubUnitDAO().getAllSubUnits("active");
     }
     public List<Quality> getAllQualities() {
         return new QualityDAO().getAllQualities();
@@ -235,4 +237,54 @@ public class Import_noteDAO extends DBContext {
             ps.executeUpdate();
         }
     }
+
+  public List<ImportStatistic> getTotalImportPerMaterial(Integer filterMaterialId) {
+    List<ImportStatistic> list = new ArrayList<>();
+    String sql = "SELECT Material_id, SUM(Quantity) AS TotalQty " +
+                 "FROM import_note_detail WHERE Imported = 1 ";
+    if (filterMaterialId != null) {
+        sql += "AND Material_id = ? ";
+    }
+    sql += "GROUP BY Material_id";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        if (filterMaterialId != null) {
+            ps.setInt(1, filterMaterialId);
+        }
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ImportStatistic stat = new ImportStatistic();
+                stat.setMaterialId(rs.getInt("Material_id"));
+                stat.setTotalQuantity(rs.getDouble("TotalQty"));
+                list.add(stat);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
 }
+  
+  public List<Material> getAllMaterial() {
+    List<Material> list = new ArrayList<>();
+    String sql = "SELECT Material_id, Name FROM materials WHERE Status = 'active'";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            Material m = new Material();
+            m.setMaterialId(rs.getInt("Material_id"));
+            m.setName(rs.getString("Name"));
+            list.add(m);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+}
+
