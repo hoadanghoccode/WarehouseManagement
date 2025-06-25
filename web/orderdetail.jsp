@@ -235,9 +235,9 @@
                                                         <i class="fas fa-check-circle"></i> Approve Order
                                                     </button>
 
-<!--                                                    <button type="button" class="btn btn-warning" style="color: white">
-                                                        <i class="fas fa-list-check"></i> Partial Approve
-                                                    </button>-->
+                                                    <!--                                                    <button type="button" class="btn btn-warning" style="color: white">
+                                                                                                            <i class="fas fa-list-check"></i> Partial Approve
+                                                                                                        </button>-->
 
                                                     <!-- Reject -->
                                                     <button type="button" class="btn btn-danger" onclick="openRejectModal()">
@@ -436,9 +436,6 @@
                 </div>
             </div>
         </div>
-
-
-
 
         <!-- Approve Order Modal -->
         <div id="approveOrderModal" class="modal">

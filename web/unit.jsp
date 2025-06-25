@@ -411,8 +411,8 @@
                             <tr>
                                 <th class="col-md-1">#</th>
                                 <th class="col-md-5">Name</th>
-                                <th class="col-md-2">SubUnit</th>
                                 <th class="col-md-2">Factor</th>
+                                <th class="col-md-2">SubUnit</th>
                                 <th class="col-md-2">Status</th>
                                 <th class="col-md-2">Action</th>
                             </tr>
@@ -423,11 +423,11 @@
                                     <td><strong>${status.index + 1 + (currentPage - 1) * 5}</strong></td>
                                     <td>${not empty unit.name ? unit.name : 'N/A'}</td>
                                     <td>
-                                        <c:forEach var="sub" items="${subUnits}">
-                                            <c:if test="${sub.subUnitId == unit.subUnitId}">${sub.name}</c:if>
-                                        </c:forEach>
+                                        ${not empty unit.factor ? unit.factor : 'N/A'}
                                     </td>
-                                    <td>${not empty unit.factor ? unit.factor : 'N/A'}</td>
+                                    <td><c:forEach var="sub" items="${subUnits}">
+                                            <c:if test="${sub.subUnitId == unit.subUnitId}">${sub.name}</c:if>
+                                        </c:forEach></td>
                                     <td>
                                         <span class="badge ${unit.isActive ? 'bg-success' : 'bg-danger'}">
                                             ${unit.isActive ? 'Active' : 'Inactive'}

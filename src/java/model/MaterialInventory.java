@@ -1,68 +1,42 @@
 package model;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 
 public class MaterialInventory {
 
     private int materialId;
-    private int categoryId;
-    private int supplierId;
-    private int subUnitId;
-    private int qualityId;
     private String materialName;
+    private int categoryId;
     private String categoryName;
+    private int supplierId;
     private String supplierName;
+    private int subUnitId;
     private String subUnitName;
-    private String qualityName;
     private BigDecimal availableQty;
     private BigDecimal notAvailableQty;
+    private BigDecimal importQty;
+    private BigDecimal exportQty;
+    private int recordCount; 
+    private String transactionType; 
     private Date inventoryDate;
     private String note;
 
     public MaterialInventory() {
         this.availableQty = BigDecimal.ZERO;
         this.notAvailableQty = BigDecimal.ZERO;
+        this.importQty = BigDecimal.ZERO;
+        this.exportQty = BigDecimal.ZERO;
+        this.recordCount = 0;
     }
 
+    // Getters and Setters
     public int getMaterialId() {
         return materialId;
     }
 
     public void setMaterialId(int materialId) {
         this.materialId = materialId;
-    }
-
-    public int getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public int getSupplierId() {
-        return supplierId;
-    }
-
-    public void setSupplierId(int supplierId) {
-        this.supplierId = supplierId;
-    }
-
-    public int getSubUnitId() {
-        return subUnitId;
-    }
-
-    public void setSubUnitId(int subUnitId) {
-        this.subUnitId = subUnitId;
-    }
-
-    public int getQualityId() {
-        return qualityId;
-    }
-
-    public void setQualityId(int qualityId) {
-        this.qualityId = qualityId;
     }
 
     public String getMaterialName() {
@@ -73,12 +47,28 @@ public class MaterialInventory {
         this.materialName = materialName;
     }
 
+    public int getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+
     public String getCategoryName() {
         return categoryName;
     }
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public int getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
     }
 
     public String getSupplierName() {
@@ -89,6 +79,14 @@ public class MaterialInventory {
         this.supplierName = supplierName;
     }
 
+    public int getSubUnitId() {
+        return subUnitId;
+    }
+
+    public void setSubUnitId(int subUnitId) {
+        this.subUnitId = subUnitId;
+    }
+
     public String getSubUnitName() {
         return subUnitName;
     }
@@ -97,20 +95,12 @@ public class MaterialInventory {
         this.subUnitName = subUnitName;
     }
 
-    public String getQualityName() {
-        return qualityName;
-    }
-
-    public void setQualityName(String qualityName) {
-        this.qualityName = qualityName;
-    }
-
     public BigDecimal getAvailableQty() {
         return availableQty;
     }
 
     public void setAvailableQty(BigDecimal availableQty) {
-        this.availableQty = availableQty;
+        this.availableQty = availableQty != null ? availableQty : BigDecimal.ZERO;
     }
 
     public BigDecimal getNotAvailableQty() {
@@ -118,7 +108,39 @@ public class MaterialInventory {
     }
 
     public void setNotAvailableQty(BigDecimal notAvailableQty) {
-        this.notAvailableQty = notAvailableQty;
+        this.notAvailableQty = notAvailableQty != null ? notAvailableQty : BigDecimal.ZERO;
+    }
+
+    public BigDecimal getImportQty() {
+        return importQty;
+    }
+
+    public void setImportQty(BigDecimal importQty) {
+        this.importQty = importQty != null ? importQty : BigDecimal.ZERO;
+    }
+
+    public BigDecimal getExportQty() {
+        return exportQty;
+    }
+
+    public void setExportQty(BigDecimal exportQty) {
+        this.exportQty = exportQty != null ? exportQty : BigDecimal.ZERO;
+    }
+
+    public int getRecordCount() {
+        return recordCount;
+    }
+
+    public void setRecordCount(int recordCount) {
+        this.recordCount = recordCount;
+    }
+
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
     }
 
     public Date getInventoryDate() {
