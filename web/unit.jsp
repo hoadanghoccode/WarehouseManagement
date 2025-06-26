@@ -103,7 +103,7 @@
             gap: 12px;
             align-items: center;
             position: relative;
-            flex-wrap: wrap; /* Cho phép xuống dòng nếu cần */
+            flex-wrap: wrap;
         }
 
         .search-input {
@@ -111,8 +111,8 @@
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 14px;
-            width: 400px; /* Tăng thêm chiều rộng */
-            min-width: 250px; /* Đảm bảo kích thước tối thiểu */
+            width: 400px;
+            min-width: 250px;
             background-color: white;
             transition: all 0.2s;
             z-index: 10;
@@ -126,7 +126,7 @@
 
         .search-icon {
             position: absolute;
-            left: 12px; /* Tăng khoảng cách để tránh che văn bản */
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: #6b7280;
@@ -141,7 +141,7 @@
             font-size: 14px;
             background-color: white;
             transition: all 0.2s;
-            min-width: 150px; /* Đảm bảo kích thước tối thiểu cho select */
+            min-width: 150px;
         }
 
         .form-select:focus, .form-control:focus {
@@ -349,7 +349,7 @@
 
             .search-input, .form-select, .form-control {
                 width: 100%;
-                min-width: 200px; /* Đảm bảo kích thước tối thiểu trên màn hình nhỏ */
+                min-width: 200px;
             }
 
             .action-buttons {
@@ -410,9 +410,9 @@
                         <thead>
                             <tr>
                                 <th class="col-md-1">#</th>
-                                <th class="col-md-5">Name</th>
-                                <th class="col-md-2">SubUnit</th>
+                                <th class="col-md-2">Name</th>
                                 <th class="col-md-2">Factor</th>
+                                <th class="col-md-2">SubUnit</th>
                                 <th class="col-md-2">Status</th>
                                 <th class="col-md-2">Action</th>
                             </tr>
@@ -423,11 +423,11 @@
                                     <td><strong>${status.index + 1 + (currentPage - 1) * 5}</strong></td>
                                     <td>${not empty unit.name ? unit.name : 'N/A'}</td>
                                     <td>
-                                        <c:forEach var="sub" items="${subUnits}">
-                                            <c:if test="${sub.subUnitId == unit.subUnitId}">${sub.name}</c:if>
-                                        </c:forEach>
+                                        ${not empty unit.factor ? unit.factor : 'N/A'}
                                     </td>
-                                    <td>${not empty unit.factor ? unit.factor : 'N/A'}</td>
+                                    <td><c:forEach var="sub" items="${subUnits}">
+                                            <c:if test="${sub.subUnitId == unit.subUnitId}">${sub.name}</c:if>
+                                        </c:forEach></td>
                                     <td>
                                         <span class="badge ${unit.isActive ? 'bg-success' : 'bg-danger'}">
                                             ${unit.isActive ? 'Active' : 'Inactive'}

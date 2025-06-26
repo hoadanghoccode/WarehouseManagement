@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.ImportStatistic;
 import model.Import_note;
 import model.Import_note_detail;
 import model.Material;
@@ -14,6 +15,7 @@ import model.Quality;
 
 public class Import_noteDAO extends DBContext {
 
+   
     /** Cho phép Controller lấy Connection và tự quản lý transaction */
     public Connection getConnection() {
         return this.connection;
@@ -129,7 +131,7 @@ public class Import_noteDAO extends DBContext {
         return new MaterialDAO().getAllMaterials(null, null, null, null);
     }
     public List<SubUnit> getAllSubUnits() {
-        return new SubUnitDAO().getAllSubUnits(false);
+        return new SubUnitDAO().getAllSubUnits("active");
     }
     public List<Quality> getAllQualities() {
         return new QualityDAO().getAllQualities();
@@ -235,4 +237,110 @@ public class Import_noteDAO extends DBContext {
             ps.executeUpdate();
         }
     }
+
+  public List<ImportStatistic> getTotalImportPerMaterial(Integer filterMaterialId) {
+    List<ImportStatistic> list = new ArrayList<>();
+    String sql = "SELECT Material_id, SUM(Quantity) AS TotalQty " +
+                 "FROM import_note_detail WHERE Imported = 1 ";
+    if (filterMaterialId != null) {
+        sql += "AND Material_id = ? ";
+    }
+    sql += "GROUP BY Material_id";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        if (filterMaterialId != null) {
+            ps.setInt(1, filterMaterialId);
+        }
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ImportStatistic stat = new ImportStatistic();
+                stat.setMaterialId(rs.getInt("Material_id"));
+                stat.setTotalQuantity(rs.getDouble("TotalQty"));
+                list.add(stat);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
 }
+  
+  public List<Material> getAllMaterial() {
+    List<Material> list = new ArrayList<>();
+    String sql = "SELECT Material_id, Name FROM materials WHERE Status = 'active'";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            Material m = new Material();
+            m.setMaterialId(rs.getInt("Material_id"));
+            m.setName(rs.getString("Name"));
+            list.add(m);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+  
+
+
+/** Cập nhật Import_qty trong InventoryMaterialDaily */ //Hàm của b Linh
+public void updateInventoryMaterialDaily(int materialId, int subUnitId, int qualityId, double quantity) throws SQLException {
+        Integer materialDetailId = findMaterialDetailId(materialId, subUnitId, qualityId);
+        if (materialDetailId == null) {
+            throw new SQLException("Material_detail_id not found for materialId=" + materialId + ", subUnitId=" + subUnitId + ", qualityId=" + qualityId);
+        }
+
+        String selectSql = """
+            SELECT Opening_qty, Import_qty, Export_qty
+            FROM InventoryMaterialDaily
+            WHERE Material_detail_id = ? AND Inventory_Material_date = CURDATE()
+        """;
+        Double openingQty = null;
+        double currentImportQty = 0;
+        double currentExportQty = 0;
+
+        try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
+            ps.setInt(1, materialDetailId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                openingQty = rs.getDouble("Opening_qty");
+                currentImportQty = rs.getDouble("Import_qty");
+                currentExportQty = rs.getDouble("Export_qty");
+            }
+        }
+
+        if (openingQty != null) {
+            String updateSql = """
+                UPDATE InventoryMaterialDaily
+                SET Import_qty = ?, Ending_qty = ?
+                WHERE Material_detail_id = ? AND Inventory_Material_date = CURDATE()
+            """;
+            try (PreparedStatement ps = connection.prepareStatement(updateSql)) {
+                ps.setDouble(1, currentImportQty + quantity);
+                ps.setDouble(2, openingQty + (currentImportQty + quantity) - currentExportQty);
+                ps.setInt(3, materialDetailId);
+                ps.executeUpdate();
+            }
+        } else {
+            double materialDetailQty = getCurrentQuantity(materialDetailId);
+            String insertSql = """
+                INSERT INTO InventoryMaterialDaily (Material_detail_id, Inventory_Material_date, Opening_qty, Import_qty, Export_qty, Ending_qty)
+                VALUES (?, CURDATE(), ?, ?, 0, ?)
+            """;
+            try (PreparedStatement ps = connection.prepareStatement(insertSql)) {
+                ps.setInt(1, materialDetailId);
+                ps.setDouble(2, materialDetailQty);
+                ps.setDouble(3, quantity);
+                ps.setDouble(4, materialDetailQty + quantity);
+                ps.executeUpdate();
+            }
+        }
+    }
+}
+

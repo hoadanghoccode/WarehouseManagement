@@ -1,4 +1,3 @@
-// File: controller/ImportNoteToInventoryController.java
 package controller;
 
 import dal.Import_noteDAO;
@@ -57,6 +56,9 @@ public class ImportNoteToInventoryController extends HttpServlet {
                 } else {
                     dao.insertMaterialDetail(mId, suId, qId, qty);
                 }
+
+                // *) Cập nhật InventoryMaterialDaily
+                dao.updateInventoryMaterialDaily(mId, suId, qId, qty);
 
                 // 3) Đánh dấu detail đã imported
                 dao.markDetailImported(detailId);

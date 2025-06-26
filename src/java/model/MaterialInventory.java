@@ -1,7 +1,7 @@
 package model;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 
 public class MaterialInventory {
 
@@ -9,22 +9,47 @@ public class MaterialInventory {
     private int categoryId;
     private int supplierId;
     private int subUnitId;
-    private int qualityId;
     private String materialName;
     private String categoryName;
     private String supplierName;
     private String subUnitName;
-    private String qualityName;
     private BigDecimal availableQty;
     private BigDecimal notAvailableQty;
+    private BigDecimal importQty;
+    private BigDecimal exportQty;
     private Date inventoryDate;
     private String note;
 
+    // Constructors
     public MaterialInventory() {
-        this.availableQty = BigDecimal.ZERO;
-        this.notAvailableQty = BigDecimal.ZERO;
     }
 
+    public MaterialInventory(BigDecimal availableQty, BigDecimal notAvailableQty) {
+        this.availableQty = availableQty;
+        this.notAvailableQty = notAvailableQty;
+    }
+
+    public MaterialInventory(int materialId, int categoryId, int supplierId, int subUnitId, String materialName,
+                            String categoryName, String supplierName, String subUnitName, BigDecimal availableQty,
+                            BigDecimal notAvailableQty, BigDecimal importQty, BigDecimal exportQty, Date inventoryDate,
+                            String note) {
+        this.materialId = materialId;
+        this.categoryId = categoryId;
+        this.supplierId = supplierId;
+        this.subUnitId = subUnitId;
+        this.materialName = materialName;
+        this.categoryName = categoryName;
+        this.supplierName = supplierName;
+        this.subUnitName = subUnitName;
+        this.availableQty = availableQty;
+        this.notAvailableQty = notAvailableQty;
+        this.importQty = importQty;
+        this.exportQty = exportQty;
+        this.inventoryDate = inventoryDate;
+        this.note = note;
+    }
+
+    // Getters and Setters
     public int getMaterialId() {
         return materialId;
     }
@@ -57,16 +82,8 @@ public class MaterialInventory {
         this.subUnitId = subUnitId;
     }
 
-    public int getQualityId() {
-        return qualityId;
-    }
-
-    public void setQualityId(int qualityId) {
-        this.qualityId = qualityId;
-    }
-
     public String getMaterialName() {
-        return materialName;
+        return materialName != null ? materialName : "N/A";
     }
 
     public void setMaterialName(String materialName) {
@@ -74,7 +91,7 @@ public class MaterialInventory {
     }
 
     public String getCategoryName() {
-        return categoryName;
+        return categoryName != null ? categoryName : "N/A";
     }
 
     public void setCategoryName(String categoryName) {
@@ -82,7 +99,7 @@ public class MaterialInventory {
     }
 
     public String getSupplierName() {
-        return supplierName;
+        return supplierName != null ? supplierName : "N/A";
     }
 
     public void setSupplierName(String supplierName) {
@@ -90,23 +107,15 @@ public class MaterialInventory {
     }
 
     public String getSubUnitName() {
-        return subUnitName;
+        return subUnitName != null ? subUnitName : "N/A";
     }
 
     public void setSubUnitName(String subUnitName) {
         this.subUnitName = subUnitName;
     }
 
-    public String getQualityName() {
-        return qualityName;
-    }
-
-    public void setQualityName(String qualityName) {
-        this.qualityName = qualityName;
-    }
-
     public BigDecimal getAvailableQty() {
-        return availableQty;
+        return availableQty != null ? availableQty : BigDecimal.ZERO;
     }
 
     public void setAvailableQty(BigDecimal availableQty) {
@@ -114,11 +123,27 @@ public class MaterialInventory {
     }
 
     public BigDecimal getNotAvailableQty() {
-        return notAvailableQty;
+        return notAvailableQty != null ? notAvailableQty : BigDecimal.ZERO;
     }
 
     public void setNotAvailableQty(BigDecimal notAvailableQty) {
         this.notAvailableQty = notAvailableQty;
+    }
+
+    public BigDecimal getImportQty() {
+        return importQty != null ? importQty : BigDecimal.ZERO;
+    }
+
+    public void setImportQty(BigDecimal importQty) {
+        this.importQty = importQty;
+    }
+
+    public BigDecimal getExportQty() {
+        return exportQty != null ? exportQty : BigDecimal.ZERO;
+    }
+
+    public void setExportQty(BigDecimal exportQty) {
+        this.exportQty = exportQty;
     }
 
     public Date getInventoryDate() {
@@ -130,10 +155,31 @@ public class MaterialInventory {
     }
 
     public String getNote() {
-        return note;
+        return note != null ? note : "No recent transactions";
     }
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    // Optional: Thêm toString cho debug
+    @Override
+    public String toString() {
+        return "MaterialInventory{" +
+                "materialId=" + materialId +
+                ", categoryId=" + categoryId +
+                ", supplierId=" + supplierId +
+                ", subUnitId=" + subUnitId +
+                ", materialName='" + materialName + '\'' +
+                ", categoryName='" + categoryName + '\'' +
+                ", supplierName='" + supplierName + '\'' +
+                ", subUnitName='" + subUnitName + '\'' +
+                ", availableQty=" + availableQty +
+                ", notAvailableQty=" + notAvailableQty +
+                ", importQty=" + importQty +
+                ", exportQty=" + exportQty +
+                ", inventoryDate=" + inventoryDate +
+                ", note='" + note + '\'' +
+                '}';
     }
 }

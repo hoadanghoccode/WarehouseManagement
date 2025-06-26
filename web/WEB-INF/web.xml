@@ -136,6 +136,30 @@
         <servlet-name>SubUnitServlet</servlet-name>
         <servlet-class>controller.SubUnitServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>InventoryAuditController</servlet-name>
+        <servlet-class>controller.InventoryAuditController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AuditListController</servlet-name>
+        <servlet-class>controller.AuditListController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>InventoryAuditDetailController</servlet-name>
+        <servlet-class>controller.InventoryAuditDetailController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ApproveAuditController</servlet-name>
+        <servlet-class>controller.ApproveAuditController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>InventoryHistoryServlet</servlet-name>
+        <servlet-class>controller.InventoryHistoryServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ExportNoteListServlet</servlet-name>
+        <servlet-class>controller.ExportNoteListServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -270,6 +294,30 @@
     <servlet-mapping>
         <servlet-name>SubUnitServlet</servlet-name>
         <url-pattern>/subunit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InventoryAuditController</servlet-name>
+        <url-pattern>/inventoryaudit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AuditListController</servlet-name>
+        <url-pattern>/auditlist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InventoryAuditDetailController</servlet-name>
+        <url-pattern>/inventoryauditdetail</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ApproveAuditController</servlet-name>
+        <url-pattern>/approveaudit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InventoryHistoryServlet</servlet-name>
+        <url-pattern>/inventoryhistory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ExportNoteListServlet</servlet-name>
+        <url-pattern>/exportnotelist</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
