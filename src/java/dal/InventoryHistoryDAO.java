@@ -155,55 +155,51 @@ public class InventoryHistoryDAO extends DBContext {
         return 0;
     }
     
-    public double getDailyImportQtyFromImportNote(int materialId, int subUnitId) {
-    String sql = """
-        SELECT COALESCE(SUM(ind.Quantity), 0) AS totalImport
-        FROM Import_note_detail ind
-        JOIN Import_note i ON ind.Import_note_id = i.Import_note_id
-        WHERE ind.Material_id = ? 
-        AND ind.SubUnit_id = ? 
-        AND DATE(i.Created_at) = CURDATE()
-        AND i.Imported = TRUE
-    """;
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-        stmt.setInt(1, materialId);
-        stmt.setInt(2, subUnitId);
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                return rs.getDouble("totalImport");
+    public double getTotalHistoricalImportQty(int materialId, int subUnitId) {
+        String sql = """
+            SELECT COALESCE(SUM(imd.Import_qty), 0) AS totalImport
+            FROM InventoryMaterialDaily imd
+            JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id
+            WHERE md.Material_id = ? 
+            AND md.SubUnit_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, materialId);
+            stmt.setInt(2, subUnitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("totalImport");
+                }
             }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getTotalHistoricalImportQty: " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        System.err.println("SQL Error in getDailyImportQtyFromImportNote: " + e.getMessage());
-        e.printStackTrace();
+        return 0.0;
     }
-    return 0.0;
-}
 
-public double getDailyExportQtyFromExportNote(int materialId, int subUnitId) {
-    String sql = """
-        SELECT COALESCE(SUM(endt.Quantity), 0) AS totalExport
-        FROM Export_note_detail endt
-        JOIN Export_note e ON endt.Export_note_id = e.Export_note_id
-        WHERE endt.Material_id = ? 
-        AND endt.SubUnit_id = ? 
-        AND DATE(e.Created_at) = CURDATE()
-        AND e.Exported = TRUE
-    """;
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-        stmt.setInt(1, materialId);
-        stmt.setInt(2, subUnitId);
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                return rs.getDouble("totalExport");
+    public double getTotalHistoricalExportQty(int materialId, int subUnitId) {
+        String sql = """
+            SELECT COALESCE(SUM(imd.Export_qty), 0) AS totalExport
+            FROM InventoryMaterialDaily imd
+            JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id
+            WHERE md.Material_id = ? 
+            AND md.SubUnit_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, materialId);
+            stmt.setInt(2, subUnitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("totalExport");
+                }
             }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getTotalHistoricalExportQty: " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        System.err.println("SQL Error in getDailyExportQtyFromExportNote: " + e.getMessage());
-        e.printStackTrace();
+        return 0.0;
     }
-    return 0.0;
-}
 
     public Map<String, Double> getTotalImportExportByPeriod(int materialId, int subUnitId, String totalPeriod, String totalStartDate, String totalEndDate) {
         Map<String, Double> totals = new HashMap<>();

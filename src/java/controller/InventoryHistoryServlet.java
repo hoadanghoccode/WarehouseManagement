@@ -145,12 +145,13 @@ public class InventoryHistoryServlet extends HttpServlet {
                 return;
             }
 
-            // Fetch daily import/export quantities from note tables
-            double dailyImportQty = dao.getDailyImportQtyFromImportNote(materialId, subUnitId);
-            double dailyExportQty = dao.getDailyExportQtyFromExportNote(materialId, subUnitId);
+            // Fetch total historical import/export quantities from InventoryMaterialDaily table
+            double dailyImportQty = dao.getTotalHistoricalImportQty(materialId, subUnitId);
+            double dailyExportQty = dao.getTotalHistoricalExportQty(materialId, subUnitId);
 
-            // Log daily totals
-            System.out.println("Daily Import from Import_note: " + dailyImportQty + ", Daily Export from Export_note: " + dailyExportQty);
+            // Log total historical quantities
+            System.out.println("Total Historical Import from InventoryMaterialDaily: " + dailyImportQty + 
+                              ", Total Historical Export from InventoryMaterialDaily: " + dailyExportQty);
 
             // Fetch history list with pagination
             List<InventoryHistory> historyList = dao.getFilteredInventoryHistories(

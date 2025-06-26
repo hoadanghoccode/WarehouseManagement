@@ -461,14 +461,14 @@
                         <div class="stat-value">
                             <fmt:formatNumber value="${dailyImportQty}" pattern="#,##0.00"/>
                         </div>
-                        <div class="stat-label">Today's Import</div>
+                        <div class="stat-label">Total Import</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon export"><i class="fas fa-arrow-down"></i></div>
                         <div class="stat-value">
                             <fmt:formatNumber value="${dailyExportQty}" pattern="#,##0.00"/>
                         </div>
-                        <div class="stat-label">Today's Export</div>
+                        <div class="stat-label">Total Export</div>
                     </div>
                 </div>
                 <!-- Filters -->
