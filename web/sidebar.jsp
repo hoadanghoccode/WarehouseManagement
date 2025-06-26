@@ -81,6 +81,14 @@
                 </a>
             </li>
         </c:if>
+            <c:if test="${permissions['Export_VIEW']}">
+            <li>
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/exportnotelist">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Export</span>
+                </a>
+            </li>
+        </c:if>
 
         <c:if test="${permissions['Supplier_VIEW']}">
             <!--class="mm-active"-->
