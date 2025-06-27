@@ -8,34 +8,15 @@ public class ExportNote {
     private int exportNoteId;
     private int orderId;
     private int userId;
-    private String userName;
     private Integer warehouseId;
     private String warehouseName;
+    private String userName;
     private Date createdAt;
     private String customerName;
     private boolean exported;
     private Date exportedAt;
     private List<ExportNoteDetail> details;
-
-    // Constructor
-    public ExportNote() {
-    }
-
-    public ExportNote(int exportNoteId, int orderId, int userId, String userName, Integer warehouseId,
-            String warehouseName, Date createdAt, String customerName, boolean exported,
-            Date exportedAt, List<ExportNoteDetail> details) {
-        this.exportNoteId = exportNoteId;
-        this.orderId = orderId;
-        this.userId = userId;
-        this.userName = userName;
-        this.warehouseId = warehouseId;
-        this.warehouseName = warehouseName;
-        this.createdAt = createdAt;
-        this.customerName = customerName;
-        this.exported = exported;
-        this.exportedAt = exportedAt;
-        this.details = details;
-    }
+    private boolean hasBackOrder;
 
     // Getters and Setters
     public int getExportNoteId() {
@@ -62,14 +43,6 @@ public class ExportNote {
         this.userId = userId;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
     public Integer getWarehouseId() {
         return warehouseId;
     }
@@ -84,6 +57,14 @@ public class ExportNote {
 
     public void setWarehouseName(String warehouseName) {
         this.warehouseName = warehouseName;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public Date getCreatedAt() {
@@ -125,4 +106,12 @@ public class ExportNote {
     public void setDetails(List<ExportNoteDetail> details) {
         this.details = details;
     }
+
+    public boolean isHasBackOrder() {
+        return hasBackOrder;
+    } // Getter
+
+    public void setHasBackOrder(boolean hasBackOrder) {
+        this.hasBackOrder = hasBackOrder;
+    } // Setter
 }

@@ -39,7 +39,7 @@
             </thead>
             <tbody>
                 <c:forEach var="detail" items="${details}" varStatus="loop">
-                    <tr class="${detail.availableQuantity >= detail.quantity ? '' : 'table-warning'}">
+                    <tr class="${detail.availableQuantity < detail.quantity ? 'table-warning' : ''}">
                         <td>
                             <input type="checkbox" class="checkbox-item"
                                    value="${detail.exportNoteDetailId}"
@@ -47,8 +47,7 @@
                                    data-subunit-id="${detail.subUnitId}"
                                    data-quality-id="${detail.qualityId}"
                                    data-requested-quantity="${detail.quantity}"
-                                   data-available-quantity="${detail.availableQuantity}"
-                                   ${detail.availableQuantity >= detail.quantity ? '' : 'disabled'}>
+                                   data-available-quantity="${detail.availableQuantity}">
                         </td>
                         <td>${detail.materialName}</td>
                         <td>${detail.subUnitName}</td>
@@ -58,7 +57,7 @@
                         <td>
                             <fmt:formatNumber value="${detail.availableQuantity}" pattern="#,##0.00" />
                             <c:if test="${detail.availableQuantity < detail.quantity}">
-                                <br><small class="text-warning">Insufficient stock</small>
+                                <br><small class="text-warning">Partial export available (${detail.availableQuantity} of ${detail.quantity})</small>
                             </c:if>
                         </td>
                         <td>
@@ -79,7 +78,7 @@
         <div class="mt-3">
             <small class="text-muted">
                 <i class="fas fa-info-circle"></i> 
-                Items with insufficient stock are disabled and highlighted in yellow.
+                Items with insufficient stock are highlighted in yellow and will create a backorder for the remaining quantity.
             </small>
         </div>
     </c:if>
@@ -103,13 +102,13 @@ $(document).ready(function() {
 
     $('#inventoryModal').on('click', '.checkbox-all', function() {
         console.log("Checkbox all clicked:", this.checked);
-        $('.checkbox-item:not(:disabled)').prop('checked', this.checked);
+        $('.checkbox-item').prop('checked', this.checked);
     });
 
     $('#inventoryModal').on('click', '.checkbox-item', function() {
         console.log("Individual checkbox clicked");
-        var totalCheckboxes = $('.checkbox-item:not(:disabled)').length;
-        var checkedCheckboxes = $('.checkbox-item:not(:disabled):checked').length;
+        var totalCheckboxes = $('.checkbox-item').length;
+        var checkedCheckboxes = $('.checkbox-item:checked').length;
         $('.checkbox-all').prop('checked', totalCheckboxes === checkedCheckboxes);
     });
 });

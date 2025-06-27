@@ -2,7 +2,6 @@ package dal;
 
 import model.ExportNote;
 import model.ExportNoteDetail;
-import model.BackOrder;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -59,6 +58,7 @@ public class ExportNoteDAO extends DBContext {
                     note.setExported(rs.getBoolean("Exported"));
                     note.setExportedAt(rs.getDate("Exported_at"));
                     note.setDetails(getExportNoteDetailsByNoteId(rs.getInt("Export_note_id")));
+                    note.setHasBackOrder(hasBackOrder(rs.getInt("Export_note_id")));
                     exportNotes.add(note);
                 }
             }
@@ -203,10 +203,6 @@ public class ExportNoteDAO extends DBContext {
     }
 
     public void updateInventoryMaterialDaily(int materialDetailId, double quantity) throws SQLException {
-        if (!checkInventoryAvailability(materialDetailId, quantity)) {
-            throw new SQLException("Not enough inventory for Material_detail_id: " + materialDetailId);
-        }
-
         String selectSql = """
             SELECT Opening_qty, Import_qty, Export_qty
             FROM InventoryMaterialDaily
@@ -305,6 +301,7 @@ public class ExportNoteDAO extends DBContext {
                     }
                 }
             }
+
             String updateNoteSql = """
                 UPDATE Export_note 
                 SET Exported = TRUE, Exported_at = CURRENT_TIMESTAMP 
@@ -326,25 +323,20 @@ public class ExportNoteDAO extends DBContext {
                 int materialDetailId = getMaterialDetailId(materialId, subUnitId, currentQualityId);
                 double availableQty = getAvailableQuantity(materialDetailId);
 
-                if (availableQty < requestedQuantity) {
-                    double exportedQty = availableQty > 0 ? availableQty : 0;
-                    if (exportedQty > 0) {
-                        updateExportNoteDetail(detailId, exportedQty);
-                        updateInventoryMaterialDaily(materialDetailId, exportedQty);
-                        updateMaterialDetailQuantity(materialDetailId, exportedQty);
-                        logTransaction(materialDetailId, detailId, "Partial export from inventory");
-                    }
+                double exportedQty = Math.min(requestedQuantity, availableQty > 0 ? availableQty : 0);
+                if (exportedQty > 0) {
+                    updateExportNoteDetail(detailId, exportedQty);
+                    updateInventoryMaterialDaily(materialDetailId, exportedQty);
+                    updateMaterialDetailQuantity(materialDetailId, exportedQty);
+                    logTransaction(materialDetailId, detailId, exportedQty < requestedQuantity ? "Partial export from inventory" : "Exported from inventory");
+                }
+                if (exportedQty < requestedQuantity) {
                     double remainingQty = requestedQuantity - exportedQty;
-                    createBackOrder(detailId, materialId, subUnitId, remainingQty, currentQualityId);
+                    createBackOrder(detailId, materialId, subUnitId, requestedQuantity, remainingQty);
                     backOrderMessage.append("Insufficient stock for Detail ID ").append(detailId)
                                    .append(". Exported ").append(exportedQty)
                                    .append(", Remaining ").append(remainingQty)
                                    .append(" added to BackOrder. ");
-                } else {
-                    updateExportNoteDetail(detailId, requestedQuantity);
-                    updateInventoryMaterialDaily(materialDetailId, requestedQuantity);
-                    updateMaterialDetailQuantity(materialDetailId, requestedQuantity);
-                    logTransaction(materialDetailId, detailId, "Exported from inventory");
                 }
             }
 
@@ -402,18 +394,40 @@ public class ExportNoteDAO extends DBContext {
         }
     }
 
-    private void createBackOrder(int detailId, int materialId, int subUnitId, double remainingQty, int qualityId) throws SQLException {
+    private void createBackOrder(int detailId, int materialId, int subUnitId, double requestedQty, double remainingQty) throws SQLException {
+        // Lấy Quality_id từ Export_note_detail dựa trên detailId
+        int qualityId = getQualityIdFromExportNoteDetail(detailId);
+        
         String sql = """
-            INSERT INTO BackOrder (Order_detail_id, Material_id, SubUnit_id, Requested_quantity, Remaining_quantity, Status, Created_at)
-            VALUES (?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)
+            INSERT INTO BackOrder (Order_detail_id, Material_id, SubUnit_id, Quality_id, Requested_quantity, Remaining_quantity, Status, Created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, detailId); // Sử dụng detailId làm Order_detail_id tạm thời
+            stmt.setInt(2, materialId);
+            stmt.setInt(3, subUnitId);
+            stmt.setInt(4, qualityId); // Sử dụng Quality_id lấy từ Export_note_detail
+            stmt.setDouble(5, requestedQty);
+            stmt.setDouble(6, remainingQty);
+            stmt.executeUpdate();
+        }
+    }
+
+    // Thêm phương thức để lấy Quality_id từ Export_note_detail
+    private int getQualityIdFromExportNoteDetail(int detailId) throws SQLException {
+        String sql = """
+            SELECT Quality_id
+            FROM Export_note_detail
+            WHERE Export_note_detail_id = ?
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, detailId);
-            stmt.setInt(2, materialId);
-            stmt.setInt(3, subUnitId);
-            stmt.setDouble(4, remainingQty);
-            stmt.setDouble(5, remainingQty);
-            stmt.executeUpdate();
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("Quality_id");
+                }
+                throw new SQLException("Quality_id not found for Export_note_detail_id: " + detailId);
+            }
         }
     }
 
@@ -441,5 +455,23 @@ public class ExportNoteDAO extends DBContext {
             stmt.setInt(2, materialDetailId);
             stmt.executeUpdate();
         }
+    }
+
+    public boolean hasBackOrder(int exportNoteId) throws SQLException {
+        String sql = """
+            SELECT COUNT(*) 
+            FROM BackOrder bo
+            JOIN Export_note_detail end ON bo.Order_detail_id = end.Export_note_detail_id
+            WHERE end.Export_note_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, exportNoteId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
     }
 }

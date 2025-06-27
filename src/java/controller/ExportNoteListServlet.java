@@ -3,7 +3,6 @@ package controller;
 import dal.ExportNoteDAO;
 import model.ExportNote;
 import model.ExportNoteDetail;
-import model.BackOrder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,7 +70,7 @@ public class ExportNoteListServlet extends HttpServlet {
         JSONObject jsonResponse = new JSONObject();
 
         String action = request.getParameter("action");
-        System.out.println("Received action: " + action); // Debug
+        System.out.println("Received action: " + action); // Debug log
 
         try {
             if ("create".equals(action)) {
@@ -95,8 +94,8 @@ public class ExportNoteListServlet extends HttpServlet {
                     exportNote.setWarehouseId(warehouseId);
                     exportNote.setCreatedAt(new java.sql.Date(System.currentTimeMillis()));
                     exportNote.setCustomerName(customerName);
-                    exportNote.setExported(true);
-                    exportNote.setExportedAt(new java.sql.Date(System.currentTimeMillis()));
+                    exportNote.setExported(false); // Set as not exported initially
+                    exportNote.setExportedAt(null);
                     int exportNoteId = dao.addExportNote(exportNote);
 
                     List<ExportNoteDetail> details = new ArrayList<>();
@@ -106,13 +105,6 @@ public class ExportNoteListServlet extends HttpServlet {
                         double quantity = Double.parseDouble(quantities[i]);
                         int qualityId = Integer.parseInt(qualityIds[i]);
 
-                        int materialDetailId = dao.getMaterialDetailId(materialId, subUnitId, qualityId);
-                        if (!dao.checkInventoryAvailability(materialDetailId, quantity)) {
-                            jsonResponse.put("success", false);
-                            jsonResponse.put("message", "Insufficient inventory for Material ID: " + materialId);
-                            break;
-                        }
-
                         ExportNoteDetail detail = new ExportNoteDetail();
                         detail.setExportNoteId(exportNoteId);
                         detail.setMaterialId(materialId);
@@ -120,22 +112,16 @@ public class ExportNoteListServlet extends HttpServlet {
                         detail.setQuantity(quantity);
                         detail.setQualityId(qualityId);
                         details.add(detail);
-
                         dao.addExportNoteDetail(detail);
-                        dao.updateInventoryMaterialDaily(materialDetailId, quantity);
                     }
                     exportNote.setDetails(details);
 
-                    if (jsonResponse.has("success") && !jsonResponse.getBoolean("success")) {
-                    } else {
-                        jsonResponse.put("success", true);
-                        jsonResponse.put("message", "Export note created successfully.");
-                        jsonResponse.put("redirect", "exportnotelist?page=1");
-                    }
+                    jsonResponse.put("success", true);
+                    jsonResponse.put("message", "Export note created successfully. Please export from inventory to complete.");
+                    jsonResponse.put("redirect", "exportnotelist?page=1");
                 }
             } else if ("export".equals(action)) {
                 int exportNoteId = Integer.parseInt(request.getParameter("exportNoteId"));
-                System.out.println("ExportNoteId: " + exportNoteId); // Debug
                 String[] detailIdsArray = request.getParameterValues("detailIds");
                 String[] quantitiesArray = request.getParameterValues("quantities");
                 String[] materialIdsArray = request.getParameterValues("materialIds");
@@ -161,32 +147,30 @@ public class ExportNoteListServlet extends HttpServlet {
                             qualityIds.add(Integer.parseInt(qualityIdsArray[i]));
                         } catch (NumberFormatException e) {
                             jsonResponse.put("success", false);
-                            jsonResponse.put("message", "Invalid data format for index " + i + ": " + e.getMessage());
+                            jsonResponse.put("message", "Invalid data format at index " + i + ": " + e.getMessage());
                             break;
                         }
                     }
 
                     if (jsonResponse.has("success") && !jsonResponse.getBoolean("success")) {
+                        // Skip if validation failed
                     } else {
-                        System.out.println("DetailIds: " + detailIds); // Debug
                         dao.markAsExported(exportNoteId, detailIds, quantities, materialIds, subUnitIds, qualityIds, request);
                         String backOrderMessage = (String) request.getAttribute("backOrderMessage");
                         jsonResponse.put("success", true);
-                        jsonResponse.put("message", "Export processed successfully.");
-                        if (backOrderMessage != null) {
-                            jsonResponse.put("backOrderMessage", backOrderMessage);
-                        }
+                        jsonResponse.put("message", "Export processed successfully." + (backOrderMessage != null ? " " + backOrderMessage : ""));
+                        jsonResponse.put("redirect", "exportnotelist?page=1");
                     }
                 }
             }
         } catch (Exception e) {
             jsonResponse.put("success", false);
             jsonResponse.put("message", "An error occurred: " + e.getMessage());
-            e.printStackTrace(); // Debug
+            e.printStackTrace();
         }
 
         String responseJson = jsonResponse.toString();
-        System.out.println("Final Response: " + responseJson); // Debug
+        System.out.println("Final response: " + responseJson);
         out.write(responseJson);
         out.flush();
         out.close();
@@ -194,6 +178,6 @@ public class ExportNoteListServlet extends HttpServlet {
 
     @Override
     public void destroy() {
-        // Cleanup (handled by DBContext in DAO)
+        // Cleanup handled by DBContext in DAO
     }
 }

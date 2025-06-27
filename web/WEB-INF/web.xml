@@ -160,6 +160,10 @@
         <servlet-name>ExportNoteListServlet</servlet-name>
         <servlet-class>controller.ExportNoteListServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>BackOrderServlet</servlet-name>
+        <servlet-class>controller.BackOrderServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -318,6 +322,10 @@
     <servlet-mapping>
         <servlet-name>ExportNoteListServlet</servlet-name>
         <url-pattern>/exportnotelist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BackOrderServlet</servlet-name>
+        <url-pattern>/backorder</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
