@@ -293,63 +293,99 @@ public class ExportNoteDAO extends DBContext {
     }
 
     public void markAsExported(int exportNoteId, List<Integer> detailIds, List<Double> quantities, List<Integer> materialIds, 
-                               List<Integer> subUnitIds, List<Integer> qualityIds, List<String> qualityTypes, HttpServletRequest request) throws SQLException {
-        String checkSql = "SELECT Exported FROM Export_note WHERE Export_note_id = ?";
-        try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
-            checkStmt.setInt(1, exportNoteId);
-            try (ResultSet rs = checkStmt.executeQuery()) {
-                if (rs.next() && rs.getBoolean("Exported")) {
-                    throw new SQLException("This export note has already been exported.");
+                              List<Integer> subUnitIds, List<Integer> qualityIds, HttpServletRequest request) throws SQLException {
+        connection.setAutoCommit(false);
+        try {
+            String checkSql = "SELECT Exported FROM Export_note WHERE Export_note_id = ?";
+            try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, exportNoteId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getBoolean("Exported")) {
+                        throw new SQLException("This export note has already been exported.");
+                    }
                 }
             }
-        }
+            String updateNoteSql = """
+                UPDATE Export_note 
+                SET Exported = TRUE, Exported_at = CURRENT_TIMESTAMP 
+                WHERE Export_note_id = ?
+            """;
+            try (PreparedStatement stmt = connection.prepareStatement(updateNoteSql)) {
+                stmt.setInt(1, exportNoteId);
+                stmt.executeUpdate();
+            }
 
-        String updateNoteSql = """
-            UPDATE Export_note 
-            SET Exported = TRUE, Exported_at = CURRENT_TIMESTAMP 
-            WHERE Export_note_id = ?
+            StringBuilder backOrderMessage = new StringBuilder();
+            for (int i = 0; i < detailIds.size(); i++) {
+                int detailId = detailIds.get(i);
+                double requestedQuantity = quantities.get(i);
+                int materialId = materialIds.get(i);
+                int subUnitId = subUnitIds.get(i);
+                int currentQualityId = qualityIds.get(i);
+
+                int materialDetailId = getMaterialDetailId(materialId, subUnitId, currentQualityId);
+                double availableQty = getAvailableQuantity(materialDetailId);
+
+                if (availableQty < requestedQuantity) {
+                    double exportedQty = availableQty > 0 ? availableQty : 0;
+                    if (exportedQty > 0) {
+                        updateExportNoteDetail(detailId, exportedQty);
+                        updateInventoryMaterialDaily(materialDetailId, exportedQty);
+                        updateMaterialDetailQuantity(materialDetailId, exportedQty);
+                        logTransaction(materialDetailId, detailId, "Partial export from inventory");
+                    }
+                    double remainingQty = requestedQuantity - exportedQty;
+                    createBackOrder(detailId, materialId, subUnitId, remainingQty, currentQualityId);
+                    backOrderMessage.append("Insufficient stock for Detail ID ").append(detailId)
+                                   .append(". Exported ").append(exportedQty)
+                                   .append(", Remaining ").append(remainingQty)
+                                   .append(" added to BackOrder. ");
+                } else {
+                    updateExportNoteDetail(detailId, requestedQuantity);
+                    updateInventoryMaterialDaily(materialDetailId, requestedQuantity);
+                    updateMaterialDetailQuantity(materialDetailId, requestedQuantity);
+                    logTransaction(materialDetailId, detailId, "Exported from inventory");
+                }
+            }
+
+            if (backOrderMessage.length() > 0) {
+                request.setAttribute("backOrderMessage", backOrderMessage.toString());
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+
+    private void updateMaterialDetailQuantity(int materialDetailId, double quantity) throws SQLException {
+        String checkSql = """
+            SELECT Quantity FROM Material_detail WHERE Material_detail_id = ?
         """;
-        try (PreparedStatement stmt = connection.prepareStatement(updateNoteSql)) {
-            stmt.setInt(1, exportNoteId);
-            stmt.executeUpdate();
-        }
-
-        String backOrderMessage = "";
-        for (int i = 0; i < detailIds.size(); i++) {
-            int detailId = detailIds.get(i);
-            double requestedQuantity = quantities.get(i);
-            int materialId = materialIds.get(i);
-            int subUnitId = subUnitIds.get(i);
-            int currentQualityId = qualityIds.get(i);
-            String qualityType = qualityTypes.get(i);
-            int targetQualityId = getQualityIdByName(qualityType);
-
-            int materialDetailId = getMaterialDetailId(materialId, subUnitId, currentQualityId);
-            double availableQty = getAvailableQuantity(materialDetailId);
-
-            if (availableQty < requestedQuantity) {
-                double exportedQty = availableQty > 0 ? availableQty : 0;
-                if (exportedQty > 0) {
-                    updateExportNoteDetail(detailId, exportedQty);
-                    updateInventoryMaterialDaily(materialDetailId, exportedQty);
-                    logTransaction(materialDetailId, detailId, "Partial export from inventory");
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, materialDetailId);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getDouble("Quantity") < quantity) {
+                    throw new SQLException("Insufficient quantity in Material_detail for Material_detail_id: " + materialDetailId);
                 }
-                double remainingQty = requestedQuantity - exportedQty;
-                createBackOrder(detailId, materialId, subUnitId, remainingQty, targetQualityId);
-                backOrderMessage += "Partial export for Detail ID " + detailId + ". Remaining " + remainingQty + " added to BackOrder. ";
-            } else {
-                updateExportNoteDetail(detailId, requestedQuantity);
-                updateInventoryMaterialDaily(materialDetailId, requestedQuantity);
-                logTransaction(materialDetailId, detailId, "Exported from inventory");
-            }
-
-            if (currentQualityId != targetQualityId) {
-                updateMaterialQuality(materialDetailId, targetQualityId);
             }
         }
 
-        if (!backOrderMessage.isEmpty()) {
-            request.setAttribute("backOrderMessage", backOrderMessage);
+        String sql = """
+            UPDATE Material_detail
+            SET Quantity = Quantity - ?, Last_updated = CURRENT_TIMESTAMP
+            WHERE Material_detail_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setDouble(1, quantity);
+            stmt.setInt(2, materialDetailId);
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Failed to update Material_detail for Material_detail_id: " + materialDetailId);
+            }
         }
     }
 
@@ -372,7 +408,7 @@ public class ExportNoteDAO extends DBContext {
             VALUES (?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, detailId); // Sử dụng detailId như Order_detail_id tạm thời
+            stmt.setInt(1, detailId);
             stmt.setInt(2, materialId);
             stmt.setInt(3, subUnitId);
             stmt.setDouble(4, remainingQty);

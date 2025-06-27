@@ -92,7 +92,7 @@
                 background-color: #f3f4f6;
                 font-weight: 600;
                 color: #1f2937;
-                positionH: sticky;
+                position: sticky;
                 top: 0;
                 z-index: 2;
             }
@@ -166,7 +166,7 @@
 
                     <div class="header-actions">
                         <div class="search-container">
-                            <form action="exportnote" method="get" id="filterForm">
+                            <form action="/WarehouseManagement/exportnotelist" method="get" id="filterForm">
                                 <div style="display: flex; gap: 12px; align-items: center;">
                                     <div style="position: relative;">
                                         <i class="fas fa-search search-icon"></i>
@@ -234,84 +234,84 @@
                         <div class="pagination">
                             <c:choose>
                                 <c:when test="${page > 1}">
-                                    <a href="exportnote?page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="First page">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                                <a href="exportnote?page=${page-1}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="Previous page">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
+                                    <a href="/WarehouseManagement/exportnotelist?page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="First page">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                    <a href="/WarehouseManagement/exportnotelist?page=${page-1}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="Previous page">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
                                 </c:when>
                                 <c:otherwise>
                                     <span title="First page"><i class="fas fa-angle-double-left"></i></span>
                                     <span title="Previous page"><i class="fas fa-angle-left"></i></span>
-                                    </c:otherwise>
-                                </c:choose>
+                                </c:otherwise>
+                            </c:choose>
 
                             <c:choose>
                                 <c:when test="${totalPages <= 7}">
                                     <c:forEach begin="1" end="${totalPages}" var="i">
                                         <c:choose>
                                             <c:when test="${i == page}"><span class="current">${i}</span></c:when>
-                                            <c:otherwise><a href="exportnote?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
+                                            <c:otherwise><a href="/WarehouseManagement/exportnotelist?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
                                         </c:choose>
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
-                                    <cchoose>
+                                    <c:choose>
                                         <c:when test="${page <= 4}">
                                             <c:forEach begin="1" end="5" var="i">
                                                 <c:choose>
                                                     <c:when test="${i == page}"><span class="current">${i}</span></c:when>
-                                                    <c:otherwise><a href="exportnote?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
+                                                    <c:otherwise><a href="/WarehouseManagement/exportnotelist?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
-                                            <c:if test="${totalPages > 6}"><span style="padding: 8px 4px;">...</span><a href="exportnote?page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${totalPages}</a></c:if>
+                                            <c:if test="${totalPages > 6}"><span style="padding: 8px 4px;">...</span><a href="/WarehouseManagement/exportnotelist?page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${totalPages}</a></c:if>
                                         </c:when>
                                         <c:when test="${page >= totalPages - 3}">
-                                            <a href="exportnote?page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">1</a>
+                                            <a href="/WarehouseManagement/exportnotelist?page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">1</a>
                                             <c:if test="${totalPages > 6}"><span style="padding: 8px 4px;">...</span></c:if>
                                             <c:forEach begin="${totalPages - 4}" end="${totalPages}" var="i">
                                                 <c:choose>
                                                     <c:when test="${i == page}"><span class="current">${i}</span></c:when>
-                                                    <c:otherwise><a href="exportnote?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
+                                                    <c:otherwise><a href="/WarehouseManagement/exportnotelist?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="exportnote?page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">1</a>
-                                                <span style="padding: 8px 4px;">...</span>
+                                            <a href="/WarehouseManagement/exportnotelist?page=1<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">1</a>
+                                            <span style="padding: 8px 4px;">...</span>
                                             <c:forEach begin="${page - 1}" end="${page + 1}" var="i">
                                                 <c:choose>
                                                     <c:when test="${i == page}"><span class="current">${i}</span></c:when>
-                                                    <c:otherwise><a href="exportnote?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
+                                                    <c:otherwise><a href="/WarehouseManagement/exportnotelist?page=${i}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${i}</a></c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                             <span style="padding: 8px 4px;">...</span>
-                                            <a href="exportnote?page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${totalPages}</a>
+                                            <a href="/WarehouseManagement/exportnotelist?page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>">${totalPages}</a>
                                         </c:otherwise>
-                                    </cchoose>
+                                    </c:choose>
                                 </c:otherwise>
                             </c:choose>
 
                             <c:choose>
                                 <c:when test="${page < totalPages}">
-                                    <a href="exportnote?page=${page+1}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="Next page">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                                <a href="exportnote?page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="Last page">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
+                                    <a href="/WarehouseManagement/exportnotelist?page=${page+1}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="Next page">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                    <a href="/WarehouseManagement/exportnotelist?page=${totalPages}<c:if test='${not empty search}'>&search=${search}</c:if><c:if test='${not empty param.exported}'>&exported=${param.exported}</c:if><c:if test='${param.sortOrder != null}'>&sortOrder=${param.sortOrder}</c:if>" title="Last page">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
                                 </c:when>
                                 <c:otherwise>
                                     <span title="Next page"><i class="fas fa-angle-right"></i></span>
                                     <span title="Last page"><i class="fas fa-angle-double-right"></i></span>
-                                    </c:otherwise>
-                                </c:choose>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                         <div style="text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;">
                             Page ${page} of ${totalPages}
                             <c:if test="${not empty exportNotes}"> (${totalNotes} total exported notes)</c:if>
-                            </div>
+                        </div>
                     </c:if>
 
                     <!-- Modal for Viewing Export Note Details -->
@@ -353,93 +353,103 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            $(function () {
-                // View Detail Modal
-                $('.view-detail').on('click', function () {
-                    var id = $(this).data('id');
-                    $('#exportNoteContent').load('getExportNote.jsp?exportNoteId=' + id, function (response, status, xhr) {
-                        if (status === "error") {
-                            $('#exportNoteContent').html('<p>Error loading details.</p>');
-                        } else {
-                            new bootstrap.Modal(document.getElementById('exportNoteModal')).show();
-                        }
-                    });
-                });
+$(document).ready(function () {
+    $('.view-detail').on('click', function () {
+        var id = $(this).data('id');
+        $('#exportNoteContent').load('/WarehouseManagement/getExportNote.jsp?exportNoteId=' + id, function (response, status, xhr) {
+            if (status === "error") {
+                $('#exportNoteContent').html('<p>Error loading details.</p>');
+            } else {
+                new bootstrap.Modal(document.getElementById('exportNoteModal')).show();
+            }
+        });
+    });
 
-                // Export from Inventory Modal
-                $('.export-from-inventory').on('click', function () {
-                    var id = $(this).data('id');
-                    $('#inventoryContent').load('exportNoteToInventory.jsp?exportNoteId=' + id, function (response, status, xhr) {
-                        if (status === "error") {
-                            $('#inventoryContent').html('<p>Error loading inventory details.</p>');
-                        } else {
-                            new bootstrap.Modal(document.getElementById('inventoryModal')).show();
-                        }
-                    });
-                });
+    $('.export-from-inventory').on('click', function () {
+        var id = $(this).data('id');
+        $('#inventoryContent').load('/WarehouseManagement/exportNoteToInventory.jsp?exportNoteId=' + id, function (response, status, xhr) {
+            if (status === "error") {
+                $('#inventoryContent').html('<p>Error loading inventory details.</p>');
+            } else {
+                new bootstrap.Modal(document.getElementById('inventoryModal')).show();
+            }
+        });
+    });
 
-                // Checkbox Logic for Inventory Modal
-                $('#inventoryModal').on('click', '.checkbox-all', function () {
-                    $('.checkbox-item').prop('checked', this.checked);
-                });
-                $('#inventoryModal').on('click', '.checkbox-item', function () {
-                    $('.checkbox-all').prop('checked', $('.checkbox-item:checked').length === $('.checkbox-item').length);
-                });
+    $('#inventoryModal').on('click', '.checkbox-all', function () {
+        $('.checkbox-item').prop('checked', this.checked);
+    });
 
-                // Export Button Logic
-                $('#exportButton').on('click', function () {
-                    var exportNoteId = $('#inventoryModal').find('input[name="exportNoteId"]').val();
-                    var detailIds = [];
-                    var quantities = [];
-                    var materialIds = [];
-                    var subUnitIds = [];
-                    var qualityIds = [];
-                    var qualityTypes = [];
+    $('#inventoryModal').on('click', '.checkbox-item', function () {
+        $('.checkbox-all').prop('checked', $('.checkbox-item:checked').length === $('.checkbox-item').length);
+    });
 
-                    $('.checkbox-item:checked').each(function () {
-                        var $this = $(this);
-                        detailIds.push($this.val());
-                        quantities.push($this.data('quantity') || 0);
-                        materialIds.push($this.data('material-id') || 0);
-                        subUnitIds.push($this.data('subunit-id') || 0);
-                        qualityIds.push($this.data('quality-id') || 0);
-                        qualityTypes.push($('.material-type[data-detail-id="' + $this.val() + '"]').val() || 'available');
-                    });
+   $('#exportButton').on('click', function () {
+    const exportNoteId = $('#inventoryContent').find('input[name="exportNoteId"]').val(); // <-- FIXED
 
-                    if (detailIds.length === 0) {
-                        alert('Please select at least one item to export.');
-                        return;
-                    }
+    if (!exportNoteId) {
+        alert('Export Note ID not found!');
+        return;
+    }
 
-                    $.ajax({
-                        url: 'exportnote',
-                        type: 'POST',
-                        data: {
-                            action: 'export',
-                            exportNoteId: exportNoteId,
-                            detailIds: detailIds,
-                            quantities: quantities,
-                            materialIds: materialIds,
-                            subUnitIds: subUnitIds,
-                            qualityIds: qualityIds,
-                            qualityTypes: qualityTypes
-                        },
-                        success: function (resp) {
-                            var jsonResponse = JSON.parse(resp);
-                            if (jsonResponse.success) {
-                                alert('Export successful! ' + (jsonResponse.backOrderMessage || ''));
-                                $('#inventoryModal').modal('hide');
-                                location.reload();
-                            } else {
-                                alert('Error: ' + jsonResponse.message);
-                            }
-                        },
-                        error: function (xhr) {
-                            alert('Error: ' + xhr.responseText);
-                        }
-                    });
-                });
-            });
-        </script>
+    const selectedItems = [];
+
+    $('#inventoryContent .checkbox-item:checked').each(function () {
+        const $this = $(this);
+        selectedItems.push({
+            detailId: $this.val(),
+            materialId: $this.data('material-id'),
+            subUnitId: $this.data('subunit-id'),
+            qualityId: $this.data('quality-id'),
+            quantity: $this.data('requested-quantity')
+        });
+    });
+
+    if (selectedItems.length === 0) {
+        $('#inventoryWarning').text('Please select at least one item to export.').show();
+        setTimeout(() => $('#inventoryWarning').hide(), 4000);
+        return;
+    }
+
+    const detailIds = selectedItems.map(i => i.detailId);
+    const quantities = selectedItems.map(i => i.quantity);
+    const materialIds = selectedItems.map(i => i.materialId);
+    const subUnitIds = selectedItems.map(i => i.subUnitId);
+    const qualityIds = selectedItems.map(i => i.qualityId);
+
+    $.ajax({
+    url: '/WarehouseManagement/exportnotelist',
+    type: 'POST',
+    traditional: true,
+    data: {
+        action: 'export',
+        exportNoteId,
+        detailIds,
+        quantities,
+        materialIds,
+        subUnitIds,
+        qualityIds
+    },
+    dataType: 'json',
+    success: function (res) {
+        if (res.success) {
+            alert('Export successful! ' + (res.backOrderMessage || ''));
+            $('#inventoryModal').modal('hide');
+            location.reload();
+        } else {
+            $('#inventoryWarning').text(res.message).show();
+            setTimeout(() => $('#inventoryWarning').hide(), 4000);
+        }
+    },
+    error: function (xhr) {
+        alert('Error: ' + xhr.responseText);
+    }
+});
+
+});
+
+});
+</script>
+
     </body>
 </html>
