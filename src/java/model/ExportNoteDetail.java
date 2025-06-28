@@ -11,13 +11,13 @@ public class ExportNoteDetail {
     private double quantity;
     private int qualityId;
     private String qualityName;
+    private double availableQuantity;
 
-    // Constructor
     public ExportNoteDetail() {
     }
 
     public ExportNoteDetail(int exportNoteDetailId, int exportNoteId, int materialId, String materialName,
-            int subUnitId, String subUnitName, double quantity, int qualityId, String qualityName) {
+            int subUnitId, String subUnitName, double quantity, int qualityId, String qualityName, double availableQuantity) {
         this.exportNoteDetailId = exportNoteDetailId;
         this.exportNoteId = exportNoteId;
         this.materialId = materialId;
@@ -27,9 +27,9 @@ public class ExportNoteDetail {
         this.quantity = quantity;
         this.qualityId = qualityId;
         this.qualityName = qualityName;
+        this.availableQuantity = availableQuantity;
     }
 
-    // Getters and Setters
     public int getExportNoteDetailId() {
         return exportNoteDetailId;
     }
@@ -101,4 +101,13 @@ public class ExportNoteDetail {
     public void setQualityName(String qualityName) {
         this.qualityName = qualityName;
     }
+
+    public double getAvailableQuantity() {
+        return availableQuantity;
+    }
+
+    public void setAvailableQuantity(double availableQuantity) {
+        this.availableQuantity = availableQuantity;
+    }
+
 }

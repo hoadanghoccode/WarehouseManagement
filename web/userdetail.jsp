@@ -30,6 +30,61 @@
     </div>
 
     <c:choose>
+        <c:when test="${loggedInUser.roleId == 1 && user.roleId == 1}">
+            <div class="form-container">
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <p class="text-gray-800">${user.email}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <p class="text-gray-800">${user.status ? 'Active' : 'Inactive'}</p>
+                    </div>
+                </div>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <p class="text-gray-800">${empty user.dateOfBirth ? 'Not specified' : user.dateOfBirth}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <p class="text-gray-800">
+                            <c:forEach var="role" items="${roles}">
+                                <c:if test="${role.roleId == user.roleId}">${role.name}</c:if>
+                            </c:forEach>
+                        </p>
+                    </div>
+                </div>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <p class="text-gray-800">${user.gender ? 'Male' : 'Female'}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <p class="text-gray-800">
+                            <c:forEach var="department" items="${departments}">
+                                <c:if test="${department.departmentId == userDepartmentId}">${department.name}</c:if>
+                            </c:forEach>
+                            <c:if test="${empty userDepartmentId}">Not specified</c:if>
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <p class="text-gray-800">${empty user.phoneNumber ? 'Not specified' : user.phoneNumber}</p>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <p class="text-gray-800">${empty user.address ? 'Not specified' : user.address}</p>
+                </div>
+                <div class="error-message">
+                    <p>You do not have permission to edit this user.</p>
+                    <button class="close-btn" type="button" onclick="closeModal('userDetailModal')" aria-label="Close modal">x</button>
+                </div>
+            </div>
+        </c:when>
         <c:when test="${loggedInUser.roleId == 2 && (isEditingSelf || user.roleId <= 2)}">
             <div class="form-container">
                 <div class="grid-container">
@@ -81,7 +136,7 @@
                 </div>
                 <div class="error-message">
                     <p>You do not have permission to edit this user.</p>
-                    <button class="close-btn"type="button" onclick="closeModal('userDetailModal')" aria-label="Close modal">Close</button>
+                    <button class="close-btn" type="button" onclick="closeModal('userDetailModal')" aria-label="Close modal">x</button>
                 </div>
             </div>
         </c:when>
@@ -153,7 +208,7 @@
                 <c:when test="${not perms['Customer_UPDATE']}">
                     <div class="error-message">
                         <p>You do not have permission to edit other users' profiles.</p>
-                        <button type="button" onclick="closeModal('userDetailModal')" aria-label="Close modal">Close</button>
+                        <button type="button" onclick="closeModal('userDetailModal')" aria-label="Close modal">x</button>
                     </div>
                 </c:when>
                 <c:otherwise>
@@ -185,7 +240,7 @@
                                 <label for="roleId">Role</label>
                                 <select name="roleId" id="roleId">
                                     <c:forEach var="role" items="${roles}">
-                                        <c:if test="${loggedInUser.roleId != 2 || role.roleId > 2}">
+                                        <c:if test="${(loggedInUser.roleId == 1 && role.roleId != 1) || (loggedInUser.roleId == 2 && role.roleId > 2) || (loggedInUser.roleId != 1 && loggedInUser.roleId != 2)}">
                                             <option value="${role.roleId}" ${role.roleId == user.roleId ? 'selected' : ''}>${role.name}</option>
                                         </c:if>
                                     </c:forEach>
