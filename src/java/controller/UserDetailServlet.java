@@ -140,6 +140,13 @@ public class UserDetailServlet extends HttpServlet {
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
             boolean hasUpdatePermission = perms != null && perms.getOrDefault("Customer_UPDATE", false);
 
+            // Admin (roleId = 1) cannot edit users with roleId = 1, including themselves
+            if (loggedInUser.getRoleId() == 1 && existingUser.getRoleId() == 1) {
+                session.setAttribute("error", "You do not have permission to edit this user.");
+                response.sendRedirect("userlist");
+                return;
+            }
+
             // Director (roleId = 2) cannot edit users with roleId <= 2, including themselves
             if (loggedInUser.getRoleId() == 2 && (isEditingSelf || existingUser.getRoleId() <= 2)) {
                 session.setAttribute("error", "You do not have permission to edit this user.");
@@ -182,12 +189,19 @@ public class UserDetailServlet extends HttpServlet {
                 }
             }
 
-            // For editing other users with roleId > 2
+            // For editing other users
             String roleIdRaw = request.getParameter("roleId");
             if (roleIdRaw == null || roleIdRaw.trim().isEmpty()) {
                 throw new IllegalArgumentException("Role is required");
             }
             int roleId = Integer.parseInt(roleIdRaw);
+
+            // Admin cannot assign roleId = 1 to others
+            if (loggedInUser.getRoleId() == 1 && roleId == 1) {
+                session.setAttribute("error", "You cannot assign this role to other users.");
+                response.sendRedirect("userlist");
+                return;
+            }
 
             // Director cannot assign roleId <= 2 to others
             if (loggedInUser.getRoleId() == 2 && roleId <= 2) {

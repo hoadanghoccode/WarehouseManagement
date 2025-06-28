@@ -332,11 +332,15 @@ public class ExportNoteDAO extends DBContext {
                 }
                 if (exportedQty < requestedQuantity) {
                     double remainingQty = requestedQuantity - exportedQty;
-                    createBackOrder(detailId, materialId, subUnitId, requestedQuantity, remainingQty);
+                    // Lấy Supplier_id từ Materials
+                    int supplierId = getSupplierIdFromMaterial(materialId);
+                    // Lấy Order_detail_id từ Order_detail dựa trên Export_note
+                    int orderDetailId = getOrderDetailIdFromExportNoteDetail(exportNoteId, detailId, materialId);
+                    createBackOrder(orderDetailId, materialId, subUnitId, currentQualityId, supplierId, requestedQuantity, remainingQty);
                     backOrderMessage.append("Insufficient stock for Detail ID ").append(detailId)
                                    .append(". Exported ").append(exportedQty)
                                    .append(", Remaining ").append(remainingQty)
-                                   .append(" added to BackOrder. ");
+                                   .append(" added to BackOrder with Supplier ID ").append(supplierId).append(". ");
                 }
             }
 
@@ -394,39 +398,59 @@ public class ExportNoteDAO extends DBContext {
         }
     }
 
-    private void createBackOrder(int detailId, int materialId, int subUnitId, double requestedQty, double remainingQty) throws SQLException {
-        // Lấy Quality_id từ Export_note_detail dựa trên detailId
-        int qualityId = getQualityIdFromExportNoteDetail(detailId);
-        
+    private void createBackOrder(int orderDetailId, int materialId, int subUnitId, int qualityId, int supplierId, double requestedQty, double remainingQty) throws SQLException {
         String sql = """
-            INSERT INTO BackOrder (Order_detail_id, Material_id, SubUnit_id, Quality_id, Requested_quantity, Remaining_quantity, Status, Created_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)
+            INSERT INTO BackOrder (Order_detail_id, Material_id, SubUnit_id, Quality_id, Supplier_id, Requested_quantity, Remaining_quantity, Status, Created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, detailId); // Sử dụng detailId làm Order_detail_id tạm thời
+            stmt.setInt(1, orderDetailId);
             stmt.setInt(2, materialId);
             stmt.setInt(3, subUnitId);
-            stmt.setInt(4, qualityId); // Sử dụng Quality_id lấy từ Export_note_detail
-            stmt.setDouble(5, requestedQty);
-            stmt.setDouble(6, remainingQty);
+            stmt.setInt(4, qualityId);
+            stmt.setInt(5, supplierId);
+            stmt.setDouble(6, requestedQty);
+            stmt.setDouble(7, remainingQty);
             stmt.executeUpdate();
         }
     }
 
-    // Thêm phương thức để lấy Quality_id từ Export_note_detail
-    private int getQualityIdFromExportNoteDetail(int detailId) throws SQLException {
+    // Thêm phương thức để lấy Supplier_id từ Materials
+    private int getSupplierIdFromMaterial(int materialId) throws SQLException {
         String sql = """
-            SELECT Quality_id
-            FROM Export_note_detail
-            WHERE Export_note_detail_id = ?
+            SELECT SupplierId
+            FROM Materials
+            WHERE Material_id = ?
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, detailId);
+            stmt.setInt(1, materialId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("Quality_id");
+                    return rs.getInt("SupplierId");
                 }
-                throw new SQLException("Quality_id not found for Export_note_detail_id: " + detailId);
+                throw new SQLException("Supplier_id not found for Material_id: " + materialId);
+            }
+        }
+    }
+
+    // Thêm phương thức để lấy Order_detail_id từ Export_note_detail
+    private int getOrderDetailIdFromExportNoteDetail(int exportNoteId, int exportDetailId, int materialId) throws SQLException {
+        String sql = """
+            SELECT od.Order_detail_id
+            FROM Order_detail od
+            JOIN Export_note en ON od.Order_id = en.Order_id
+            JOIN Export_note_detail end ON od.Material_id = end.Material_id
+            WHERE en.Export_note_id = ? AND end.Export_note_detail_id = ? AND od.Material_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, exportNoteId);
+            stmt.setInt(2, exportDetailId);
+            stmt.setInt(3, materialId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("Order_detail_id");
+                }
+                throw new SQLException("Order_detail_id not found for Export_note_id: " + exportNoteId + ", Export_note_detail_id: " + exportDetailId);
             }
         }
     }

@@ -89,8 +89,6 @@
             <p>No details available for export.</p>
         </div>
     </c:if>
-    
-    <div id="inventoryWarning" class="alert alert-warning mt-3" style="display: none;"></div>
 </div>
 
 <script>

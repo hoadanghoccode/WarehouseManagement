@@ -51,13 +51,9 @@
         .status-completed { background: #d1fae5; color: #065f46; }
         .status-cancelled { background: #fee2e2; color: #991b1b; }
         .status-exported { background: #a3bffa; color: #1e40af; }
-        .priority-high { color: #dc2626; font-weight: 700; }
-        .priority-medium { color: #f59e0b; font-weight: 600; }
-        .priority-low { color: #10b981; font-weight: 500; }
-        #customModal .modal-content { border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        #customModal .modal-header { background: #3b82f6; color: white; border-bottom: none; }
-        #customModal .modal-body { padding: 20px; text-align: center; }
-        #customModal .modal-footer { border-top: none; justify-content: center; }
+        .priority-low { color: #065f46; background: #d1fae5; padding: 2px 6px; border-radius: 4px; }
+        .priority-medium { color: #92400e; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
+        .priority-high { color: #991b1b; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
         @media (max-width: 768px) {
             .main-content { margin-left: 0; }
             .title { font-size: 24px; }
@@ -98,7 +94,7 @@
                                 <div style="position: relative;">
                                     <i class="fas fa-search search-icon"></i>
                                     <input type="text" name="search" class="search-input" 
-                                           placeholder="Search material or note..." value="${search}">
+                                           placeholder="Search material, supplier, or priority..." value="${search}">
                                 </div>
                                 <select name="status" class="form-select">
                                     <option value="" ${empty status ? 'selected' : ''}>All</option>
@@ -110,6 +106,7 @@
                                     <option value="Remaining_quantity" ${sortBy == 'Remaining_quantity' ? 'selected' : ''}>Remaining Quantity</option>
                                     <option value="Material_name" ${sortBy == 'Material_name' ? 'selected' : ''}>Material Name</option>
                                     <option value="Available_quantity" ${sortBy == 'Available_quantity' ? 'selected' : ''}>Available Quantity</option>
+                                    <option value="Supplier_name" ${sortBy == 'Supplier_name' ? 'selected' : ''}>Supplier Name</option>
                                 </select>
                                 <button type="submit" class="btn btn-primary" style="padding: 6px 12px;">Filter</button>
                                 <a href="backorder" class="btn btn-secondary" style="padding: 6px 12px;">Reset</a>
@@ -129,6 +126,7 @@
                                 <th class="col-md-2">Requested Quantity</th>
                                 <th class="col-md-2">Remaining Quantity</th>
                                 <th class="col-md-2">Available Quantity</th>
+                                <th class="col-md-2">Supplier</th>
                                 <th class="col-md-2">Status</th>
                                 <th class="col-md-2">Created At</th>
                                 <th class="col-md-1">Action</th>
@@ -142,21 +140,10 @@
                                             <td><strong>${(page-1)*5 + loop.index + 1}</strong></td>
                                             <td>${bo.materialName}</td>
                                             <td>${bo.subUnitName}</td>
-                                            <td>
-                                                <span class="priority-${bo.note != null && bo.note.contains('Priority: HIGH') ? 'high' : (bo.note != null && bo.note.contains('Priority: MEDIUM') ? 'medium' : 'low')}">
-                                                    <fmt:formatNumber value="${bo.requestedQuantity}" pattern="#,##0.00" />
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="priority-${bo.note != null && bo.note.contains('Priority: HIGH') ? 'high' : (bo.note != null && bo.note.contains('Priority: MEDIUM') ? 'medium' : 'low')}">
-                                                    <fmt:formatNumber value="${bo.remainingQuantity}" pattern="#,##0.00" />
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="priority-${bo.note != null && bo.note.contains('Priority: HIGH') ? 'high' : (bo.note != null && bo.note.contains('Priority: MEDIUM') ? 'medium' : 'low')}">
-                                                    <fmt:formatNumber value="${bo.availableQuantity}" pattern="#,##0.00" />
-                                                </span>
-                                            </td>
+                                            <td><fmt:formatNumber value="${bo.requestedQuantity}" pattern="#,##0.00" /></td>
+                                            <td><span class="priority-${bo.note != null ? bo.note.toLowerCase() : 'low'}"><fmt:formatNumber value="${bo.remainingQuantity}" pattern="#,##0.00" /></span></td>
+                                            <td><fmt:formatNumber value="${bo.availableQuantity}" pattern="#,##0.00" /></td>
+                                            <td>${bo.supplierName != null ? bo.supplierName : 'N/A (Supplier ID: ' + bo.supplierId + ')'}</td>
                                             <td><span class="status-badge status-${bo.status.toLowerCase()}">${bo.status}</span></td>
                                             <td><fmt:formatDate value="${bo.createdAt}" pattern="dd/MM/yyyy" /></td>
                                             <td>
@@ -165,7 +152,7 @@
                                                         <i class="fas fa-edit"></i>
                                                     </button>
                                                     <c:if test="${bo.status == 'PENDING' && bo.remainingQuantity > 0}">
-                                                        <button class="btn btn-success btn-sm export-backorder" data-id="${bo.backOrderId}" title="Export" data-bs-toggle="modal" data-bs-target="#confirmExportModal" data-backorder-id="${bo.backOrderId}">
+                                                        <button class="btn btn-success btn-sm export-backorder" data-id="${bo.backOrderId}" title="Export">
                                                             <i class="fas fa-file-export"></i>
                                                         </button>
                                                     </c:if>
@@ -176,7 +163,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="9" class="no-data">No BackOrders found.</td>
+                                        <td colspan="10" class="no-data">No BackOrders found.</td>
                                     </tr>
                                 </c:otherwise>
                             </c:choose>
@@ -297,15 +284,19 @@
                                         <input type="text" id="modalAvailableQuantity" class="form-control" readonly>
                                     </div>
                                     <div class="mb-3">
+                                        <label for="modalSupplier" class="form-label">Supplier</label>
+                                        <input type="text" id="modalSupplier" class="form-control" readonly>
+                                    </div>
+                                    <div class="mb-3">
                                         <label for="modalStatus" class="form-label">Status</label>
                                         <input type="text" id="modalStatus" class="form-control" readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label for="modalPriority" class="form-label">Priority</label>
                                         <select id="modalPriority" name="priority" class="form-select">
-                                            <option value="LOW">Low</option>
-                                            <option value="MEDIUM">Medium</option>
-                                            <option value="HIGH">High</option>
+                                            <option value="Low">Low</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="High">High</option>
                                         </select>
                                     </div>
                                 </form>
@@ -318,37 +309,17 @@
                     </div>
                 </div>
 
-                <!-- Custom Modal for Notification -->
-                <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="customModalLabel">Notification</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body" id="modalMessage"></div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                            </div>
+                <!-- Toast for Notifications -->
+                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                    <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <strong class="me-auto">Notification</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Modal for Export Confirmation -->
-                <div class="modal fade" id="confirmExportModal" tabindex="-1" aria-labelledby="confirmExportModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="confirmExportModalLabel">Confirm Export</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body" id="confirmExportMessage">
-                                Are you sure you want to export this BackOrder?
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-primary" id="confirmExportBtn">Confirm</button>
-                            </div>
+                        <div class="toast-body" id="toastMessage"></div>
+                        <div class="toast-footer" id="toastFooter" style="display: none; padding: 8px; text-align: right;">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="toast">Cancel</button>
+                            <button type="button" class="btn btn-primary btn-sm" id="confirmExportBtn">Confirm</button>
                         </div>
                     </div>
                 </div>
@@ -360,6 +331,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function () {
+            const toast = new bootstrap.Toast(document.getElementById('liveToast'));
+
             $('.view-detail').on('click', function () {
                 var id = $(this).data('id');
                 $.ajax({
@@ -374,17 +347,22 @@
                             $('#modalUnit').val(response.unit);
                             $('#modalQuantity').val(response.quantity);
                             $('#modalAvailableQuantity').val(response.availableQuantity);
+                            $('#modalSupplier').val(response.supplierName + ' (ID: ' + response.supplierId + ')');
                             $('#modalStatus').val(response.status);
-                            $('#modalPriority').val(response.priority);
+                            $('#modalPriority').val(response.priority || 'Low');
                             new bootstrap.Modal(document.getElementById('editModal')).show();
                         } else {
-                            $('#modalMessage').text('Error: ' + response.message);
-                            new bootstrap.Modal(document.getElementById('customModal')).show();
+                            $('#toastMessage').text('Error: ' + response.message);
+                            $('#toastFooter').hide();
+                            $('#liveToast').removeClass('text-bg-success text-bg-danger').addClass('text-bg-danger');
+                            toast.show();
                         }
                     },
                     error: function() {
-                        $('#modalMessage').text('Error loading BackOrder data.');
-                        new bootstrap.Modal(document.getElementById('customModal')).show();
+                        $('#toastMessage').text('Error loading BackOrder data.');
+                        $('#toastFooter').hide();
+                        $('#liveToast').removeClass('text-bg-success text-bg-danger').addClass('text-bg-danger');
+                        toast.show();
                     }
                 });
             });
@@ -399,26 +377,31 @@
                     dataType: 'json',
                     success: function(response) {
                         $('#editModal').modal('hide');
-                        $('#modalMessage').text(response.message);
-                        new bootstrap.Modal(document.getElementById('customModal')).show();
+                        $('#toastMessage').text(response.message);
+                        $('#toastFooter').hide();
+                        $('#liveToast').removeClass('text-bg-success text-bg-danger').addClass(response.success ? 'text-bg-success' : 'text-bg-danger');
+                        toast.show();
                         if (response.success) {
-                            $('#customModal').on('hidden.bs.modal', function () {
-                                location.reload();
-                            });
+                            setTimeout(() => location.reload(), 1000);
                         }
                     },
                     error: function() {
                         $('#editModal').modal('hide');
-                        $('#modalMessage').text('An error occurred during update.');
-                        new bootstrap.Modal(document.getElementById('customModal')).show();
+                        $('#toastMessage').text('An error occurred during update.');
+                        $('#toastFooter').hide();
+                        $('#liveToast').removeClass('text-bg-success text-bg-danger').addClass('text-bg-danger');
+                        toast.show();
                     }
                 });
             });
 
             $('.export-backorder').on('click', function () {
-                var backOrderId = $(this).data('backorder-id');
+                var backOrderId = $(this).data('id');
+                $('#toastMessage').text('Are you sure you want to export this BackOrder and create a new Order?');
+                $('#toastFooter').show();
+                $('#liveToast').removeClass('text-bg-success text-bg-danger');
                 $('#confirmExportBtn').data('backorder-id', backOrderId);
-                $('#confirmExportModal').modal('show');
+                toast.show();
             });
 
             $('#confirmExportBtn').on('click', function () {
@@ -429,19 +412,19 @@
                     data: { action: 'export', backOrderId: backOrderId },
                     dataType: 'json',
                     success: function(response) {
-                        $('#confirmExportModal').modal('hide');
-                        $('#modalMessage').text(response.message);
-                        new bootstrap.Modal(document.getElementById('customModal')).show();
+                        $('#toastMessage').text(response.message);
+                        $('#toastFooter').hide();
+                        $('#liveToast').removeClass('text-bg-success text-bg-danger').addClass(response.success ? 'text-bg-success' : 'text-bg-danger');
+                        toast.show();
                         if (response.success) {
-                            $('#customModal').on('hidden.bs.modal', function () {
-                                location.reload();
-                            });
+                            setTimeout(() => location.reload(), 1000);
                         }
                     },
                     error: function() {
-                        $('#confirmExportModal').modal('hide');
-                        $('#modalMessage').text('Error exporting BackOrder.');
-                        new bootstrap.Modal(document.getElementById('customModal')).show();
+                        $('#toastMessage').text('Error exporting BackOrder.');
+                        $('#toastFooter').hide();
+                        $('#liveToast').removeClass('text-bg-success text-bg-danger').addClass('text-bg-danger');
+                        toast.show();
                     }
                 });
             });
