@@ -407,7 +407,7 @@
                         success: function (data) {
                             // data should be an object containing audit info & detail list
                             var html = '<div class="mb-3"><b>Audit Code:</b> ' + data.audit.auditCode + '</div>';
-                            html += '<div class="mb-3"><b>Created By nè:</b> ' + data.audit.createdByName + '</div>';
+                            html += '<div class="mb-3"><b>Created By:</b> ' + data.audit.createdByName + '</div>';
                             html += '<div class="mb-3"><b>Audit Date:</b> ' + data.audit.auditDate + '</div>';
                             html += '<hr>';
                             html += '<h6>Audit Material Details:</h6>';
