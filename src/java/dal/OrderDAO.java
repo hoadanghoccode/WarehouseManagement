@@ -533,7 +533,7 @@ public class OrderDAO extends DBContext {
             e.printStackTrace();
         }
         return 0;
-    }  
+    }
 
     public int insertOrder(Order order) throws SQLException {
         String sql = "INSERT INTO Orders (Warehouse_id, User_id, Type, Note, Status, Created_at) VALUES (?, ?, ?, ?, ?, NOW())";
@@ -922,6 +922,130 @@ public class OrderDAO extends DBContext {
                 }
                 if (psInsertExportDetail != null) {
                     psInsertExportDetail.close();
+                }
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("Error in finally block: " + e.getMessage());
+            }
+        }
+    }
+
+//    Xử lý purchase của b Giang
+    public boolean approveOrderAndCreatePurchaseNote(int orderId, int userId) {
+        PreparedStatement psUpdateOrder = null;
+        PreparedStatement psInsertPurchaseNote = null;
+        PreparedStatement psInsertPurchaseDetail = null;
+
+        try {
+            // Start transaction
+            connection.setAutoCommit(false);
+
+            // 1. Get order details first
+            Order order = getOrderById(orderId);
+            if (order == null) {
+                System.err.println("Order not found with ID: " + orderId);
+                connection.rollback();
+                return false;
+            }
+
+            // 2. Update order status to approved
+            String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
+            psUpdateOrder = connection.prepareStatement(updateOrderQuery);
+            psUpdateOrder.setInt(1, orderId);
+
+            int orderUpdateResult = psUpdateOrder.executeUpdate();
+            if (orderUpdateResult == 0) {
+                System.err.println("Failed to update order status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Create purchase note only for purchase type orders
+            if ("purchase".equals(order.getType())) {
+                String insertPurchaseNoteQuery = "INSERT INTO PurchaseOrders (Order_id, User_id, Warehouse_id, Status) VALUES (?, ?, ?, 'new')";
+                psInsertPurchaseNote = connection.prepareStatement(insertPurchaseNoteQuery, Statement.RETURN_GENERATED_KEYS);
+                psInsertPurchaseNote.setInt(1, orderId);
+                psInsertPurchaseNote.setInt(2, userId);
+                psInsertPurchaseNote.setInt(3, order.getWarehouseId());
+
+                int purchaseNoteResult = psInsertPurchaseNote.executeUpdate();
+                if (purchaseNoteResult > 0) {
+                    // Get generated Purchase_note_id
+                    ResultSet generatedKeys = psInsertPurchaseNote.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        int purchaseNoteId = generatedKeys.getInt(1);
+
+                        // 4. Create purchase note details
+                        if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
+                            String insertPurchaseDetailQuery = "INSERT INTO PurchaseOrder_detail (PurchaseOrder_id, Material_id, SubUnit_id, Quantity, Quality_id) VALUES (?, ?, ?, ?, ?)";
+                            psInsertPurchaseDetail = connection.prepareStatement(insertPurchaseDetailQuery);
+
+                            for (OrderDetail detail : order.getOrderDetails()) {
+                                psInsertPurchaseDetail.setInt(1, purchaseNoteId);
+                                psInsertPurchaseDetail.setInt(2, detail.getMaterialId());
+                                psInsertPurchaseDetail.setInt(3, detail.getSubUnitId());
+                                psInsertPurchaseDetail.setInt(4, detail.getQuantity());
+
+                                // Handle Quality_id - use default quality if not specified
+                                if (detail.getQualityId() > 0) {
+                                    psInsertPurchaseDetail.setInt(5, detail.getQualityId());
+                                } else {
+                                    psInsertPurchaseDetail.setInt(5, 1); // Assuming 1 is default quality
+                                }
+
+                                psInsertPurchaseDetail.addBatch();
+                            }
+
+                            int[] detailResults = psInsertPurchaseDetail.executeBatch();
+
+                            // Check if all purchase details were created successfully
+                            for (int result : detailResults) {
+                                if (result <= 0) {
+                                    System.err.println("Failed to create purchase note detail");
+                                    connection.rollback();
+                                    return false;
+                                }
+                            }
+                        }
+
+                        System.out.println("Purchase note created successfully with ID: " + purchaseNoteId);
+                    } else {
+                        System.err.println("Failed to get generated purchase note ID");
+                        connection.rollback();
+                        return false;
+                    }
+                } else {
+                    System.err.println("Failed to create purchase note");
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            // Commit transaction
+            connection.commit();
+            System.out.println("Order approved successfully: " + orderId);
+            return true;
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Rollback failed: " + rollbackEx.getMessage());
+            }
+            System.err.println("Error approving order and creating purchase note: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Close resources
+            try {
+                if (psUpdateOrder != null) {
+                    psUpdateOrder.close();
+                }
+                if (psInsertPurchaseNote != null) {
+                    psInsertPurchaseNote.close();
+                }
+                if (psInsertPurchaseDetail != null) {
+                    psInsertPurchaseDetail.close();
                 }
                 connection.setAutoCommit(true);
             } catch (SQLException e) {

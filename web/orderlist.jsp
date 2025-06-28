@@ -126,6 +126,8 @@
                         <option value="import" ${type == 'import' ? 'selected' : ''}>Import</option>
                         <option value="export" ${type == 'export' ? 'selected' : ''}>Export</option>
                         <option value="exportToRepair" ${type == 'exportToRepair' ? 'selected' : ''}>Export to Repair</option>
+                        <!--Xử lý purchase của b Giang-->
+                        <option value="purchase" ${type == 'purchase' ? 'selected' : ''}>Purchase</option>
                     </select>
                     <select name="status" class="form-select">
                         <option value="">All Status</option>
