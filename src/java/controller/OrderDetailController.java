@@ -213,7 +213,7 @@ public class OrderDetailController extends HttpServlet {
                     }
                 } else if ("purchase".equals(order.getType())) {
                     // Xử lý purchase của b Giang
-                    success = orderDAO.approveOrderAndCreatePurchaseNote(orderId, currentUser.getUserId());
+                    success = orderDAO.approveOrderAndCreatePurchaseNote(orderId, order.getUserId());
                     if (success) {
                         message = "Purchase order approved successfully!";
                     } else {
