@@ -3,33 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/InventoryDAO.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/indexInventory.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/orderlist.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/changepassword.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/project.xml</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/InventoryAudit.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/InventoryHistory.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/inventoryhistory.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/Material.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/ApproveAuditController.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/sidebar.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/private/private.xml</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/LoginGoogleController.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/InventoryAuditController.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/inventory.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/ant-deploy.xml</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/InventoryHistoryDAO.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/InventoryServlet.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/filter/LoginValidationFilter.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/AuditInventoryDAO.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/LoginController.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/MaterialInventory.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/MaterialInfo.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/web/resetpassword.jsp</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/InventoryHistoryServlet.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/genfiles.properties</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/project.properties</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/dal/ExportNoteDAO.java</file>
         </group>
     </open-files>
 </project-private>
