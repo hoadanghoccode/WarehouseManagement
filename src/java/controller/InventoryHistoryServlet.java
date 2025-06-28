@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InventoryHistoryServlet extends HttpServlet {
-    private static final int PAGE_SIZE = 7; // Updated to 7
+    private static final int PAGE_SIZE = 7; // Number of records per page
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -60,12 +60,12 @@ public class InventoryHistoryServlet extends HttpServlet {
             }
 
             // Get and validate other parameters
-            String dateRange = request.getParameter("dateRange") != null ? request.getParameter("dateRange") : "7";
+            String dateRange = request.getParameter("dateRange") != null ? request.getParameter("dateRange") : "all";
             String startDate = request.getParameter("startDate");
             String endDate = request.getParameter("endDate");
             String transactionType = request.getParameter("transactionType") != null ? request.getParameter("transactionType") : "all";
             String sortBy = request.getParameter("sortBy") != null ? request.getParameter("sortBy") : "date_desc";
-            String totalPeriod = request.getParameter("totalPeriod") != null ? request.getParameter("totalPeriod") : "7";
+            String totalPeriod = request.getParameter("totalPeriod") != null ? request.getParameter("totalPeriod") : "all";
             String totalStartDate = request.getParameter("totalStartDate");
             String totalEndDate = request.getParameter("totalEndDate");
             int page;
@@ -81,11 +81,12 @@ public class InventoryHistoryServlet extends HttpServlet {
                               ", dateRange=" + dateRange + ", startDate=" + startDate + 
                               ", endDate=" + endDate + ", transactionType=" + transactionType + 
                               ", sortBy=" + sortBy + ", page=" + page +
-                              ", totalPeriod=" + totalPeriod + ", totalStartDate=" + totalStartDate + ", totalEndDate=" + totalEndDate);
+                              ", totalPeriod=" + totalPeriod + ", totalStartDate=" + totalStartDate + 
+                              ", totalEndDate=" + totalEndDate);
 
             // Calculate date range for history
-            LocalDate endDateObj = LocalDate.now(); // 2025-06-24
-            LocalDate startDateObj;
+            LocalDate endDateObj = LocalDate.now();
+            LocalDate startDateObj = null;
             if ("custom".equals(dateRange) && startDate != null && endDate != null) {
                 try {
                     startDateObj = LocalDate.parse(startDate);
@@ -100,7 +101,7 @@ public class InventoryHistoryServlet extends HttpServlet {
                     request.getRequestDispatcher("/inventoryhistory.jsp").forward(request, response);
                     return;
                 }
-            } else {
+            } else if (!"all".equals(dateRange)) {
                 int days = switch (dateRange) {
                     case "30" -> 30;
                     case "180" -> 180;
@@ -110,10 +111,8 @@ public class InventoryHistoryServlet extends HttpServlet {
                 startDateObj = endDateObj.minusDays(days);
             }
 
-            System.out.println("Date range for history: " + startDateObj + " to " + endDateObj);
-
             // Calculate custom total period
-            LocalDate totalEndDateObj = LocalDate.now(); // 2025-06-24
+            LocalDate totalEndDateObj = LocalDate.now();
             LocalDate totalStartDateObj = null;
             if ("custom_total".equals(totalPeriod) && totalStartDate != null && totalEndDate != null) {
                 try {
@@ -129,7 +128,7 @@ public class InventoryHistoryServlet extends HttpServlet {
                     request.getRequestDispatcher("/inventoryhistory.jsp").forward(request, response);
                     return;
                 }
-            } else {
+            } else if (!"all".equals(totalPeriod)) {
                 int days = switch (totalPeriod) {
                     case "30" -> 30;
                     case "180" -> 180;
@@ -137,8 +136,6 @@ public class InventoryHistoryServlet extends HttpServlet {
                 };
                 totalStartDateObj = totalEndDateObj.minusDays(days);
             }
-
-            System.out.println("Total period range: " + totalStartDateObj + " to " + totalEndDateObj);
 
             // Fetch material info
             MaterialInfo materialInfo = dao.getMaterialInfo(materialId);
@@ -148,40 +145,55 @@ public class InventoryHistoryServlet extends HttpServlet {
                 return;
             }
 
-            // Fetch total import/export quantities
-            double totalImportQty = dao.getTotalImportQty(materialId);
-            double totalExportQty = dao.getTotalExportQty(materialId);
+            // Fetch total historical import/export quantities from InventoryMaterialDaily table
+            double dailyImportQty = dao.getTotalHistoricalImportQty(materialId, subUnitId);
+            double dailyExportQty = dao.getTotalHistoricalExportQty(materialId, subUnitId);
+
+            // Log total historical quantities
+            System.out.println("Total Historical Import from InventoryMaterialDaily: " + dailyImportQty + 
+                              ", Total Historical Export from InventoryMaterialDaily: " + dailyExportQty);
 
             // Fetch history list with pagination
             List<InventoryHistory> historyList = dao.getFilteredInventoryHistories(
-                materialId, subUnitId, startDateObj.toString(), endDateObj.toString(), 
+                materialId, subUnitId, 
+                startDateObj != null ? startDateObj.toString() : null, 
+                endDateObj != null ? endDateObj.toString() : null, 
                 transactionType, sortBy, page, PAGE_SIZE
             );
-            int totalRecords = dao.getTotalRecords(materialId, subUnitId, startDateObj.toString(), endDateObj.toString(), transactionType);
+            int totalRecords = dao.getTotalRecords(
+                materialId, subUnitId, 
+                startDateObj != null ? startDateObj.toString() : null, 
+                endDateObj != null ? endDateObj.toString() : null, 
+                transactionType
+            );
             int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
 
             // Fetch custom total import/export and latest quantities
-            Map<String, Double> customTotals = dao.getTotalImportExportByPeriod(materialId, subUnitId, totalPeriod, totalStartDateObj.toString(), totalEndDateObj.toString());
+            Map<String, Double> customTotals = dao.getTotalImportExportByPeriod(
+                materialId, subUnitId, totalPeriod, 
+                totalStartDateObj != null ? totalStartDateObj.toString() : null, 
+                totalEndDateObj != null ? totalEndDateObj.toString() : null
+            );
             double customTotalImport = customTotals.get("totalImport");
             double customTotalExport = customTotals.get("totalExport");
-            InventoryHistory latestHistory = dao.getLatestHistoryByDate(materialId, subUnitId, totalStartDateObj.toString(), totalEndDateObj.toString());
+            InventoryHistory latestHistory = dao.getLatestHistoryByDate(
+                materialId, subUnitId, 
+                totalStartDateObj != null ? totalStartDateObj.toString() : null, 
+                totalEndDateObj != null ? totalEndDateObj.toString() : null
+            );
             double customLatestAvailable = (latestHistory != null) ? latestHistory.getAvailableQty() : 0.0;
             double customLatestNotAvailable = (latestHistory != null) ? latestHistory.getNotAvailableQty() : 0.0;
 
-            System.out.println("History list size: " + historyList.size() + ", Total records: " + totalRecords + ", Total pages: " + totalPages);
-            System.out.println("Custom Total Import: " + customTotalImport + ", Custom Total Export: " + customTotalExport);
-            System.out.println("Custom Latest Available: " + customLatestAvailable + ", Custom Latest Not Available: " + customLatestNotAvailable);
-
             // Set attributes
             request.setAttribute("materialInfo", materialInfo);
-            request.setAttribute("totalImportQty", totalImportQty);
-            request.setAttribute("totalExportQty", totalExportQty);
+            request.setAttribute("dailyImportQty", dailyImportQty);
+            request.setAttribute("dailyExportQty", dailyExportQty);
             request.setAttribute("historyList", historyList);
             request.setAttribute("dateRange", dateRange);
             request.setAttribute("startDate", startDate);
             request.setAttribute("endDate", endDate);
-            request.setAttribute("filteredStartDate", startDateObj.toString());
-            request.setAttribute("filteredEndDate", endDateObj.toString());
+            request.setAttribute("filteredStartDate", startDateObj != null ? startDateObj.toString() : null);
+            request.setAttribute("filteredEndDate", endDateObj != null ? endDateObj.toString() : null);
             request.setAttribute("transactionType", transactionType);
             request.setAttribute("sortBy", sortBy);
             request.setAttribute("currentPage", page);
@@ -189,8 +201,8 @@ public class InventoryHistoryServlet extends HttpServlet {
             request.setAttribute("materialId", materialId);
             request.setAttribute("subUnitId", subUnitId);
             request.setAttribute("totalPeriod", totalPeriod);
-            request.setAttribute("totalStartDate", totalStartDateObj.toString());
-            request.setAttribute("totalEndDate", totalEndDateObj.toString());
+            request.setAttribute("totalStartDate", totalStartDateObj != null ? totalStartDateObj.toString() : null);
+            request.setAttribute("totalEndDate", totalEndDateObj != null ? totalEndDateObj.toString() : null);
             request.setAttribute("customTotalImport", customTotalImport);
             request.setAttribute("customTotalExport", customTotalExport);
             request.setAttribute("customLatestAvailable", customLatestAvailable);

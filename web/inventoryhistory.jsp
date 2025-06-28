@@ -203,9 +203,8 @@
         table.table tbody tr:nth-child(even) {
             background-color: #f9fafb;
         }
-        /* Remove hover effect and transition */
         table.table tbody tr:hover {
-            background-color: inherit; /* No change on hover */
+            background-color: inherit;
         }
         .quantity-cell {
             font-weight: 600;
@@ -332,7 +331,6 @@
                 flex-direction: column;
             }
         }
-        /* New styles for custom total table */
         .custom-total-table-container {
             background-color: white;
             border-radius: 12px;
@@ -399,7 +397,7 @@
                     <ol class="breadcrumb">
                         <li style="margin-right: 10px"><a href="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
                         <text style="margin-right: 10px">/</text>
-                        <li style="margin-right: 10px "><a href="inventory"><i class="fas fa-boxes"></i> Current Inventory</a></li>
+                        <li style="margin-right: 10px"><a href="inventory"><i class="fas fa-boxes"></i> Current Inventory</a></li>
                         <text style="margin-right: 10px">/</text>
                         <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-history"></i> History</li>
                     </ol>
@@ -461,14 +459,14 @@
                     <div class="stat-card">
                         <div class="stat-icon import"><i class="fas fa-arrow-up"></i></div>
                         <div class="stat-value">
-                            <fmt:formatNumber value="${totalImportQty}" pattern="#,##0.00"/>
+                            <fmt:formatNumber value="${dailyImportQty}" pattern="#,##0.00"/>
                         </div>
                         <div class="stat-label">Total Import</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon export"><i class="fas fa-arrow-down"></i></div>
                         <div class="stat-value">
-                            <fmt:formatNumber value="${totalExportQty}" pattern="#,##0.00"/>
+                            <fmt:formatNumber value="${dailyExportQty}" pattern="#,##0.00"/>
                         </div>
                         <div class="stat-label">Total Export</div>
                     </div>
@@ -488,6 +486,7 @@
                                     <option value="180" ${dateRange == '180' ? 'selected' : ''}>Last 6 Months</option>
                                     <option value="365" ${dateRange == '365' ? 'selected' : ''}>Last Year</option>
                                     <option value="custom" ${dateRange == 'custom' ? 'selected' : ''}>Custom Range</option>
+                                    <option value="all" ${dateRange == 'all' ? 'selected' : ''}>All Time</option>
                                 </select>
                             </div>
                             <div class="col-md-3" id="startDateContainer" style="${dateRange == 'custom' ? '' : 'display: none;'}">
@@ -515,7 +514,6 @@
                                     <option value="export_desc" ${sortBy == 'export_desc' ? 'selected' : ''}>Export Quantity (High to Low)</option>
                                 </select>
                             </div>
-                            <!-- New section for custom total period -->
                             <div class="col-md-3">
                                 <label class="form-label">Total Period</label>
                                 <select class="form-select" id="totalPeriod" name="totalPeriod" onchange="handleTotalPeriodChange()">
@@ -523,6 +521,7 @@
                                     <option value="30" ${totalPeriod == '30' ? 'selected' : ''}>Last 30 Days</option>
                                     <option value="180" ${totalPeriod == '180' ? 'selected' : ''}>Last 6 Months</option>
                                     <option value="custom_total" ${totalPeriod == 'custom_total' ? 'selected' : ''}>Custom Range</option>
+                                    <option value="all" ${totalPeriod == 'all' ? 'selected' : ''}>All Time</option>
                                 </select>
                             </div>
                             <div class="col-md-3" id="totalStartDateContainer" style="${totalPeriod == 'custom_total' ? '' : 'display: none;'}">
@@ -556,67 +555,67 @@
                     <i class="fas fa-info-circle me-2"></i>
                     Showing inventory history for the selected material and filters. Use the date range and transaction type filters to refine your search.
                 </div>
-                <!-- New Total Table - Show only when totalPeriod is applied -->
-                <c:if test="${not empty totalStartDate and not empty totalEndDate and not empty customTotalImport}">
-                    <div class="custom-total-table-container">
-                        <div class="custom-total-title">
-                            <i class="fas fa-calculator"></i> Total Summary
-                        </div>
-                        <div class="period-info-custom">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Summary from <strong><c:out value="${totalStartDate}"/></strong> to <strong><c:out value="${totalEndDate}"/></strong></span>
-                        </div>
-                        <table class="custom-total-table">
-                            <thead>
-                                <tr>
-                                    <th>Period</th>
-                                    <th>Available Qty (Latest)</th>
-                                    <th>Not Available Qty (Latest)</th>
-                                    <th>Total Import</th>
-                                    <th>Total Export</th>
-                                    <th>Net Change</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="custom-total-row">
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${totalPeriod == '7'}">Last 7 Days</c:when>
-                                            <c:when test="${totalPeriod == '30'}">Last 30 Days</c:when>
-                                            <c:when test="${totalPeriod == '180'}">Last 6 Months</c:when>
-                                            <c:otherwise>Selected Custom Period</c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td class="quantity-cell">
-                                        <c:choose>
-                                            <c:when test="${not empty customLatestAvailable}">
-                                                <fmt:formatNumber value="${customLatestAvailable}" pattern="#,##0.00"/>
-                                            </c:when>
-                                            <c:otherwise>0.00</c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td class="quantity-cell">
-                                        <c:choose>
-                                            <c:when test="${not empty customLatestNotAvailable}">
-                                                <fmt:formatNumber value="${customLatestNotAvailable}" pattern="#,##0.00"/>
-                                            </c:when>
-                                            <c:otherwise>0.00</c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td class="quantity-cell" style="color: #10b981;">
-                                        <fmt:formatNumber value="${customTotalImport}" pattern="#,##0.00"/>
-                                    </td>
-                                    <td class="quantity-cell" style="color: #ef4444;">
-                                        <fmt:formatNumber value="${customTotalExport}" pattern="#,##0.00"/>
-                                    </td>
-                                    <td class="quantity-cell" style="color: ${(customTotalImport - customTotalExport) >= 0 ? '#10b981' : '#ef4444'};">
-                                        <fmt:formatNumber value="${customTotalImport - customTotalExport}" pattern="#,##0.00"/>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Total Summary Table -->
+                <div class="custom-total-table-container">
+                    <div class="custom-total-title">
+                        <i class="fas fa-calculator"></i> Total Summary
                     </div>
-                </c:if>
+                    <div class="period-info-custom">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>
+                            <c:choose>
+                                <c:when test="${totalPeriod == 'all'}">Summary for All Time</c:when>
+                                <c:when test="${totalPeriod == 'custom_total' && not empty totalStartDate && not empty totalEndDate}">
+                                    Summary from <strong><c:out value="${totalStartDate}"/></strong> to <strong><c:out value="${totalEndDate}"/></strong>
+                                </c:when>
+                                <c:when test="${totalPeriod == '7'}">Summary for Last 7 Days</c:when>
+                                <c:when test="${totalPeriod == '30'}">Summary for Last 30 Days</c:when>
+                                <c:when test="${totalPeriod == '180'}">Summary for Last 6 Months</c:when>
+                                <c:otherwise>Summary for Selected Period</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </div>
+                    <table class="custom-total-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Available</th>
+                                <th>Not Available</th>
+                                <th>Total Import</th>
+                                <th>Total Export</th>
+                                <th>Net Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="custom-total-row">
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${totalPeriod == '7'}">Last 7 Days</c:when>
+                                        <c:when test="${totalPeriod == '30'}">Last 30 Days</c:when>
+                                        <c:when test="${totalPeriod == '180'}">Last 6 Months</c:when>
+                                        <c:when test="${totalPeriod == 'custom_total'}">Custom Period</c:when>
+                                        <c:otherwise>All Time</c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td class="quantity-cell">
+                                    <fmt:formatNumber value="${customLatestAvailable != null ? customLatestAvailable : 0}" pattern="#,##0.00"/>
+                                </td>
+                                <td class="quantity-cell">
+                                    <fmt:formatNumber value="${customLatestNotAvailable != null ? customLatestNotAvailable : 0}" pattern="#,##0.00"/>
+                                </td>
+                                <td class="quantity-cell" style="color: #10b981;">
+                                    <fmt:formatNumber value="${customTotalImport != null ? customTotalImport : 0}" pattern="#,##0.00"/>
+                                </td>
+                                <td class="quantity-cell" style="color: #ef4444;">
+                                    <fmt:formatNumber value="${customTotalExport != null ? customTotalExport : 0}" pattern="#,##0.00"/>
+                                </td>
+                                <td class="quantity-cell" style="color: ${(customTotalImport - customTotalExport) >= 0 ? '#10b981' : '#ef4444'};">
+                                    <fmt:formatNumber value="${(customTotalImport != null ? customTotalImport : 0) - (customTotalExport != null ? customTotalExport : 0)}" pattern="#,##0.00"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <!-- History Table -->
                 <div class="table-container mb-4">
                     <table class="table" id="historyTable">

@@ -151,11 +151,18 @@
     <servlet>
         <servlet-name>ApproveAuditController</servlet-name>
         <servlet-class>controller.ApproveAuditController</servlet-class>
-        
     </servlet>
     <servlet>
         <servlet-name>InventoryHistoryServlet</servlet-name>
         <servlet-class>controller.InventoryHistoryServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ExportNoteListServlet</servlet-name>
+        <servlet-class>controller.ExportNoteListServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>BackOrderServlet</servlet-name>
+        <servlet-class>controller.BackOrderServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
@@ -311,6 +318,14 @@
     <servlet-mapping>
         <servlet-name>InventoryHistoryServlet</servlet-name>
         <url-pattern>/inventoryhistory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ExportNoteListServlet</servlet-name>
+        <url-pattern>/exportnotelist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BackOrderServlet</servlet-name>
+        <url-pattern>/backorder</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

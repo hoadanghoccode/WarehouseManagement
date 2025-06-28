@@ -29,7 +29,7 @@ public class InventoryHistoryDAO extends DBContext {
             "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
         );
 
-        // Apply date range filter
+        // Apply date range filter only if dates are provided
         if (startDate != null && !startDate.isEmpty()) {
             sql.append("AND imd.Inventory_Material_date >= ? ");
         }
@@ -115,7 +115,7 @@ public class InventoryHistoryDAO extends DBContext {
             "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
         );
 
-        // Apply date range filter
+        // Apply date range filter only if dates are provided
         if (startDate != null && !startDate.isEmpty()) {
             sql.append("AND imd.Inventory_Material_date >= ? ");
         }
@@ -149,12 +149,58 @@ public class InventoryHistoryDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage());
             e.printStackTrace();
         }
         return 0;
     }
+    
+    public double getTotalHistoricalImportQty(int materialId, int subUnitId) {
+        String sql = """
+            SELECT COALESCE(SUM(imd.Import_qty), 0) AS totalImport
+            FROM InventoryMaterialDaily imd
+            JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id
+            WHERE md.Material_id = ? 
+            AND md.SubUnit_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, materialId);
+            stmt.setInt(2, subUnitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("totalImport");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getTotalHistoricalImportQty: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
 
-    // Updated method to calculate total import/export by period or custom range
+    public double getTotalHistoricalExportQty(int materialId, int subUnitId) {
+        String sql = """
+            SELECT COALESCE(SUM(imd.Export_qty), 0) AS totalExport
+            FROM InventoryMaterialDaily imd
+            JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id
+            WHERE md.Material_id = ? 
+            AND md.SubUnit_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, materialId);
+            stmt.setInt(2, subUnitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("totalExport");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getTotalHistoricalExportQty: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
     public Map<String, Double> getTotalImportExportByPeriod(int materialId, int subUnitId, String totalPeriod, String totalStartDate, String totalEndDate) {
         Map<String, Double> totals = new HashMap<>();
         totals.put("totalImport", 0.0);
@@ -169,10 +215,10 @@ public class InventoryHistoryDAO extends DBContext {
             "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
         );
 
-        // Apply period filter
+        // Apply period filter only if not "all"
         if ("custom_total".equals(totalPeriod) && totalStartDate != null && !totalStartDate.isEmpty() && totalEndDate != null && !totalEndDate.isEmpty()) {
             sql.append("AND imd.Inventory_Material_date >= ? AND imd.Inventory_Material_date <= ? ");
-        } else {
+        } else if (!"all".equals(totalPeriod)) {
             int days = switch (totalPeriod) {
                 case "30" -> 30;
                 case "180" -> 180;
@@ -188,7 +234,7 @@ public class InventoryHistoryDAO extends DBContext {
             if ("custom_total".equals(totalPeriod) && totalStartDate != null && !totalStartDate.isEmpty() && totalEndDate != null && !totalEndDate.isEmpty()) {
                 stmt.setString(paramIndex++, totalStartDate);
                 stmt.setString(paramIndex++, totalEndDate);
-            } else {
+            } else if (!"all".equals(totalPeriod)) {
                 int days = switch (totalPeriod) {
                     case "30" -> 30;
                     case "180" -> 180;
@@ -199,7 +245,8 @@ public class InventoryHistoryDAO extends DBContext {
 
             System.out.println("Executing total query: " + sql.toString());
             System.out.println("Parameters: materialId=" + materialId + ", subUnitId=" + subUnitId + 
-                              ", totalPeriod=" + totalPeriod + ", totalStartDate=" + totalStartDate + ", totalEndDate=" + totalEndDate);
+                              ", totalPeriod=" + totalPeriod + ", totalStartDate=" + totalStartDate + 
+                              ", totalEndDate=" + totalEndDate);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -215,25 +262,40 @@ public class InventoryHistoryDAO extends DBContext {
     }
 
     public InventoryHistory getLatestHistoryByDate(int materialId, int subUnitId, String startDate, String endDate) {
-        String sql = "SELECT imd.Inventory_Material_date AS transactionDate, " +
-                     "SUM(CASE WHEN q.Quality_name = 'available' THEN imd.Ending_qty ELSE 0 END) AS availableQty, " +
-                     "SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN imd.Ending_qty ELSE 0 END) AS notAvailableQty, " +
-                     "SUM(imd.Import_qty) AS Import_qty, " +
-                     "SUM(imd.Export_qty) AS Export_qty, " +
-                     "GROUP_CONCAT(imd.Note) AS Note " +
-                     "FROM InventoryMaterialDaily imd " +
-                     "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
-                     "JOIN Quality q ON md.Quality_id = q.Quality_id " +
-                     "WHERE md.Material_id = ? AND md.SubUnit_id = ? " +
-                     "AND imd.Inventory_Material_date >= ? AND imd.Inventory_Material_date <= ? " +
-                     "GROUP BY imd.Inventory_Material_date " +
-                     "ORDER BY imd.Inventory_Material_date DESC LIMIT 1";
+        StringBuilder sql = new StringBuilder(
+            "SELECT imd.Inventory_Material_date AS transactionDate, " +
+            "SUM(CASE WHEN q.Quality_name = 'available' THEN imd.Ending_qty ELSE 0 END) AS availableQty, " +
+            "SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN imd.Ending_qty ELSE 0 END) AS notAvailableQty, " +
+            "SUM(imd.Import_qty) AS Import_qty, " +
+            "SUM(imd.Export_qty) AS Export_qty, " +
+            "GROUP_CONCAT(imd.Note) AS Note " +
+            "FROM InventoryMaterialDaily imd " +
+            "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
+            "JOIN Quality q ON md.Quality_id = q.Quality_id " +
+            "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
+        );
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, materialId);
-            stmt.setInt(2, subUnitId);
-            stmt.setString(3, startDate);
-            stmt.setString(4, endDate);
+        // Apply date range filter only if dates are provided
+        if (startDate != null && !startDate.isEmpty()) {
+            sql.append("AND imd.Inventory_Material_date >= ? ");
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            sql.append("AND imd.Inventory_Material_date <= ? ");
+        }
+
+        sql.append("GROUP BY imd.Inventory_Material_date ORDER BY imd.Inventory_Material_date DESC LIMIT 1");
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            stmt.setInt(paramIndex++, materialId);
+            stmt.setInt(paramIndex++, subUnitId);
+            if (startDate != null && !startDate.isEmpty()) {
+                stmt.setString(paramIndex++, startDate);
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                stmt.setString(paramIndex++, endDate);
+            }
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     InventoryHistory history = new InventoryHistory();
@@ -263,6 +325,7 @@ public class InventoryHistoryDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage());
             e.printStackTrace();
         }
         return 0;
@@ -278,6 +341,7 @@ public class InventoryHistoryDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage());
             e.printStackTrace();
         }
         return 0;
@@ -315,6 +379,7 @@ public class InventoryHistoryDAO extends DBContext {
                 return info;
             }
         } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage());
             e.printStackTrace();
         }
 
