@@ -66,11 +66,13 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="orderType">Order Type <span class="required">*</span></label>
-                                <select class="form-control" id="orderType" name="orderType" required>
+                                <select class="form-control" id="orderType" name="orderType" required onchange="toggleSupplierField()">
                                     <option value="">Select Order Type</option>
                                     <option value="import">Import</option>
                                     <option value="export">Export</option>
                                     <option value="exportToRepair">Repair</option>
+                                    <!--Xử lý purchase của b Giang-->
+                                    <option value="purchase">Purchase</option>
                                 </select>
                             </div>
 
@@ -165,6 +167,19 @@
         <script>
                         const categories = ${categoriesJson};
                         const units = ${unitsJson};
+        </script>
+        <!--Xử lý purchase của b Giang-->
+        <script>
+            function toggleSupplierField() {
+                const orderType = document.getElementById('orderType').value;
+                const supplierField = document.getElementById('supplier');
+                if (orderType === 'purchase') {
+                    supplierField.disabled = true;
+                    supplierField.value = '';
+                } else {
+                    supplierField.disabled = false;
+                }
+            }
         </script>
         <script src="js/createorder.js"></script>
     </body>

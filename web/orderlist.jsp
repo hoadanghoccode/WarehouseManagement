@@ -126,6 +126,8 @@
                         <option value="import" ${type == 'import' ? 'selected' : ''}>Import</option>
                         <option value="export" ${type == 'export' ? 'selected' : ''}>Export</option>
                         <option value="exportToRepair" ${type == 'exportToRepair' ? 'selected' : ''}>Export to Repair</option>
+                        <!--Xử lý purchase của b Giang-->
+                        <option value="purchase" ${type == 'purchase' ? 'selected' : ''}>Purchase</option>
                     </select>
                     <select name="status" class="form-select">
                         <option value="">All Status</option>
@@ -186,13 +188,6 @@
                             <td>
                                 <a href="orderdetail?oid=${order.orderId}" class="btn btn-info btn-sm me-1" title="View">
                                     <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="editorder?orderId=${order.orderId}" class="btn btn-primary btn-sm me-1" title="Edit">
-                                    <i class="fas fa-pen-to-square"></i>
-                                </a>
-                                <a href="#" class="btn btn-danger btn-sm" title="Delete"
-                                   onclick="return confirm('Are you sure you want to delete this order?');">
-                                    <i class="fas fa-trash"></i>
                                 </a>
                             </td>
                         </tr>

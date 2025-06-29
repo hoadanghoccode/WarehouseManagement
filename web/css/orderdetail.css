@@ -221,6 +221,11 @@ body {
     color: #dc2626;
 }
 
+.type-purchase {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
 .content-grid {
     display: grid;
     grid-template-columns: 2fr 1.4fr;

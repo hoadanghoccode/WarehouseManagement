@@ -137,6 +137,7 @@
             .modal .detail-table {
                 float: right;
                 width: calc(100% - 220px);
+                max-width: 250px;
             }
             .material-detail-table {
                 margin-top: 20px;

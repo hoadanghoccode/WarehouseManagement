@@ -15,13 +15,10 @@ import model.Quality;
 
 public class Import_noteDAO extends DBContext {
 
-   
-    /** Cho phép Controller lấy Connection và tự quản lý transaction */
     public Connection getConnection() {
         return this.connection;
     }
 
-    /** Lấy tất cả import notes, có filter và sort */
     public List<Import_note> getAllImportNotes(List<Integer> userIds, Boolean importedFilter, String sortOrder) {
         List<Import_note> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM import_note WHERE 1=1");
@@ -60,7 +57,6 @@ public class Import_noteDAO extends DBContext {
         return list;
     }
 
-    /** Lấy danh sách userId dựa trên chuỗi tìm kiếm username */
     public List<Integer> getUserIdsByUsername(String searchUsername) {
         List<Integer> userIds = new ArrayList<>();
         if (searchUsername == null || searchUsername.trim().isEmpty()) {
@@ -79,7 +75,6 @@ public class Import_noteDAO extends DBContext {
         return userIds;
     }
 
-    /** Lấy Import_note theo ID */
     public Import_note getImportNoteById(int importNoteId) {
         String sql = "SELECT * FROM import_note WHERE import_note_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -102,7 +97,6 @@ public class Import_noteDAO extends DBContext {
         return null;
     }
 
-    /** Lấy toàn bộ detail của một import_note */
     public List<Import_note_detail> getImportNoteDetailsByImportNoteId(int importNoteId) {
         List<Import_note_detail> list = new ArrayList<>();
         String sql = "SELECT * FROM import_note_detail WHERE import_note_id = ?";
@@ -126,7 +120,6 @@ public class Import_noteDAO extends DBContext {
         return list;
     }
 
-    /** Lấy danh sách Material, SubUnit, Quality để render form */
     public List<Material> getAllMaterials() {
         return new MaterialDAO().getAllMaterials(null, null, null, null);
     }
@@ -137,9 +130,6 @@ public class Import_noteDAO extends DBContext {
         return new QualityDAO().getAllQualities();
     }
 
-    // ———————— Các phương thức hỗ trợ import ————————
-
-    /** Lấy detail chưa imported theo detailId */
     public Import_note_detail getUnimportedDetail(int detailId) throws SQLException {
         String sql = "SELECT * FROM import_note_detail WHERE import_note_detail_id = ? AND imported = false";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -160,7 +150,6 @@ public class Import_noteDAO extends DBContext {
         return null;
     }
 
-    /** Tìm material_detail_id nếu đã tồn tại */
     public Integer findMaterialDetailId(int materialId, int subUnitId, int qualityId) throws SQLException {
         String sql = "SELECT material_detail_id FROM material_detail WHERE material_id = ? AND subunit_id = ? AND quality_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -175,7 +164,6 @@ public class Import_noteDAO extends DBContext {
         return null;
     }
 
-    /** Lấy quantity hiện tại cho material_detail */
     public double getCurrentQuantity(int materialDetailId) throws SQLException {
         String sql = "SELECT quantity FROM material_detail WHERE material_detail_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -188,7 +176,6 @@ public class Import_noteDAO extends DBContext {
         return 0;
     }
 
-    /** Cập nhật quantity cho material_detail */
     public void updateMaterialDetail(int mdId, double newQty) throws SQLException {
         String sql = "UPDATE material_detail SET quantity = ?, last_updated = CURRENT_TIMESTAMP WHERE material_detail_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -198,7 +185,6 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    /** Chèn mới material_detail */
     public void insertMaterialDetail(int materialId, int subUnitId, int qualityId, double qty) throws SQLException {
         String sql = "INSERT INTO material_detail (material_id, subunit_id, quality_id, quantity, last_updated) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -210,7 +196,6 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    /** Đánh dấu detail đã imported */
     public void markDetailImported(int detailId) throws SQLException {
         String sql = "UPDATE import_note_detail SET imported = true WHERE import_note_detail_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -219,7 +204,6 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    /** Kiểm tra còn detail nào chưa imported không */
     public boolean hasRemainingDetails(int importNoteId) throws SQLException {
         String sql = "SELECT 1 FROM import_note_detail WHERE import_note_id = ? AND imported = false LIMIT 1";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -229,7 +213,6 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    /** Đánh dấu cả Import_note đã imported */
     public void markNoteImported(int importNoteId) throws SQLException {
         String sql = "UPDATE import_note SET imported = true, imported_at = CURRENT_TIMESTAMP WHERE import_note_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -287,7 +270,16 @@ public class Import_noteDAO extends DBContext {
     return list;
 }
   
-
+  public void insertMaterialTransactionHistory(int materialDetailId, int importNoteDetailId, String note) throws SQLException {
+    String sql = "INSERT INTO MaterialTransactionHistory (Material_detail_id, Import_note_detail_id, Transaction_date, Note) " +
+                 "VALUES (?, ?, CURDATE(), ?)";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, materialDetailId);
+        ps.setInt(2, importNoteDetailId);
+        ps.setString(3, note);
+        ps.executeUpdate();
+    }
+}
 
 /** Cập nhật Import_qty trong InventoryMaterialDaily */ //Hàm của b Linh
 public void updateInventoryMaterialDaily(int materialId, int subUnitId, int qualityId, double quantity) throws SQLException {

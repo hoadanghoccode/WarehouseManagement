@@ -54,11 +54,13 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="orderType">Order Type <span class="required">*</span></label>
-                                <select class="form-control" id="orderType" name="orderType" required>
+                                <select class="form-control" id="orderType" name="orderType" required onchange="toggleSupplierField()">
                                     <option value="">Select Order Type</option>
                                     <option value="import" ${order.type == 'import' ? 'selected' : ''}>Import</option>
                                     <option value="export" ${order.type == 'export' ? 'selected' : ''}>Export</option>
                                     <option value="exportToRepair" ${order.type == 'exportToRepair' ? 'selected' : ''}>Repair</option>
+                                    <!--Xử lý purchase của b Giang-->
+                                    <option value="purchase" ${order.type == 'purchase' ? 'selected' : ''}>Purchase</option>
                                 </select>
                             </div>
 
@@ -174,6 +176,20 @@
             </c:forEach>
                         ];
                         console.log(existingOrderDetails);
+        </script>
+        <!--Xử lý purchase của b Giang-->
+        <script>
+            function toggleSupplierField() {
+                const orderType = document.getElementById('orderType').value;
+                const supplierField = document.getElementById('supplier');
+                if (orderType === 'purchase') {
+                    supplierField.disabled = true;
+                    supplierField.value = '';
+                } else {
+                    supplierField.disabled = false;
+                }
+            }
+            window.onload = toggleSupplierField;
         </script>
         <script src="js/editorder.js"></script>
     </body>

@@ -180,7 +180,7 @@ public class OrderDetailController extends HttpServlet {
             // Kiểm tra quyền admin
             HttpSession session = request.getSession(false);
             Users currentUser = (Users) session.getAttribute("USER");
-            if (currentUser == null || currentUser.getRoleId() != 1) {
+            if (currentUser == null || currentUser.getRoleId() != 2) {
                 response.sendRedirect("login.jsp");
                 return;
             }
@@ -197,7 +197,7 @@ public class OrderDetailController extends HttpServlet {
             if ("approve".equals(action)) {
                 if (order.getType().equalsIgnoreCase("import")) {
                     // Import order - approve normally
-                    success = orderDAO.approveOrderAndCreateImportNote(orderId, currentUser.getUserId());
+                    success = orderDAO.approveOrderAndCreateImportNote(orderId, order.getUserId());
                     if (success) {
                         message = "Import order approved successfully!";
                     } else {
@@ -205,11 +205,19 @@ public class OrderDetailController extends HttpServlet {
                     }
                 } else if ("export".equals(order.getType()) || "exportToRepair".equals(order.getType())) {
                     // Export order - approve normally
-                    success = orderDAO.approveOrderAndCreateExportNote(orderId, currentUser.getUserId());
+                    success = orderDAO.approveOrderAndCreateExportNote(orderId, order.getUserId());
                     if (success) {
                         message = "Export order approved successfully!";
                     } else {
                         message = "Failed to approve export order. Please try again.";
+                    }
+                } else if ("purchase".equals(order.getType())) {
+                    // Xử lý purchase của b Giang
+                    success = orderDAO.approveOrderAndCreatePurchaseNote(orderId, order.getUserId());
+                    if (success) {
+                        message = "Purchase order approved successfully!";
+                    } else {
+                        message = "Failed to approve purchase order. Please try again.";
                     }
                 }
             } else if ("reject".equals(action)) {

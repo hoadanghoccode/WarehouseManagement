@@ -150,7 +150,15 @@
                 </a>
             </li>
         </c:if>
-
+            
+        <c:if test="${permissions['Order_VIEW']}">
+            <li class="">
+                <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/list-purchase-order">
+                    <img src="img/menu-icon/4.svg" alt="">
+                    <span>Purchase Order</span>
+                </a>
+            </li>
+        </c:if>
     </ul>
 </nav>
 
