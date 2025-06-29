@@ -54,6 +54,7 @@
             <%@ include file="sidebar.jsp" %>
             <div class="main-content">
                 <div class="container">
+                    <a href="list-purchase-order" class="btn btn-secondary">Cancel</a>
                     <h1 class="title">Purchase Order Detail</h1>
 
                     <div class="card">
@@ -156,7 +157,7 @@
                         </div>
                     </div>
 
-                    <c:if test="${purchaseOrder.status == 'pending'}">
+                    <c:if test="${purchaseOrder.status == 'pending' && currentUser.roleId == 2}">
                         <div class="card">
                             <div class="card-header">Director Actions</div>
                             <div class="card-body">

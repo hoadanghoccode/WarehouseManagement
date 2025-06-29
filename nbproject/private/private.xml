@@ -3,13 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/OrderDetailController.java</file>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/UpdateOrderServlet.java</file>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/web/createorder.jsp</file>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/web/orderdetail.jsp</file>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/CreateOrderServlet.java</file>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/web/orderlist.jsp</file>
-            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/web/editorder.jsp</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/PurchaseOrderDetailController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/dal/PurchaseOrderDAO.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/PurchaseOrderMarkPurchasedController.java</file>
+            <file>file:/E:/Ki8/SWP391/Project/WarehouseManagement/src/java/controller/UpdatePurchaseOrderServlet.java</file>
         </group>
     </open-files>
 </project-private>

@@ -49,6 +49,7 @@
             <%@ include file="sidebar.jsp" %>
             <div class="main-content">
                 <div class="container">
+                    <a href="list-purchase-order" class="btn btn-secondary">Cancel</a>
                     <h1 class="title">Edit Purchase Order</h1>
 
                     <form id="updateForm" action="update-purchase-order" method="post">
@@ -132,9 +133,9 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </div>      
 
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">Update Purchase Order</button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">Update Purchase Order</button>
                     </form>
 
                     <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">

@@ -20,41 +20,40 @@ import model.Warehouse;
 
 public class PurchaseOrderDAO extends DBContext {
 
-    public List<PurchaseOrders> getAllPurchaseOrders(String search, Integer warehouseId, Integer supplierId, String status, int page, int pageSize) {
+    public List<PurchaseOrders> getAllPurchaseOrders(String usernameSearch, Integer warehouseId, Integer supplierId, String status, int page, int pageSize) {
         List<PurchaseOrders> list = new ArrayList<>();
-        String query = "SELECT * FROM PurchaseOrders WHERE 1=1";
-        if (search != null && !search.isEmpty()) {
-            query += " AND Note LIKE ?";
+        String query = "SELECT po.*, u.Full_name FROM PurchaseOrders po LEFT JOIN Users u ON po.User_id = u.User_id WHERE 1=1";
+        List<Object> params = new ArrayList<>();
+
+        if (usernameSearch != null && !usernameSearch.isEmpty()) {
+            List<Integer> userIds = getUserIdsByUsername(usernameSearch);
+            if (!userIds.isEmpty()) {
+                query += " AND po.User_id IN (" + String.join(",", userIds.stream().map(String::valueOf).toArray(String[]::new)) + ")";
+            } else {
+                return list; 
+            }
         }
         if (warehouseId != null) {
-            query += " AND Warehouse_id = ?";
+            query += " AND po.Warehouse_id = ?";
+            params.add(warehouseId);
         }
         if (supplierId != null) {
-            query += " AND Supplier_id = ?";
+            query += " AND po.Supplier_id = ?";
+            params.add(supplierId);
         }
         if (status != null && !status.isEmpty()) {
-            query += " AND Status = ?";
+            query += " AND po.Status = ?";
+            params.add(status);
         }
-        query += " ORDER BY Created_at DESC LIMIT ? OFFSET ?";
+        query += " ORDER BY po.Created_at DESC LIMIT ? OFFSET ?";
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
 
         try {
             PreparedStatement ps = connection.prepareStatement(query);
-            int paramIndex = 1;
-            if (search != null && !search.isEmpty()) {
-                ps.setString(paramIndex++, "%" + search + "%");
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
             }
-            if (warehouseId != null) {
-                ps.setInt(paramIndex++, warehouseId);
-            }
-            if (supplierId != null) {
-                ps.setInt(paramIndex++, supplierId);
-            }
-            if (status != null && !status.isEmpty()) {
-                ps.setString(paramIndex++, status);
-            }
-            ps.setInt(paramIndex++, pageSize);
-            ps.setInt(paramIndex++, (page - 1) * pageSize);
-
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 PurchaseOrders po = new PurchaseOrders();
@@ -67,6 +66,7 @@ public class PurchaseOrderDAO extends DBContext {
                 po.setSupplierId(rs.getObject("Supplier_id") != null ? rs.getInt("Supplier_id") : null);
                 po.setNote(rs.getString("Note"));
                 po.setLastUpdated(rs.getDate("Last_updated"));
+                po.setFullName(rs.getString("Full_name")); 
                 list.add(po);
             }
         } catch (SQLException e) {
@@ -75,35 +75,35 @@ public class PurchaseOrderDAO extends DBContext {
         return list;
     }
 
-    public int countPurchaseOrders(String search, Integer warehouseId, Integer supplierId, String status) {
-        String query = "SELECT COUNT(*) FROM PurchaseOrders WHERE 1=1";
-        if (search != null && !search.isEmpty()) {
-            query += " AND Note LIKE ?";
+    public int countPurchaseOrders(String usernameSearch, Integer warehouseId, Integer supplierId, String status) {
+        String query = "SELECT COUNT(*) FROM PurchaseOrders po LEFT JOIN Users u ON po.User_id = u.User_id WHERE 1=1";
+        List<Object> params = new ArrayList<>();
+
+        if (usernameSearch != null && !usernameSearch.isEmpty()) {
+            List<Integer> userIds = getUserIdsByUsername(usernameSearch);
+            if (!userIds.isEmpty()) {
+                query += " AND po.User_id IN (" + String.join(",", userIds.stream().map(String::valueOf).toArray(String[]::new)) + ")";
+            } else {
+                return 0; 
+            }
         }
         if (warehouseId != null) {
-            query += " AND Warehouse_id = ?";
+            query += " AND po.Warehouse_id = ?";
+            params.add(warehouseId);
         }
         if (supplierId != null) {
-            query += " AND Supplier_id = ?";
+            query += " AND po.Supplier_id = ?";
+            params.add(supplierId);
         }
         if (status != null && !status.isEmpty()) {
-            query += " AND Status = ?";
+            query += " AND po.Status = ?";
+            params.add(status);
         }
 
         try {
             PreparedStatement ps = connection.prepareStatement(query);
-            int paramIndex = 1;
-            if (search != null && !search.isEmpty()) {
-                ps.setString(paramIndex++, "%" + search + "%");
-            }
-            if (warehouseId != null) {
-                ps.setInt(paramIndex++, warehouseId);
-            }
-            if (supplierId != null) {
-                ps.setInt(paramIndex++, supplierId);
-            }
-            if (status != null && !status.isEmpty()) {
-                ps.setString(paramIndex++, status);
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
             }
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -115,8 +115,26 @@ public class PurchaseOrderDAO extends DBContext {
         return 0;
     }
 
+    public List<Integer> getUserIdsByUsername(String searchUsername) {
+        List<Integer> userIds = new ArrayList<>();
+        if (searchUsername == null || searchUsername.trim().isEmpty()) {
+            return userIds;
+        }
+        String sql = "SELECT User_id FROM Users WHERE Full_name LIKE ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, "%" + searchUsername + "%");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                userIds.add(rs.getInt("User_id"));
+            }
+        } catch (SQLException e) {
+            System.out.println("getUserIdsByUsername error: " + e.getMessage());
+        }
+        return userIds;
+    }
+
     public PurchaseOrders getPurchaseOrderById(int purchaseOrderId) {
-        String query = "SELECT * FROM PurchaseOrders WHERE PurchaseOrder_id = ?";
+        String query = "SELECT po.*, u.Full_name FROM PurchaseOrders po LEFT JOIN Users u ON po.User_id = u.User_id WHERE PurchaseOrder_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, purchaseOrderId);
@@ -132,6 +150,7 @@ public class PurchaseOrderDAO extends DBContext {
                 po.setSupplierId(rs.getObject("Supplier_id") != null ? rs.getInt("Supplier_id") : null);
                 po.setNote(rs.getString("Note"));
                 po.setLastUpdated(rs.getDate("Last_updated"));
+                po.setFullName(rs.getString("Full_name")); // Add full_name
                 po.setPurchaseOrderDetails(getPurchaseOrderDetailsByPurchaseOrderId(purchaseOrderId));
                 return po;
             }
@@ -357,5 +376,4 @@ public class PurchaseOrderDAO extends DBContext {
         }
         return list;
     }
-    
 }

@@ -35,6 +35,12 @@ public class PurchaseOrderDetailController extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
+        
+        Users currentUser = (Users) session.getAttribute("USER");
+        if (currentUser == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
 
         int purchaseOrderId = parseIntOrNull(request.getParameter("id"));
         if (purchaseOrderId == 0) {
@@ -50,6 +56,7 @@ public class PurchaseOrderDetailController extends HttpServlet {
         }
 
         request.setAttribute("purchaseOrder", purchaseOrder);
+        request.setAttribute("currentUser", currentUser);
         request.setAttribute("warehouses", dao.getAllWarehouses());
         request.setAttribute("suppliers", dao.getAllSuppliers());
         request.setAttribute("materials", new MaterialDAO().getAllMaterials(null, null, null, null));

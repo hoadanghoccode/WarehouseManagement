@@ -26,26 +26,105 @@
         <link rel="stylesheet" type="text/css" href="css/materiallist.css" />
 
         <style>
-            body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-            .main-layout { display: flex; min-height: 100vh; }
-            .main-content { flex: 1; margin-left: 260px; padding: 0; background-color: #f8f9fa; min-height: 100vh; transition: margin-left 0.3s ease; }
-            .container { max-width: none; padding: 30px; margin: 0; }
-            .title { font-size: 28px; font-weight: 600; color: #1f2937; margin-bottom: 16px; }
-            .stats-info { margin-bottom: 16px; color: #374151; display: flex; align-items: center; gap: 8px; background-color: #dbeafe; padding: 12px 16px; border-radius: 8px; font-size: 14px; }
-            .stats-info i { color: #3b82f6; }
-            .stats-info strong { color: #1f2937; }
-            .table-container { overflow-x: auto; background-color: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); }
-            table.table { width: 100%; border-collapse: collapse; min-width: 600px; }
-            table.table th, table.table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 14px; vertical-align: middle; }
-            table.table th { background-color: #f3f4f6; font-weight: 600; color: #1f2937; position: sticky; top: 0; z-index: 2; }
-            table.table tbody tr:nth-child(even) { background-color: #f9fafb; }
-            table.table tbody tr:hover { background-color: #eef2ff; }
-            .action-buttons { display: flex; gap: 8px; }
-            .no-data { text-align: center; padding: 24px; background-color: #f3f4f6; border-radius: 12px; font-size: 16px; color: #6b7280; }
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            .main-layout {
+                display: flex;
+                min-height: 100vh;
+            }
+            .main-content {
+                flex: 1;
+                margin-left: 260px;
+                padding: 0;
+                background-color: #f8f9fa;
+                min-height: 100vh;
+                transition: margin-left 0.3s ease;
+            }
+            .container {
+                max-width: none;
+                padding: 30px;
+                margin: 0;
+            }
+            .title {
+                font-size: 28px;
+                font-weight: 600;
+                color: #1f2937;
+                margin-bottom: 16px;
+            }
+            .stats-info {
+                margin-bottom: 16px;
+                color: #374151;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background-color: #dbeafe;
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+            .stats-info i {
+                color: #3b82f6;
+            }
+            .stats-info strong {
+                color: #1f2937;
+            }
+            .table-container {
+                overflow-x: auto;
+                background-color: white;
+                border-radius: 12px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            }
+            table.table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 600px;
+            }
+            table.table th, table.table td {
+                padding: 12px 16px;
+                text-align: left;
+                border-bottom: 1px solid #e5e7eb;
+                font-size: 14px;
+                vertical-align: middle;
+            }
+            table.table th {
+                background-color: #f3f4f6;
+                font-weight: 600;
+                color: #1f2937;
+                position: sticky;
+                top: 0;
+                z-index: 2;
+            }
+            table.table tbody tr:nth-child(even) {
+                background-color: #f9fafb;
+            }
+            table.table tbody tr:hover {
+                background-color: #eef2ff;
+            }
+            .action-buttons {
+                display: flex;
+                gap: 8px;
+            }
+            .no-data {
+                text-align: center;
+                padding: 24px;
+                background-color: #f3f4f6;
+                border-radius: 12px;
+                font-size: 16px;
+                color: #6b7280;
+            }
             @media (max-width: 768px) {
-                .main-content { margin-left: 0; }
-                .title { font-size: 24px; }
-                table.table { min-width: 600px; }
+                .main-content {
+                    margin-left: 0;
+                }
+                .title {
+                    font-size: 24px;
+                }
+                table.table {
+                    min-width: 600px;
+                }
             }
         </style>
     </head>
@@ -62,7 +141,7 @@
                             <form action="list-purchase-order" method="get" id="filterForm" style="display: flex; gap: 12px; align-items: center;">
                                 <div style="position: relative;">
                                     <i class="fas fa-search search-icon"></i>
-                                    <input type="text" name="search" value="${search}" placeholder="Search by note..." class="search-input" />
+                                    <input type="text" name="usernameSearch" value="${usernameSearch}" placeholder="Search by username..." class="search-input" />
                                 </div>
                                 <select class="form-select" name="warehouseId" id="warehouseFilter">
                                     <option value="">All Warehouses</option>
@@ -100,6 +179,7 @@
                                     <th class="col-md-1">#</th>
                                     <th class="col-md-2">Order ID</th>
                                     <th class="col-md-2">Warehouse</th>
+                                    <th class="col-md-2">User Name</th>
                                     <th class="col-md-2">Supplier</th>
                                     <th class="col-md-2">Status</th>
                                     <th class="col-md-3">Note</th>
@@ -116,6 +196,7 @@
                                                 <c:if test="${wh.warehouseId == po.warehouseId}">${wh.name}</c:if>
                                             </c:forEach>
                                         </td>
+                                        <td>${po.fullName != null ? po.fullName : 'N/A'}</td>
                                         <td>
                                             <c:forEach var="sup" items="${suppliers}">
                                                 <c:if test="${sup.supplierId == po.supplierId}">${sup.name}</c:if>
@@ -132,12 +213,12 @@
                                                 <a href="purchase-order-detail?id=${po.purchaseOrderId}" class="btn btn-info btn-sm" title="View">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <c:if test="${po.status != 'approved' && po.status != 'purchased'}">
+                                                <c:if test="${po.status != 'approved' && po.status != 'purchased' && currentUser.roleId == 4}">
                                                     <a href="update-purchase-order?id=${po.purchaseOrderId}" class="btn btn-primary btn-sm" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 </c:if>
-                                                <c:if test="${po.status == 'approved'}">
+                                                <c:if test="${po.status == 'approved' && currentUser.roleId == 4}">
                                                     <button type="button" class="btn btn-success btn-sm" title="Mark as Purchased" data-bs-toggle="modal" data-bs-target="#confirmPurchasedModal" data-id="${po.purchaseOrderId}">
                                                         <i class="fas fa-check"></i>
                                                     </button>
@@ -150,120 +231,118 @@
                         </table>
                     </div>
 
-                    <c:if test="${totalPages > 1}">
-                        <div class="pagination">
-                            <c:choose>
-                                <c:when test="${page > 1}">
-                                    <a href="list-purchase-order?page=1&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="First page">
-                                        <i class="fas fa-angle-double-left"></i>
-                                    </a>
-                                    <a href="list-purchase-order?page=${page-1}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="Previous page">
-                                        <i class="fas fa-angle-left"></i>
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <span style="opacity: 0.3; cursor: not-allowed;" title="First page">
-                                        <i class="fas fa-angle-double-left"></i>
-                                    </span>
-                                    <span style="opacity: 0.3; cursor: not-allowed;" title="Previous page">
-                                        <i class="fas fa-angle-left"></i>
-                                    </span>
-                                </c:otherwise>
-                            </c:choose>
+                    <div class="pagination">
+                        <c:choose>
+                            <c:when test="${page > 1}">
+                                <a href="list-purchase-order?page=1&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="First page">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                                <a href="list-purchase-order?page=${page-1}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="Previous page">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <span style="opacity: 0.3; cursor: not-allowed;" title="First page">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </span>
+                                <span style="opacity: 0.3; cursor: not-allowed;" title="Previous page">
+                                    <i class="fas fa-angle-left"></i>
+                                </span>
+                            </c:otherwise>
+                        </c:choose>
 
-                            <c:choose>
-                                <c:when test="${totalPages <= 7}">
-                                    <c:forEach begin="1" end="${totalPages}" var="i">
-                                        <c:choose>
-                                            <c:when test="${i == page}">
-                                                <span class="current">${i}</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <a href="list-purchase-order?page=${i}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </c:forEach>
-                                </c:when>
-                                <c:otherwise>
+                        <c:choose>
+                            <c:when test="${totalPages <= 7}">
+                                <c:forEach begin="1" end="${totalPages}" var="i">
                                     <c:choose>
-                                        <c:when test="${page <= 4}">
-                                            <c:forEach begin="1" end="5" var="i">
-                                                <c:choose>
-                                                    <c:when test="${i == page}">
-                                                        <span class="current">${i}</span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <a href="list-purchase-order?page=${i}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:forEach>
-                                            <c:if test="${totalPages > 6}">
-                                                <span style="padding: 8px 4px;">...</span>
-                                                <a href="list-purchase-order?page=${totalPages}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${totalPages}</a>
-                                            </c:if>
-                                        </c:when>
-                                        <c:when test="${page >= totalPages - 3}">
-                                            <a href="list-purchase-order?page=1&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">1</a>
-                                            <c:if test="${totalPages > 6}">
-                                                <span style="padding: 8px 4px;">...</span>
-                                            </c:if>
-                                            <c:forEach begin="${totalPages - 4}" end="${totalPages}" var="i">
-                                                <c:choose>
-                                                    <c:when test="${i == page}">
-                                                        <span class="current">${i}</span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <a href="list-purchase-order?page=${i}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:forEach>
+                                        <c:when test="${i == page}">
+                                            <span class="current">${i}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="list-purchase-order?page=1&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">1</a>
-                                            <span style="padding: 8px 4px;">...</span>
-                                            <c:forEach begin="${page - 1}" end="${page + 1}" var="i">
-                                                <c:choose>
-                                                    <c:when test="${i == page}">
-                                                        <span class="current">${i}</span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <a href="list-purchase-order?page=${i}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:forEach>
-                                            <span style="padding: 8px 4px;">...</span>
-                                            <a href="list-purchase-order?page=${totalPages}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${totalPages}</a>
+                                            <a href="list-purchase-order?page=${i}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
                                         </c:otherwise>
                                     </c:choose>
-                                </c:otherwise>
-                            </c:choose>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <c:choose>
+                                    <c:when test="${page <= 4}">
+                                        <c:forEach begin="1" end="5" var="i">
+                                            <c:choose>
+                                                <c:when test="${i == page}">
+                                                    <span class="current">${i}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="list-purchase-order?page=${i}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:forEach>
+                                        <c:if test="${totalPages > 6}">
+                                            <span style="padding: 8px 4px;">...</span>
+                                            <a href="list-purchase-order?page=${totalPages}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${totalPages}</a>
+                                        </c:if>
+                                    </c:when>
+                                    <c:when test="${page >= totalPages - 3}">
+                                        <a href="list-purchase-order?page=1&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">1</a>
+                                        <c:if test="${totalPages > 6}">
+                                            <span style="padding: 8px 4px;">...</span>
+                                        </c:if>
+                                        <c:forEach begin="${totalPages - 4}" end="${totalPages}" var="i">
+                                            <c:choose>
+                                                <c:when test="${i == page}">
+                                                    <span class="current">${i}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="list-purchase-order?page=${i}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="list-purchase-order?page=1&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">1</a>
+                                        <span style="padding: 8px 4px;">...</span>
+                                        <c:forEach begin="${page - 1}" end="${page + 1}" var="i">
+                                            <c:choose>
+                                                <c:when test="${i == page}">
+                                                    <span class="current">${i}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="list-purchase-order?page=${i}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${i}</a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:forEach>
+                                        <span style="padding: 8px 4px;">...</span>
+                                        <a href="list-purchase-order?page=${totalPages}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}">${totalPages}</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:otherwise>
+                        </c:choose>
 
-                            <c:choose>
-                                <c:when test="${page < totalPages}">
-                                    <a href="list-purchase-order?page=${page+1}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="Next page">
-                                        <i class="fas fa-angle-right"></i>
-                                    </a>
-                                    <a href="list-purchase-order?page=${totalPages}&search=${search}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="Last page">
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <span style="opacity: 0.3; cursor: not-allowed;" title="Next page">
-                                        <i class="fas fa-angle-right"></i>
-                                    </span>
-                                    <span style="opacity: 0.3; cursor: not-allowed;" title="Last page">
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </span>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                        <div style="text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;">
-                            Page ${page} of ${totalPages}
-                            <c:if test="${not empty totalSize}">
-                                (${totalSize} total purchase orders)
-                            </c:if>
-                        </div>
-                    </c:if>
+                        <c:choose>
+                            <c:when test="${page < totalPages}">
+                                <a href="list-purchase-order?page=${page+1}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="Next page">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                                <a href="list-purchase-order?page=${totalPages}&usernameSearch=${usernameSearch}&warehouseId=${warehouseId}&supplierId=${supplierId}&status=${status}" title="Last page">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <span style="opacity: 0.3; cursor: not-allowed;" title="Next page">
+                                    <i class="fas fa-angle-right"></i>
+                                </span>
+                                <span style="opacity: 0.3; cursor: not-allowed;" title="Last page">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </span>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                    <div style="text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;">
+                        Page ${page} of ${totalPages}
+                        <c:if test="${not empty totalSize}">
+                            (${totalSize} total purchase orders)
+                        </c:if>
+                    </div>
 
                     <div class="modal fade" id="confirmPurchasedModal" tabindex="-1" aria-labelledby="confirmPurchasedModalLabel" aria-hidden="true">
                         <div class="modal-dialog">

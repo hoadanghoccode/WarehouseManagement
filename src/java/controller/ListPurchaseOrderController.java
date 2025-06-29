@@ -16,7 +16,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import model.PurchaseOrders;
+import model.Users;
 
 @WebServlet(name = "ListPurchaseOrderController", urlPatterns = {"/list-purchase-order"})
 public class ListPurchaseOrderController extends HttpServlet {
@@ -27,20 +29,30 @@ public class ListPurchaseOrderController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         PurchaseOrderDAO dao = new PurchaseOrderDAO();
-        String search = request.getParameter("search");
+        String usernameSearch = request.getParameter("usernameSearch");
         Integer warehouseId = parseIntOrNull(request.getParameter("warehouseId"));
         Integer supplierId = parseIntOrNull(request.getParameter("supplierId"));
         String status = request.getParameter("status");
 
         int page = getPageNumber(request);
-        List<PurchaseOrders> purchaseOrders = dao.getAllPurchaseOrders(search, warehouseId, supplierId, status, page, DEFAULT_PAGE_SIZE);
+        List<PurchaseOrders> purchaseOrders = dao.getAllPurchaseOrders(usernameSearch, warehouseId, supplierId, status, page, DEFAULT_PAGE_SIZE);
 
-        int totalSize = dao.countPurchaseOrders(search, warehouseId, supplierId, status);
+        int totalSize = dao.countPurchaseOrders(usernameSearch, warehouseId, supplierId, status);
         int totalPages = (totalSize % DEFAULT_PAGE_SIZE == 0) ? (totalSize / DEFAULT_PAGE_SIZE) : (totalSize / DEFAULT_PAGE_SIZE + 1);
-        if (page > totalPages && totalPages > 0) page = totalPages;
+        if (page > totalPages && totalPages > 0) {
+            page = totalPages;
+        }
 
+        HttpSession session = request.getSession();
+        Users currentUser = (Users) session.getAttribute("USER");
+        if (currentUser == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        request.setAttribute("currentUser", currentUser);
         request.setAttribute("purchaseOrders", purchaseOrders);
-        request.setAttribute("search", search);
+        request.setAttribute("usernameSearch", usernameSearch);
         request.setAttribute("warehouseId", warehouseId);
         request.setAttribute("supplierId", supplierId);
         request.setAttribute("status", status);
@@ -54,7 +66,9 @@ public class ListPurchaseOrderController extends HttpServlet {
 
     private int getPageNumber(HttpServletRequest request) {
         String pageParam = request.getParameter("page");
-        if (pageParam == null || pageParam.trim().isEmpty()) return 1;
+        if (pageParam == null || pageParam.trim().isEmpty()) {
+            return 1;
+        }
         try {
             return Math.max(1, Integer.parseInt(pageParam));
         } catch (NumberFormatException e) {
@@ -63,7 +77,9 @@ public class ListPurchaseOrderController extends HttpServlet {
     }
 
     private Integer parseIntOrNull(String value) {
-        if (value == null || value.trim().isEmpty()) return null;
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {

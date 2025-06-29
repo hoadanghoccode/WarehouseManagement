@@ -22,6 +22,7 @@ public class PurchaseOrders {
     private String note;
     private Date lastUpdated;
     private List<PurchaseOrderDetail> purchaseOrderDetails;
+    private String fullName; 
 
     public PurchaseOrders() {}
 
@@ -103,5 +104,13 @@ public class PurchaseOrders {
 
     public void setPurchaseOrderDetails(List<PurchaseOrderDetail> purchaseOrderDetails) {
         this.purchaseOrderDetails = purchaseOrderDetails;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 }
