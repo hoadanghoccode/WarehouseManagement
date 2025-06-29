@@ -105,7 +105,7 @@ public class AddMaterialController extends HttpServlet {
 
 
     private String validateInput(String name, int categoryId, int supplierId) {
-        if (name == null || name.isEmpty()) return "Name cannot be empty.";
+        if (name == null || name.trim().isEmpty()) return "Name cannot be empty.";
         if (name.length() > 250) return "Name must not exceed 250 characters.";
         if (categoryId <= 0) return "Invalid category.";
         if (supplierId <= 0) return "Invalid supplier.";
