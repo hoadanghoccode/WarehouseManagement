@@ -122,8 +122,9 @@ public class MaterialDAO extends DBContext {
             ps.setInt(7, material.getMaterialId());
 
             // Check if material is in pending order or pending import/export
-            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())) {
-                return false; // Prevent update if material is in pending state
+            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())|| 
+                isMaterialInPendingPurchaseOrder(material.getMaterialId())) {
+                return false; 
             }
 
             int rowsAffected = ps.executeUpdate();
@@ -142,8 +143,9 @@ public class MaterialDAO extends DBContext {
             ps.setInt(2, materialId);
 
             // Check if material is in pending order or pending import/export
-            if (isMaterialInOrderWithStatus(materialId, "pending") || isMaterialInPendingImportOrExport(materialId)) {
-                return false; // Prevent deletion if material is in pending state
+            if (isMaterialInOrderWithStatus(materialId, "pending") || isMaterialInPendingImportOrExport(materialId) || 
+                isMaterialInPendingPurchaseOrder(materialId)) {
+                return false; 
             }
 
             int rowsAffected = ps.executeUpdate();
@@ -333,6 +335,23 @@ public class MaterialDAO extends DBContext {
         }
         return isPending; 
     }
+    
+    public boolean isMaterialInPendingPurchaseOrder(int materialId) {
+        String query = "SELECT 1 FROM PurchaseOrder_detail pod " +
+                       "JOIN PurchaseOrders po ON pod.PurchaseOrder_id = po.PurchaseOrder_id " +
+                       "WHERE pod.Material_id = ? AND po.Status = 'pending' LIMIT 1";
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, materialId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next(); 
+            }
+        } catch (SQLException e) {
+            System.out.println("isMaterialInPendingPurchaseOrder error: " + e.getMessage());
+        }
+        return false;
+    }
+    
      public Map<String, Double> getQualityDistributionByMaterialId(int materialId) {
         Map<String, Double> map = new HashMap<>();
         String sql = "SELECT q.Quality_name, SUM(md.Quantity) AS total "
