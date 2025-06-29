@@ -26,6 +26,10 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/index.jsp</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/getMaterial.jsp</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LoginController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderListController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/resetpassword.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/LoginGoogleController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/UserDAO.java</file>
         </group>
     </open-files>
 </project-private>

@@ -82,14 +82,10 @@ duong --%> <%@page contentType="text/html" pageEncoding="UTF-8"%>
             <label for="email">Email address</label>
             <input type="email" id="email" name="email" required />
             <div class="mb-3">
-              <a href="http://localhost:8080/WarehouseManagement/login"
-                >Back to Login</a
-              >
-            </div>
             <button type="submit">Send Reset Link</button>
           </form>
             <div style="margin-top: 16px;">
-            <a href="login.jsp" style="font-weight: bold; text-decoration: none; color: #1d4ed8;">
+            <a href="login" style="font-weight: bold; text-decoration: none; color: #1d4ed8;">
                 ← Back to Login
             </a>
         </div>

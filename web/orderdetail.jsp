@@ -207,7 +207,7 @@
                                 <!-- Right side container -->
                                 <div>
                                     <!-- Admin Actions Card - Only show for admin on pending orders -->
-                                    <c:if test="${currentUser.roleId == 1 && order.status == 'pending'}">
+                                    <c:if test="${currentUser.roleId == 2 && order.status == 'pending'}">
 
                                         <div class="card" style="margin-bottom: 24px;">
                                             <div class="card-header">
@@ -234,10 +234,6 @@
                                                     <button type="button" class="btn btn-success" onclick="openApproveModal()">
                                                         <i class="fas fa-check-circle"></i> Approve Order
                                                     </button>
-
-                                                    <!--                                                    <button type="button" class="btn btn-warning" style="color: white">
-                                                                                                            <i class="fas fa-list-check"></i> Partial Approve
-                                                                                                        </button>-->
 
                                                     <!-- Reject -->
                                                     <button type="button" class="btn btn-danger" onclick="openRejectModal()">
