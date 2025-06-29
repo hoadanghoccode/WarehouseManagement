@@ -472,7 +472,7 @@ public class UserDAO extends DBContext {
 
     public Users checkLogin(String email, String plainPasswordInput) {
         try {
-            String query = "SELECT * FROM users WHERE email = ?";
+            String query = "SELECT * FROM users WHERE email = ? AND status = 1";
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
             ps.setString(1, email);
@@ -493,7 +493,7 @@ public class UserDAO extends DBContext {
                             rs.getString("image"),
                             rs.getTimestamp("created_at"),
                             rs.getTimestamp("updated_at"),
-                            rs.getBoolean("status"),
+                            1 == rs.getInt("status"),
                             rs.getString("reset_password_token"),
                             rs.getTimestamp("reset_password_expiry")
                     );
@@ -573,7 +573,7 @@ public class UserDAO extends DBContext {
 
     public Users getUserByEmail(String email) {
         try {
-            String query = "SELECT * FROM users WHERE LOWER(TRIM(email)) = ?";
+            String query = "SELECT * FROM users WHERE LOWER(TRIM(email)) = ? AND status = 1";
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
             ps.setString(1, email);
@@ -592,7 +592,7 @@ public class UserDAO extends DBContext {
                         rs.getString("image"),
                         rs.getTimestamp("created_at"),
                         rs.getTimestamp("updated_at"),
-                        rs.getBoolean("status"),
+                        (1 == rs.getInt("status")),
                         rs.getString("reset_password_token"),
                         rs.getTimestamp("reset_password_expiry")
                 );
