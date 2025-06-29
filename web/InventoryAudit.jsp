@@ -208,6 +208,12 @@
                                         <i class="fas fa-check"></i> Approve
                                     </button>
                                 </c:if>
+                                 <button type="button" class="btn btn-danger" id="btnRejectAudit">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                    <button type="button" class="btn btn-success" id="btnApproveAudit">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
