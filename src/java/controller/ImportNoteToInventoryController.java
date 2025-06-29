@@ -59,6 +59,8 @@ public class ImportNoteToInventoryController extends HttpServlet {
 
                 // *) Cập nhật InventoryMaterialDaily
                 dao.updateInventoryMaterialDaily(mId, suId, qId, qty);
+                
+                dao.insertMaterialTransactionHistory(mdId, detailId, "Imported from import note detail");
 
                 // 3) Đánh dấu detail đã imported
                 dao.markDetailImported(detailId);

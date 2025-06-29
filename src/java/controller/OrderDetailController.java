@@ -211,6 +211,14 @@ public class OrderDetailController extends HttpServlet {
                     } else {
                         message = "Failed to approve export order. Please try again.";
                     }
+                } else if ("purchase".equals(order.getType())) {
+                    // Xử lý purchase của b Giang
+                    success = orderDAO.approveOrderAndCreatePurchaseNote(orderId, order.getUserId());
+                    if (success) {
+                        message = "Purchase order approved successfully!";
+                    } else {
+                        message = "Failed to approve purchase order. Please try again.";
+                    }
                 }
             } else if ("reject".equals(action)) {
                 String newStatus = "rejected";

@@ -340,7 +340,6 @@
                                                         <span class="info-value">Kho Hà Nội 1</span>
                                                     </div>
                                                 </c:if>
-
                                                 <div class="info-row">
                                                     <span class="info-label">Order Type</span>
                                                     <span class="info-value">
@@ -350,6 +349,9 @@
                                                             </c:when>
                                                             <c:when test="${order.type == '1' || order.type == 'export'}">
                                                                 <span class="status-badge type-export">Export</span>
+                                                            </c:when>
+                                                            <c:when test="${order.type == 'purchase'}">
+                                                                <span class="status-badge type-purchase">Purchase</span>
                                                             </c:when>
                                                             <c:otherwise>
                                                                 <span class="status-badge status-pending">Repair</span>

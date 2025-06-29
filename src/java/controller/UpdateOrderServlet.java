@@ -132,14 +132,15 @@ public class UpdateOrderServlet extends HttpServlet {
             
             // Lấy và validate supplier
             int supplierId = -1;
-            if (supplierRaw != null && !supplierRaw.trim().isEmpty()) {
+            // Xử lý purchase của b Giang
+            if (!"purchase".equals(orderType) && supplierRaw != null && !supplierRaw.trim().isEmpty()) {
                 try {
                     supplierId = Integer.parseInt(supplierRaw);
                 } catch (NumberFormatException e) {
                     returnWithError(request, response, orderId, "Invalid supplier");
                     return;
                 }
-            } else {
+            } else if (!"purchase".equals(orderType)) {
                 returnWithError(request, response, orderId, "You must select a Supplier");
                 return;
             }
