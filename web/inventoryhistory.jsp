@@ -541,9 +541,10 @@
                                 <button type="button" class="btn btn-outline-primary" onclick="resetFilters()">
                                     <i class="fas fa-undo"></i> Reset
                                 </button>
-                                <button type="button" class="btn btn-secondary" onclick="exportHistory()">
-                                    <i class="fas fa-download"></i> Export
-                                </button>
+                                <a href="orderlist" class="btn btn-secondary">
+    <i class="fas fa-download"></i> Order
+</a>
+
                             </div>
                         </div>
                         <input type="hidden" name="materialId" value="${materialId}">
