@@ -33,10 +33,12 @@ public class InventoryAuditController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        System.out.println("Filter X: " + request.getRequestURI());
         AuditInventoryDAO dao = new AuditInventoryDAO();
         String action = request.getParameter("action");
         try {
             if ("listMaterial".equals(action)) {
+                
                 // Trả về JSON list vật tư cho modal Add Audit
                 List<InventoryItem> items = dao.getInventoryForAudit();
                 response.setContentType("application/json");
@@ -73,6 +75,7 @@ public class InventoryAuditController extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         Users currentUser = (Users) session.getAttribute("USER");
+        System.out.println("currentUser" + currentUser);
         if (currentUser == null) {
             resp.setStatus(401);
             resp.getWriter().write("{\"code\":\"E00\", \"msg\":\"Not logged in or session expired!\"}");

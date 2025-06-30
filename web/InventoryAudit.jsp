@@ -132,6 +132,7 @@
                                 <i class="fa fa-plus me-1"></i> Add Audit
                             </button>
                         </c:if>
+                            
                     </div>
                 </div>
 
@@ -200,7 +201,8 @@
                                 <div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
                             </div>                           
                             <div class="modal-footer" id="auditDetailFooter">
-                                <c:if test="${sessionScope.roleId == 2 && audit.status == 'draft'}">
+                                <c:if test="${sessionScope.roleId == 2}">
+                                    <!--&& audit.status == 'draft'-->
                                     <button type="button" class="btn btn-danger" id="btnRejectAudit">
                                         <i class="fas fa-times"></i> Reject
                                     </button>
@@ -407,7 +409,7 @@
                         success: function (data) {
                             // data should be an object containing audit info & detail list
                             var html = '<div class="mb-3"><b>Audit Code:</b> ' + data.audit.auditCode + '</div>';
-                            html += '<div class="mb-3"><b>Created By nè:</b> ' + data.audit.createdByName + '</div>';
+                            html += '<div class="mb-3"><b>Created By:</b> ' + data.audit.createdByName + '</div>';
                             html += '<div class="mb-3"><b>Audit Date:</b> ' + data.audit.auditDate + '</div>';
                             html += '<hr>';
                             html += '<h6>Audit Material Details:</h6>';
@@ -425,6 +427,13 @@
                             });
                             html += '</tbody></table>';
                             $('#auditDetailBody').html(html);
+                            if (data.audit.status === 'draft' && ${sessionScope.roleId} == 2) {
+                                $('#btnApproveAudit').show();
+                                $('#btnRejectAudit').show();
+                            } else {
+                                $('#btnApproveAudit').hide();
+                                $('#btnRejectAudit').hide();
+                            }
                         },
                         error: function (xhr) {
                             $('#auditDetailBody').html('<div class="alert alert-danger">Failed to load audit details!</div>');
@@ -598,12 +607,13 @@
                         $('#auditModalBody').html(html);
                     },
                     error: function (xhr) {
+                        console.log('error', xhr);
                         $('#auditModalBody').html('<div class="alert alert-danger">Failed to load inventory!</div>');
                     }
                 });
                 $('#auditModal').modal('show');
             });
-
+  
             // Show/hide reason input if actual differs from system (for both available and not available)
             $('#auditModal').on('input', '.actual-qty-available-input, .actual-qty-notavailable-input', function () {
                 var $row = $(this).closest('tr');

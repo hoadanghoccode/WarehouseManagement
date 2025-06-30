@@ -67,7 +67,7 @@ public class AuditListController extends HttpServlet {
             return;
         }
         int userId = user.getUserId();
-        boolean isAdmin = (user.getRoleId() == 1); // Giả sử RoleId = 1 là Admin, tùy hệ thống bạn sửa lại
+        boolean isAdmin = (user.getRoleId() == 2); // Giả sử RoleId = 1 là Admin, tùy hệ thống bạn sửa lại
 
         // 2. Nhận filter từ query string
         String code = request.getParameter("code");
