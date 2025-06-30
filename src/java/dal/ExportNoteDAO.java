@@ -95,36 +95,43 @@ public class ExportNoteDAO extends DBContext {
     }
 
     public List<ExportNoteDetail> getExportNoteDetailsByNoteId(int exportNoteId) throws SQLException {
-        List<ExportNoteDetail> details = new ArrayList<>();
-        String sql = """
-            SELECT end.Export_note_detail_id, end.Export_note_id, end.Material_id, m.Name AS Material_name,
-                   end.SubUnit_id, su.Name AS SubUnit_name, end.Quantity, end.Quality_id, q.Quality_name
-            FROM Export_note_detail end
-            JOIN Materials m ON end.Material_id = m.Material_id
-            JOIN SubUnits su ON end.SubUnit_id = su.SubUnit_id
-            JOIN Quality q ON end.Quality_id = q.Quality_id
-            WHERE end.Export_note_id = ?
-        """;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, exportNoteId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    ExportNoteDetail detail = new ExportNoteDetail();
-                    detail.setExportNoteDetailId(rs.getInt("Export_note_detail_id"));
-                    detail.setExportNoteId(rs.getInt("Export_note_id"));
-                    detail.setMaterialId(rs.getInt("Material_id"));
-                    detail.setMaterialName(rs.getString("Material_name"));
-                    detail.setSubUnitId(rs.getInt("SubUnit_id"));
-                    detail.setSubUnitName(rs.getString("SubUnit_name"));
-                    detail.setQuantity(rs.getDouble("Quantity"));
-                    detail.setQualityId(rs.getInt("Quality_id"));
-                    detail.setQualityName(rs.getString("Quality_name"));
-                    details.add(detail);
-                }
+    List<ExportNoteDetail> details = new ArrayList<>();
+    String sql = """
+        SELECT end.Export_note_detail_id, end.Export_note_id, end.Material_id, m.Name AS Material_name,
+               end.SubUnit_id, su.Name AS SubUnit_name, end.Quantity, end.Quality_id, q.Quality_name,
+               COALESCE(imd.Ending_qty, 0) AS Available_quantity
+        FROM Export_note_detail end
+        JOIN Materials m ON end.Material_id = m.Material_id
+        JOIN SubUnits su ON end.SubUnit_id = su.SubUnit_id
+        JOIN Quality q ON end.Quality_id = q.Quality_id
+        JOIN Material_detail md ON end.Material_id = md.Material_id 
+            AND end.SubUnit_id = md.SubUnit_id 
+            AND end.Quality_id = md.Quality_id
+        LEFT JOIN InventoryMaterialDaily imd ON md.Material_detail_id = imd.Material_detail_id 
+            AND imd.Inventory_Material_date = CURDATE()
+        WHERE end.Export_note_id = ?
+    """;
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setInt(1, exportNoteId);
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                ExportNoteDetail detail = new ExportNoteDetail();
+                detail.setExportNoteDetailId(rs.getInt("Export_note_detail_id"));
+                detail.setExportNoteId(rs.getInt("Export_note_id"));
+                detail.setMaterialId(rs.getInt("Material_id"));
+                detail.setMaterialName(rs.getString("Material_name"));
+                detail.setSubUnitId(rs.getInt("SubUnit_id"));
+                detail.setSubUnitName(rs.getString("SubUnit_name"));
+                detail.setQuantity(rs.getDouble("Quantity"));
+                detail.setQualityId(rs.getInt("Quality_id"));
+                detail.setQualityName(rs.getString("Quality_name"));
+                detail.setAvailableQuantity(rs.getDouble("Available_quantity")); // Set the available quantity
+                details.add(detail);
             }
         }
-        return details;
     }
+    return details;
+}
 
     public int addExportNote(ExportNote note) throws SQLException {
         String sql = """

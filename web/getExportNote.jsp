@@ -32,7 +32,7 @@
                     </tr>
                     <tr>
                         <th scope="row">Created At</th>
-                        <td><fmt:formatDate value="${exportNote.createdAt}" pattern="dd/MM/yyyy HH:mm:ss" /></td>
+                        <td><fmt:formatDate value="${exportNote.createdAt}" pattern="dd/MM/yyyy" /></td>
                     </tr>
                     <tr>
                         <th scope="row">Exported</th>
