@@ -245,13 +245,13 @@ public class AuthFilter implements Filter {
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
         
-        
          //check warehouse
-        if (user != null && uri.startsWith(contextPath + "/inventory")) {
+        if (user != null && uri.equals(contextPath + "/inventory")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
             Boolean canViewWarehouse = (perms != null) ? perms.get("Warehouse_VIEW") : null;
 
+            System.out.println("Checking WAREHOUSE_VIEW permission: " + canViewWarehouse);
             if (canViewWarehouse == null || !canViewWarehouse) {
                 session.invalidate();
                 resp.sendRedirect(contextPath + "/403.jsp");

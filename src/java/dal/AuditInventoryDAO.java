@@ -394,19 +394,25 @@ public class AuditInventoryDAO {
         }
 
         // 4. Lưu các order và chi tiết vào DB
+        Integer importOrderId = null;
+        Integer exportOrderId = null;
         if (importOrder != null && !importDetails.isEmpty()) {
-            int orderId = orderDAO.insertOrder(importOrder);
+            importOrderId = orderDAO.insertOrder(importOrder);
             for (OrderDetail od : importDetails) {
-                od.setOrderId(orderId);
+                od.setOrderId(importOrderId);
                 orderDAO.insertOrderDetail(od);
             }
+            // Tạo Import_note và Import_note_detail
+            orderDAO.approveOrderAndCreateImportNote(importOrderId, approvedByUserId);
         }
         if (exportOrder != null && !exportDetails.isEmpty()) {
-            int orderId = orderDAO.insertOrder(exportOrder);
+            exportOrderId = orderDAO.insertOrder(exportOrder);
             for (OrderDetail od : exportDetails) {
-                od.setOrderId(orderId);
+                od.setOrderId(exportOrderId);
                 orderDAO.insertOrderDetail(od);
             }
+            // Tạo Export_note và Export_note_detail
+            orderDAO.approveOrderAndCreateExportNote(exportOrderId, approvedByUserId);
         }
     }
 
