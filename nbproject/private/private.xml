@@ -3,7 +3,16 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/orderlist.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/backorder.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/orderlist.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/exportnotelist.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/ExportNoteListServlet.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/BackOrderDAO.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/inventory.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/ExportNoteDAO.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/BackOrderServlet.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/inventoryhistory.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/BackOrder.java</file>
         </group>
     </open-files>
 </project-private>
