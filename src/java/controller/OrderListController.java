@@ -119,7 +119,7 @@ public class OrderListController extends HttpServlet {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        if (user.getRoleId() == 1) {
+        if (user.getRoleId() == 2) {
             orders = dao.getPagedOrderList(search, type, status, fromDate, toDate, offset, PAGE_SIZE, sortColumn, sortDirection);
             totalOrders = dao.countOrdersWithFilter(search, type, status, fromDate, toDate);
         } else {

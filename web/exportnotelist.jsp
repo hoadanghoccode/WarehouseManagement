@@ -324,20 +324,20 @@
             right: 20px;
             max-width: 400px;
             width: 90%;
-            z-index: 1060; /* Higher than other modals (1050) */
+            z-index: 1060;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
         }
-        .confirm-modal .modal-dialog {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    margin: 0;
-    transform: none !important;
-    pointer-events: auto;
-    width: 100%;
-    max-width: 400px;
-}
 
+        .confirm-modal .modal-dialog {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            margin: 0;
+            transform: none !important;
+            pointer-events: auto;
+            width: 100%;
+            max-width: 400px;
+        }
 
         .confirm-modal.fade .modal-dialog {
             transform: translateY(50px);
@@ -627,12 +627,7 @@
                 </div>
 
                 <!-- Confirmation Modal -->
-                <div class="modal fade confirm-modal" id="confirmExportModal" tabindex="-1"
-     aria-labelledby="confirmExportModalLabel"
-     aria-hidden="true"
-     data-bs-backdrop="false"
-     data-bs-keyboard="false">
-
+                <div class="modal fade confirm-modal" id="confirmExportModal" tabindex="-1" aria-labelledby="confirmExportModalLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="false">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -659,7 +654,7 @@
             const exportNoteModal = new bootstrap.Modal(document.getElementById('exportNoteModal'));
             const inventoryModal = new bootstrap.Modal(document.getElementById('inventoryModal'));
             const confirmExportModal = new bootstrap.Modal(document.getElementById('confirmExportModal'), {
-                backdrop: false // Allows interaction with underlying modals
+                backdrop: false
             });
 
             // View details
@@ -707,45 +702,39 @@
             });
 
             $('#exportButton').on('click', function () {
-    const exportNoteId = $('#inventoryContent').find('input[name="exportNoteId"]').val();
+                const exportNoteId = $('#inventoryContent').find('input[name="exportNoteId"]').val();
 
-    if (!exportNoteId) {
-        $('#confirmExportMessage').text('Export Note ID not found!');
-        $('#confirmExportFooter').hide();
-        confirmExportModal.show();
-        return;
-    }
+                if (!exportNoteId) {
+                    $('#confirmExportMessage').text('Export Note ID not found!');
+                    $('#confirmExportFooter').hide();
+                    confirmExportModal.show();
+                    return;
+                }
 
-    const selectedItems = [];
-    $('#inventoryContent .checkbox-item:checked').each(function () {
-        const $this = $(this);
-        selectedItems.push({
-            detailId: $this.val(),
-            materialId: $this.data('material-id'),
-            subUnitId: $this.data('subunit-id'),
-            qualityId: $this.data('quality-id'),
-            quantity: $this.data('requested-quantity')
-        });
-    });
+                const selectedItems = [];
+                $('#inventoryContent .checkbox-item:checked').each(function () {
+                    const $this = $(this);
+                    selectedItems.push({
+                        detailId: $this.val(),
+                        materialId: $this.data('material-id'),
+                        subUnitId: $this.data('subunit-id'),
+                        qualityId: $this.data('quality-id'),
+                        quantity: $this.data('requested-quantity')
+                    });
+                });
 
-    if (selectedItems.length === 0) {
-        $('#confirmExportMessage').text('Please select at least one item to export.');
-        $('#confirmExportFooter').hide();
-        confirmExportModal.show();
-        return;
-    }
+                if (selectedItems.length === 0) {
+                    $('#confirmExportMessage').text('Please select at least one item to export.');
+                    $('#confirmExportFooter').hide();
+                    confirmExportModal.show();
+                    return;
+                }
 
-    $('#confirmExportMessage').text('Are you sure you want to export the selected items from inventory?');
-    $('#confirmExportFooter').show();
-
-    // GÁN DỮ LIỆU VÀO NÚT XÁC NHẬN
-    $('#confirmExportBtn')
-        .data('export-note-id', exportNoteId)
-        .data('selected-items', selectedItems);
-
-    confirmExportModal.show();
-});
-
+                $('#confirmExportMessage').text('Are you sure you want to export the selected items from inventory?');
+                $('#confirmExportFooter').show();
+                $('#confirmExportBtn').data('export-note-id', exportNoteId).data('selected-items', selectedItems);
+                confirmExportModal.show();
+            });
 
             $('#confirmExportBtn').on('click', function () {
                 const exportNoteId = $(this).data('export-note-id');
@@ -772,16 +761,13 @@
                     },
                     dataType: 'json',
                     success: function (res) {
-                        $('#confirmExportMessage').text(res.message);
+                        let message = res.message;
+                        if (message.includes('BackOrder')) {
+                            message = 'Some items have insufficient stock. The remaining quantities have been added to a backorder.';
+                        }
+                        $('#confirmExportMessage').text(message);
                         $('#confirmExportFooter').hide();
                         confirmExportModal.show();
-                        if (res.success) {
-                            setTimeout(() => {
-                                confirmExportModal.hide();
-                                inventoryModal.hide();
-                                location.reload();
-                            }, 1000);
-                        }
                     },
                     error: function (xhr) {
                         $('#confirmExportMessage').text('Error: ' + xhr.responseText);
@@ -789,6 +775,12 @@
                         confirmExportModal.show();
                     }
                 });
+            });
+
+            // Reload page when confirmExportModal is hidden
+            $('#confirmExportModal').on('hidden.bs.modal', function () {
+                inventoryModal.hide();
+                location.reload();
             });
         });
     </script>

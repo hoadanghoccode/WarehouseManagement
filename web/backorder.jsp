@@ -6,7 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BackOrder Management - Material Management System</title>
+    <title>BackOrder</title>
+    <link rel="icon" href="img/logo.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap1.min.css" />
     <link rel="stylesheet" href="vendors/font_awesome/css/all.min.css" />
@@ -54,6 +55,7 @@
         .priority-low { color: #065f46; background: #d1fae5; padding: 2px 6px; border-radius: 4px; }
         .priority-medium { color: #92400e; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
         .priority-high { color: #991b1b; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
+        .form-select{width: 170px;}
         @media (max-width: 768px) {
             .main-content { margin-left: 0; }
             .title { font-size: 24px; }
@@ -110,6 +112,7 @@
                                 </select>
                                 <button type="submit" class="btn btn-primary" style="padding: 6px 12px;">Filter</button>
                                 <a href="backorder" class="btn btn-secondary" style="padding: 6px 12px;">Reset</a>
+                                <a href="orderlist" class="btn btn-primary" style="padding: 6px 12px;">Order</a>
                             </div>
                         </form>
                     </div>
