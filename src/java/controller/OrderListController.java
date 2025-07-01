@@ -76,7 +76,6 @@ public class OrderListController extends HttpServlet {
             return;
         }
 
-// Lấy tham số tìm kiếm/sắp xếp
         String search = request.getParameter("search");
         String type = request.getParameter("type");
         String status = request.getParameter("status");
@@ -129,7 +128,6 @@ public class OrderListController extends HttpServlet {
         }
         totalPages = (int) Math.ceil((double) totalOrders / PAGE_SIZE);
 
-// Gửi sang JSP
         request.setAttribute("orders", orders);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);

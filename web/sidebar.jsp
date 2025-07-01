@@ -32,7 +32,7 @@
 
     <ul id="sidebar_menu">
         <li>
-            <a href="index.jsp" aria-expanded="false">
+            <a href="dashboard" aria-expanded="false">
                 <img src="img/menu-icon/dashboard.svg" alt="">
                 <span>Dashboard</span>
             </a>

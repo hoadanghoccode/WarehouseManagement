@@ -61,7 +61,7 @@ public class ImportChartPageController extends HttpServlet {
         Import_noteDAO dao = new Import_noteDAO();
         List<Material> materials = dao.getAllMaterial();
         request.setAttribute("materials", materials);
-        request.getRequestDispatcher("indexInventory.jsp").forward(request, response);
+        request.getRequestDispatcher("dashboard.jsp").forward(request, response);
     }
    
 

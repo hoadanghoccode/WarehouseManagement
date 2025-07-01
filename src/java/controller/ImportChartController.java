@@ -7,6 +7,7 @@ package controller;
 
 import com.google.gson.Gson;
 import dal.Import_noteDAO;
+import dal.MaterialDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -16,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
-import model.ImportStatistic;
+import model.MaterialStatistic;
 
 /**
  *
@@ -67,8 +68,8 @@ public class ImportChartController extends HttpServlet {
                             ? Integer.parseInt(materialIdRaw)
                             : null;
 
-        Import_noteDAO dao = new Import_noteDAO();
-        List<ImportStatistic> stats = dao.getTotalImportPerMaterial(materialId);
+        MaterialDAO dao = new MaterialDAO();
+        List<MaterialStatistic> stats = dao.getMaterialStatistics(materialId);
 
         Gson gson = new Gson();
         response.setContentType("application/json");

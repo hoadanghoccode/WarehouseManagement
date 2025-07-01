@@ -9,6 +9,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 
 public class ExportNoteDAO extends DBContext {
 
@@ -505,4 +506,26 @@ public class ExportNoteDAO extends DBContext {
         }
         return false;
     }
+    public int getTodayExportNoteCount() {
+    String sql = "SELECT COUNT(*) FROM export_note WHERE DATE(exported_at) = CURDATE() AND exported = 1";
+    try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) return rs.getInt(1);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+   public int getExportNoteCountInDateRange(Date fromDate, Date toDate) {
+    String sql = "SELECT COUNT(*) FROM export_note WHERE DATE(exported_at) BETWEEN ? AND ?";
+    try (
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setDate(1, fromDate);
+        ps.setDate(2, toDate);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;
+   }
 }
