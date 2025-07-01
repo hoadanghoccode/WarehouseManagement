@@ -434,10 +434,6 @@
                                     <span class="detail-value"><c:out value="${materialInfo.categoryName}"/></span>
                                 </div>
                                 <div class="detail-item">
-                                    <span class="detail-label">Supplier</span>
-                                    <span class="detail-value"><c:out value="${materialInfo.supplierName}"/></span>
-                                </div>
-                                <div class="detail-item">
                                     <span class="detail-label">Unit</span>
                                     <span class="detail-value"><c:out value="${materialInfo.subUnitName}"/></span>
                                 </div>
@@ -542,9 +538,8 @@
                                     <i class="fas fa-undo"></i> Reset
                                 </button>
                                 <a href="orderlist" class="btn btn-secondary">
-    <i class="fas fa-download"></i> Order
-</a>
-
+                                    <i class="fas fa-download"></i> Order
+                                </a>
                             </div>
                         </div>
                         <input type="hidden" name="materialId" value="${materialId}">

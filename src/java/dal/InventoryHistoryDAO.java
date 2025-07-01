@@ -352,18 +352,16 @@ public class InventoryHistoryDAO extends DBContext {
             SELECT 
                 m.Name AS materialName,
                 c.Name AS categoryName,
-                s.Name AS supplierName,
                 su.Name AS subUnitName,
                 SUM(md.Quantity) AS availableQty
             FROM Materials m
             JOIN Category c ON m.Category_id = c.Category_id
-            JOIN Suppliers s ON m.SupplierId = s.Supplier_id
             JOIN Material_detail md ON m.Material_id = md.Material_id
             JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id
             JOIN Quality q ON md.Quality_id = q.Quality_id
             WHERE m.Material_id = ?
               AND q.Quality_name = 'available'
-            GROUP BY m.Name, c.Name, s.Name, su.Name
+            GROUP BY m.Name, c.Name, su.Name
         """;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -373,7 +371,6 @@ public class InventoryHistoryDAO extends DBContext {
                 MaterialInfo info = new MaterialInfo();
                 info.setMaterialName(rs.getString("materialName"));
                 info.setCategoryName(rs.getString("categoryName"));
-                info.setSupplierName(rs.getString("supplierName"));
                 info.setSubUnitName(rs.getString("subUnitName"));
                 info.setAvailableQty(rs.getDouble("availableQty"));
                 return info;

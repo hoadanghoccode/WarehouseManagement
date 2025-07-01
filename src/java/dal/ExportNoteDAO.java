@@ -296,10 +296,16 @@ public class ExportNoteDAO extends DBContext {
         }
     }
 
-    public void markAsExported(int exportNoteId, List<Integer> detailIds, List<Double> quantities, List<Integer> materialIds, 
+        public void markAsExported(int exportNoteId, List<Integer> detailIds, List<Double> quantities, List<Integer> materialIds, 
                               List<Integer> subUnitIds, List<Integer> qualityIds, HttpServletRequest request) throws SQLException {
         connection.setAutoCommit(false);
         try {
+            ExportNote exportNote = getExportNoteById(exportNoteId); 
+            if (exportNote == null) {
+                throw new SQLException("Export note not found.");
+            }
+            int userId = exportNote.getUserId();
+
             String checkSql = "SELECT Exported FROM Export_note WHERE Export_note_id = ?";
             try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
                 checkStmt.setInt(1, exportNoteId);
@@ -340,15 +346,13 @@ public class ExportNoteDAO extends DBContext {
                 }
                 if (exportedQty < requestedQuantity) {
                     double remainingQty = requestedQuantity - exportedQty;
-                    // Lấy Supplier_id từ Materials
-                    int supplierId = getSupplierIdFromMaterial(materialId);
                     // Lấy Order_detail_id từ Order_detail dựa trên Export_note
                     int orderDetailId = getOrderDetailIdFromExportNoteDetail(exportNoteId, detailId, materialId);
-                    createBackOrder(orderDetailId, materialId, subUnitId, currentQualityId, supplierId, requestedQuantity, remainingQty);
+                    createBackOrder(orderDetailId, materialId, subUnitId, currentQualityId, userId, requestedQuantity, remainingQty);
                     backOrderMessage.append("Insufficient stock for Detail ID ").append(detailId)
                                    .append(". Exported ").append(exportedQty)
                                    .append(", Remaining ").append(remainingQty)
-                                   .append(" added to BackOrder with Supplier ID ").append(supplierId).append(". ");
+                                   .append(" added to BackOrder with User ID ").append(userId).append(". ");
                 }
             }
 
@@ -363,6 +367,38 @@ public class ExportNoteDAO extends DBContext {
         } finally {
             connection.setAutoCommit(true);
         }
+    }
+
+    private ExportNote getExportNoteById(int exportNoteId) throws SQLException {
+        String sql = """
+            SELECT en.Export_note_id, en.Order_id, en.User_id, u.Full_name AS User_name,
+                   en.Warehouse_id, w.Name AS Warehouse_name, en.Created_at,
+                   en.Customer_name, en.Exported, en.Exported_at
+            FROM Export_note en
+            LEFT JOIN Users u ON en.User_id = u.User_id
+            LEFT JOIN Warehouse w ON en.Warehouse_id = w.Warehouse_id
+            WHERE en.Export_note_id = ?
+        """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, exportNoteId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    ExportNote note = new ExportNote();
+                    note.setExportNoteId(rs.getInt("Export_note_id"));
+                    note.setOrderId(rs.getInt("Order_id"));
+                    note.setUserId(rs.getInt("User_id"));
+                    note.setWarehouseId(rs.getObject("Warehouse_id", Integer.class));
+                    note.setWarehouseName(rs.getString("Warehouse_name"));
+                    note.setUserName(rs.getString("User_name"));
+                    note.setCreatedAt(rs.getDate("Created_at"));
+                    note.setCustomerName(rs.getString("Customer_name"));
+                    note.setExported(rs.getBoolean("Exported"));
+                    note.setExportedAt(rs.getDate("Exported_at"));
+                    return note;
+                }
+            }
+        }
+        return null;
     }
 
     private void updateMaterialDetailQuantity(int materialDetailId, double quantity) throws SQLException {
@@ -406,9 +442,9 @@ public class ExportNoteDAO extends DBContext {
         }
     }
 
-    private void createBackOrder(int orderDetailId, int materialId, int subUnitId, int qualityId, int supplierId, double requestedQty, double remainingQty) throws SQLException {
+        private void createBackOrder(int orderDetailId, int materialId, int subUnitId, int qualityId, int userId, double requestedQty, double remainingQty) throws SQLException {
         String sql = """
-            INSERT INTO BackOrder (Order_detail_id, Material_id, SubUnit_id, Quality_id, Supplier_id, Requested_quantity, Remaining_quantity, Status, Created_at)
+            INSERT INTO BackOrder (Order_detail_id, Material_id, SubUnit_id, Quality_id, User_id, Requested_quantity, Remaining_quantity, Status, Created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', CURRENT_TIMESTAMP)
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -416,7 +452,7 @@ public class ExportNoteDAO extends DBContext {
             stmt.setInt(2, materialId);
             stmt.setInt(3, subUnitId);
             stmt.setInt(4, qualityId);
-            stmt.setInt(5, supplierId);
+            stmt.setInt(5, userId);
             stmt.setDouble(6, requestedQty);
             stmt.setDouble(7, remainingQty);
             stmt.executeUpdate();
