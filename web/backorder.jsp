@@ -33,7 +33,7 @@
         .search-container form { display: flex; gap: 12px; align-items: center; }
         .search-container .search-icon { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); color: #6b7280; }
         .search-container .search-input { padding-left: 36px; height: 38px; border-radius: 6px; border: 1px solid #d1d5db; }
-        .table-container { overflow-x: auto; background-color: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); }
+        .table-container { overflow-x: auto; background-color: white; border-radius: 12px; box-shadow: 0 2px4px rgba(0, 0, 0, 0.08); }
         table.table { width: 100%; border-collapse: collapse; min-width: 600px; }
         table.table th, table.table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 14px; vertical-align: middle; }
         table.table th { background-color: #f3f4f6; font-weight: 600; color: #1f2937; position: sticky; top: 0; z-index: 2; }
@@ -55,7 +55,7 @@
         .priority-low { color: #065f46; background: #d1fae5; padding: 2px 6px; border-radius: 4px; }
         .priority-medium { color: #92400e; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
         .priority-high { color: #991b1b; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
-        .form-select{width: 170px;}
+        .form-select { width: 170px; }
         @media (max-width: 768px) {
             .main-content { margin-left: 0; }
             .title { font-size: 24px; }
@@ -96,7 +96,7 @@
                                 <div style="position: relative;">
                                     <i class="fas fa-search search-icon"></i>
                                     <input type="text" name="search" class="search-input" 
-                                           placeholder="Search material, supplier, or priority..." value="${search}">
+                                           placeholder="Search material or priority..." value="${search}">
                                 </div>
                                 <select name="status" class="form-select">
                                     <option value="" ${empty status ? 'selected' : ''}>All</option>
@@ -108,7 +108,6 @@
                                     <option value="Remaining_quantity" ${sortBy == 'Remaining_quantity' ? 'selected' : ''}>Remaining Quantity</option>
                                     <option value="Material_name" ${sortBy == 'Material_name' ? 'selected' : ''}>Material Name</option>
                                     <option value="Available_quantity" ${sortBy == 'Available_quantity' ? 'selected' : ''}>Available Quantity</option>
-                                    <option value="Supplier_name" ${sortBy == 'Supplier_name' ? 'selected' : ''}>Supplier Name</option>
                                 </select>
                                 <button type="submit" class="btn btn-primary" style="padding: 6px 12px;">Filter</button>
                                 <a href="backorder" class="btn btn-secondary" style="padding: 6px 12px;">Reset</a>
@@ -129,7 +128,6 @@
                                 <th class="col-md-2">Requested Quantity</th>
                                 <th class="col-md-2">Remaining Quantity</th>
                                 <th class="col-md-2">Available Quantity</th>
-                                <th class="col-md-2">Supplier</th>
                                 <th class="col-md-2">Status</th>
                                 <th class="col-md-2">Created At</th>
                                 <th class="col-md-1">Action</th>
@@ -146,7 +144,6 @@
                                             <td><fmt:formatNumber value="${bo.requestedQuantity}" pattern="#,##0.00" /></td>
                                             <td><span class="priority-${bo.note != null ? bo.note.toLowerCase() : 'low'}"><fmt:formatNumber value="${bo.remainingQuantity}" pattern="#,##0.00" /></span></td>
                                             <td><fmt:formatNumber value="${bo.availableQuantity}" pattern="#,##0.00" /></td>
-                                            <td>${bo.supplierName != null ? bo.supplierName : 'N/A (Supplier ID: ' + bo.supplierId + ')'}</td>
                                             <td><span class="status-badge status-${bo.status.toLowerCase()}">${bo.status}</span></td>
                                             <td><fmt:formatDate value="${bo.createdAt}" pattern="dd/MM/yyyy" /></td>
                                             <td>
@@ -166,7 +163,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="10" class="no-data">No BackOrders found.</td>
+                                        <td colspan="9" class="no-data">No BackOrders found.</td>
                                     </tr>
                                 </c:otherwise>
                             </c:choose>
@@ -287,10 +284,6 @@
                                         <input type="text" id="modalAvailableQuantity" class="form-control" readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="modalSupplier" class="form-label">Supplier</label>
-                                        <input type="text" id="modalSupplier" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
                                         <label for="modalStatus" class="form-label">Status</label>
                                         <input type="text" id="modalStatus" class="form-control" readonly>
                                     </div>
@@ -350,7 +343,6 @@
                             $('#modalUnit').val(response.unit);
                             $('#modalQuantity').val(response.quantity);
                             $('#modalAvailableQuantity').val(response.availableQuantity);
-                            $('#modalSupplier').val(response.supplierName + ' (ID: ' + response.supplierId + ')');
                             $('#modalStatus').val(response.status);
                             $('#modalPriority').val(response.priority || 'Low');
                             new bootstrap.Modal(document.getElementById('editModal')).show();

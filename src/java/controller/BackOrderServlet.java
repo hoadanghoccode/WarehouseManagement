@@ -27,61 +27,59 @@ public class BackOrderServlet extends HttpServlet {
         this.orderDAO = new OrderDAO();
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            String backOrderId = request.getParameter("backOrderId");
-            if (backOrderId != null) {
-                BackOrder backOrder = backOrderDAO.getBackOrderById(Integer.parseInt(backOrderId));
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                PrintWriter out = response.getWriter();
-                JSONObject json = new JSONObject();
-                if (backOrder != null) {
-                    json.put("success", true);
-                    json.put("material", backOrder.getMaterialName());
-                    json.put("unit", backOrder.getSubUnitName());
-                    json.put("quantity", String.format("%.2f", backOrder.getRemainingQuantity()));
-                    json.put("availableQuantity", String.format("%.2f", backOrder.getAvailableQuantity()));
-                    json.put("status", backOrder.getStatus());
-                    json.put("priority", backOrder.getNote() != null ? backOrder.getNote() : "Low");
-                    json.put("supplierId", backOrder.getSupplierId());
-                    json.put("supplierName", backOrder.getSupplierName() != null ? backOrder.getSupplierName() : "N/A");
-                } else {
-                    json.put("success", false);
-                    json.put("message", "BackOrder not found.");
-                }
-                out.print(json.toString());
-                out.flush();
-                return;
+   @Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    try {
+        String backOrderId = request.getParameter("backOrderId");
+        if (backOrderId != null) {
+            BackOrder backOrder = backOrderDAO.getBackOrderById(Integer.parseInt(backOrderId));
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            PrintWriter out = response.getWriter();
+            JSONObject json = new JSONObject();
+            if (backOrder != null) {
+                json.put("success", true);
+                json.put("material", backOrder.getMaterialName());
+                json.put("unit", backOrder.getSubUnitName());
+                json.put("quantity", String.format("%.2f", backOrder.getRemainingQuantity()));
+                json.put("availableQuantity", String.format("%.2f", backOrder.getAvailableQuantity()));
+                json.put("status", backOrder.getStatus());
+                json.put("priority", backOrder.getNote() != null ? backOrder.getNote() : "Low");
+            } else {
+                json.put("success", false);
+                json.put("message", "BackOrder not found.");
             }
-
-            String search = request.getParameter("search");
-            String status = request.getParameter("status");
-            String sortBy = request.getParameter("sortBy");
-            int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
-
-            List<BackOrder> backOrders = backOrderDAO.getAllBackOrders(search, status, sortBy, page);
-            int totalBackOrders = backOrderDAO.getTotalBackOrders(search, status);
-            int totalPages = (int) Math.ceil((double) totalBackOrders / 5);
-            int[] stats = backOrderDAO.getBackOrderStats(search);
-
-            request.setAttribute("backOrders", backOrders);
-            request.setAttribute("page", page);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("stats", stats);
-            request.setAttribute("search", search != null ? search : "");
-            request.setAttribute("status", status != null ? status : "");
-            request.setAttribute("sortBy", sortBy != null ? sortBy : "");
-
-            request.getRequestDispatcher("/backorder.jsp").forward(request, response);
-        } catch (SQLException e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid page number or BackOrder ID");
+            out.print(json.toString());
+            out.flush();
+            return;
         }
+
+        String search = request.getParameter("search");
+        String status = request.getParameter("status");
+        String sortBy = request.getParameter("sortBy");
+        int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
+
+        List<BackOrder> backOrders = backOrderDAO.getAllBackOrders(search, status, sortBy, page);
+        int totalBackOrders = backOrderDAO.getTotalBackOrders(search, status);
+        int totalPages = (int) Math.ceil((double) totalBackOrders / 5);
+        int[] stats = backOrderDAO.getBackOrderStats(search);
+
+        request.setAttribute("backOrders", backOrders);
+        request.setAttribute("page", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("stats", stats);
+        request.setAttribute("search", search != null ? search : "");
+        request.setAttribute("status", status != null ? status : "");
+        request.setAttribute("sortBy", sortBy != null ? sortBy : "");
+
+        request.getRequestDispatcher("/backorder.jsp").forward(request, response);
+    } catch (SQLException e) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+    } catch (NumberFormatException e) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid page number or BackOrder ID");
     }
+}
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -145,7 +143,6 @@ public class BackOrderServlet extends HttpServlet {
                 newOrder.setType("export");
                 newOrder.setNote("Export from BackOrder");
                 newOrder.setStatus("pending");
-                newOrder.setSupplier(backOrder.getSupplierId());
 
                 List<OrderDetail> orderDetails = new ArrayList<>();
                 OrderDetail orderDetail = new OrderDetail();
