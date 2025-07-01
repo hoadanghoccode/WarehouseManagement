@@ -9,7 +9,6 @@ import java.sql.Date;
 public class Material {
     private int materialId;
     private int categoryId;
-    private int supplierId;
     private String name;
     private String image;
     private Date createAt;
@@ -18,10 +17,9 @@ public class Material {
     // Constructors
     public Material() {}
 
-    public Material(int materialId, int categoryId, int supplierId, String name, String image, Date createAt, String status) {
+    public Material(int materialId, int categoryId, String name, String image, Date createAt, String status) {
         this.materialId = materialId;
         this.categoryId = categoryId;
-        this.supplierId = supplierId;
         this.name = name;
         this.image = image;
         this.createAt = createAt;
@@ -33,8 +31,6 @@ public class Material {
     public void setMaterialId(int materialId) { this.materialId = materialId; }
     public int getCategoryId() { return categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
-    public int getSupplierId() { return supplierId; }
-    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getImage() { return image; }

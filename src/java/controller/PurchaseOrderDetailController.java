@@ -59,7 +59,7 @@ public class PurchaseOrderDetailController extends HttpServlet {
         request.setAttribute("currentUser", currentUser);
         request.setAttribute("warehouses", dao.getAllWarehouses());
         request.setAttribute("suppliers", dao.getAllSuppliers());
-        request.setAttribute("materials", new MaterialDAO().getAllMaterials(null, null, null, null));
+        request.setAttribute("materials", new MaterialDAO().getAllMaterials(null, null, null));
         request.setAttribute("subUnits", new SubUnitDAO().getAllSubUnits(false));
         request.setAttribute("qualities", new QualityDAO().getAllQualities());
         request.getRequestDispatcher("purchaseOrderDetail.jsp").forward(request, response);

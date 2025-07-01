@@ -6,7 +6,6 @@
     model.Material,
     model.MaterialDetail,
     model.Category,
-    model.Supplier,
     model.SubUnit,
     model.Quality
 " %>
@@ -71,15 +70,6 @@
           for (Category c : mDao.getAllCategories()) {
             if (c.getCategoryId() == m.getCategoryId()) {
               out.print(c.getName()); break;
-            }
-          }
-        %>
-      </p>
-      <p><strong>Supplier:</strong>
-        <%
-          for (Supplier s : mDao.getAllSuppliers()) {
-            if (s.getSupplierId() == m.getSupplierId()) {
-              out.print(s.getName()); break;
             }
           }
         %>
