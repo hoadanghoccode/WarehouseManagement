@@ -4,7 +4,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Update Order - Order #${order.supplier}</title>
+        <title>Update Order - Order #${order.orderId}</title>
 
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/bootstrap1.min.css" />
@@ -64,21 +64,22 @@
                                 </select>
                             </div>
 
+                            <!--                            <div class="form-group">
+                                                            <label for="supplier">Supplier <span class="required">*</span></label>
+                                                            <select class="form-control" id="supplier" name="supplier" required>
+                                                                <option value="">Select Supplier</option>
+                            <c:forEach var="supplier" items="${suppliers}">
+                                <option value="${supplier.supplierId}" ${order.supplier == supplier.supplierId ? 'selected' : ''}>${supplier.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>-->
                             <div class="form-group">
-                                <label for="supplier">Supplier <span class="required">*</span></label>
-                                <select class="form-control" id="supplier" name="supplier" required>
-                                    <option value="">Select Supplier</option>
-                                    <c:forEach var="supplier" items="${suppliers}">
-                                        <option value="${supplier.supplierId}" ${order.supplier == supplier.supplierId ? 'selected' : ''}>${supplier.name}</option>
-                                    </c:forEach>
-                                </select>
+                                <label for="note">Note</label>
+                                <textarea class="form-control" id="note" name="note" rows="3" placeholder="Additional notes or comments...">${order.note}</textarea>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="note">Note</label>
-                            <textarea class="form-control" id="note" name="note" rows="3" placeholder="Additional notes or comments...">${order.note}</textarea>
-                        </div>
+
                     </div>
 
                     <!-- Order Items Section -->

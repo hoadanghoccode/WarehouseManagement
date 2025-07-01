@@ -63,7 +63,7 @@
                             Order Information
                         </h3>
 
-                        <div class="form-row">
+                        <div class="form-row col-md-6">
                             <div class="form-group">
                                 <label for="orderType">Order Type <span class="required">*</span></label>
                                 <select class="form-control" id="orderType" name="orderType" required onchange="toggleSupplierField()">
@@ -77,22 +77,26 @@
                             </div>
 
 
-                            <div class="form-group">
-                                <label for="status">Supplier <span class="required">*</span></label>
-                                <select class="form-control" id="supplier" name="supplier" required>
-                                    <option value="">Select Supplier</option>
-                                    <c:forEach var="supplier" items="${suppliers}">
-                                        <option value="${supplier.supplierId}">${supplier.name}</option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-                        </div>
+                            <!--                            <div class="form-group">
+                                                            <label for="status">Supplier <span class="required">*</span></label>
+                                                            <select class="form-control" id="supplier" name="supplier" required>
+                                                                <option value="">Select Supplier</option>
+                            <c:forEach var="supplier" items="${suppliers}">
+                                <option value="${supplier.supplierId}">${supplier.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>-->
 
-                        <div class="form-group">
+
+                        </div>
+                        
+                        <div class="form-group col-md-6">
                             <label for="note">Note</label>
-                            <textarea class="form-control" id="note" name="note" rows="3" placeholder="Additional notes or comments..."></textarea>
+                            <textarea class="form-control" id="note" name="note" rows="3" placeholder="Additional notes or comments...">${order.note}</textarea>
                         </div>
                     </div>
+
+                   
 
                     <!-- Order Items Section -->
                     <div class="form-section">

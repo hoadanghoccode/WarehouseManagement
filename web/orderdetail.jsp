@@ -376,20 +376,6 @@
                                                     </span>
                                                 </div>
 
-                                                <div class="info-row">
-                                                    <span class="info-label">Supplier</span>
-                                                    <span class="info-value">
-                                                        <c:choose>
-                                                            <c:when test="${order.supplier != null && order.supplier > 0}">
-                                                                ${supplier.name}
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <span style="color: #6c757d; font-style: italic;">N/A</span>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </span>
-                                                </div>
-
                                                 <c:if test="${order.note != null && !empty order.note && order.note.trim().length() > 0}">
                                                     <div class="info-row">
                                                         <span class="info-label">Note</span>

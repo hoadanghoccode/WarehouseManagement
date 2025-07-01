@@ -173,9 +173,9 @@
                                 <% } %>
                                 <input type="file" name="imageFile" accept="image/*" class="form-control mt-2 d-none" onchange="previewProfileImage(event)" id="imageInput">
                             </div>
-                            <div class="dropdown">
+<!--                            <div class="dropdown">
                                 <button type="button" class="dropdown-toggle" onclick="toggleImageEdit(this)"><i class="fas fa-ellipsis-h"></i></button>
-                            </div>
+                            </div>-->
                         </div>
 
                         <% for (String[] field : fields) {
@@ -198,9 +198,9 @@
                                 <input type="text" name="<%= key %>" value="<%= value %>" id="<%= key %>Edit" class="form-control d-inline w-50 d-none" />
                                 <% } %>
                             </div>
-                            <div class="dropdown">
+<!--                            <div class="dropdown">
                                 <button type="button" class="dropdown-toggle" onclick="toggleEdit('<%= key %>', this)"><i class="fas fa-ellipsis-h"></i></button>
-                            </div>
+                            </div>-->
                         </div>
                         <% } %>
                         <div class="info-row">
