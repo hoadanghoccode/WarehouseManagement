@@ -289,7 +289,7 @@
                             <select class="form-select" id="supplierFilter" name="supplierId">
                                 <option value="0" ${supplierId == 0 ? 'selected' : ''}>All Suppliers</option>
                                 <c:forEach var="supplier" items="${supplierList}">
-                                    <option value="${supplier.supplierId}" ${supplier.supplierId == supplierId ? 'selected' : ''}><c:out value="${category.name}"/></option>
+                                    <option value="${supplier.supplierId}" ${supplier.supplierId == supplierId ? 'selected' : ''}><c:out value="${supplier.name}"/></option>
                                 </c:forEach>
                             </select>
                         </div>
