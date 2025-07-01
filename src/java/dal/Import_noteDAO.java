@@ -4,9 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
-import model.ImportStatistic;
+import model.MaterialStatistic;
 import model.Import_note;
 import model.Import_note_detail;
 import model.Material;
@@ -221,33 +223,8 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-  public List<ImportStatistic> getTotalImportPerMaterial(Integer filterMaterialId) {
-    List<ImportStatistic> list = new ArrayList<>();
-    String sql = "SELECT Material_id, SUM(Quantity) AS TotalQty " +
-                 "FROM import_note_detail WHERE Imported = 1 ";
-    if (filterMaterialId != null) {
-        sql += "AND Material_id = ? ";
-    }
-    sql += "GROUP BY Material_id";
 
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        if (filterMaterialId != null) {
-            ps.setInt(1, filterMaterialId);
-        }
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                ImportStatistic stat = new ImportStatistic();
-                stat.setMaterialId(rs.getInt("Material_id"));
-                stat.setTotalQuantity(rs.getDouble("TotalQty"));
-                list.add(stat);
-            }
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
 
-    return list;
-}
   
   public List<Material> getAllMaterial() {
     List<Material> list = new ArrayList<>();
@@ -334,5 +311,29 @@ public void updateInventoryMaterialDaily(int materialId, int subUnitId, int qual
             }
         }
     }
+public int getTodayImportNoteCount() {
+    String sql = "SELECT COUNT(*) FROM import_note WHERE DATE(imported_at) = CURDATE() AND imported = 1";
+    try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) return rs.getInt(1);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+public int getImportNoteCountInDateRange(Date fromDate, Date toDate) {
+    String sql = "SELECT COUNT(*) FROM import_note WHERE DATE(imported_at) BETWEEN ? AND ?";
+    try (Connection conn = new DBContext().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setDate(1, fromDate);
+        ps.setDate(2, toDate);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
 }
 
+
+    

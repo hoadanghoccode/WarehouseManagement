@@ -5,6 +5,8 @@
 package model;
 
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class Material {
     private int materialId;
@@ -14,7 +16,10 @@ public class Material {
     private String image;
     private Date createAt;
     private String status;
-
+    private int unitId;
+    private String categoryName;
+    private String supplierName;
+    private String unitName;
     // Constructors
     public Material() {}
 
@@ -27,6 +32,22 @@ public class Material {
         this.createAt = createAt;
         this.status = status;
     }
+
+    public Material(int materialId, int categoryId, int supplierId, String name, String image, Date createAt, String status, int unitId, String categoryName, String supplierName, String unitName) {
+        this.materialId = materialId;
+        this.categoryId = categoryId;
+        this.supplierId = supplierId;
+        this.name = name;
+        this.image = image;
+        this.createAt = createAt;
+        this.status = status;
+        this.unitId = unitId;
+        this.categoryName = categoryName;
+        this.supplierName = supplierName;
+        this.unitName = unitName;
+    }
+    
+    
 
     // Getters and Setters
     public int getMaterialId() { return materialId; }
@@ -43,4 +64,38 @@ public class Material {
     public void setCreateAt(Date createAt) { this.createAt = createAt; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public int getUnitId() {
+        return unitId;
+    }
+
+    public void setUnitId(int unitId) {
+        this.unitId = unitId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
+    }
+    
+    
 }
