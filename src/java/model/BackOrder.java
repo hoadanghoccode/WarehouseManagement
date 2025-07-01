@@ -19,8 +19,8 @@ public class BackOrder {
     private Date createdAt;
     private Date updatedAt;
     private String note;
-
-    private String supplierName;
+    private int userId;
+    private String userName;
 
     public int getBackOrderId() {
         return backOrderId;
@@ -142,7 +142,7 @@ public class BackOrder {
     }
 
     public String getNote() {
-        return note != null ? note : "Low"; 
+        return note != null ? note : "Low";
     }
 
     public void setNote(String note) {
@@ -152,11 +152,20 @@ public class BackOrder {
             this.note = "Low";
         }
     }
-    public String getSupplierName() {
-        return supplierName;
+
+    public int getUserId() {
+        return userId;
     }
 
-    public void setSupplierName(String supplierName) {
-        this.supplierName = supplierName;
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

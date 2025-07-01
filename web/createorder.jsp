@@ -36,12 +36,6 @@
         <%@ include file="navbar.jsp" %>
         <%@ include file="sidebar.jsp" %>
 
-        <c:if test="${not empty error}">
-            <div class="alert alert-danger">${error}</div>
-        </c:if>
-
-
-
         <div class="main-content">
             <div class="header-actions">
                 <a href="orderlist" class="back-btn">
@@ -49,6 +43,10 @@
                     Back
                 </a>
             </div>
+            <c:if test="${not empty error}">
+                <div class="alert alert-danger">${error}</div>
+            </c:if>
+
             <div class="page-header">
                 <h1></i> Create New Order</h1>
                 <p>Fill in the details below to create a new order</p>
@@ -89,14 +87,14 @@
 
 
                         </div>
-                        
+
                         <div class="form-group col-md-6">
                             <label for="note">Note</label>
                             <textarea class="form-control" id="note" name="note" rows="3" placeholder="Additional notes or comments...">${order.note}</textarea>
                         </div>
                     </div>
 
-                   
+
 
                     <!-- Order Items Section -->
                     <div class="form-section">

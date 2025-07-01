@@ -5,6 +5,7 @@ import dal.OrderDAO;
 import model.BackOrder;
 import model.Order;
 import model.OrderDetail;
+import model.Users;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,59 +28,77 @@ public class BackOrderServlet extends HttpServlet {
         this.orderDAO = new OrderDAO();
     }
 
-   @Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    try {
-        String backOrderId = request.getParameter("backOrderId");
-        if (backOrderId != null) {
-            BackOrder backOrder = backOrderDAO.getBackOrderById(Integer.parseInt(backOrderId));
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            PrintWriter out = response.getWriter();
-            JSONObject json = new JSONObject();
-            if (backOrder != null) {
-                json.put("success", true);
-                json.put("material", backOrder.getMaterialName());
-                json.put("unit", backOrder.getSubUnitName());
-                json.put("quantity", String.format("%.2f", backOrder.getRemainingQuantity()));
-                json.put("availableQuantity", String.format("%.2f", backOrder.getAvailableQuantity()));
-                json.put("status", backOrder.getStatus());
-                json.put("priority", backOrder.getNote() != null ? backOrder.getNote() : "Low");
-            } else {
-                json.put("success", false);
-                json.put("message", "BackOrder not found.");
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            String backOrderId = request.getParameter("backOrderId");
+            if (backOrderId != null) {
+                BackOrder backOrder = backOrderDAO.getBackOrderById(Integer.parseInt(backOrderId));
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                PrintWriter out = response.getWriter();
+                JSONObject json = new JSONObject();
+                if (backOrder != null) {
+                    json.put("success", true);
+                    json.put("material", backOrder.getMaterialName());
+                    json.put("unit", backOrder.getSubUnitName());
+                    json.put("quantity", String.format("%.2f", backOrder.getRemainingQuantity()));
+                    json.put("availableQuantity", String.format("%.2f", backOrder.getAvailableQuantity()));
+                    json.put("status", backOrder.getStatus());
+                    json.put("priority", backOrder.getNote() != null ? backOrder.getNote() : "Low");
+                    json.put("userName", backOrder.getUserName() != null ? backOrder.getUserName() : "N/A");
+                } else {
+                    json.put("success", false);
+                    json.put("message", "BackOrder not found.");
+                }
+                out.print(json.toString());
+                out.flush();
+                return;
             }
-            out.print(json.toString());
-            out.flush();
-            return;
+
+            String search = request.getParameter("search");
+            String status = request.getParameter("status");
+            String sortBy = request.getParameter("sortBy");
+            int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
+
+            HttpSession session = request.getSession(false);
+            Users currentUser = (session != null) ? (Users) session.getAttribute("USER") : null;
+            int userId = (currentUser != null) ? currentUser.getUserId() : -1;
+            int userRoleId = (currentUser != null) ? currentUser.getRoleId() : -1;
+
+            List<BackOrder> backOrders;
+            if (userRoleId == 1 || userRoleId == 2) { // Admin (1) or Director (2)
+                backOrders = backOrderDAO.getAllBackOrders(search, status, sortBy, page);
+            } else {
+                backOrders = backOrderDAO.getBackOrdersByUserId(userId, search, status, sortBy, page);
+            }
+
+            int totalBackOrders;
+            if (userRoleId == 1 || userRoleId == 2) { // Admin (1) or Director (2)
+                totalBackOrders = backOrderDAO.getTotalBackOrders(search, status);
+            } else {
+                totalBackOrders = backOrderDAO.getTotalBackOrdersByUserId(userId, search, status);
+            }
+
+            int totalPages = (int) Math.ceil((double) totalBackOrders / 5);
+            int[] stats = backOrderDAO.getBackOrderStats(search);
+
+            request.setAttribute("backOrders", backOrders);
+            request.setAttribute("page", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("stats", stats);
+            request.setAttribute("search", search != null ? search : "");
+            request.setAttribute("status", status != null ? status : "");
+            request.setAttribute("sortBy", sortBy != null ? sortBy : "");
+
+            request.getRequestDispatcher("/backorder.jsp").forward(request, response);
+        } catch (SQLException e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid page number or BackOrder ID");
         }
-
-        String search = request.getParameter("search");
-        String status = request.getParameter("status");
-        String sortBy = request.getParameter("sortBy");
-        int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
-
-        List<BackOrder> backOrders = backOrderDAO.getAllBackOrders(search, status, sortBy, page);
-        int totalBackOrders = backOrderDAO.getTotalBackOrders(search, status);
-        int totalPages = (int) Math.ceil((double) totalBackOrders / 5);
-        int[] stats = backOrderDAO.getBackOrderStats(search);
-
-        request.setAttribute("backOrders", backOrders);
-        request.setAttribute("page", page);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("stats", stats);
-        request.setAttribute("search", search != null ? search : "");
-        request.setAttribute("status", status != null ? status : "");
-        request.setAttribute("sortBy", sortBy != null ? sortBy : "");
-
-        request.getRequestDispatcher("/backorder.jsp").forward(request, response);
-    } catch (SQLException e) {
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
-    } catch (NumberFormatException e) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid page number or BackOrder ID");
     }
-}
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -117,7 +136,6 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
                     return;
                 }
 
-                // Check session and get user
                 HttpSession session = request.getSession(false);
                 if (session == null) {
                     jsonResponse.put("success", false);
@@ -126,7 +144,7 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
                     out.flush();
                     return;
                 }
-                model.Users currentUser = (model.Users) session.getAttribute("USER");
+                Users currentUser = (Users) session.getAttribute("USER");
                 if (currentUser == null) {
                     jsonResponse.put("success", false);
                     jsonResponse.put("message", "User not authenticated. Please log in.");
@@ -136,9 +154,8 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
                 }
                 int userId = currentUser.getUserId();
 
-                // Create new Order
                 Order newOrder = new Order();
-                newOrder.setWarehouseId(1); 
+                newOrder.setWarehouseId(1);
                 newOrder.setUserId(userId);
                 newOrder.setType("export");
                 newOrder.setNote("Export from BackOrder");
@@ -147,9 +164,9 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
                 List<OrderDetail> orderDetails = new ArrayList<>();
                 OrderDetail orderDetail = new OrderDetail();
                 orderDetail.setMaterialId(backOrder.getMaterialId());
-                orderDetail.setQualityId(1); 
+                orderDetail.setQualityId(1);
                 orderDetail.setSubUnitId(backOrder.getSubUnitId());
-                orderDetail.setQuantity((int) remainingQty); 
+                orderDetail.setQuantity((int) remainingQty);
                 orderDetails.add(orderDetail);
                 newOrder.setOrderDetails(orderDetails);
 
