@@ -8,7 +8,6 @@ import java.util.List;
 import model.Category;
 import model.Material;
 import model.MaterialDetail;
-import model.Supplier;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -17,7 +16,7 @@ import java.util.Map;
 public class MaterialDAO extends DBContext {
 
     // Get all materials with search and filter options
-    public List<Material> getAllMaterials(String search, Integer categoryId, Integer supplierId, String status) {
+    public List<Material> getAllMaterials(String search, Integer categoryId, String status) {
         List<Material> list = new ArrayList<>();
         String query = "SELECT * FROM Materials WHERE 1=1";
         if (search != null && !search.isEmpty()) {
@@ -25,9 +24,6 @@ public class MaterialDAO extends DBContext {
         }
         if (categoryId != null) {
             query += " AND Category_id = ?";
-        }
-        if (supplierId != null) {
-            query += " AND SupplierId = ?";
         }
         if (status != null && !status.isEmpty()) {
             query += " AND Status = ?";
@@ -42,9 +38,6 @@ public class MaterialDAO extends DBContext {
             if (categoryId != null) {
                 ps.setInt(paramIndex++, categoryId);
             }
-            if (supplierId != null) {
-                ps.setInt(paramIndex++, supplierId);
-            }
             if (status != null && !status.isEmpty()) {
                 ps.setString(paramIndex++, status);
             }
@@ -53,7 +46,6 @@ public class MaterialDAO extends DBContext {
                 Material m = new Material();
                 m.setMaterialId(rs.getInt("Material_id"));
                 m.setCategoryId(rs.getInt("Category_id"));
-                m.setSupplierId(rs.getInt("SupplierId"));
                 m.setName(rs.getString("Name"));
                 m.setImage(rs.getString("Image"));
                 m.setCreateAt(rs.getDate("Create_at"));
@@ -77,7 +69,6 @@ public class MaterialDAO extends DBContext {
                 Material m = new Material();
                 m.setMaterialId(rs.getInt("Material_id"));
                 m.setCategoryId(rs.getInt("Category_id"));
-                m.setSupplierId(rs.getInt("SupplierId"));
                 m.setName(rs.getString("Name"));
                 m.setImage(rs.getString("Image"));
                 m.setCreateAt(rs.getDate("Create_at"));
@@ -92,15 +83,14 @@ public class MaterialDAO extends DBContext {
 
     // Insert new material
     public boolean insertMaterial(Material material) {
-        String query = "INSERT INTO Materials (Category_id, SupplierId, Name, Image, Create_at, Status) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO Materials (Category_id, Name, Image, Create_at, Status) VALUES (?, ?, ?, ?, ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, material.getCategoryId());
-            ps.setInt(2, material.getSupplierId());
-            ps.setString(3, material.getName());
-            ps.setString(4, material.getImage());
-            ps.setDate(5, material.getCreateAt());
-            ps.setString(6, material.getStatus());
+            ps.setString(2, material.getName());
+            ps.setString(3, material.getImage());
+            ps.setDate(4, material.getCreateAt());
+            ps.setString(5, material.getStatus());
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -110,16 +100,15 @@ public class MaterialDAO extends DBContext {
     }
 
     public boolean updateMaterial(Material material) {
-        String query = "UPDATE Materials SET Category_id = ?, SupplierId = ?, Name = ?, Image = ?, Status = ?, Last_updated = ? WHERE Material_id = ?";
+        String query = "UPDATE Materials SET Category_id = ?, Name = ?, Image = ?, Status = ?, Last_updated = ? WHERE Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, material.getCategoryId());
-            ps.setInt(2, material.getSupplierId());
-            ps.setString(3, material.getName());
-            ps.setString(4, material.getImage());
-            ps.setString(5, material.getStatus());
-            ps.setTimestamp(6, Timestamp.from(Instant.now())); 
-            ps.setInt(7, material.getMaterialId());
+            ps.setString(2, material.getName());
+            ps.setString(3, material.getImage());
+            ps.setString(4, material.getStatus());
+            ps.setTimestamp(5, Timestamp.from(Instant.now())); 
+            ps.setInt(6, material.getMaterialId());
 
             // Check if material is in pending order or pending import/export
             if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())|| 
@@ -176,26 +165,6 @@ public class MaterialDAO extends DBContext {
             }
         } catch (SQLException e) {
             System.out.println("getMaterialDetailsByMaterialId error: " + e.getMessage());
-        }
-        return list;
-    }
-
-    // Get all suppliers
-    public List<Supplier> getAllSuppliers() {
-        List<Supplier> list = new ArrayList<>();
-        String query = "SELECT * FROM Suppliers";
-        try {
-            PreparedStatement ps = connection.prepareStatement(query);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Supplier s = new Supplier();
-                s.setSupplierId(rs.getInt("Supplier_id"));
-                s.setName(rs.getString("Name"));
-                s.setStatus(rs.getString("Status"));
-                list.add(s);
-            }
-        } catch (SQLException e) {
-            System.out.println("getAllSuppliers error: " + e.getMessage());
         }
         return list;
     }

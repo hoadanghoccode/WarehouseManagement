@@ -38,35 +38,31 @@ public class ImportNoteToInventoryController extends HttpServlet {
             conn.setAutoCommit(false);
 
             for (int detailId : detailIds) {
-                // 1) Lấy detail chưa imported
                 Import_note_detail det = dao.getUnimportedDetail(detailId);
-                if (det == null) continue;
-
-                int    mId  = det.getMaterialId();
-                int    suId = det.getSubUnitId();
-                int    qId  = det.getQualityId();
-                double qty  = det.getQuantity();
-
-                // 2) Kiểm tra tồn ở material_detail
-                Integer mdId = dao.findMaterialDetailId(mId, suId, qId);
-                if (mdId != null) {
-                    // Lấy số lượng hiện tại và cộng thêm
-                    double oldQty = dao.getCurrentQuantity(mdId);
-                    dao.updateMaterialDetail(mdId, oldQty + qty);
-                } else {
-                    dao.insertMaterialDetail(mId, suId, qId, qty);
+                if (det == null) {
+                    message = "Chi tiết ID " + detailId + " không hợp lệ hoặc đã được import.";
+                    continue;
                 }
 
-                // *) Cập nhật InventoryMaterialDaily
-                dao.updateInventoryMaterialDaily(mId, suId, qId, qty);
-                
-                dao.insertMaterialTransactionHistory(mdId, detailId, "Imported from import note detail");
+                int mId = det.getMaterialId();
+                int suId = det.getSubUnitId();
+                int qId = det.getQualityId();
+                double qty = det.getQuantity();
 
-                // 3) Đánh dấu detail đã imported
+                Integer mdId = dao.findMaterialDetailId(mId, suId, qId);
+                if (mdId == null) {
+                    dao.insertMaterialDetail(mId, suId, qId, qty);
+                    mdId = dao.findMaterialDetailId(mId, suId, qId);
+                } else {
+                    double oldQty = dao.getCurrentQuantity(mdId);
+                    dao.updateMaterialDetail(mdId, oldQty + qty);
+                }
+
+                dao.updateInventoryMaterialDaily(mId, suId, qId, qty);
+                dao.insertMaterialTransactionHistory(mdId, detailId, "Imported from import note detail");
                 dao.markDetailImported(detailId);
             }
 
-            // 4) Nếu đã import hết tất cả detail thì đánh dấu import_note
             if (!dao.hasRemainingDetails(importNoteId)) {
                 dao.markNoteImported(importNoteId);
             }
@@ -75,26 +71,36 @@ public class ImportNoteToInventoryController extends HttpServlet {
             success = true;
 
         } catch (SQLException e) {
-            message = e.getMessage();
+            message = "Lỗi cơ sở dữ liệu: " + e.getMessage();
+            System.out.println("SQLException: " + e.getMessage());
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.rollback();
+                    success = false;
+                } catch (SQLException ex) {
+                    System.out.println("Rollback failed: " + ex.getMessage());
+                }
             }
         } finally {
             if (conn != null) {
-                try { conn.setAutoCommit(true); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ex) {
+                    System.out.println("Close connection failed: " + ex.getMessage());
+                }
             }
         }
 
-        // Trả JSON kết quả
         response.setContentType("application/json;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             if (success) {
-                out.print("{\"success\":true}");
+                out.print("{\"success\":true,\"message\":\"Thêm vào kho thành công!\"}");
             } else {
-                out.print("{\"success\":false,\"message\":\""
-                        + (message != null ? message.replace("\"","\\\"") : "Lỗi xử lý")
-                        + "\"}");
+                out.print("{\"success\":false,\"message\":\"" + 
+                          (message != null ? message.replace("\"", "\\\"") : "Lỗi không xác định") + "\"}");
             }
+            out.flush();
         }
     }
 }
