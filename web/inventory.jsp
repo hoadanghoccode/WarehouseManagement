@@ -294,6 +294,7 @@
                             </select>
                         </div>
                         <div class="col-md-3">
+                            
                             <select class="form-select" id="qualityFilter" name="qualityId">
                                 <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
                                 <c:forEach var="quality" items="${qualityList}">

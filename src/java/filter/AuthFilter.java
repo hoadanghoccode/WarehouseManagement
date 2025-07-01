@@ -245,13 +245,13 @@ public class AuthFilter implements Filter {
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
         
-        
          //check warehouse
-        if (user != null && uri.startsWith(contextPath + "/inventory")) {
+        if (user != null && uri.equals(contextPath + "/inventory")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
             Boolean canViewWarehouse = (perms != null) ? perms.get("Warehouse_VIEW") : null;
 
+            System.out.println("Checking WAREHOUSE_VIEW permission: " + canViewWarehouse);
             if (canViewWarehouse == null || !canViewWarehouse) {
                 session.invalidate();
                 resp.sendRedirect(contextPath + "/403.jsp");
@@ -314,6 +314,48 @@ public class AuthFilter implements Filter {
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
         chain.doFilter(request, response);
+        
+        //check purchase list
+        if (user != null && uri.startsWith(contextPath + "/list-purchase-order")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewPurchase = (perms != null) ? perms.get("Purchase_VIEW") : null;
+
+            if (canViewPurchase == null || !canViewPurchase) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+        
+        //check purchase detail
+        if (user != null && uri.startsWith(contextPath + "/purchase-order-detai")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewPurchaseDetail = (perms != null) ? perms.get("Purchase_VIEW") : null;
+
+            if (canViewPurchaseDetail == null || !canViewPurchaseDetail) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+        
+        //check export
+        if (user != null && uri.startsWith(contextPath + "/exportnotelist")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewExport = (perms != null) ? perms.get("Export_VIEW") : null;
+
+            if (canViewExport == null || !canViewExport) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
     }
 
     /**
