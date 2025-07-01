@@ -2,52 +2,16 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
         <group>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/Import_noteDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/Users.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/util/GoogleUtils.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/OrderDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/createorder.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/indexInventory.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/OrderListController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/InventoryHistory.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/AddPermissionController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/MaterialTransactionHistory.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/ExportNoteDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ResetPasswordController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/MaterialQualityChartController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/nbproject/build-impl.xml</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/MaterialStatistic.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/index.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/SubUnitDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ImportChartController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ImportNoteToInventoryController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/TransactionHistoryDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ImportNoteListController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/orderlist.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/sidebar.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/login.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/index.html</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/constant/IConstant.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/LoginGoogleController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/DashboardController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/InventoryAuditDetail.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/dashboard.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/authentication.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/DBContext.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/PurchaseOrderDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/Material.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/nbproject/private/private.properties</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/LoginController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/nbproject/private/private.xml</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/ImportChartPageController.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/model/Import_note_detail.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/web/resetpassword.jsp</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/SupplierDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/dal/UserDAO.java</file>
-            <file>file:/E:/SWP392/WarehouseManagement/src/java/controller/NoPermissionController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/orderlist.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/viewuserinfo.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/editorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Order.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/createorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/orderdetail.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderDetailController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UpdateOrderServlet.java</file>
         </group>
     </open-files>
 </project-private>

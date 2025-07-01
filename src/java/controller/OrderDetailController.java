@@ -190,8 +190,23 @@ public class OrderDetailController extends HttpServlet {
             String message = "";
 
             // Update admin note if provided
-            if (adminNote != null && !adminNote.trim().equals("")) {
-                successUpdateNote = orderDAO.updateOrderNote(orderId, adminNote);
+            if (adminNote != null && !adminNote.trim().isEmpty()) {
+                String trimmedNote = adminNote.trim();
+
+                if (trimmedNote.length() > 256) {
+                    request.getSession().setAttribute("errorMessage", "Admin note must be less than 256 characters.");
+                    response.sendRedirect("orderdetail?oid=" + orderId);
+                    return;
+                }
+
+                // Regex: chỉ cho chữ, số, dấu cách, ., ,, -, _
+                if (!trimmedNote.matches("^[\\w\\s.,-]*$")) {
+                    request.getSession().setAttribute("errorMessage", "Admin note contains invalid characters.");
+                    response.sendRedirect("orderdetail?oid=" + orderId);
+                    return;
+                }
+
+                successUpdateNote = orderDAO.updateOrderNote(orderId, trimmedNote);
             }
 
             if ("approve".equals(action)) {
