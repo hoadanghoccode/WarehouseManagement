@@ -19,7 +19,7 @@ public class BackOrder {
     private Date createdAt;
     private Date updatedAt;
     private String note;
-    private int supplierId;
+
     private String supplierName;
 
     public int getBackOrderId() {
@@ -142,7 +142,7 @@ public class BackOrder {
     }
 
     public String getNote() {
-        return note != null ? note : "Low"; // Default to Low if null
+        return note != null ? note : "Low"; 
     }
 
     public void setNote(String note) {
@@ -152,15 +152,6 @@ public class BackOrder {
             this.note = "Low";
         }
     }
-
-    public int getSupplierId() {
-        return supplierId;
-    }
-
-    public void setSupplierId(int supplierId) {
-        this.supplierId = supplierId;
-    }
-
     public String getSupplierName() {
         return supplierName;
     }

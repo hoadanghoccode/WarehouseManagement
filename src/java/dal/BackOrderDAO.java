@@ -17,22 +17,19 @@ public class BackOrderDAO extends DBContext {
             SELECT bo.BackOrder_id, bo.Order_detail_id, bo.Material_id, m.Name AS Material_name,
                    bo.SubUnit_id, su.Name AS SubUnit_name, bo.Quality_id, bo.Requested_quantity,
                    bo.Remaining_quantity, COALESCE(md.Quantity, 0) AS Available_quantity,
-                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note, bo.Supplier_id,
-                   s.Name AS Supplier_name
+                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
             JOIN SubUnits su ON bo.SubUnit_id = su.SubUnit_id
             LEFT JOIN Material_detail md ON bo.Material_id = md.Material_id
                 AND bo.SubUnit_id = md.SubUnit_id
                 AND bo.Quality_id = md.Quality_id
-            LEFT JOIN Suppliers s ON bo.Supplier_id = s.Supplier_id
             WHERE 1=1
         """);
 
         List<Object> params = new ArrayList<>();
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR s.Name LIKE ?)");
-            params.add("%" + search.trim() + "%");
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ?)");
             params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
         }
@@ -52,9 +49,6 @@ public class BackOrderDAO extends DBContext {
                     break;
                 case "Available_quantity":
                     sortBy = "md.Quantity";
-                    break;
-                case "Supplier_name":
-                    sortBy = "s.Name";
                     break;
                 default:
                     sortBy = "bo.Created_at";
@@ -86,8 +80,6 @@ public class BackOrderDAO extends DBContext {
                     bo.setCreatedAt(rs.getDate("Created_at"));
                     bo.setUpdatedAt(rs.getDate("Updated_at"));
                     bo.setNote(rs.getString("Note"));
-                    bo.setSupplierId(rs.getInt("Supplier_id"));
-                    bo.setSupplierName(rs.getString("Supplier_name"));
                     backOrders.add(bo);
                 }
             }
@@ -100,13 +92,11 @@ public class BackOrderDAO extends DBContext {
             SELECT COUNT(*)
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
-            LEFT JOIN Suppliers s ON bo.Supplier_id = s.Supplier_id
             WHERE 1=1
         """);
         List<Object> params = new ArrayList<>();
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR s.Name LIKE ?)");
-            params.add("%" + search.trim() + "%");
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ?)");
             params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
         }
@@ -137,13 +127,11 @@ public class BackOrderDAO extends DBContext {
                 SUM(CASE WHEN bo.Status = 'EXPORTED' THEN 1 ELSE 0 END) AS exported
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
-            LEFT JOIN Suppliers s ON bo.Supplier_id = s.Supplier_id
             WHERE 1=1
         """);
         List<Object> params = new ArrayList<>();
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR s.Name LIKE ?)");
-            params.add("%" + search.trim() + "%");
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ?)");
             params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
         }
@@ -189,15 +177,13 @@ public class BackOrderDAO extends DBContext {
             SELECT bo.BackOrder_id, bo.Order_detail_id, bo.Material_id, m.Name AS Material_name,
                    bo.SubUnit_id, su.Name AS SubUnit_name, bo.Quality_id, bo.Requested_quantity,
                    bo.Remaining_quantity, COALESCE(md.Quantity, 0) AS Available_quantity,
-                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note, bo.Supplier_id,
-                   s.Name AS Supplier_name
+                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
             JOIN SubUnits su ON bo.SubUnit_id = su.SubUnit_id
             LEFT JOIN Material_detail md ON bo.Material_id = md.Material_id
                 AND bo.SubUnit_id = md.SubUnit_id
                 AND bo.Quality_id = md.Quality_id
-            LEFT JOIN Suppliers s ON bo.Supplier_id = s.Supplier_id
             WHERE bo.BackOrder_id = ?
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -219,8 +205,6 @@ public class BackOrderDAO extends DBContext {
                     bo.setCreatedAt(rs.getDate("Created_at"));
                     bo.setUpdatedAt(rs.getDate("Updated_at"));
                     bo.setNote(rs.getString("Note"));
-                    bo.setSupplierId(rs.getInt("Supplier_id"));
-                    bo.setSupplierName(rs.getString("Supplier_name"));
                     return bo;
                 }
             }
