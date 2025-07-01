@@ -3,7 +3,6 @@
 <%@ page import="model.MaterialDetail" %>
 <%@ page import="dal.MaterialDAO" %>
 <%@ page import="model.Category" %>
-<%@ page import="model.Supplier" %>
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="java.util.Map" %>
@@ -193,14 +192,6 @@
                                         </optgroup>
                                     </c:forEach>
                                 </select>
-                                <select class="form-select" id="supplierFilter" name="supplierId">
-                                    <option value="">All Suppliers</option>
-                                    <c:forEach items="${suppliers}" var="supplier">
-                                        <option value="${supplier.supplierId}" ${supplierId == supplier.supplierId ? 'selected' : ''}>
-                                            ${supplier.name}
-                                        </option>
-                                    </c:forEach>
-                                </select>
                                 <select class="form-select" id="statusFilter" name="status">
                                     <option value="">All Status</option>
                                     <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
@@ -223,7 +214,6 @@
                                     <th class="col-md-1">#</th>
                                     <th class="col-md-5">Name</th>
                                     <th class="col-md-2">Category</th>
-                                    <th class="col-md-2">Supplier</th>
                                     <th class="col-md-2">Status</th>
                                     <th class="col-md-2">Action</th>
                                 </tr>
@@ -237,12 +227,6 @@
                                             <c:set var="category" value="${material.categoryId}" />
                                             <c:forEach var="cat" items="${categories}">
                                                 <c:if test="${cat.categoryId == category}">${cat.name}</c:if>
-                                            </c:forEach>
-                                        </td>
-                                        <td>
-                                            <c:set var="supplier" value="${material.supplierId}" />
-                                            <c:forEach var="sup" items="${suppliers}">
-                                                <c:if test="${sup.supplierId == supplier}">${sup.name}</c:if>
                                             </c:forEach>
                                         </td>
                                         <td>
@@ -283,10 +267,10 @@
                         <div class="pagination">
                             <c:choose>
                                 <c:when test="${page > 1}">
-                                    <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}" title="First page">
+                                    <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&status=${status}" title="First page">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
-                                    <a href="list-material?page=${page-1}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}" title="Previous page">
+                                    <a href="list-material?page=${page-1}&search=${search}&categoryId=${categoryId}&status=${status}" title="Previous page">
                                         <i class="fas fa-angle-left"></i>
                                     </a>
                                 </c:when>
@@ -308,7 +292,7 @@
                                                 <span class="current">${i}</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">${i}</a>
+                                                <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
                                             </c:otherwise>
                                         </c:choose>
                                     </c:forEach>
@@ -322,17 +306,17 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">${i}</a>
+                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                             <c:if test="${totalPages > 6}">
                                                 <span style="padding: 8px 4px;">...</span>
-                                                <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">${totalPages}</a>
+                                                <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&status=${status}">${totalPages}</a>
                                             </c:if>
                                         </c:when>
                                         <c:when test="${page >= totalPages - 3}">
-                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">1</a>
+                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&status=${status}">1</a>
                                             <c:if test="${totalPages > 6}">
                                                 <span style="padding: 8px 4px;">...</span>
                                             </c:if>
@@ -342,13 +326,13 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">${i}</a>
+                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">1</a>
+                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&status=${status}">1</a>
                                             <span style="padding: 8px 4px;">...</span>
                                             <c:forEach begin="${page - 1}" end="${page + 1}" var="i">
                                                 <c:choose>
@@ -356,12 +340,12 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">${i}</a>
+                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                             <span style="padding: 8px 4px;">...</span>
-                                            <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}">${totalPages}</a>
+                                            <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&status=${status}">${totalPages}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:otherwise>
@@ -369,10 +353,10 @@
 
                             <c:choose>
                                 <c:when test="${page < totalPages}">
-                                    <a href="list-material?page=${page+1}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}" title="Next page">
+                                    <a href="list-material?page=${page+1}&search=${search}&categoryId=${categoryId}&status=${status}" title="Next page">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
-                                    <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&supplierId=${supplierId}&status=${status}" title="Last page">
+                                    <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&status=${status}" title="Last page">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
                                 </c:when>

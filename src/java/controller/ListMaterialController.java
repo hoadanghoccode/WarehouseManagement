@@ -22,10 +22,9 @@ public class ListMaterialController extends HttpServlet {
         MaterialDAO dao = new MaterialDAO();
         String search = request.getParameter("search");
         Integer categoryId = parseIntOrNull(request.getParameter("categoryId"));
-        Integer supplierId = parseIntOrNull(request.getParameter("supplierId"));
         String status = request.getParameter("status");
 
-        List<Material> materials = dao.getAllMaterials(search, categoryId, supplierId, status);
+        List<Material> materials = dao.getAllMaterials(search, categoryId, status);
 
         int page = getPageNumber(request);
         int totalSize = materials.size();
@@ -39,13 +38,11 @@ public class ListMaterialController extends HttpServlet {
         request.setAttribute("materials", pagedMaterials);
         request.setAttribute("search", search);
         request.setAttribute("categoryId", categoryId);
-        request.setAttribute("supplierId", supplierId);
         request.setAttribute("status", status);
         request.setAttribute("page", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("categories", dao.getAllCategories());
         request.setAttribute("parentCategories", new CategoryDAO().getAllParentCategory("active"));
-        request.setAttribute("suppliers", dao.getAllSuppliers());
         request.getRequestDispatcher("materialList.jsp").forward(request, response);
     }
 

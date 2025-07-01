@@ -27,7 +27,6 @@ public class UpdateMaterialController extends HttpServlet {
         CategoryDAO cateDao = new CategoryDAO();
         Material material = dao.getMaterialById(materialId);
         request.setAttribute("material", material);
-        request.setAttribute("suppliers", dao.getAllSuppliers());
         request.setAttribute("categories", dao.getAllCategories()); 
         request.setAttribute("parentCategories", cateDao.getAllParentCategoryWithActiveSubs("active"));
         request.getRequestDispatcher("updateMaterial.jsp").forward(request, response);
@@ -41,7 +40,6 @@ public class UpdateMaterialController extends HttpServlet {
         request.setAttribute("parentCategories", cateDao.getAllParentCategoryWithActiveSubs("active"));
         String name = request.getParameter("name").trim();
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
-        int supplierId = Integer.parseInt(request.getParameter("supplierId"));
         String image = request.getParameter("image"); 
         Part filePart = request.getPart("imageFile");
         if (filePart != null && filePart.getSize() > 0) {
@@ -52,7 +50,6 @@ public class UpdateMaterialController extends HttpServlet {
                 MaterialDAO dao = new MaterialDAO();
                 Material material = dao.getMaterialById(materialId);
                 request.setAttribute("material", material);
-                request.setAttribute("suppliers", dao.getAllSuppliers());
                 request.setAttribute("categories", dao.getAllCategories());
                 request.getRequestDispatcher("updateMaterial.jsp").forward(request, response);
                 return;
@@ -61,13 +58,12 @@ public class UpdateMaterialController extends HttpServlet {
         String status = request.getParameter("status");
 
         // Validation
-        String error = validateInput(name, categoryId, supplierId, image, status);
+        String error = validateInput(name, categoryId, image, status);
         if (error != null) {
             request.setAttribute("error", error);
             MaterialDAO dao = new MaterialDAO();
             Material material = dao.getMaterialById(materialId);
             request.setAttribute("material", material);
-            request.setAttribute("suppliers", dao.getAllSuppliers());
             request.setAttribute("categories", dao.getAllCategories());
             request.getRequestDispatcher("updateMaterial.jsp").forward(request, response);
             return;
@@ -77,7 +73,6 @@ public class UpdateMaterialController extends HttpServlet {
         Material material = dao.getMaterialById(materialId);
         material.setName(name);
         material.setCategoryId(categoryId);
-        material.setSupplierId(supplierId);
         material.setImage(image);
         material.setStatus(status); 
         if (dao.updateMaterial(material)) {
@@ -85,17 +80,15 @@ public class UpdateMaterialController extends HttpServlet {
         } else {
             request.setAttribute("error", "Cannot update material due to pending orders or imports/exports. Please try again.");
             request.setAttribute("material", material);
-            request.setAttribute("suppliers", dao.getAllSuppliers());
             request.setAttribute("categories", dao.getAllCategories());
             request.getRequestDispatcher("updateMaterial.jsp").forward(request, response);
         }
     }
 
-    private String validateInput(String name, int categoryId, int supplierId, String image, String status) {
-        if (name == null || name.trim().isEmpty()) return "Name cannot be empty.";
+    private String validateInput(String name, int categoryId, String image, String status) {
+        if (name == null || name.isEmpty()) return "Name cannot be empty.";
         if (name.length() > 250) return "Name must not exceed 250 characters.";
         if (categoryId <= 0) return "Invalid category.";
-        if (supplierId <= 0) return "Invalid supplier.";
         if (status == null || (!status.equals("active") && !status.equals("inactive"))) return "Status must be 'active' or 'inactive'.";
         if (image != null && image.length() > 500) return "Image URL must not exceed 500 characters.";
         return null;
