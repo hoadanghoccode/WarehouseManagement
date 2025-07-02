@@ -168,6 +168,10 @@
         <servlet-name>NotificationController</servlet-name>
         <servlet-class>controller.NotificationController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>RejectAuditController</servlet-name>
+        <servlet-class>controller.RejectAuditController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DeleteCategory</servlet-name>
         <url-pattern>/deletecategory</url-pattern>
@@ -334,6 +338,10 @@
     <servlet-mapping>
         <servlet-name>NotificationController</servlet-name>
         <url-pattern>/notification</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RejectAuditController</servlet-name>
+        <url-pattern>/rejectaudit</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
