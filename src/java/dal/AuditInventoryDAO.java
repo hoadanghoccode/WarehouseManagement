@@ -441,4 +441,14 @@ public class AuditInventoryDAO {
         }
     }
 
+    public void updateAuditStatusAndNote(int auditId, String status, String note) throws SQLException {
+        String sql = "UPDATE InventoryAudit SET Status = ?, Note = ? WHERE Inventory_audit_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setString(2, note);
+            ps.setInt(3, auditId);
+            ps.executeUpdate();
+        }
+    }
+
 }
