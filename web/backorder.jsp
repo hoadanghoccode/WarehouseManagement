@@ -119,57 +119,59 @@
 
                 <!-- Table -->
                 <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="col-md-1">#</th>
-                                <th class="col-md-2">Material</th>
-                                <th class="col-md-2">Unit</th>
-                                <th class="col-md-2">Requested Quantity</th>
-                                <th class="col-md-2">Remaining Quantity</th>
-                                <th class="col-md-2">Available Quantity</th>
-                                <th class="col-md-2">Status</th>
-                                <th class="col-md-2">Created At</th>
-                                <th class="col-md-1">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:choose>
-                                <c:when test="${not empty backOrders}">
-                                    <c:forEach var="bo" items="${backOrders}" varStatus="loop">
-                                        <tr>
-                                            <td><strong>${(page-1)*5 + loop.index + 1}</strong></td>
-                                            <td>${bo.materialName}</td>
-                                            <td>${bo.subUnitName}</td>
-                                            <td><fmt:formatNumber value="${bo.requestedQuantity}" pattern="#,##0.00" /></td>
-                                            <td><span class="priority-${bo.note != null ? bo.note.toLowerCase() : 'low'}"><fmt:formatNumber value="${bo.remainingQuantity}" pattern="#,##0.00" /></span></td>
-                                            <td><fmt:formatNumber value="${bo.availableQuantity}" pattern="#,##0.00" /></td>
-                                            <td><span class="status-badge status-${bo.status.toLowerCase()}">${bo.status}</span></td>
-                                            <td><fmt:formatDate value="${bo.createdAt}" pattern="dd/MM/yyyy" /></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="btn btn-info btn-sm view-detail" data-id="${bo.backOrderId}" title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <c:if test="${bo.status == 'PENDING' && bo.remainingQuantity > 0}">
-                                                        <button class="btn btn-success btn-sm export-backorder" data-id="${bo.backOrderId}" title="Export">
-                                                            <i class="fas fa-file-export"></i>
-                                                        </button>
-                                                    </c:if>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                </c:when>
-                                <c:otherwise>
-                                    <tr>
-                                        <td colspan="9" class="no-data">No BackOrders found.</td>
-                                    </tr>
-                                </c:otherwise>
-                            </c:choose>
-                        </tbody>
-                    </table>
-                </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th class="col-md-1">#</th>
+                <th class="col-md-2">Material</th>
+                <th class="col-md-2">User</th>
+                <th class="col-md-2">Unit</th>
+                <th class="col-md-2">Requested Quantity</th>
+                <th class="col-md-2">Remaining Quantity</th>
+                <th class="col-md-2">Available Quantity</th>              
+                <th class="col-md-2">Status</th>
+                <th class="col-md-2">Created At</th>
+                <th class="col-md-1">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <c:choose>
+                <c:when test="${not empty backOrders}">
+                    <c:forEach var="bo" items="${backOrders}" varStatus="loop">
+                        <tr>
+                            <td><strong>${(page-1)*5 + loop.index + 1}</strong></td>
+                            <td>${bo.materialName}</td>
+                            <td>${bo.userName != null ? bo.userName : 'N/A'}</td>
+                            <td>${bo.subUnitName}</td>
+                            <td><fmt:formatNumber value="${bo.requestedQuantity}" pattern="#,##0.00" /></td>
+                            <td><span class="priority-${bo.note != null ? bo.note.toLowerCase() : 'low'}"><fmt:formatNumber value="${bo.remainingQuantity}" pattern="#,##0.00" /></span></td>
+                            <td><fmt:formatNumber value="${bo.availableQuantity}" pattern="#,##0.00" /></td>                           
+                            <td><span class="status-badge status-${bo.status.toLowerCase()}">${bo.status}</span></td>
+                            <td><fmt:formatDate value="${bo.createdAt}" pattern="dd/MM/yyyy" /></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-info btn-sm view-detail" data-id="${bo.backOrderId}" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <c:if test="${bo.status == 'PENDING' && bo.remainingQuantity > 0}">
+                                        <button class="btn btn-success btn-sm export-backorder" data-id="${bo.backOrderId}" title="Export">
+                                            <i class="fas fa-file-export"></i>
+                                        </button>
+                                    </c:if>
+                                </div>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <tr>
+                        <td colspan="10" class="no-data">No BackOrders found.</td> <!-- Cập nhật colspan thành 10 -->
+                    </tr>
+                </c:otherwise>
+            </c:choose>
+        </tbody>
+    </table>
+</div>
 
                 <!-- Pagination -->
                 <c:if test="${totalPages > 1}">

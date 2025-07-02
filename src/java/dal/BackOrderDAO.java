@@ -17,19 +17,22 @@ public class BackOrderDAO extends DBContext {
             SELECT bo.BackOrder_id, bo.Order_detail_id, bo.Material_id, m.Name AS Material_name,
                    bo.SubUnit_id, su.Name AS SubUnit_name, bo.Quality_id, bo.Requested_quantity,
                    bo.Remaining_quantity, COALESCE(md.Quantity, 0) AS Available_quantity,
-                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note
+                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note, bo.User_id,
+                   u.Full_name AS User_name
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
             JOIN SubUnits su ON bo.SubUnit_id = su.SubUnit_id
             LEFT JOIN Material_detail md ON bo.Material_id = md.Material_id
                 AND bo.SubUnit_id = md.SubUnit_id
                 AND bo.Quality_id = md.Quality_id
+            JOIN Users u ON bo.User_id = u.User_id
             WHERE 1=1
         """);
 
         List<Object> params = new ArrayList<>();
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ?)");
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR u.Full_name LIKE ?)");
+            params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
         }
@@ -80,6 +83,90 @@ public class BackOrderDAO extends DBContext {
                     bo.setCreatedAt(rs.getDate("Created_at"));
                     bo.setUpdatedAt(rs.getDate("Updated_at"));
                     bo.setNote(rs.getString("Note"));
+                    bo.setUserId(rs.getInt("User_id"));
+                    bo.setUserName(rs.getString("User_name"));
+                    backOrders.add(bo);
+                }
+            }
+        }
+        return backOrders;
+    }
+
+    public List<BackOrder> getBackOrdersByUserId(int userId, String search, String status, String sortBy, int page) throws SQLException {
+        List<BackOrder> backOrders = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT bo.BackOrder_id, bo.Order_detail_id, bo.Material_id, m.Name AS Material_name,
+                   bo.SubUnit_id, su.Name AS SubUnit_name, bo.Quality_id, bo.Requested_quantity,
+                   bo.Remaining_quantity, COALESCE(md.Quantity, 0) AS Available_quantity,
+                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note, bo.User_id,
+                   u.Full_name AS User_name
+            FROM BackOrder bo
+            JOIN Materials m ON bo.Material_id = m.Material_id
+            JOIN SubUnits su ON bo.SubUnit_id = su.SubUnit_id
+            LEFT JOIN Material_detail md ON bo.Material_id = md.Material_id
+                AND bo.SubUnit_id = md.SubUnit_id
+                AND bo.Quality_id = md.Quality_id
+            JOIN Users u ON bo.User_id = u.User_id
+            WHERE bo.User_id = ?
+        """);
+
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR u.Full_name LIKE ?)");
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+        }
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND bo.Status = ?");
+            params.add(status);
+        }
+        if (sortBy == null || sortBy.isEmpty()) {
+            sortBy = "bo.Created_at";
+        } else {
+            switch (sortBy) {
+                case "Remaining_quantity":
+                    sortBy = "bo.Remaining_quantity";
+                    break;
+                case "Material_name":
+                    sortBy = "m.Name";
+                    break;
+                case "Available_quantity":
+                    sortBy = "md.Quantity";
+                    break;
+                default:
+                    sortBy = "bo.Created_at";
+            }
+        }
+        sql.append(" ORDER BY ").append(sortBy).append(" DESC");
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(PAGE_SIZE);
+        params.add((page - 1) * PAGE_SIZE);
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    BackOrder bo = new BackOrder();
+                    bo.setBackOrderId(rs.getInt("BackOrder_id"));
+                    bo.setOrderDetailId(rs.getInt("Order_detail_id"));
+                    bo.setMaterialId(rs.getInt("Material_id"));
+                    bo.setMaterialName(rs.getString("Material_name"));
+                    bo.setSubUnitId(rs.getInt("SubUnit_id"));
+                    bo.setSubUnitName(rs.getString("SubUnit_name"));
+                    bo.setQualityId(rs.getInt("Quality_id"));
+                    bo.setRequestedQuantity(rs.getDouble("Requested_quantity"));
+                    bo.setRemainingQuantity(rs.getDouble("Remaining_quantity"));
+                    bo.setAvailableQuantity(rs.getDouble("Available_quantity"));
+                    bo.setStatus(rs.getString("Status"));
+                    bo.setCreatedAt(rs.getDate("Created_at"));
+                    bo.setUpdatedAt(rs.getDate("Updated_at"));
+                    bo.setNote(rs.getString("Note"));
+                    bo.setUserId(rs.getInt("User_id"));
+                    bo.setUserName(rs.getString("User_name"));
                     backOrders.add(bo);
                 }
             }
@@ -92,11 +179,46 @@ public class BackOrderDAO extends DBContext {
             SELECT COUNT(*)
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
+            JOIN Users u ON bo.User_id = u.User_id
             WHERE 1=1
         """);
         List<Object> params = new ArrayList<>();
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ?)");
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR u.Full_name LIKE ?)");
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+            params.add("%" + search.trim() + "%");
+        }
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND bo.Status = ?");
+            params.add(status);
+        }
+        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int getTotalBackOrdersByUserId(int userId, String search, String status) throws SQLException {
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*)
+            FROM BackOrder bo
+            JOIN Materials m ON bo.Material_id = m.Material_id
+            JOIN Users u ON bo.User_id = u.User_id
+            WHERE bo.User_id = ?
+        """);
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR u.Full_name LIKE ?)");
+            params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
         }
@@ -127,11 +249,13 @@ public class BackOrderDAO extends DBContext {
                 SUM(CASE WHEN bo.Status = 'EXPORTED' THEN 1 ELSE 0 END) AS exported
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
+            JOIN Users u ON bo.User_id = u.User_id
             WHERE 1=1
         """);
         List<Object> params = new ArrayList<>();
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ?)");
+            sql.append(" AND (m.Name LIKE ? OR bo.Note LIKE ? OR u.Full_name LIKE ?)");
+            params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
             params.add("%" + search.trim() + "%");
         }
@@ -177,13 +301,15 @@ public class BackOrderDAO extends DBContext {
             SELECT bo.BackOrder_id, bo.Order_detail_id, bo.Material_id, m.Name AS Material_name,
                    bo.SubUnit_id, su.Name AS SubUnit_name, bo.Quality_id, bo.Requested_quantity,
                    bo.Remaining_quantity, COALESCE(md.Quantity, 0) AS Available_quantity,
-                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note
+                   bo.Status, bo.Created_at, bo.Updated_at, bo.Note, bo.User_id,
+                   u.Full_name AS User_name
             FROM BackOrder bo
             JOIN Materials m ON bo.Material_id = m.Material_id
             JOIN SubUnits su ON bo.SubUnit_id = su.SubUnit_id
             LEFT JOIN Material_detail md ON bo.Material_id = md.Material_id
                 AND bo.SubUnit_id = md.SubUnit_id
                 AND bo.Quality_id = md.Quality_id
+            JOIN Users u ON bo.User_id = u.User_id
             WHERE bo.BackOrder_id = ?
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -205,6 +331,8 @@ public class BackOrderDAO extends DBContext {
                     bo.setCreatedAt(rs.getDate("Created_at"));
                     bo.setUpdatedAt(rs.getDate("Updated_at"));
                     bo.setNote(rs.getString("Note"));
+                    bo.setUserId(rs.getInt("User_id"));
+                    bo.setUserName(rs.getString("User_name"));
                     return bo;
                 }
             }

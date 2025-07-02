@@ -15,5 +15,24 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CreateOrderServlet.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/Import_noteDAO.java</file>
         </group>
+        <group>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/InventoryHistoryDAO.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/backorder.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/exportnotelist.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/ExportNoteListServlet.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/BackOrderDAO.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/ExportNote.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/BackOrderServlet.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/InventoryHistory.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/inventoryhistory.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/BackOrder.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/getExportNote.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/exportNoteToInventory.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/ExportNoteDetail.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/MaterialDetail.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/MaterialInfo.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/ExportNoteDAO.java</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/InventoryHistoryServlet.java</file>
+        </group>
     </open-files>
 </project-private>
