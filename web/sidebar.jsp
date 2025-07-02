@@ -31,12 +31,14 @@
     </div>
 
     <ul id="sidebar_menu">
-        <li>
-            <a href="index.jsp" aria-expanded="false">
-                <img src="img/menu-icon/dashboard.svg" alt="">
-                <span>Dashboard</span>
-            </a>
-        </li>
+        <c:if test="${permissions['Dashboard_VIEW']}">
+            <li>
+                <a href="dashboard" aria-expanded="false">
+                    <img src="img/menu-icon/dashboard.svg" alt="">
+                    <span>Dashboard</span>
+                </a>
+            </li>
+        </c:if>
 
         <c:if test="${permissions['Permission_VIEW'] or permissions['Role_VIEW'] or permissions['Department_VIEW']}">
             <li>
@@ -47,13 +49,13 @@
                 <ul>
                     <c:if test="${permissions['Permission_VIEW']}">
                         <li><a href="/WarehouseManagement/resource">Permission</a></li>
-                    </c:if>
-                    <c:if test="${permissions['Role_VIEW']}">
+                        </c:if>
+                        <c:if test="${permissions['Role_VIEW']}">
                         <li><a href="/WarehouseManagement/permissionrole">Role</a></li>
-                    </c:if>
-                    <c:if test="${permissions['Department_VIEW']}">
+                        </c:if>
+                        <c:if test="${permissions['Department_VIEW']}">
                         <li><a href="/WarehouseManagement/department">Department</a></li>
-                    </c:if>
+                        </c:if>
                 </ul>
             </li>
         </c:if>
@@ -81,7 +83,7 @@
                 </a>
             </li>
         </c:if>
-            <c:if test="${permissions['Export_VIEW']}">
+        <c:if test="${permissions['Export_VIEW']}">
             <li>
                 <a class="has-arrow" aria-expanded="false" href="/WarehouseManagement/exportnotelist">
                     <img src="img/menu-icon/4.svg" alt="">

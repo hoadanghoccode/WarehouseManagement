@@ -155,9 +155,8 @@ public class CreateOrderServlet extends HttpServlet {
                     returnWithError(request, response, "Invalid supplier");
                     return;
                 }
-            } else if (!"purchase".equals(orderType)) {
-                returnWithError(request, response, "You must select a Supplier");
-                return;
+            } else if (!"purchase".equals(orderType) && supplierRaw == null) {
+                supplierId = 1;
             }
 
             // 2. Lấy danh sách các item
@@ -226,13 +225,13 @@ public class CreateOrderServlet extends HttpServlet {
                 // Kiểm tra xem selectedUnitId là SubUnit hay Unit cha
                 int finalSubUnitId = selectedUnitId;
                 int finalQuantity = quantity;
-                
+
                 // Lấy thông tin unit để kiểm tra
                 Units selectedUnit = unitDAO.getUnitById(selectedUnitId);
                 if (selectedUnit != null && selectedUnit.getFactor() > 1) {
                     // Đây là Unit cha, cần convert về SubUnit
                     finalSubUnitId = selectedUnit.getSubUnitId();
-                    finalQuantity = (int)(quantity * selectedUnit.getFactor());
+                    finalQuantity = (int) (quantity * selectedUnit.getFactor());
                 }
 
                 // Tạo key để nhận diện item trùng nhau (dùng subUnitId sau khi convert)

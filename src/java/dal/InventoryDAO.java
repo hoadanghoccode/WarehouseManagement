@@ -3,7 +3,6 @@ package dal;
 import model.Category;
 import model.MaterialInventory;
 import model.Quality;
-import model.Supplier;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,10 +12,10 @@ import java.util.List;
 
 public class InventoryDAO extends DBContext {
 
-    public List<MaterialInventory> getInventory(int categoryId, int supplierId, int qualityId, String searchTerm, String sortBy) {
+    public List<MaterialInventory> getInventory(int categoryId, int qualityId, String searchTerm, String sortBy) {
         List<MaterialInventory> inventoryList = new ArrayList<>();
-        String sql = buildInventoryQuery(categoryId, supplierId, qualityId, searchTerm, sortBy);
-        List<Object> params = buildInventoryParameters(categoryId, supplierId, qualityId, searchTerm);
+        String sql = buildInventoryQuery(categoryId, qualityId, searchTerm, sortBy);
+        List<Object> params = buildInventoryParameters(categoryId, qualityId, searchTerm);
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             setParameters(stmt, params);
@@ -25,11 +24,9 @@ public class InventoryDAO extends DBContext {
                     MaterialInventory inventory = new MaterialInventory();
                     inventory.setMaterialId(rs.getInt("material_id"));
                     inventory.setCategoryId(rs.getInt("category_id"));
-                    inventory.setSupplierId(rs.getInt("supplier_id"));
                     inventory.setSubUnitId(rs.getInt("subunit_id"));
                     inventory.setMaterialName(rs.getString("material_name"));
                     inventory.setCategoryName(rs.getString("category_name"));
-                    inventory.setSupplierName(rs.getString("supplier_name"));
                     inventory.setSubUnitName(rs.getString("subunit_name"));
                     inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
                     inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
@@ -45,10 +42,10 @@ public class InventoryDAO extends DBContext {
         return inventoryList;
     }
 
-    private String buildInventoryQuery(int categoryId, int supplierId, int qualityId, String searchTerm, String sortBy) {
+    private String buildInventoryQuery(int categoryId, int qualityId, String searchTerm, String sortBy) {
         StringBuilder sql = new StringBuilder(
-            "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, md.SubUnit_id AS subunit_id, " +
-            "m.Name AS material_name, c.Name AS category_name, s.Name AS supplier_name, su.Name AS subunit_name, " +
+            "SELECT m.Material_id AS material_id, m.Category_id AS category_id, md.SubUnit_id AS subunit_id, " +
+            "m.Name AS material_name, c.Name AS category_name, su.Name AS subunit_name, " +
             "SUM(CASE WHEN q.Quality_name = 'available' THEN md.Quantity ELSE 0 END) AS available_qty, " +
             "SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE 0 END) AS not_available_qty, " +
             "MAX(md.Last_updated) AS last_updated, NULL AS note " +
@@ -56,25 +53,21 @@ public class InventoryDAO extends DBContext {
             "JOIN Material_detail md ON m.Material_id = md.Material_id " +
             "JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id " +
             "JOIN Category c ON m.Category_id = c.Category_id " +
-            "JOIN Suppliers s ON m.SupplierId = s.Supplier_id " +
             "JOIN Quality q ON md.Quality_id = q.Quality_id " +
-            "WHERE m.Status = 'active' AND su.Status = 'active' AND c.Status = 'active' AND s.Status = 'active' "
+            "WHERE m.Status = 'active' AND su.Status = 'active' AND c.Status = 'active' "
         );
 
         if (categoryId > 0) {
             sql.append(" AND m.Category_id = ? ");
         }
-        if (supplierId > 0) {
-            sql.append(" AND m.SupplierId = ? ");
-        }
         if (qualityId > 0) {
             sql.append(" AND md.Quality_id = ? ");
         }
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR s.Name LIKE ? OR su.Name LIKE ?) ");
+            sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR su.Name LIKE ?) ");
         }
 
-        sql.append(" GROUP BY m.Material_id, m.Category_id, m.SupplierId, md.SubUnit_id, m.Name, c.Name, s.Name, su.Name ");
+        sql.append(" GROUP BY m.Material_id, m.Category_id, md.SubUnit_id, m.Name, c.Name, su.Name ");
 
         String safeSortBy = "available_qty DESC";
         if (sortBy != null && sortBy.matches("^(material_id|material_name|available_qty|not_available_qty) (ASC|DESC)$")) {
@@ -85,19 +78,16 @@ public class InventoryDAO extends DBContext {
         return sql.toString();
     }
 
-    private List<Object> buildInventoryParameters(int categoryId, int supplierId, int qualityId, String searchTerm) {
+    private List<Object> buildInventoryParameters(int categoryId, int qualityId, String searchTerm) {
         List<Object> params = new ArrayList<>();
         if (categoryId > 0) {
             params.add(categoryId);
-        }
-        if (supplierId > 0) {
-            params.add(supplierId);
         }
         if (qualityId > 0) {
             params.add(qualityId);
         }
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 4; i++) {
                 params.add("%" + searchTerm + "%");
             }
         }
@@ -116,8 +106,8 @@ public class InventoryDAO extends DBContext {
 
     public MaterialInventory getLatestInventoryDetails(int materialId, int subUnitId) {
         MaterialInventory inventory = null;
-        String sql = "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.SupplierId AS supplier_id, md.SubUnit_id AS subunit_id, " +
-                     "m.Name AS material_name, c.Name AS category_name, s.Name AS supplier_name, su.Name AS subunit_name, " +
+        String sql = "SELECT m.Material_id AS material_id, m.Category_id AS category_id, md.SubUnit_id AS subunit_id, " +
+                     "m.Name AS material_name, c.Name AS category_name, su.Name AS subunit_name, " +
                      "imd.Ending_qty AS available_qty, " +
                      "(SELECT COALESCE(SUM(md2.Quantity), 0) FROM Material_detail md2 " +
                      "JOIN Quality q ON md2.Quality_id = q.Quality_id " +
@@ -129,7 +119,6 @@ public class InventoryDAO extends DBContext {
                      "JOIN Materials m ON md.Material_id = m.Material_id " +
                      "JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id " +
                      "JOIN Category c ON m.Category_id = c.Category_id " +
-                     "JOIN Suppliers s ON m.SupplierId = s.Supplier_id " +
                      "WHERE m.Material_id = ? AND md.SubUnit_id = ? " +
                      "AND imd.Inventory_Material_date = (" +
                      "    SELECT MAX(Inventory_Material_date) " +
@@ -148,11 +137,9 @@ public class InventoryDAO extends DBContext {
                     inventory = new MaterialInventory();
                     inventory.setMaterialId(rs.getInt("material_id"));
                     inventory.setCategoryId(rs.getInt("category_id"));
-                    inventory.setSupplierId(rs.getInt("supplier_id"));
                     inventory.setSubUnitId(rs.getInt("subunit_id"));
                     inventory.setMaterialName(rs.getString("material_name"));
                     inventory.setCategoryName(rs.getString("category_name"));
-                    inventory.setSupplierName(rs.getString("supplier_name"));
                     inventory.setSubUnitName(rs.getString("subunit_name"));
                     inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
                     inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
@@ -186,25 +173,6 @@ public class InventoryDAO extends DBContext {
             e.printStackTrace();
         }
         return categories;
-    }
-
-    public List<Supplier> getActiveSuppliers() {
-        List<Supplier> suppliers = new ArrayList<>();
-        String sql = "SELECT Supplier_id, Name, Status FROM Suppliers WHERE Status = 'active' ORDER BY Name";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                Supplier supplier = new Supplier();
-                supplier.setSupplierId(rs.getInt("Supplier_id"));
-                supplier.setName(rs.getString("Name"));
-                supplier.setStatus(rs.getString("Status"));
-                suppliers.add(supplier);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching suppliers: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return suppliers;
     }
 
     public List<Quality> getActiveQualities() {

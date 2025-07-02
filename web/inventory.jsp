@@ -105,7 +105,7 @@
             table.table {
                 width: 100%;
                 border-collapse: collapse;
-                min-width: 1000px;
+                min-width: 800px; /* Adjusted for fewer columns */
             }
             table.table th, table.table td {
                 padding: 12px 16px;
@@ -286,15 +286,6 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select" id="supplierFilter" name="supplierId">
-                                <option value="0" ${supplierId == 0 ? 'selected' : ''}>All Suppliers</option>
-                                <c:forEach var="supplier" items="${supplierList}">
-                                    <option value="${supplier.supplierId}" ${supplier.supplierId == supplierId ? 'selected' : ''}><c:out value="${supplier.name}"/></option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            
                             <select class="form-select" id="qualityFilter" name="qualityId">
                                 <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
                                 <c:forEach var="quality" items="${qualityList}">
@@ -314,8 +305,7 @@
                                 <option value="not_available_qty DESC" ${sortBy == 'not_available_qty DESC' ? 'selected' : ''}>Not Available Qty (Desc)</option>
                             </select>
                         </div>
-                            
-                            <div class="col-md-5">
+                        <div class="col-md-3">
                             <div class="input-group">
                                 <input type="text" id="searchInput" name="searchTerm" class="form-control" placeholder="Search..." value="${searchTerm}">
                                 <button style="margin-left: 5px;" class="btn btn-primary btn-md rounded-pill btn-search" type="submit">
@@ -343,7 +333,6 @@
                                 <th style="width: 40px">#</th>
                                 <th>Material</th>
                                 <th>Category</th>
-                                <th>Supplier</th>
                                 <th>Unit</th>
                                 <th>Available</th>
                                 <th>Not Available</th>
@@ -354,11 +343,10 @@
                             <c:choose>
                                 <c:when test="${not empty inventoryList}">
                                     <c:forEach var="item" items="${inventoryList}" varStatus="status">
-                                        <tr data-material-id="${item.materialId}" data-subunit-id="${item.subUnitId}" data-category-id="${item.categoryId}" data-supplier-id="${item.supplierId}">
+                                        <tr data-material-id="${item.materialId}" data-subunit-id="${item.subUnitId}" data-category-id="${item.categoryId}">
                                             <td class="row-number"><strong>${status.index + 1}</strong></td>
                                             <td><c:out value="${item.materialName}"/></td>
                                             <td><c:out value="${item.categoryName}"/></td>
-                                            <td><c:out value="${item.supplierName}"/></td>
                                             <td><c:out value="${item.subUnitName}"/></td>
                                             <td><fmt:formatNumber value="${item.availableQty}" pattern="#,##0.00"/></td>
                                             <td><fmt:formatNumber value="${item.notAvailableQty}" pattern="#,##0.00"/></td>
@@ -378,7 +366,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="8" class="no-data">No inventory items found</td>
+                                        <td colspan="7" class="no-data">No inventory items found</td>
                                     </tr>
                                 </c:otherwise>
                             </c:choose>
@@ -408,10 +396,6 @@
                                 <div class="detail-item">
                                     <strong>Category:</strong>
                                     <span id="modal-category-name"></span>
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Supplier:</strong>
-                                    <span id="modal-supplier-name"></span>
                                 </div>
                                 <div class="detail-item">
                                     <strong>Unit:</strong>
@@ -743,7 +727,6 @@
                         if (response && (response.materialId || response.materialName)) {
                             document.getElementById("modal-material-name").textContent = response.materialName || 'N/A';
                             document.getElementById("modal-category-name").textContent = response.categoryName || 'N/A';
-                            document.getElementById("modal-supplier-name").textContent = response.supplierName || 'N/A';
                             document.getElementById("modal-subunit-name").textContent = response.subUnitName || 'N/A';
                             document.getElementById("modal-available-qty").textContent = response.availableQty ? parseFloat(response.availableQty).toFixed(2) : '0.00';
                             document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? parseFloat(response.notAvailableQty).toFixed(2) : '0.00';
@@ -770,7 +753,6 @@
                             '<div class="alert alert-danger">Error fetching inventory details: ' + error + '</div>');
                         document.getElementById("modal-material-name").textContent = 'N/A';
                         document.getElementById("modal-category-name").textContent = 'N/A';
-                        document.getElementById("modal-supplier-name").textContent = 'N/A';
                         document.getElementById("modal-subunit-name").textContent = 'N/A';
                         document.getElementById("modal-available-qty").textContent = '0.00';
                         document.getElementById("modal-not-available-qty").textContent = '0.00';

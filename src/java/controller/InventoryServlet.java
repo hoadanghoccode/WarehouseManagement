@@ -4,7 +4,6 @@ import dal.InventoryDAO;
 import model.MaterialInventory;
 import model.Category;
 import model.Quality;
-import model.Supplier;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -59,33 +58,27 @@ public class InventoryServlet extends HttpServlet {
     private void handleInventoryList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int categoryId = parseIntParameter(request.getParameter("categoryId"), 0);
-        int supplierId = parseIntParameter(request.getParameter("supplierId"), 0);
         int qualityId = parseIntParameter(request.getParameter("qualityId"), 0);
         String searchTerm = request.getParameter("searchTerm");
         String sortBy = request.getParameter("sortBy");
 
         System.out.println("InventoryServlet - Parameters: categoryId=" + categoryId +
-                         ", supplierId=" + supplierId +
                          ", qualityId=" + qualityId +
                          ", searchTerm=" + (searchTerm != null ? searchTerm : "null") +
                          ", sortBy=" + (sortBy != null ? sortBy : "null"));
 
-        List<MaterialInventory> inventoryList = inventoryDAO.getInventory(categoryId, supplierId, qualityId, searchTerm, sortBy);
+        List<MaterialInventory> inventoryList = inventoryDAO.getInventory(categoryId, qualityId, searchTerm, sortBy);
         List<Category> categoryList = inventoryDAO.getActiveCategories();
-        List<Supplier> supplierList = inventoryDAO.getActiveSuppliers();
         List<Quality> qualityList = inventoryDAO.getActiveQualities();
 
         System.out.println("InventoryServlet - inventoryList size: " + inventoryList.size());
         System.out.println("InventoryServlet - categoryList size: " + categoryList.size());
-        System.out.println("InventoryServlet - supplierList size: " + supplierList.size());
         System.out.println("InventoryServlet - qualityList size: " + qualityList.size());
 
         request.setAttribute("inventoryList", inventoryList);
         request.setAttribute("categoryList", categoryList);
-        request.setAttribute("supplierList", supplierList);
         request.setAttribute("qualityList", qualityList);
         request.setAttribute("categoryId", categoryId);
-        request.setAttribute("supplierId", supplierId);
         request.setAttribute("qualityId", qualityId);
         request.setAttribute("searchTerm", searchTerm != null ? searchTerm : "");
         request.setAttribute("sortBy", sortBy != null ? sortBy : "available_qty DESC");
@@ -106,23 +99,23 @@ public class InventoryServlet extends HttpServlet {
     }
 
     private void handleGetLatestDetails(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
-    int materialId = parseIntParameter(request.getParameter("materialId"), 0);
-    int subUnitId = parseIntParameter(request.getParameter("subUnitId"), 0);
+            throws IOException {
+        int materialId = parseIntParameter(request.getParameter("materialId"), 0);
+        int subUnitId = parseIntParameter(request.getParameter("subUnitId"), 0);
 
-    System.out.println("InventoryServlet - Fetching details for materialId=" + materialId +
-                     ", subUnitId=" + subUnitId);
+        System.out.println("InventoryServlet - Fetching details for materialId=" + materialId +
+                         ", subUnitId=" + subUnitId);
 
-    MaterialInventory inventory = inventoryDAO.getLatestInventoryDetails(materialId, subUnitId);
-    if (inventory == null) {
-        System.out.println("InventoryServlet - No data found for materialId=" + materialId + ", subUnitId=" + subUnitId);
+        MaterialInventory inventory = inventoryDAO.getLatestInventoryDetails(materialId, subUnitId);
+        if (inventory == null) {
+            System.out.println("InventoryServlet - No data found for materialId=" + materialId + ", subUnitId=" + subUnitId);
+        }
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+        out.write(gson.toJson(inventory != null ? inventory : new MaterialInventory()));
+        out.flush();
     }
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    PrintWriter out = response.getWriter();
-    out.write(gson.toJson(inventory != null ? inventory : new MaterialInventory()));
-    out.flush();
-}
 
     private int parseIntParameter(String param, int defaultValue) {
         if (param != null && !param.trim().isEmpty()) {

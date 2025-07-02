@@ -5,6 +5,7 @@ import dal.OrderDAO;
 import model.BackOrder;
 import model.Order;
 import model.OrderDetail;
+import model.Users;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,8 +47,7 @@ public class BackOrderServlet extends HttpServlet {
                     json.put("availableQuantity", String.format("%.2f", backOrder.getAvailableQuantity()));
                     json.put("status", backOrder.getStatus());
                     json.put("priority", backOrder.getNote() != null ? backOrder.getNote() : "Low");
-                    json.put("supplierId", backOrder.getSupplierId());
-                    json.put("supplierName", backOrder.getSupplierName() != null ? backOrder.getSupplierName() : "N/A");
+                    json.put("userName", backOrder.getUserName() != null ? backOrder.getUserName() : "N/A");
                 } else {
                     json.put("success", false);
                     json.put("message", "BackOrder not found.");
@@ -62,8 +62,25 @@ public class BackOrderServlet extends HttpServlet {
             String sortBy = request.getParameter("sortBy");
             int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
 
-            List<BackOrder> backOrders = backOrderDAO.getAllBackOrders(search, status, sortBy, page);
-            int totalBackOrders = backOrderDAO.getTotalBackOrders(search, status);
+            HttpSession session = request.getSession(false);
+            Users currentUser = (session != null) ? (Users) session.getAttribute("USER") : null;
+            int userId = (currentUser != null) ? currentUser.getUserId() : -1;
+            int userRoleId = (currentUser != null) ? currentUser.getRoleId() : -1;
+
+            List<BackOrder> backOrders;
+            if (userRoleId == 1 || userRoleId == 2) { // Admin (1) or Director (2)
+                backOrders = backOrderDAO.getAllBackOrders(search, status, sortBy, page);
+            } else {
+                backOrders = backOrderDAO.getBackOrdersByUserId(userId, search, status, sortBy, page);
+            }
+
+            int totalBackOrders;
+            if (userRoleId == 1 || userRoleId == 2) { // Admin (1) or Director (2)
+                totalBackOrders = backOrderDAO.getTotalBackOrders(search, status);
+            } else {
+                totalBackOrders = backOrderDAO.getTotalBackOrdersByUserId(userId, search, status);
+            }
+
             int totalPages = (int) Math.ceil((double) totalBackOrders / 5);
             int[] stats = backOrderDAO.getBackOrderStats(search);
 
@@ -119,7 +136,6 @@ public class BackOrderServlet extends HttpServlet {
                     return;
                 }
 
-                // Check session and get user
                 HttpSession session = request.getSession(false);
                 if (session == null) {
                     jsonResponse.put("success", false);
@@ -128,7 +144,7 @@ public class BackOrderServlet extends HttpServlet {
                     out.flush();
                     return;
                 }
-                model.Users currentUser = (model.Users) session.getAttribute("USER");
+                Users currentUser = (Users) session.getAttribute("USER");
                 if (currentUser == null) {
                     jsonResponse.put("success", false);
                     jsonResponse.put("message", "User not authenticated. Please log in.");
@@ -138,21 +154,19 @@ public class BackOrderServlet extends HttpServlet {
                 }
                 int userId = currentUser.getUserId();
 
-                // Create new Order
                 Order newOrder = new Order();
-                newOrder.setWarehouseId(1); 
+                newOrder.setWarehouseId(1);
                 newOrder.setUserId(userId);
                 newOrder.setType("export");
                 newOrder.setNote("Export from BackOrder");
                 newOrder.setStatus("pending");
-                newOrder.setSupplier(backOrder.getSupplierId());
 
                 List<OrderDetail> orderDetails = new ArrayList<>();
                 OrderDetail orderDetail = new OrderDetail();
                 orderDetail.setMaterialId(backOrder.getMaterialId());
-                orderDetail.setQualityId(1); 
+                orderDetail.setQualityId(1);
                 orderDetail.setSubUnitId(backOrder.getSubUnitId());
-                orderDetail.setQuantity((int) remainingQty); 
+                orderDetail.setQuantity((int) remainingQty);
                 orderDetails.add(orderDetail);
                 newOrder.setOrderDetails(orderDetails);
 
