@@ -352,7 +352,7 @@
 
                             <div
                                 <!-- Quick Actions -->
-                                <div class="card mt-4">
+                                <!-- <div class="card mt-4">
                                     <div class="card-header">
                                         <h5 class="mb-0">Quick Actions</h5>
                                     </div>
@@ -369,11 +369,11 @@
                                             </button>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
 
 
                                 <!-- Low Stock Items -->
-                                <div class="row">
+                                <!-- <div class="row">
                                     <div class="col-12">
                                         <div class="card table-container">
                                             <div class="card-header bg-white">
@@ -436,7 +436,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
 
 

@@ -330,7 +330,7 @@ public class AuthFilter implements Filter {
         }
         
         //check purchase detail
-        if (user != null && uri.startsWith(contextPath + "/purchase-order-detai")) {
+        if (user != null && uri.startsWith(contextPath + "/purchase-order-detail")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
             Boolean canViewPurchaseDetail = (perms != null) ? perms.get("Purchase_VIEW") : null;
@@ -350,6 +350,20 @@ public class AuthFilter implements Filter {
             Boolean canViewExport = (perms != null) ? perms.get("Export_VIEW") : null;
 
             if (canViewExport == null || !canViewExport) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+        
+         //check dashboard
+        if (user != null && uri.startsWith(contextPath + "/dashboard")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewDashboard = (perms != null) ? perms.get("Dashboard_VIEW") : null;
+
+            if (canViewDashboard == null || !canViewDashboard) {
                 session.invalidate();
                 resp.sendRedirect(contextPath + "/403.jsp");
                 return;
