@@ -6,27 +6,18 @@
 package controller;
 
 import dal.AuditInventoryDAO;
-import dal.OrderDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import model.Order;
-import model.OrderDetail;
-import model.Users;
-import model.InventoryAuditDetail;
-import java.util.List;
-
-       
 
 /**
  *
  * @author PC
  */
-public class ApproveAuditController extends HttpServlet {
+public class RejectAuditController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -43,10 +34,10 @@ public class ApproveAuditController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ApproveAuditController</title>");  
+            out.println("<title>Servlet RejectAuditController</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ApproveAuditController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet RejectAuditController at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -66,47 +57,46 @@ public class ApproveAuditController extends HttpServlet {
         processRequest(request, response);
     } 
 
-     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    /** 
+     * Handles the HTTP <code>POST</code> method.
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Check quyền admin (giống approve)
-        Users user = (Users) request.getSession().getAttribute("USER");
-        if (user == null || user.getRoleId() != 2) {
-            response.setStatus(403);
-            response.getWriter().write("{\"msg\":\"Access denied!\"}");
-            return;
-        }
-
-        String auditIdStr = request.getParameter("auditId");
-        String rejectNote = request.getParameter("rejectNote"); // Lý do reject (có thể null)
-
-        if (auditIdStr == null) {
-            response.setStatus(400);
-            response.getWriter().write("{\"msg\":\"Missing auditId!\"}");
-            return;
-        }
-
-        int auditId = Integer.parseInt(auditIdStr);
-        AuditInventoryDAO auditDao = new AuditInventoryDAO();
+        String rawId = request.getParameter("auditId");
+        String rejectNote = request.getParameter("rejectNote"); // Lý do reject (optional)
+        String message;
 
         try {
-            // Nếu có rejectNote thì update cả note, không thì chỉ update status
+            int auditId = Integer.parseInt(rawId);
+
+            AuditInventoryDAO dao = new AuditInventoryDAO();
+
+            // Nếu muốn update cả note, dùng hàm mới (bạn cần thêm ở DAO)
             if (rejectNote != null && !rejectNote.trim().isEmpty()) {
-                auditDao.updateAuditStatusAndNote(auditId, "rejected", rejectNote.trim());
+                dao.updateAuditStatusAndNote(auditId, "rejected", rejectNote.trim());
             } else {
-                auditDao.updateAuditStatus(auditId, "rejected");
+                dao.updateAuditStatus(auditId, "rejected");
             }
 
-            response.setStatus(200);
-            response.getWriter().write("{\"msg\":\"Inventory audit #" + auditId + " has been rejected!\"}");
+            message = "Inventory audit #" + auditId + " has been rejected successfully.";
+            request.setAttribute("success", message);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            response.setStatus(500);
-            response.getWriter().write("{\"msg\":\"Internal Server Error!\"}");
+            message = "Error: " + ex.getMessage();
+            request.setAttribute("error", message);
         }
+        // Chuyển về trang danh sách, hoặc reload lại detail tùy logic
+        request.getRequestDispatcher("/InventoryAudit.jsp").forward(request, response);
     }
-    
-    
+
+    /** 
+     * Returns a short description of the servlet.
+     * @return a String containing servlet description
+     */
     @Override
     public String getServletInfo() {
         return "Short description";
