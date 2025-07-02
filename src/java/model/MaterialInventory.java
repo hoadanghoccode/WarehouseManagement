@@ -7,11 +7,9 @@ public class MaterialInventory {
 
     private int materialId;
     private int categoryId;
-    private int supplierId;
     private int subUnitId;
     private String materialName;
     private String categoryName;
-    private String supplierName;
     private String subUnitName;
     private BigDecimal availableQty;
     private BigDecimal notAvailableQty;
@@ -29,17 +27,15 @@ public class MaterialInventory {
         this.notAvailableQty = notAvailableQty;
     }
 
-    public MaterialInventory(int materialId, int categoryId, int supplierId, int subUnitId, String materialName,
-                            String categoryName, String supplierName, String subUnitName, BigDecimal availableQty,
+    public MaterialInventory(int materialId, int categoryId, int subUnitId, String materialName,
+                            String categoryName, String subUnitName, BigDecimal availableQty,
                             BigDecimal notAvailableQty, BigDecimal importQty, BigDecimal exportQty, Date inventoryDate,
                             String note) {
         this.materialId = materialId;
         this.categoryId = categoryId;
-        this.supplierId = supplierId;
         this.subUnitId = subUnitId;
         this.materialName = materialName;
         this.categoryName = categoryName;
-        this.supplierName = supplierName;
         this.subUnitName = subUnitName;
         this.availableQty = availableQty;
         this.notAvailableQty = notAvailableQty;
@@ -66,14 +62,6 @@ public class MaterialInventory {
         this.categoryId = categoryId;
     }
 
-    public int getSupplierId() {
-        return supplierId;
-    }
-
-    public void setSupplierId(int supplierId) {
-        this.supplierId = supplierId;
-    }
-
     public int getSubUnitId() {
         return subUnitId;
     }
@@ -96,14 +84,6 @@ public class MaterialInventory {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
-    }
-
-    public String getSupplierName() {
-        return supplierName != null ? supplierName : "N/A";
-    }
-
-    public void setSupplierName(String supplierName) {
-        this.supplierName = supplierName;
     }
 
     public String getSubUnitName() {
@@ -168,11 +148,9 @@ public class MaterialInventory {
         return "MaterialInventory{" +
                 "materialId=" + materialId +
                 ", categoryId=" + categoryId +
-                ", supplierId=" + supplierId +
                 ", subUnitId=" + subUnitId +
                 ", materialName='" + materialName + '\'' +
                 ", categoryName='" + categoryName + '\'' +
-                ", supplierName='" + supplierName + '\'' +
                 ", subUnitName='" + subUnitName + '\'' +
                 ", availableQty=" + availableQty +
                 ", notAvailableQty=" + notAvailableQty +

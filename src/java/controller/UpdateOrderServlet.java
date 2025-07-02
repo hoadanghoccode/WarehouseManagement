@@ -140,9 +140,8 @@ public class UpdateOrderServlet extends HttpServlet {
                     returnWithError(request, response, orderId, "Invalid supplier");
                     return;
                 }
-            } else if (!"purchase".equals(orderType)) {
-                returnWithError(request, response, orderId, "You must select a Supplier");
-                return;
+            } else if (!"purchase".equals(orderType) && supplierRaw == null) {
+                supplierId = 1;
             }
             
             // 2. Lấy danh sách các item

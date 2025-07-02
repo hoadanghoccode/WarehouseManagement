@@ -28,7 +28,6 @@ public class AddMaterialController extends HttpServlet {
 //        request.setAttribute("categories", dao.getAllCategories());
         request.setAttribute("categories", catedao.getAllSubCategory());
         request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
-        request.setAttribute("suppliers", dao.getAllSuppliers());
         request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
     }
 
@@ -39,9 +38,7 @@ public class AddMaterialController extends HttpServlet {
         CategoryDAO catedao = new CategoryDAO();
         String name = request.getParameter("name") != null ? request.getParameter("name").trim() : "";
         String categoryStr = request.getParameter("categoryId");
-        String supplierStr = request.getParameter("supplierId");
         int categoryId = -1;
-        int supplierId = -1;
         String error = null;
 
         try {
@@ -50,15 +47,9 @@ public class AddMaterialController extends HttpServlet {
             error = "Please select a category.";
         }
 
-        try {
-            supplierId = Integer.parseInt(supplierStr);
-        } catch (NumberFormatException e) {
-            if (error == null) error = "Please select a supplier.";
-        }
-
         // Validate name
         if (error == null) {
-            error = validateInput(name, categoryId, supplierId);
+            error = validateInput(name, categoryId);
         }
         
         if (error != null) {
@@ -66,7 +57,6 @@ public class AddMaterialController extends HttpServlet {
 //            request.setAttribute("categories", dao.getAllCategories());
             request.setAttribute("categories", catedao.getAllSubCategory());
             request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
-            request.setAttribute("suppliers", dao.getAllSuppliers());
             request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
             return;
         }
@@ -81,7 +71,6 @@ public class AddMaterialController extends HttpServlet {
 //                request.setAttribute("categories", dao.getAllCategories());
                 request.setAttribute("categories", catedao.getAllSubCategory());
                 request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
-                request.setAttribute("suppliers", dao.getAllSuppliers());
                 request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
                 return;
             }
@@ -90,7 +79,7 @@ public class AddMaterialController extends HttpServlet {
         Date createAt = new Date(System.currentTimeMillis());
         String status = "active";
 
-        Material material = new Material(0, categoryId, supplierId, name, image, createAt, status);
+        Material material = new Material(0, categoryId, name, image, createAt, status);
         if (dao.insertMaterial(material)) {
             response.sendRedirect("list-material?success=Material added successfully");
         } else {
@@ -98,17 +87,15 @@ public class AddMaterialController extends HttpServlet {
 //            request.setAttribute("categories", dao.getAllCategories());
             request.setAttribute("categories", catedao.getAllSubCategory());
             request.setAttribute("parentCategories", catedao.getAllParentCategoryWithActiveSubs("active"));
-            request.setAttribute("suppliers", dao.getAllSuppliers());
             request.getRequestDispatcher("addMaterial.jsp").forward(request, response);
         }
     }
 
 
-    private String validateInput(String name, int categoryId, int supplierId) {
-        if (name == null || name.trim().isEmpty()) return "Name cannot be empty.";
+    private String validateInput(String name, int categoryId) {
+        if (name == null || name.isEmpty()) return "Name cannot be empty.";
         if (name.length() > 250) return "Name must not exceed 250 characters.";
         if (categoryId <= 0) return "Invalid category.";
-        if (supplierId <= 0) return "Invalid supplier.";
         return null;
     }
 }

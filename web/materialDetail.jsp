@@ -71,7 +71,6 @@
             <div class="detail-item"><strong>Unit:</strong> ${material.unitName != null ? material.unitName : '-'}</div>
             <div class="detail-item"><strong>Price:</strong> ${material.price != 0 ? material.price : '-'}</div>
             <div class="detail-item"><strong>Quantity:</strong> ${material.quantity != 0 ? material.quantity : '-'}</div>
-            <div class="detail-item"><strong>Supplier:</strong> ${material.supplierName != null ? material.supplierName : 'No Supplier'}</div>
             <div class="detail-item"><strong>Status:</strong> ${material.status}</div>
             <div class="detail-item"><strong>Category:</strong> ${material.categoryName}</div>
             <a href="list-material" class="btn btn-primary">Close</a>

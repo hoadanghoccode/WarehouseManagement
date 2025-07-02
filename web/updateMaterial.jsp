@@ -92,19 +92,6 @@
                         </c:if>
                     </div>
                     <div class="form-group">
-                        <label for="supplierId">Supplier</label>
-                        <select id="supplierId" name="supplierId" class="form-control" required>
-                            <c:forEach items="${suppliers}" var="supplier">
-                                <option value="${supplier.supplierId}" ${material.supplierId == supplier.supplierId ? 'selected' : ''}>
-                                    ${supplier.name}
-                                </option>
-                            </c:forEach>
-                        </select>
-                        <c:if test="${not empty param.error and param.error.contains('supplier')}">
-                            <span class="error">Invalid supplier.</span>
-                        </c:if>
-                    </div>
-                    <div class="form-group">
                         <label for="imageFile">Upload New Image (optional)</label>
                         <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control">
                         <small class="text-muted">Leave blank to keep the current image.</small>

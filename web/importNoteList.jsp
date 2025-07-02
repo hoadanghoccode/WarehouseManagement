@@ -379,10 +379,6 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body" id="inventoryContent"><p>Loading...</p></div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button class="btn btn-primary" id="addButton">Add to Inventory</button>
-                            </div>
                         </div>
                     </div>
                 </div>

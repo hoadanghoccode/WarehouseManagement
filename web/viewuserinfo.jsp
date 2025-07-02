@@ -154,20 +154,20 @@
 
 
                     <% String[][] fields = {
-     {"Full Name", profileUser.getFullName(), "Edit Name", "fullName"},
-     {"Email", profileUser.getEmail(), "Edit Email", "email"},
-     {"Phone", profileUser.getPhoneNumber(), "Edit Phone Number", "phoneNumber"},
-     {"Address", profileUser.getAddress(), "Edit Address", "address"},
-     {"Date of Birth", (profileUser.getDateOfBirth() != null ? profileUser.getDateOfBirth().toString().substring(0, 10) : ""), "Edit Date of Birth", "dateOfBirth"},
-     {"Gender", (profileUser.isGender() ? "Male" : "Female"), "Edit Gender", "gender"}
- }; %>
+                            {"Full Name", profileUser.getFullName(), "Edit Name", "fullName"},
+                            {"Email", profileUser.getEmail(), "Edit Email", "email"},
+                            {"Phone", profileUser.getPhoneNumber(), "Edit Phone Number", "phoneNumber"},
+                            {"Address", profileUser.getAddress(), "Edit Address", "address"},
+                            {"Date of Birth", (profileUser.getDateOfBirth() != null ? profileUser.getDateOfBirth().toString().substring(0, 10) : ""), "Edit Date of Birth", "dateOfBirth"},
+                            {"Gender", (profileUser.isGender() ? "Male" : "Female"), "Edit Gender", "gender"}
+                        }; %>
 
                     <form id="updateForm" method="post" action="updateuserinfo" enctype="multipart/form-data">
                         <div class="info-row">
                             <div class="info-label">Profile Image:</div>
                             <div class="info-value">
-                                <% if (profileUser.getImage() != null && !profileUser.getImage().isEmpty()) { %>
-                                <img class="profile-img" src="<%= profileUser.getImage() %>" style="height:80px;" id="profilePreview">
+                                <% if (profileUser.getImage() != null && !profileUser.getImage().isEmpty()) {%>
+                                <img class="profile-img" src="<%= profileUser.getImage()%>" style="height:80px;" id="profilePreview">
                                 <% } else { %>
                                 <span id="profilePreview">No image uploaded</span>
                                 <% } %>
@@ -179,30 +179,38 @@
                         </div>
 
                         <% for (String[] field : fields) {
-                            String label = field[0];
-                            String value = field[1];
-                            String key = field[3];
+                                String label = field[0];
+                                String value = field[1];
+                                String key = field[3];
                         %>
                         <div class="info-row">
-                            <div class="info-label"><%= label %>:</div>
+                            <div class="info-label"><%= label%>:</div>
                             <div class="info-value">
-                                <span id="<%= key %>Display"><%= value %></span>
-                                <% if ("gender".equals(key)) { %>
-                                <div id="<%= key %>Edit" class="d-none">
-                                    <label><input type="radio" name="gender" value="true" <%= "Male".equals(value) ? "checked" : "" %>> Male</label>
-                                    <label class="ms-3"><input type="radio" name="gender" value="false" <%= "Female".equals(value) ? "checked" : "" %>> Female</label>
+                                <span id="<%= key%>Display"><%= value%></span>
+                                <% if (!"email".equals(key)) { %>
+                                <% if ("gender".equals(key)) {%>
+                                <div id="<%= key%>Edit" class="d-none">
+                                    <label><input type="radio" name="gender" value="true" <%= "Male".equals(value) ? "checked" : ""%>> Male</label>
+                                    <label class="ms-3"><input type="radio" name="gender" value="false" <%= "Female".equals(value) ? "checked" : ""%>> Female</label>
                                 </div>
-                                <% } else if ("dateOfBirth".equals(key)) { %>
-                                <input type="date" name="<%= key %>" value="<%= value %>" id="<%= key %>Edit" class="form-control d-inline w-auto d-none" />
-                                <% } else { %>
-                                <input type="text" name="<%= key %>" value="<%= value %>" id="<%= key %>Edit" class="form-control d-inline w-50 d-none" />
+                                <% } else if ("dateOfBirth".equals(key)) {%>
+                                <input type="date" name="<%= key%>" value="<%= value%>" id="<%= key%>Edit" class="form-control d-inline w-auto d-none" />
+                                <% } else {%>
+                                <input type="text" name="<%= key%>" value="<%= value%>" id="<%= key%>Edit" class="form-control d-inline w-50 d-none" />
+                                <% } %>
                                 <% } %>
                             </div>
+
+                            <% if (!"email".equals(key)) {%>
                             <div class="dropdown">
-                                <button type="button" class="dropdown-toggle" onclick="toggleEdit('<%= key %>', this)"><i class="fas fa-ellipsis-h"></i></button>
+                                <button type="button" class="dropdown-toggle" onclick="toggleEdit('<%= key%>', this)">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
                             </div>
+                            <% } %>
                         </div>
-                        <% } %>
+                        <% }%>
+
                         <div class="info-row">
                             <button type="submit" class="btn btn-primary">Save All Changes</button>
                         </div>

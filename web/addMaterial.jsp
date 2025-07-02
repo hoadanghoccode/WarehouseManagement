@@ -153,15 +153,6 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="supplierId">Supplier</label>
-                        <select id="supplierId" name="supplierId" class="form-control" >
-                            <option value="">Select Supplier</option>
-                            <c:forEach items="${suppliers}" var="supplier">
-                                <option value="${supplier.supplierId}">${supplier.name}</option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label for="imageFile">Upload Image</label>
                         <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control">
                     </div>

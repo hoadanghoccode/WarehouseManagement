@@ -165,7 +165,6 @@
                     <tr>
                         <th>ID</th>
                         <th>User</th>
-                        <th>Supplier</th>
                         <th>Type</th>
                         <th>Status</th>
                         <th>Created At</th>
@@ -178,7 +177,6 @@
                         <tr>
                             <td>${order.orderId}</td>
                             <td>${order.userName}</td>
-                            <td><c:out value="${empty order.supplierName ? 'N/A' : order.supplierName}" /></td>
                             <td>${order.type}</td>
                             <td>
                                 <span class="badge bg-${order.status == 'approved' ? 'success' : order.status == 'pending' ? 'warning' : 'secondary'} text-capitalize">${order.status}</span>
