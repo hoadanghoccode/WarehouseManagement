@@ -5,12 +5,10 @@
 package controller;
 
 import com.google.gson.Gson;
-import dal.CategoryDAO;
 import dal.MaterialDAO;
 import dal.OrderDAO;
-import dal.SubUnitDAO;
 import dal.SupplierDAO;
-import dal.UnitDAO; // Thêm import cho UnitDAO
+import dal.UnitDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -23,13 +21,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.Category;
 import model.Material;
 import model.Order;
 import model.OrderDetail;
-import model.SubUnit;
 import model.Supplier;
-import model.Units; // Thêm import cho Units model
+import model.Unit;
 import model.Users;
 
 /**
@@ -77,36 +73,24 @@ public class CreateOrderServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String cateId = request.getParameter("category");
         Gson gson = new Gson();
         MaterialDAO materialDAO = new MaterialDAO();
         SupplierDAO supplierDAO = new SupplierDAO();
-        CategoryDAO categoryDAO = new CategoryDAO();
-        SubUnitDAO subUnitDAO = new SubUnitDAO();
-        UnitDAO unitDAO = new UnitDAO(); // Thêm UnitDAO
+        UnitDAO unitDAO = new UnitDAO();
 
         List<Supplier> supplierList = supplierDAO.getAllSuppliers();
-        List<Category> categoryList = categoryDAO.getAllSubCategory();
-        List<SubUnit> subUnitList = subUnitDAO.getAllSubUnits("active");
-        List<Units> unitList = unitDAO.getAllUnitsWithSubUnit("active"); // Lấy tất cả units
 
-        if (cateId != null && !cateId.equals(cateId.trim())) {
-            int categoryId = Integer.parseInt(cateId);
-
-            List<Material> materialList = materialDAO.getAllMaterialsByCategoryId(categoryId);
-
-            request.setAttribute("categoriesJson", gson.toJson(categoryList));
-            request.setAttribute("subUnitsJson", gson.toJson(subUnitList));
-            request.setAttribute("unitsJson", gson.toJson(unitList)); // Gửi units thay vì subunits
-            request.setAttribute("suppliers", supplierList);
-            request.setAttribute("materials", materialList);
-            request.getRequestDispatcher("createorder.jsp").forward(request, response);
+        // Lấy tất cả materials với thông tin unit name
+        List<Material> allMaterials = materialDAO.getAllMaterials();
+        for (Material material : allMaterials) {
+            Unit unit = unitDAO.getUnitById(material.getUnitId());
+            if (unit != null) {
+                material.setUnitName(unit.getName());
+            }
         }
 
         request.setAttribute("suppliers", supplierList);
-        request.setAttribute("categoriesJson", gson.toJson(categoryList));
-        request.setAttribute("subUnitsJson", gson.toJson(subUnitList));
-        request.setAttribute("unitsJson", gson.toJson(unitList)); // Gửi units thay vì subunits
+        request.setAttribute("allMaterialsJson", gson.toJson(allMaterials));
         request.getRequestDispatcher("createorder.jsp").forward(request, response);
     }
 
@@ -147,7 +131,6 @@ public class CreateOrderServlet extends HttpServlet {
 
             // Lấy và validate supplier
             int supplierId = -1;
-            // Xử lý purchase của b Giang
             if (!"purchase".equals(orderType) && supplierRaw != null && !supplierRaw.trim().isEmpty()) {
                 try {
                     supplierId = Integer.parseInt(supplierRaw);
@@ -161,7 +144,6 @@ public class CreateOrderServlet extends HttpServlet {
 
             // 2. Lấy danh sách các item
             String[] materialIds = request.getParameterValues("material[]");
-            String[] unitIds = request.getParameterValues("unit[]");
             String[] quantities = request.getParameterValues("quantity[]");
 
             if (materialIds == null || materialIds.length == 0) {
@@ -179,8 +161,8 @@ public class CreateOrderServlet extends HttpServlet {
             order.setWarehouseId(1);
             order.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
-            // 4. Xử lý gộp các item trùng materialId và unitId (đã convert về subunit)
-            List<OrderDetail> consolidatedDetails = consolidateOrderItems(materialIds, unitIds, quantities, orderType);
+            // 4. Xử lý gộp các item trùng materialId
+            List<OrderDetail> consolidatedDetails = consolidateOrderItems(materialIds, quantities, orderType);
 
             if (consolidatedDetails.isEmpty()) {
                 returnWithError(request, response, "No valid order items found");
@@ -205,51 +187,31 @@ public class CreateOrderServlet extends HttpServlet {
         }
     }
 
-    private List<OrderDetail> consolidateOrderItems(String[] materialIds, String[] unitIds,
-            String[] quantities, String orderType) throws Exception {
-
-        // Sử dụng Map với key là "materialId_subUnitId" để gộp các item trùng nhau
-        Map<String, OrderDetail> consolidatedMap = new HashMap<>();
-        UnitDAO unitDAO = new UnitDAO();
+    private List<OrderDetail> consolidateOrderItems(String[] materialIds, String[] quantities, String orderType) throws Exception {
+        // Sử dụng Map với key là materialId để gộp các item trùng nhau
+        Map<Integer, OrderDetail> consolidatedMap = new HashMap<>();
 
         for (int i = 0; i < materialIds.length; i++) {
             try {
                 int materialId = Integer.parseInt(materialIds[i]);
-                int selectedUnitId = Integer.parseInt(unitIds[i]);
                 int quantity = Integer.parseInt(quantities[i]);
 
                 if (quantity <= 0) {
                     throw new Exception("Quantity must be greater than 0 for item " + (i + 1));
                 }
 
-                // Kiểm tra xem selectedUnitId là SubUnit hay Unit cha
-                int finalSubUnitId = selectedUnitId;
-                int finalQuantity = quantity;
-
-                // Lấy thông tin unit để kiểm tra
-                Units selectedUnit = unitDAO.getUnitById(selectedUnitId);
-                if (selectedUnit != null && selectedUnit.getFactor() > 1) {
-                    // Đây là Unit cha, cần convert về SubUnit
-                    finalSubUnitId = selectedUnit.getSubUnitId();
-                    finalQuantity = (int) (quantity * selectedUnit.getFactor());
-                }
-
-                // Tạo key để nhận diện item trùng nhau (dùng subUnitId sau khi convert)
-                String key = materialId + "_" + finalSubUnitId;
-
-                if (consolidatedMap.containsKey(key)) {
+                if (consolidatedMap.containsKey(materialId)) {
                     // Nếu đã tồn tại item này, cộng thêm số lượng
-                    OrderDetail existingDetail = consolidatedMap.get(key);
-                    existingDetail.setQuantity(existingDetail.getQuantity() + finalQuantity);
+                    OrderDetail existingDetail = consolidatedMap.get(materialId);
+                    existingDetail.setQuantity(existingDetail.getQuantity() + quantity);
                 } else {
                     // Tạo OrderDetail mới
                     OrderDetail detail = new OrderDetail();
                     detail.setMaterialId(materialId);
-                    detail.setSubUnitId(finalSubUnitId); // Lưu SubUnit ID
-                    detail.setQuantity(finalQuantity); // Lưu quantity đã convert
+                    detail.setQuantity(quantity);
                     detail.setQualityId("exportToRepair".equals(orderType) ? 2 : 1);
 
-                    consolidatedMap.put(key, detail);
+                    consolidatedMap.put(materialId, detail);
                 }
 
             } catch (NumberFormatException ex) {
@@ -265,15 +227,21 @@ public class CreateOrderServlet extends HttpServlet {
             throws ServletException, IOException {
 
         SupplierDAO supplierDAO = new SupplierDAO();
-        CategoryDAO categoryDAO = new CategoryDAO();
-        SubUnitDAO subUnitDAO = new SubUnitDAO();
-        UnitDAO unitDAO = new UnitDAO(); // Thêm UnitDAO
+        MaterialDAO materialDAO = new MaterialDAO();
+        UnitDAO unitDAO = new UnitDAO();
         Gson gson = new Gson();
 
+        // Lấy lại tất cả materials với unit name
+        List<Material> allMaterials = materialDAO.getAllMaterials();
+        for (Material material : allMaterials) {
+            Unit unit = unitDAO.getUnitById(material.getUnitId());
+            if (unit != null) {
+                material.setUnitName(unit.getName());
+            }
+        }
+
         request.setAttribute("suppliers", supplierDAO.getAllSuppliers());
-        request.setAttribute("categoriesJson", gson.toJson(categoryDAO.getAllSubCategory()));
-        request.setAttribute("subUnitsJson", gson.toJson(subUnitDAO.getAllSubUnits("active")));
-        request.setAttribute("unitsJson", gson.toJson(unitDAO.getAllUnitsWithSubUnit("active"))); // Gửi units
+        request.setAttribute("allMaterialsJson", gson.toJson(allMaterials));
         request.setAttribute("error", message);
 
         request.getRequestDispatcher("createorder.jsp").forward(request, response);
