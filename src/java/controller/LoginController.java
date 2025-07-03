@@ -95,7 +95,7 @@ public class LoginController extends HttpServlet {
 
             if (u == null) {
                 request.setAttribute("error", "Email or password is wrong!");
-                request.setAttribute("email", email);
+                request.setAttribute("email", email); 
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             } else {
                 HttpSession session = request.getSession();
@@ -110,7 +110,7 @@ public class LoginController extends HttpServlet {
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
-
+    
     /**
      * Returns a short description of the servlet.
      *

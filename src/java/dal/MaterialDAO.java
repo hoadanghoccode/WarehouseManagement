@@ -51,6 +51,7 @@ public class MaterialDAO extends DBContext {
                 m.setMaterialId(rs.getInt("Material_id"));
                 m.setCategoryId(rs.getInt("Category_id"));
                 m.setName(rs.getString("Name"));
+                m.setUnitId(rs.getInt("Unit_id"));
                 m.setImage(rs.getString("Image"));
                 m.setCreateAt(rs.getDate("Create_at"));
                 m.setStatus(rs.getString("Status"));
@@ -111,14 +112,30 @@ public class MaterialDAO extends DBContext {
             ps.setString(2, material.getName());
             ps.setString(3, material.getImage());
             ps.setString(4, material.getStatus());
-            ps.setTimestamp(5, Timestamp.from(Instant.now())); 
+            ps.setTimestamp(5, Timestamp.from(Instant.now()));
             ps.setInt(6, material.getMaterialId());
 
             // Check if material is in pending order or pending import/export
-            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())|| 
-                isMaterialInPendingPurchaseOrder(material.getMaterialId())) {
-                return false; 
+            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())
+                    || isMaterialInPendingPurchaseOrder(material.getMaterialId())) {
+                return false;
             }
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.out.println("updateMaterial error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    //Bạn Minh cần hàm này nha
+    public boolean updateStatusMaterial(int materialId) {
+        String query = "UPDATE Materials SET Status = 'active', Last_updated = ? WHERE Material_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setTimestamp(1, Timestamp.from(Instant.now()));
+            ps.setInt(2, materialId);
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
@@ -194,6 +211,7 @@ public class MaterialDAO extends DBContext {
         return 0;
     }
 
+    //Bạn Minh sửa hàm này nha
     public Material getMaterialIdBy(int mid) {
         String sql = "SELECT * FROM Materials WHERE Material_id = ?";
         try {
@@ -205,6 +223,7 @@ public class MaterialDAO extends DBContext {
                 material.setMaterialId(rs.getInt("Material_id"));
                 material.setName(rs.getString("Name"));
                 material.setImage(rs.getString("Image"));
+                material.setUnitId(rs.getInt("Unit_id"));
                 return material;
             }
         } catch (SQLException e) {
@@ -463,8 +482,8 @@ public class MaterialDAO extends DBContext {
     }
 
     public List<Material> getMaterialsInDateRange(Date fromDate, Date toDate, Integer materialIdFilter) {
-    List<Material> list = new ArrayList<>();
-    StringBuilder sql = new StringBuilder("""
+        List<Material> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
         SELECT m.*, 
                c.Name AS categoryName, 
                s.Name AS supplierName, 
@@ -476,39 +495,51 @@ public class MaterialDAO extends DBContext {
         WHERE 1=1
     """);
 
-    if (fromDate != null) sql.append(" AND DATE(m.create_at) >= ? ");
-    if (toDate != null) sql.append(" AND DATE(m.create_at) <= ? ");
-    if (materialIdFilter != null) sql.append(" AND m.material_id = ? ");
-    sql.append(" ORDER BY m.create_at DESC");
-
-    try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-        int index = 1;
-        if (fromDate != null) ps.setDate(index++, fromDate);
-        if (toDate != null) ps.setDate(index++, toDate);
-        if (materialIdFilter != null) ps.setInt(index++, materialIdFilter);
-
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Material m = new Material();
-            m.setMaterialId(rs.getInt("material_id"));
-            m.setName(rs.getString("name"));
-            m.setImage(rs.getString("image"));
-            m.setCreateAt(rs.getDate("create_at"));
-            m.setStatus(rs.getString("status"));
-            m.setCategoryId(rs.getInt("category_id"));
-            m.setCategoryName(rs.getString("categoryName"));
-            m.setSupplierId(rs.getInt("supplierId"));
-            m.setSupplierName(rs.getString("supplierName"));
-            m.setUnitId(rs.getInt("unit_id"));
-            m.setUnitName(rs.getString("unitName"));
-            list.add(m);
+        if (fromDate != null) {
+            sql.append(" AND DATE(m.create_at) >= ? ");
         }
-    } catch (Exception e) {
-        System.out.println("❌ Không có vật tư mới.");
-        e.printStackTrace();
+        if (toDate != null) {
+            sql.append(" AND DATE(m.create_at) <= ? ");
+        }
+        if (materialIdFilter != null) {
+            sql.append(" AND m.material_id = ? ");
+        }
+        sql.append(" ORDER BY m.create_at DESC");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int index = 1;
+            if (fromDate != null) {
+                ps.setDate(index++, fromDate);
+            }
+            if (toDate != null) {
+                ps.setDate(index++, toDate);
+            }
+            if (materialIdFilter != null) {
+                ps.setInt(index++, materialIdFilter);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Material m = new Material();
+                m.setMaterialId(rs.getInt("material_id"));
+                m.setName(rs.getString("name"));
+                m.setImage(rs.getString("image"));
+                m.setCreateAt(rs.getDate("create_at"));
+                m.setStatus(rs.getString("status"));
+                m.setCategoryId(rs.getInt("category_id"));
+                m.setCategoryName(rs.getString("categoryName"));
+                m.setSupplierId(rs.getInt("supplierId"));
+                m.setSupplierName(rs.getString("supplierName"));
+                m.setUnitId(rs.getInt("unit_id"));
+                m.setUnitName(rs.getString("unitName"));
+                list.add(m);
+            }
+        } catch (Exception e) {
+            System.out.println("❌ Không có vật tư mới.");
+            e.printStackTrace();
+        }
+        return list;
     }
-    return list;
-}
 
     public int getMaterialCountInDateRange(Date fromDate, Date toDate) {
         String sql = "SELECT COUNT(*) FROM materials WHERE DATE(create_at) BETWEEN ? AND ?";
@@ -551,22 +582,18 @@ public class MaterialDAO extends DBContext {
 
         // Bước 2: Gọi DAO
         MaterialDAO dao = new MaterialDAO();
-        List<Material> newMaterials = dao.getMaterialsInDateRange(fromDate, toDate, null);
+//        List<Material> newMaterials = dao.getMaterialsInDateRange(fromDate, toDate, null);
+        List<Material> newMaterials = dao.getAllMaterials(null, null, null);
 
+        System.out.println(newMaterials);
         // Bước 3: In kết quả
-        System.out.println("📌 Danh sách vật tư mới từ " + fromDate + " đến " + toDate);
-        if (newMaterials.isEmpty()) {
-            System.out.println("❌ Không có vật tư mới.");
-        } else {
-            for (Material m : newMaterials) {
-                System.out.println("✅ ID: " + m.getMaterialId()
-                        + ", Tên: " + m.getName()
-                        + ", Danh mục: " + m.getCategoryName()
-                        + ", Nhà cung cấp: " + m.getSupplierName()
-                        + ", Đơn vị: " + m.getUnitName()
-                        + ", Ngày tạo: " + m.getCreateAt()
-                        + ", Trạng thái: " + m.getStatus());
-            }
-        }
+//        System.out.println("📌 Danh sách vật tư mới từ " + fromDate + " đến " + toDate);
+//        if (newMaterials.isEmpty()) {
+//            System.out.println("❌ Không có vật tư mới.");
+//        } else {
+//            for (Material m : newMaterials) {
+//                System.out.println(m);
+//            }
+//        }
     }
 }

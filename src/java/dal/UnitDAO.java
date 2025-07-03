@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.Unit;
 import model.Units;
 
 public class UnitDAO extends DBContext {
@@ -60,18 +61,17 @@ public class UnitDAO extends DBContext {
         return units;
     }
 
-    public Units getUnitById(int unitId) {
-        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units WHERE Unit_id = ?";
+    //Bạn Minh sửa hàm này nha
+    public Unit getUnitById(int unitId) {
+        String sql = "SELECT * FROM Units WHERE Unit_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Units(
+                    return new Unit(
                             rs.getInt("Unit_id"),
                             rs.getString("Name"),
-                            rs.getInt("SubUnit_id"),
-                            rs.getDouble("Factor"),
-                            "active".equals(rs.getString("Status")),
+                            rs.getString("Status"),
                             rs.getTimestamp("Created_at"),
                             rs.getTimestamp("Updated_at")
                     );
@@ -167,7 +167,7 @@ public class UnitDAO extends DBContext {
         }
         return false;
     }
-    
+
     //B Minh cần hàm này nên đừng xóa
     public List<Units> getAllUnitsWithSubUnit(String status) {
         List<Units> units = new ArrayList<>();
