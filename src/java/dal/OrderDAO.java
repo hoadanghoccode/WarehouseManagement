@@ -678,6 +678,45 @@ public class OrderDAO extends DBContext {
      * @param userId User ID who approves the order
      * @return true if successful, false otherwise
      */
+    private boolean updateMaterialStatusIfNew(List<OrderDetail> orderDetails) {
+        if (orderDetails == null || orderDetails.isEmpty()) {
+            return true;
+        }
+
+        PreparedStatement psUpdateMaterial = null;
+        try {
+            String updateMaterialQuery = "UPDATE Materials SET Status = 'active' WHERE Material_id = ? AND Status = 'new'";
+            psUpdateMaterial = connection.prepareStatement(updateMaterialQuery);
+
+            for (OrderDetail detail : orderDetails) {
+                psUpdateMaterial.setInt(1, detail.getMaterialId());
+                psUpdateMaterial.addBatch();
+            }
+
+            int[] updateResults = psUpdateMaterial.executeBatch();
+
+            // Log which materials were updated
+            for (int i = 0; i < updateResults.length; i++) {
+                if (updateResults[i] > 0) {
+                    System.out.println("Material ID " + orderDetails.get(i).getMaterialId() + " status updated from 'new' to 'active'");
+                }
+            }
+
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error updating material status: " + e.getMessage());
+            return false;
+        } finally {
+            try {
+                if (psUpdateMaterial != null) {
+                    psUpdateMaterial.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Error closing material update statement: " + e.getMessage());
+            }
+        }
+    }
+
     public boolean approveOrderAndCreateImportNote(int orderId, int userId) {
         PreparedStatement psUpdateOrder = null;
         PreparedStatement psInsertImportNote = null;
@@ -695,7 +734,14 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 2. Update order status to approved
+            // 2. Update material status from 'new' to 'active' if applicable
+            if (!updateMaterialStatusIfNew(order.getOrderDetails())) {
+                System.err.println("Failed to update material status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Update order status to approved
             String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
             psUpdateOrder = connection.prepareStatement(updateOrderQuery);
             psUpdateOrder.setInt(1, orderId);
@@ -707,7 +753,7 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 3. Create import note only for import type orders
+            // 4. Create import note only for import type orders
             if ("import".equals(order.getType())) {
                 String insertImportNoteQuery = "INSERT INTO Import_note (Order_id, User_id, Warehouse_id) VALUES (?, ?, ?)";
                 psInsertImportNote = connection.prepareStatement(insertImportNoteQuery, Statement.RETURN_GENERATED_KEYS);
@@ -722,7 +768,7 @@ public class OrderDAO extends DBContext {
                     if (generatedKeys.next()) {
                         int importNoteId = generatedKeys.getInt(1);
 
-                        // 4. Create import note details
+                        // 5. Create import note details
                         if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
                             String insertImportDetailQuery = "INSERT INTO Import_note_detail (Import_note_id, Material_id, Quantity, Quality_id) VALUES (?, ?, ?, ?)";
                             psInsertImportDetail = connection.prepareStatement(insertImportDetailQuery);
@@ -818,7 +864,14 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 2. Update order status to approved
+            // 2. Update material status from 'new' to 'active' if applicable
+            if (!updateMaterialStatusIfNew(order.getOrderDetails())) {
+                System.err.println("Failed to update material status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Update order status to approved
             String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
             psUpdateOrder = connection.prepareStatement(updateOrderQuery);
             psUpdateOrder.setInt(1, orderId);
@@ -830,7 +883,7 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 3. Create export note for export or exportToRepair type orders
+            // 4. Create export note for export or exportToRepair type orders
             if ("export".equals(order.getType()) || "exportToRepair".equals(order.getType())) {
                 String insertExportNoteQuery = "INSERT INTO Export_note (Order_id, User_id, Warehouse_id) VALUES (?, ?, ?)";
                 psInsertExportNote = connection.prepareStatement(insertExportNoteQuery, Statement.RETURN_GENERATED_KEYS);
@@ -845,7 +898,7 @@ public class OrderDAO extends DBContext {
                     if (generatedKeys.next()) {
                         int exportNoteId = generatedKeys.getInt(1);
 
-                        // 4. Create export note details
+                        // 5. Create export note details
                         if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
                             String insertExportDetailQuery = "INSERT INTO Export_note_detail (Export_note_id, Material_id, Quantity, Quality_id) VALUES (?, ?, ?, ?)";
                             psInsertExportDetail = connection.prepareStatement(insertExportDetailQuery);
@@ -924,7 +977,6 @@ public class OrderDAO extends DBContext {
         }
     }
 
-//    Xử lý purchase của b Giang
     public boolean approveOrderAndCreatePurchaseNote(int orderId, int userId) {
         PreparedStatement psUpdateOrder = null;
         PreparedStatement psInsertPurchaseNote = null;
@@ -942,7 +994,14 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 2. Update order status to approved
+            // 2. Update material status from 'new' to 'active' if applicable
+            if (!updateMaterialStatusIfNew(order.getOrderDetails())) {
+                System.err.println("Failed to update material status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Update order status to approved
             String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
             psUpdateOrder = connection.prepareStatement(updateOrderQuery);
             psUpdateOrder.setInt(1, orderId);
@@ -954,7 +1013,7 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 3. Create purchase note only for purchase type orders
+            // 4. Create purchase note only for purchase type orders
             if ("purchase".equals(order.getType())) {
                 String insertPurchaseNoteQuery = "INSERT INTO PurchaseOrders (Order_id, User_id, Warehouse_id, Status) VALUES (?, ?, ?, 'new')";
                 psInsertPurchaseNote = connection.prepareStatement(insertPurchaseNoteQuery, Statement.RETURN_GENERATED_KEYS);
@@ -969,7 +1028,7 @@ public class OrderDAO extends DBContext {
                     if (generatedKeys.next()) {
                         int purchaseNoteId = generatedKeys.getInt(1);
 
-                        // 4. Create purchase note details
+                        // 5. Create purchase note details
                         if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
                             String insertPurchaseDetailQuery = "INSERT INTO PurchaseOrder_detail (PurchaseOrder_id, Material_id, Quantity, Quality_id) VALUES (?, ?, ?, ?)";
                             psInsertPurchaseDetail = connection.prepareStatement(insertPurchaseDetailQuery);

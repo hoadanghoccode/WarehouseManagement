@@ -32,9 +32,10 @@ public class UnitDAO extends DBContext {
         return units;
     }
 
-    public List<Units> getAllUnits(String status) {
-        List<Units> units = new ArrayList<>();
-        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units";
+    //Bạn Minh cần hàm này nha
+    public List<Unit> getAllUnits(String status) {
+        List<Unit> units = new ArrayList<>();
+        String sql = "SELECT * FROM Units";
         if (status != null && !status.isEmpty()) {
             sql += " WHERE Status = ?";
         }
@@ -44,12 +45,10 @@ public class UnitDAO extends DBContext {
             }
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    units.add(new Units(
+                    units.add(new Unit(
                             rs.getInt("Unit_id"),
                             rs.getString("Name"),
-                            rs.getInt("SubUnit_id"),
-                            rs.getDouble("Factor"),
-                            "active".equals(rs.getString("Status")),
+                            rs.getString("Status"),
                             rs.getTimestamp("Created_at"),
                             rs.getTimestamp("Updated_at")
                     ));

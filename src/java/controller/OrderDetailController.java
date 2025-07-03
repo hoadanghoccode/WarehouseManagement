@@ -247,7 +247,7 @@ public class OrderDetailController extends HttpServlet {
             }
 
             // Redirect về trang detail để hiển thị kết quả
-            response.sendRedirect("orderdetail?oid=" + orderId);
+            response.sendRedirect("orderlist");
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating order status", e);

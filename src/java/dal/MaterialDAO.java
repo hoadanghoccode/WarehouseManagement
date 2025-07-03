@@ -389,12 +389,15 @@ public class MaterialDAO extends DBContext {
 
     public List<Material> getAllMaterials() {
         List<Material> list = new ArrayList<>();
-        String sql = "SELECT * FROM materials WHERE status = 'active'";
+        String sql = "SELECT * FROM Materials WHERE status = 'new' OR status = 'active'";
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Material m = new Material();
-                m.setMaterialId(rs.getInt("material_id"));
-                m.setName(rs.getString("name"));
+                m.setMaterialId(rs.getInt("Material_id"));
+                m.setName(rs.getString("Name"));
+                m.setUnitId(rs.getInt("Unit_id"));
+                m.setCategoryId(rs.getInt("Category_id"));
+                m.setImage(rs.getString("Image"));
                 list.add(m);
             }
         } catch (SQLException e) {
@@ -583,7 +586,7 @@ public class MaterialDAO extends DBContext {
         // Bước 2: Gọi DAO
         MaterialDAO dao = new MaterialDAO();
 //        List<Material> newMaterials = dao.getMaterialsInDateRange(fromDate, toDate, null);
-        List<Material> newMaterials = dao.getAllMaterials(null, null, null);
+        List<Material> newMaterials = dao.getAllMaterials();
 
         System.out.println(newMaterials);
         // Bước 3: In kết quả

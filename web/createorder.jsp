@@ -167,8 +167,7 @@
         <!--<script src="js/bootstrap.bundle.min.js"></script>-->
 
         <script>
-                        const categories = ${categoriesJson};
-                        const units = ${unitsJson};
+                        const allMaterials  = ${allMaterialsJson};
         </script>
         <!--Xử lý purchase của b Giang-->
         <script>

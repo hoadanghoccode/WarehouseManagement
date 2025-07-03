@@ -1,162 +1,61 @@
 /* 
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/JavaScript.js to edit this template
+ * editorder.js - JavaScript for Update Order functionality
+ * Based on createorder.js with modifications for editing existing orders
  */
 
 let itemCounter = 0;
 
-// Load existing order items when page loads
-$(document).ready(function() {
-    if (existingOrderDetails && existingOrderDetails.length > 0) {
-        loadExistingOrderItems();
-    }
+// Initialize the edit order page
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize autocomplete
+    initializeAutocomplete();
+    
+    // Load existing order items
+    loadExistingOrderItems();
+    
+    // Setup form validation
+    setupFormValidation();
+    
+    // Create required modals
+    createErrorModal();
+    createDuplicateModal();
+    addDuplicateWarningStyles();
 });
 
-function loadMaterialCategory(materialId, categorySelect, materialSelect) {
-    // AJAX call to get material's category
-    $.ajax({
-        url: 'get-material-category',
-        type: 'GET',
-        data: { materialId: materialId },
-        dataType: 'json',
-        success: function(data) {
-            console.log('Material category data:', data); // Debug log
-            
-            if (data && data.categoryId) {
-                // Set category value
-                categorySelect.value = data.categoryId;
-                
-                // Load materials for this category and select the current material
-                loadMaterialsAndSelect(data.categoryId, materialSelect, materialId);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Failed to load material category:', error);
-            console.error('Response:', xhr.responseText);
-        }
-    });
-}
-
-// Hàm load materials và set selected material
-function loadMaterialsAndSelect(categoryId, materialSelect, selectedMaterialId) {
-    $.ajax({
-        url: 'get-materials',
-        type: 'GET',
-        data: {categoryId: categoryId},
-        dataType: 'json',
-        success: function (data) {
-            console.log('Materials loaded:', data); // Debug log
-            
-            materialSelect.innerHTML = '<option value="">Select Material</option>';
-            
-            let materialFound = false;
-            data.forEach(material => {
-                const option = document.createElement("option");
-                option.value = material.materialId;
-                option.textContent = material.name;
-                
-                // Set selected nếu là material hiện tại
-                if (material.materialId == selectedMaterialId) {
-                    option.selected = true;
-                    materialFound = true;
-                }
-                
-                materialSelect.appendChild(option);
-            });
-            
-            // Nếu không tìm thấy material trong danh sách, có thể material đã bị xóa
-            // Trong trường hợp này, chúng ta vẫn giữ lại để user có thể chọn material khác
-            if (!materialFound && selectedMaterialId) {
-                console.warn('Selected material not found in category materials');
-            }
-            
-            materialSelect.disabled = false;
-            
-            // Kiểm tra duplicate sau khi load xong
-            checkDuplicateItems();
-        },
-        error: function (xhr, status, error) {
-            console.error('Failed to load materials:', error);
-            console.error('Response:', xhr.responseText);
-            materialSelect.innerHTML = '<option value="">Error loading materials</option>';
-            materialSelect.disabled = true;
-        }
-    });
-}
-
 function loadExistingOrderItems() {
-    console.log('Loading existing order items:', existingOrderDetails); // Debug log
-    
+    if (typeof existingOrderDetails !== 'undefined' && existingOrderDetails.length > 0) {
+        const container = document.getElementById("orderItemsContainer");
+        const noMsg = document.getElementById("noItemsMessage");
+        
+        // Hide no items message
+        if (noMsg) {
+            noMsg.style.display = "none";
+        }
+        
+        // Load each existing item
+        existingOrderDetails.forEach(detail => {
+            addOrderItemWithData(detail);
+        });
+        
+        // Renumber items after loading
+        renumberItems();
+    }
+}
+
+function addOrderItemWithData(data = null) {
+    itemCounter++;
     const container = document.getElementById("orderItemsContainer");
     const noMsg = document.getElementById("noItemsMessage");
-    
-    existingOrderDetails.forEach((detail, index) => {
-        itemCounter++;
-        
-        const itemHtml = `
-        <div class="order-item" data-item-id="${itemCounter}">
-            <button type="button" class="remove-item-btn" onclick="removeOrderItem(this)">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="item-header">
-                <span class="item-number">Item #${index + 1}</span>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Category <span class="required">*</span></label>
-                    <select class="form-control" name="category[]" onchange="updateMaterials(this)" required>
-                        <option value="">Select Category</option>
-                        ${categories.map(c => `<option value="${c.categoryId}">${c.name}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Material <span class="required">*</span></label>
-                    <select class="form-control" name="material[]" onchange="checkDuplicateItems()" required>
-                        <option value="">Loading materials...</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Unit <span class="required">*</span></label>
-                    <select class="form-control" name="unit[]" onchange="checkDuplicateItems()" required>
-                        <option value="">Select Unit</option>
-                        ${units.map(u => `<option value="${u.subUnitId}" ${u.subUnitId == detail.subUnitId ? 'selected' : ''}>${u.name}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Quantity <span class="required">*</span></label>
-                    <div class="quantity-controls">
-                        <button type="button" class="quantity-btn" onclick="adjustQuantity(this, -1)">-</button>
-                        <input type="number" name="quantity[]" class="form-control quantity-input" value="${detail.quantity}" min="1" max="9999" required />
-                        <button type="button" class="quantity-btn" onclick="adjustQuantity(this, 1)">+</button>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-        
-        container.insertAdjacentHTML("beforeend", itemHtml);
-        
-        // Get references to the newly added item's selects
-        const lastItem = container.lastElementChild;
-        const categorySelect = lastItem.querySelector("select[name='category[]']");
-        const materialSelect = lastItem.querySelector("select[name='material[]']");
-        
-        // Load category and materials for this item
-        loadMaterialCategory(detail.materialId, categorySelect, materialSelect);
-    });
     
     if (noMsg) {
         noMsg.style.display = "none";
     }
-}
 
-function addOrderItem() {
-    itemCounter++;
-    const container = document.getElementById("orderItemsContainer");
-    const noMsg = document.getElementById("noItemsMessage");
-    if (noMsg)
-        noMsg.style.display = "none";
+    // Find material data if provided
+    let materialData = null;
+    if (data && data.materialId) {
+        materialData = allMaterials.find(m => m.materialId == data.materialId);
+    }
 
     const itemHtml = `
     <div class="order-item" data-item-id="${itemCounter}">
@@ -168,40 +67,193 @@ function addOrderItem() {
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Category <span class="required">*</span></label>
-                <select class="form-control" name="category[]" onchange="updateMaterials(this)" required>
-                    <option value="">Select Category</option>
-                    ${categories.map(c => `<option value="${c.categoryId}">${c.name}</option>`).join('')}
-                </select>
+                <label for="material">Material <span class="required">*</span></label>
+                <div class="autocomplete-container">
+                    <input type="text" 
+                           class="form-control material-input" 
+                           placeholder="Search for materials..."
+                           autocomplete="off"
+                           oninput="handleMaterialSearch(this)"
+                           onfocus="showMaterialDropdown(this)"
+                           onblur="hideMaterialDropdown(this)"
+                           value="${materialData ? materialData.name : ''}"
+                           required>
+                    <input type="hidden" name="material[]" class="material-id-input" value="${materialData ? materialData.materialId : ''}">
+                    <div class="material-dropdown" style="display: none;">
+                        <div class="dropdown-content">
+                            <!-- Dropdown items will be populated here -->
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
-                <label>Material <span class="required">*</span></label>
-                <select class="form-control" name="material[]" onchange="checkDuplicateItems()" disabled required>
-                    <option value="">Select Category First</option>
-                </select>
+                <label for="unit">Unit <span class="required">*</span></label>
+                <input type="text" class="form-control unit-display" value="${materialData ? materialData.unitName : 'Select Material First'}" readonly>
+                <input type="hidden" name="unit[]" class="unit-id-input" value="${materialData ? materialData.unitId : ''}">
             </div>
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Unit <span class="required">*</span></label>
-                <select class="form-control" name="unit[]" onchange="checkDuplicateItems()" required>
-                    <option value="">Select Unit</option>
-                    ${units.map(u => `<option value="${u.subUnitId}">${u.name}</option>`).join('')}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Quantity <span class="required">*</span></label>
-                <div class="quantity-controls">
-                    <button type="button" class="quantity-btn" onclick="adjustQuantity(this, -1)">-</button>
-                    <input type="number" name="quantity[]" class="form-control quantity-input" value="1" min="1" max="9999" required />
-                    <button type="button" class="quantity-btn" onclick="adjustQuantity(this, 1)">+</button>
+                <label for="quantity">Quantity <span class="required">*</span></label>
+                <div class="quantity-container">
+                    <div class="quantity-controls">
+                        <button type="button" class="quantity-btn" onclick="adjustQuantity(this, -1)">-</button>
+                        <input type="number" name="quantity[]" class="form-control quantity-input" value="${data ? data.quantity : 1}" min="1" max="9999" required onchange="checkDuplicateItems();" />
+                        <button type="button" class="quantity-btn" onclick="adjustQuantity(this, 1)">+</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>`;
 
     container.insertAdjacentHTML("beforeend", itemHtml);
+    
+    // Initialize autocomplete for the new item
+    initializeAutocomplete();
+    
+    // Check for duplicates
+    checkDuplicateItems();
+}
+
+function addOrderItem() {
+    addOrderItemWithData();
     renumberItems();
+}
+
+function handleMaterialSearch(input) {
+    const searchTerm = input.value.toLowerCase().trim();
+    const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
+    const dropdownContent = dropdown.querySelector('.dropdown-content');
+    
+    // Clear previous results
+    dropdownContent.innerHTML = '';
+    
+    if (searchTerm === '') {
+        // Show all materials when input is empty
+        displayMaterialOptions(dropdownContent, allMaterials);
+    } else {
+        // Filter materials based on search term
+        const filteredMaterials = allMaterials.filter(material => 
+            material.name.toLowerCase().includes(searchTerm)
+        );
+        displayMaterialOptions(dropdownContent, filteredMaterials);
+    }
+    
+    // Show dropdown
+    dropdown.style.display = 'block';
+}
+
+function displayMaterialOptions(container, materials) {
+    if (materials.length === 0) {
+        container.innerHTML = '<div class="dropdown-item no-results">No materials found</div>';
+        return;
+    }
+    
+    materials.forEach(material => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'dropdown-item';
+        itemDiv.innerHTML = `
+            <div class="material-option" data-material-id="${material.materialId}" 
+                 data-unit-id="${material.unitId}" 
+                 data-unit-name="${material.unitName}">
+                <div class="material-image">
+                    <img src="${material.image || 'images/default-material.jpg'}" 
+                         alt="${material.name}" 
+                         onerror="this.src='images/default-material.jpg'">
+                </div>
+                <div class="material-info">
+                    <div class="material-name">${material.name}</div>
+                    <div class="material-details">
+                        <span class="material-unit">${material.unitName}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add click event
+        itemDiv.addEventListener('click', function(e) {
+            e.preventDefault();
+            selectMaterial(this.querySelector('.material-option'));
+        });
+        
+        container.appendChild(itemDiv);
+    });
+}
+
+function selectMaterial(materialOption) {
+    const autocompleteContainer = materialOption.closest('.autocomplete-container');
+    const materialInput = autocompleteContainer.querySelector('.material-input');
+    const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
+    const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
+    const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
+    const dropdown = autocompleteContainer.querySelector('.material-dropdown');
+    
+    // Get material data
+    const materialId = materialOption.dataset.materialId;
+    const materialName = materialOption.querySelector('.material-name').textContent;
+    const unitId = materialOption.dataset.unitId;
+    const unitName = materialOption.dataset.unitName;
+    
+    // Set values
+    materialInput.value = materialName;
+    materialIdInput.value = materialId;
+    unitDisplay.value = unitName;
+    unitIdInput.value = unitId;
+    
+    // Hide dropdown
+    dropdown.style.display = 'none';
+    
+    // Trigger validation
+    checkDuplicateItems();
+}
+
+function showMaterialDropdown(input) {
+    const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
+    const dropdownContent = dropdown.querySelector('.dropdown-content');
+    
+    // If dropdown is empty, populate with all materials
+    if (dropdownContent.children.length === 0) {
+        displayMaterialOptions(dropdownContent, allMaterials);
+    }
+    
+    dropdown.style.display = 'block';
+}
+
+function hideMaterialDropdown(input) {
+    // Use setTimeout to allow click events to fire first
+    setTimeout(() => {
+        const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
+        dropdown.style.display = 'none';
+        
+        // Validate selection
+        validateMaterialSelection(input);
+    }, 200);
+}
+
+function validateMaterialSelection(input) {
+    const autocompleteContainer = input.closest('.autocomplete-container');
+    const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
+    const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
+    const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
+    
+    // If no material is selected (hidden input is empty), clear everything
+    if (!materialIdInput.value) {
+        input.value = '';
+        unitDisplay.value = 'Select Material First';
+        unitIdInput.value = '';
+    }
+}
+
+function clearMaterialSelection(orderItem) {
+    const materialInput = orderItem.querySelector('.material-input');
+    const materialIdInput = orderItem.querySelector('.material-id-input');
+    const unitDisplay = orderItem.querySelector('.unit-display');
+    const unitIdInput = orderItem.querySelector('.unit-id-input');
+    
+    materialInput.value = '';
+    materialIdInput.value = '';
+    unitDisplay.value = 'Select Material First';
+    unitIdInput.value = '';
 }
 
 function removeOrderItem(btn) {
@@ -215,79 +267,42 @@ function removeOrderItem(btn) {
     }
 
     renumberItems();
-    checkDuplicateItems(); // Kiểm tra lại duplicate sau khi xóa
+    checkDuplicateItems();
 }
 
 function renumberItems() {
     document.querySelectorAll(".order-item").forEach((item, index) => {
         const label = item.querySelector(".item-number");
-        if (label)
+        if (label) {
             label.textContent = `Item #${index + 1}`;
-    });
-}
-
-function adjustQuantity(button, delta) {
-    const input = button.closest(".quantity-controls").querySelector("input");
-    let val = parseInt(input.value) || 1;
-    val = Math.max(1, Math.min(9999, val + delta));
-    input.value = val;
-    
-    // Kiểm tra lại duplicate khi thay đổi quantity
-    checkDuplicateItems();
-}
-
-
-function updateMaterials(selectEl) {
-    const itemEl = selectEl.closest(".order-item");
-    const materialSelect = itemEl.querySelector("select[name='material[]']");
-    const categoryId = selectEl.value;
-
-    if (!categoryId) {
-        materialSelect.innerHTML = '<option value="">Select Material</option>';
-        materialSelect.disabled = true;
-        checkDuplicateItems(); // Kiểm tra lại duplicate
-        return;
-    }
-
-    // Show loading state
-    materialSelect.innerHTML = '<option value="">Loading materials...</option>';
-    materialSelect.disabled = true;
-
-    // AJAX call to get materials by category
-    $.ajax({
-        url: 'get-materials',
-        type: 'GET',
-        data: {categoryId: categoryId},
-        dataType: 'json',
-        success: function (data) {
-            console.log('Materials for category ' + categoryId + ':', data); // Debug log
-            
-            materialSelect.innerHTML = '<option value="">Select Material</option>';
-            data.forEach(material => {
-                const option = document.createElement("option");
-                option.value = material.materialId;
-                option.textContent = material.name;
-                materialSelect.appendChild(option);
-            });
-            materialSelect.disabled = false;
-            
-            // Kiểm tra duplicate sau khi load materials
-            checkDuplicateItems();
-        },
-        error: function (xhr, status, error) {
-            console.error('Failed to load materials for category:', error);
-            console.error('Response:', xhr.responseText);
-            materialSelect.innerHTML = '<option value="">Error loading materials</option>';
-            materialSelect.disabled = true;
         }
     });
 }
 
+function adjustQuantity(button, change) {
+    const quantityInput = button.parentElement.querySelector('.quantity-input');
+    let currentValue = parseInt(quantityInput.value) || 1;
+    let newValue = currentValue + change;
+    
+    if (newValue < 1) newValue = 1;
+    if (newValue > 9999) newValue = 9999;
+    
+    quantityInput.value = newValue;
+    
+    // Trigger validation
+    checkDuplicateItems();
+}
+
+function cancelOrder() {
+    showCancelModal();
+}
+
+// Function to check and warn about duplicate items
 function checkDuplicateItems() {
     const items = document.querySelectorAll(".order-item");
     const duplicateGroups = new Map();
-    
-    // Reset tất cả warning trước đó
+
+    // Reset all previous warnings
     items.forEach(item => {
         item.classList.remove('duplicate-warning');
         const existingWarning = item.querySelector('.duplicate-warning-text');
@@ -295,100 +310,51 @@ function checkDuplicateItems() {
             existingWarning.remove();
         }
     });
-    
-    // Tìm các item trùng lặp
+
+    // Find duplicate items (based on materialId only)
     items.forEach((item, index) => {
-        const materialSelect = item.querySelector("select[name='material[]']");
-        const unitSelect = item.querySelector("select[name='unit[]']");
-        
-        const materialId = materialSelect.value;
-        const unitId = unitSelect.value;
-        
-        if (materialId && unitId) {
-            const key = `${materialId}_${unitId}`;
-            
-            if (!duplicateGroups.has(key)) {
-                duplicateGroups.set(key, []);
+        const materialIdInput = item.querySelector(".material-id-input");
+        const materialId = materialIdInput.value;
+
+        if (materialId) {
+            if (!duplicateGroups.has(materialId)) {
+                duplicateGroups.set(materialId, []);
             }
-            duplicateGroups.get(key).push({item, index});
+            duplicateGroups.get(materialId).push({item, index});
         }
     });
-    
-    // Hiển thị warning cho các nhóm trùng lặp
-    duplicateGroups.forEach((group, key) => {
+
+    // Display warnings for duplicate groups
+    duplicateGroups.forEach((group, materialId) => {
         if (group.length > 1) {
-            // Tính tổng số lượng của nhóm trùng lặp
+            // Calculate total quantity of duplicate group
             let totalQuantity = 0;
+            const materialName = group[0].item.querySelector(".material-input").value;
+            const unitName = group[0].item.querySelector(".unit-display").value;
+
             group.forEach(({item}) => {
                 const quantityInput = item.querySelector("input[name='quantity[]']");
-                totalQuantity += parseInt(quantityInput.value) || 0;
-                
-                // Thêm class warning
+                const quantity = parseInt(quantityInput.value) || 0;
+                totalQuantity += quantity;
+
+                // Add warning class
                 item.classList.add('duplicate-warning');
             });
-            
-            // Thêm thông báo warning vào item đầu tiên của nhóm
+
+            // Add warning message to first item of the group
             const firstItem = group[0].item;
             const warningText = document.createElement('div');
             warningText.className = 'duplicate-warning-text';
             warningText.innerHTML = `
                 <i class="fas fa-exclamation-triangle"></i>
-                Duplicate item detected! This material-unit combination appears ${group.length} times 
-                (Total quantity: ${totalQuantity}). These will be merged when saved.
+                Duplicate material detected! "${materialName}" appears ${group.length} times 
+                (Total: ${totalQuantity} ${unitName}). These will be merged when saved.
             `;
-            
+
             const itemHeader = firstItem.querySelector('.item-header');
             itemHeader.appendChild(warningText);
         }
     });
-}
-
-// Form validation before submit
-$("#orderForm").on("submit", function(e) {
-    const orderItems = document.querySelectorAll(".order-item");
-    
-    // Kiểm tra số lượng items
-    if (orderItems.length === 0) {
-        e.preventDefault();
-        showErrorModal();
-        return false;
-    }
-    
-    // Validate each item
-    let isValid = true;
-    orderItems.forEach((item, index) => {
-        const category = item.querySelector("select[name='category[]']").value;
-        const material = item.querySelector("select[name='material[]']").value;
-        const unit = item.querySelector("select[name='unit[]']").value;
-        const quantity = item.querySelector("input[name='quantity[]']").value;
-        
-        if (!category || !material || !unit || !quantity || quantity < 1) {
-            isValid = false;
-            alert(`Please fill all fields for Item #${index + 1}`);
-            return false;
-        }
-    });
-    
-    if (!isValid) {
-        e.preventDefault();
-        return false;
-    }
-    
-    // Kiểm tra duplicate items và hiển thị modal thay vì alert
-    const duplicateItems = document.querySelectorAll('.duplicate-warning');
-    if (duplicateItems.length > 0) {
-        e.preventDefault(); // Ngăn submit form
-        showDuplicateModal(); // Hiển thị modal confirmation
-        return false;
-    }
-    
-    return true;
-});
-
-
-
-function cancelOrder() {
-    showCancelModal();
 }
 
 function showCancelModal() {
@@ -408,8 +374,8 @@ function hideCancelModal() {
 }
 
 function confirmCancel() {
-    // Reload trang như yêu cầu
-    window.location.reload();
+    // Navigate back to order list
+    window.location.href = 'orderlist';
 }
 
 function showDuplicateModal() {
@@ -434,116 +400,208 @@ function hideDuplicateModal() {
 
 function confirmDuplicateSubmit() {
     hideDuplicateModal();
-    // Submit form trực tiếp
     setTimeout(() => {
         document.getElementById('orderForm').submit();
     }, 300);
 }
 
-// Đóng modal khi click outside
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('cancelModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideCancelModal();
-        }
-    });
-
-    // Đóng modal khi nhấn ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            hideCancelModal();
-        }
-    });
-});
-
-// Thêm code này vào cuối file createorder.js
-
-// Validation khi submit form
-document.addEventListener('DOMContentLoaded', function() {
-    const orderForm = document.getElementById('orderForm');
+// Initialize autocomplete functionality
+function initializeAutocomplete() {
+    // Add CSS for autocomplete if not already added
+    if (!document.getElementById('autocomplete-styles')) {
+        addAutocompleteStyles();
+    }
     
-    // Tạo modal HTML và thêm vào body
-    createErrorModal();
-    createDuplicateModal();
-    
-    // Thêm CSS cho duplicate warning
-    addDuplicateWarningStyles();
-    
-    // Đóng modal khi click outside
+    // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
-        if (e.target && e.target.id === 'cancelModal') {
-            hideCancelModal();
-        }
-        if (e.target && e.target.id === 'errorModal') {
-            hideErrorModal();
-        }
-        if (e.target && e.target.id === 'duplicateModal') {
-            hideDuplicateModal();
+        if (!e.target.closest('.autocomplete-container')) {
+            document.querySelectorAll('.material-dropdown').forEach(dropdown => {
+                dropdown.style.display = 'none';
+            });
         }
     });
-
-    // Đóng modal khi nhấn ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const cancelModal = document.getElementById('cancelModal');
-            const errorModal = document.getElementById('errorModal');
-            const duplicateModal = document.getElementById('duplicateModal');
-            
-            if (cancelModal && cancelModal.style.display === 'flex') {
-                hideCancelModal();
-            }
-            if (errorModal && errorModal.style.display === 'flex') {
-                hideErrorModal();
-            }
-            if (duplicateModal && duplicateModal.style.display === 'flex') {
-                hideDuplicateModal();
-            }
-        }
-    });
-});
-
-// Hàm tạo modal HTML
-function createErrorModal() {
-    const modalHtml = `
-        <div id="errorModal" class="modal" style="display: none;">
-            <div class="modal-card">
-                <div class="modal-header">
-                    <h2><i class="fas fa-exclamation-triangle" style="color: #dc3545; margin-right: 10px;"></i>Error</h2>
-                    <span class="close" onclick="hideErrorModal()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <div class="error-box">
-                        <div class="error-header">
-                            <i class="fas fa-times-circle error-icon"></i>
-                            <span class="error-title">Missing Information</span>
-                        </div>
-                        <div class="error-content">
-                            Please add at least <strong>1 item</strong> to the order before creating it.
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="hideErrorModalAndAddItem()">
-                        <i class="fas fa-plus"></i>
-                        Add Item
-                    </button>
-                    <button type="button" class="btn btn-gray" onclick="hideErrorModal()">
-                        <i class="fas fa-times"></i>
-                        Đóng
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Thêm modal vào body
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Thêm CSS cho error modal
-    addErrorModalStyles();
 }
 
-// Hàm tạo duplicate confirmation modal
+function addAutocompleteStyles() {
+    const style = document.createElement('style');
+    style.id = 'autocomplete-styles';
+    style.textContent = `
+        .autocomplete-container {
+            position: relative;
+        }
+        
+        .material-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .dropdown-content {
+            padding: 0;
+        }
+        
+        .dropdown-item {
+            padding: 0;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .dropdown-item.no-results {
+            padding: 12px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .material-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            gap: 12px;
+        }
+        
+        .material-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .material-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .material-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .material-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .material-details {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .material-code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .material-unit {
+            background: #d4edda;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #155724;
+        }
+        
+        .unit-display {
+            background-color: #f8f9fa !important;
+            cursor: not-allowed;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .material-option {
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            .material-image {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .material-name {
+                font-size: 14px;
+            }
+            
+            .material-details {
+                font-size: 11px;
+                gap: 8px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Form validation setup
+function setupFormValidation() {
+    const orderForm = document.getElementById('orderForm');
+
+    if (orderForm) {
+        orderForm.addEventListener('submit', function (e) {
+            // Check number of items
+            const orderItems = document.querySelectorAll('.order-item');
+
+            if (orderItems.length === 0) {
+                e.preventDefault();
+                showErrorModal();
+                return false;
+            }
+
+            // Check if all items have materials selected
+            let hasInvalidItems = false;
+            orderItems.forEach(item => {
+                const materialIdInput = item.querySelector('.material-id-input');
+                if (!materialIdInput.value) {
+                    hasInvalidItems = true;
+                    item.classList.add('error-highlight');
+                }
+            });
+
+            if (hasInvalidItems) {
+                e.preventDefault();
+                alert('Please select materials for all items before submitting.');
+                return false;
+            }
+
+            // Check for duplicate items and show modal
+            const duplicateItems = document.querySelectorAll('.duplicate-warning');
+            if (duplicateItems.length > 0) {
+                e.preventDefault();
+                showDuplicateModal();
+                return false;
+            }
+        });
+    }
+}
+
+// Modal creation functions
 function createDuplicateModal() {
     const modalHtml = `
         <div id="duplicateModal" class="modal" style="display: none;">
@@ -559,7 +617,7 @@ function createDuplicateModal() {
                             <span class="warning-title">Items Will Be Merged</span>
                         </div>
                         <div class="warning-content">
-                            You have duplicate items with the same material and unit combination. 
+                            You have duplicate items with the same material. 
                             <br><br>
                             <strong>What will happen:</strong>
                             <ul style="margin: 10px 0; padding-left: 20px;">
@@ -585,15 +643,48 @@ function createDuplicateModal() {
             </div>
         </div>
     `;
-    
-    // Thêm modal vào body
+
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Thêm CSS cho duplicate modal
     addDuplicateModalStyles();
 }
 
-// Hàm hiển thị modal lỗi
+function createErrorModal() {
+    const modalHtml = `
+        <div id="errorModal" class="modal" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2><i class="fas fa-exclamation-triangle" style="color: #dc3545; margin-right: 10px;"></i>Error</h2>
+                    <span class="close" onclick="hideErrorModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="error-box">
+                        <div class="error-header">
+                            <i class="fas fa-times-circle error-icon"></i>
+                            <span class="error-title">Missing Information</span>
+                        </div>
+                        <div class="error-content">
+                            Please add at least <strong>1 item</strong> to the order before updating it.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="hideErrorModalAndAddItem()">
+                        <i class="fas fa-plus"></i>
+                        Add Item
+                    </button>
+                    <button type="button" class="btn btn-gray" onclick="hideErrorModal()">
+                        <i class="fas fa-times"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    addErrorModalStyles();
+}
+
 function showErrorModal() {
     const modal = document.getElementById('errorModal');
     if (modal) {
@@ -604,7 +695,6 @@ function showErrorModal() {
     }
 }
 
-// Hàm ẩn modal lỗi
 function hideErrorModal() {
     const modal = document.getElementById('errorModal');
     if (modal) {
@@ -615,14 +705,10 @@ function hideErrorModal() {
     }
 }
 
-// Hàm ẩn modal và tự động thêm item
 function hideErrorModalAndAddItem() {
     hideErrorModal();
-    // Delay một chút để modal đóng trước
     setTimeout(() => {
-        addOrderItem(); // Gọi hàm addOrderItem() có sẵn
-        
-        // Scroll đến item vừa thêm
+        addOrderItem();
         const container = document.getElementById("orderItemsContainer");
         if (container) {
             container.scrollIntoView({
@@ -663,11 +749,15 @@ function addDuplicateWarningStyles() {
             background-color: #fff8e1;
             border-bottom: 1px solid #ffc107;
         }
+        
+        .error-highlight {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff5f5;
+        }
     `;
     document.head.appendChild(style);
 }
 
-// Hàm thêm CSS cho duplicate modal
 function addDuplicateModalStyles() {
     const style = document.createElement('style');
     style.textContent = `
@@ -723,7 +813,6 @@ function addDuplicateModalStyles() {
     document.head.appendChild(style);
 }
 
-// Hàm thêm CSS cho error modal
 function addErrorModalStyles() {
     const style = document.createElement('style');
     style.textContent = `
@@ -801,23 +890,33 @@ function addErrorModalStyles() {
     document.head.appendChild(style);
 }
 
-// Đóng modal khi click outside hoặc nhấn ESC
-document.addEventListener('DOMContentLoaded', function() {
-    // Đóng modal khi click outside
-    document.addEventListener('click', function(e) {
-        if (e.target && e.target.id === 'errorModal') {
-            hideErrorModal();
-        }
-    });
-
-    // Đóng modal khi nhấn ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const errorModal = document.getElementById('errorModal');
-            if (errorModal && errorModal.style.display === 'flex') {
-                hideErrorModal();
-            }
-        }
-    });
+// Close modal when clicking outside or pressing ESC
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'cancelModal') {
+        hideCancelModal();
+    }
+    if (e.target && e.target.id === 'errorModal') {
+        hideErrorModal();
+    }
+    if (e.target && e.target.id === 'duplicateModal') {
+        hideDuplicateModal();
+    }
 });
 
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        const cancelModal = document.getElementById('cancelModal');
+        const errorModal = document.getElementById('errorModal');
+        const duplicateModal = document.getElementById('duplicateModal');
+
+        if (cancelModal && cancelModal.style.display === 'flex') {
+            hideCancelModal();
+        }
+        if (errorModal && errorModal.style.display === 'flex') {
+            hideErrorModal();
+        }
+        if (duplicateModal && duplicateModal.style.display === 'flex') {
+            hideDuplicateModal();
+        }
+    }
+});
