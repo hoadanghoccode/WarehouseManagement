@@ -1,6 +1,5 @@
 <%@ page import="java.util.List" %>
 <%@ page import="model.Material" %>
-<%@ page import="model.Supplier" %>
 <%@ page import="model.Category" %>
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -64,94 +63,89 @@
                 <c:if test="${not empty param.success}">
                     <div class="alert alert-success">${param.success}</div>
                 </c:if>
+                
+                <c:set var="isInactive" value="${material.status == 'inactive'}"/>
 
                 <form action="update-material" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="materialId" value="${material.materialId}" />
+                    <input type="hidden" name="existingImage" value="${material.image}" />
+
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input type="text" id="name" name="name" class="form-control" value="${material.name}" required />
-                        <c:if test="${not empty param.error and param.error.contains('Name')}">
-                            <span class="error">Name ${param.error.contains('empty') ? 'cannot be empty' : 'must not exceed 250 characters.'}</span>
-                        </c:if>
+                        <input type="text" id="name" name="name" class="form-control"
+                               value="${material.name}" required ${isInactive ? 'readonly' : ''}/>
                     </div>
+
                     <div class="form-group">
                         <label for="categoryId">Category</label>
-                        <select id="categoryId" name="categoryId" class="form-control" required>
+                        <select id="categoryId" name="categoryId" class="form-control"
+                                required ${isInactive ? 'disabled' : ''}>
                             <c:forEach var="parent" items="${parentCategories}">
                                 <optgroup label="${parent.name}">
                                     <c:forEach var="sub" items="${parent.subCategories}">
-                                        <option value="${sub.categoryId}" ${material.categoryId == sub.categoryId ? 'selected' : ''}>
+                                        <option value="${sub.categoryId}"
+                                                ${material.categoryId == sub.categoryId ? 'selected' : ''}>
                                             ${sub.name}
                                         </option>
                                     </c:forEach>
                                 </optgroup>
                             </c:forEach>
                         </select>
-                        <c:if test="${not empty param.error and param.error.contains('category')}">
-                            <span class="error">Invalid category.</span>
-                        </c:if>
                     </div>
+
+                    <div class="form-group">
+                        <label for="unitId">Unit</label>
+                        <select id="unitId" name="unitId" class="form-control"
+                                required ${isInactive ? 'disabled' : ''}>
+                            <c:forEach var="unit" items="${units}">
+                                <option value="${unit.unitId}"
+                                        ${material.unitId == unit.unitId ? 'selected' : ''}>
+                                    ${unit.name}
+                                </option>
+                            </c:forEach>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label for="imageFile">Upload New Image (optional)</label>
-                        <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control">
-                        <small class="text-muted">Leave blank to keep the current image.</small>
+                        <input type="file" id="imageFile" name="imageFile" accept="image/*"
+                               class="form-control" ${isInactive ? 'readonly' : ''}/>
+                        <small class="text-muted">Leave blank to keep current image.</small>
                         <div class="mt-2">
                             <strong>Current Image:</strong><br>
-                            <img src="${material.image}" alt="Material Image" style="max-height: 150px;">
+                            <img src="${material.image}" alt="Material Image" style="max-height:150px;"/>
                         </div>
                     </div>
+
                     <div class="form-group">
                         <label for="status">Status</label>
                         <select id="status" name="status" class="form-control" required>
+                            <!--<option value="new" ${material.status == 'new' ? 'selected' : ''}>New</option>-->
                             <option value="active" ${material.status == 'active' ? 'selected' : ''}>Active</option>
                             <option value="inactive" ${material.status == 'inactive' ? 'selected' : ''}>Inactive</option>
                         </select>
-                        <c:if test="${not empty param.error and param.error.contains('Status')}">
-                            <span class="error">Status must be 'active' or 'inactive'.</span>
-                        </c:if>
                     </div>
+
                     <div class="form-group">
                         <label for="createAt">Created At</label>
-                        <input type="text" id="createAt" name="createAt" class="form-control" value="${material.createAt}" readonly />
+                        <input type="text" id="createAt" name="createAt" class="form-control"
+                               value="${material.createAt}" readonly/>
                     </div>
+
                     <div class="header-actions">
-                        <button type="submit" class="btn btn-primary">Update Material</button>
-                        <a href="list-material" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            ${isInactive ? 'Update Status' : 'Update Material'}
+                        </button>
+                        <a href="list-material" class="btn btn-secondary"
+                           ${isInactive ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                           Cancel
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080;">
-      <div id="updateToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-          <div class="toast-body"></div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- JS thư viện -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      var toastEl = document.getElementById('updateToast');
-      var bodyEl  = toastEl.querySelector('.toast-body');
-      var err     = '<c:out value="${error}" default=""/>';
-      var ok      = '<c:out value="${param.success}" default=""/>';
-      if (err) {
-        toastEl.classList.add('text-bg-danger');
-        bodyEl.textContent = err;
-        new bootstrap.Toast(toastEl).show();
-      } else if (ok) {
-        toastEl.classList.remove('text-bg-danger');
-        toastEl.classList.add('text-bg-success');
-        bodyEl.textContent = ok;
-        new bootstrap.Toast(toastEl).show();
-      }
-    });
-    </script>
 </body>
 </html>

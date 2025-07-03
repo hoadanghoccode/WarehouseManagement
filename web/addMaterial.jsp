@@ -1,6 +1,7 @@
 <%@ page import="java.util.List" %>
+<%@ page import="model.Material" %>
 <%@ page import="model.Category" %>
-<%@ page import="model.Supplier" %>
+<%@ page import="model.Unit" %>
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
@@ -111,6 +112,8 @@
             font-size: 14px;
             margin-bottom: 16px;
         }
+        
+        .general-error { color: #ef4444; font-size: 14px; margin-bottom: 16px; padding: 8px; background-color: #fee2e2; border-radius: 8px; }
 
         @media (max-width: 768px) {
             .main-content {
@@ -130,31 +133,65 @@
             <div class="container">
                 <h1 class="title">Add Material</h1>
                 <c:if test="${not empty error}">
-                    <div class="alert alert-danger">${error}</div>
+                    <div class="general-error">${error}</div>
                 </c:if>
+                <c:if test="${not empty param.success}">
+                    <div class="alert alert-success">${param.success}</div>
+                </c:if>
+
                 <form action="add-material" method="post" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input type="text" id="name" name="name" class="form-control" >
+                        <input type="text" id="name" name="name" class="form-control" value="" required />
+                        <c:if test="${not empty param.error and param.error.contains('Name')}">
+                            <span class="error">Name ${param.error.contains('empty') ? 'cannot be empty' : 'must not exceed 250 characters.'}</span>
+                        </c:if>
                     </div>
                     <div class="form-group">
                         <label for="categoryId">Category</label>
-                        <select id="categoryId" name="categoryId" class="form-control">
-                            <option value="">Select Category</option>
+                        <select id="categoryId" name="categoryId" class="form-control" required>
                             <c:forEach var="parent" items="${parentCategories}">
                                 <optgroup label="${parent.name}">
                                     <c:forEach var="sub" items="${parent.subCategories}">
-                                        <option value="${sub.categoryId}" ${param.categoryId == sub.categoryId ? 'selected' : ''}>
+                                        <option value="${sub.categoryId}">
                                             ${sub.name}
                                         </option>
                                     </c:forEach>
                                 </optgroup>
                             </c:forEach>
                         </select>
+                        <c:if test="${not empty param.error and param.error.contains('category')}">
+                            <span class="error">Invalid category.</span>
+                        </c:if>
                     </div>
                     <div class="form-group">
-                        <label for="imageFile">Upload Image</label>
+                        <label for="unitId">Unit</label>
+                        <select id="unitId" name="unitId" class="form-control" required>
+                            <c:forEach var="unit" items="${units}">
+                                <option value="${unit.unitId}">
+                                    ${unit.name}
+                                </option>
+                            </c:forEach>
+                        </select>
+                        <c:if test="${not empty param.error and param.error.contains('unit')}">
+                            <span class="error">Invalid unit.</span>
+                        </c:if>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageFile">Upload Image (optional)</label>
                         <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control">
+                        <small class="text-muted">Leave blank if no image.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" name="status" class="form-control" disabled="1">
+                            <option value="new" selected>New</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <c:if test="${not empty param.error and param.error.contains('Status')}">
+                            <span class="error">Status must be 'active', 'inactive', or 'new'.</span>
+                        </c:if>
                     </div>
                     <div class="header-actions">
                         <button type="submit" class="btn btn-primary">Add Material</button>
@@ -164,6 +201,34 @@
             </div>
         </div>
     </div>
+
+    <div class="position-fixed top-0 end-0 p-3" style="z-index:1080;">
+      <div id="addToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      var toastEl = document.getElementById('addToast');
+      var bodyEl  = toastEl.querySelector('.toast-body');
+      var err     = '<c:out value="${error}" default=""/>';
+      var ok      = '<c:out value="${param.success}" default=""/>';
+      if (err) {
+        toastEl.classList.add('text-bg-danger');
+        bodyEl.textContent = err;
+        new bootstrap.Toast(toastEl).show();
+      } else if (ok) {
+        toastEl.classList.remove('text-bg-danger');
+        toastEl.classList.add('text-bg-success');
+        bodyEl.textContent = ok;
+        new bootstrap.Toast(toastEl).show();
+      }
+    });
+    </script>
 </body>
 </html>

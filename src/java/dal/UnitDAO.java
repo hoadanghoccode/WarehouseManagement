@@ -9,7 +9,27 @@ import model.Unit;
 import model.Units;
 
 public class UnitDAO extends DBContext {
-
+    
+    //Giữ hàm này cho b Giang theo db mới nhé <3
+    public List<Unit> getAllUnits() {
+        List<Unit> list = new ArrayList<>();
+        String query = "SELECT Unit_id, Name, Status FROM Units WHERE Status = 'active'";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Unit u = new Unit();
+                u.setUnitId(rs.getInt("Unit_id"));
+                u.setName(rs.getString("Name"));
+                u.setStatus(rs.getString("Status"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            System.out.println("getAllUnits error: " + e.getMessage());
+        }
+        return list;
+    }
+    
     public List<Units> getAllUnits(boolean onlyActive) {
         List<Units> units = new ArrayList<>();
         String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units"

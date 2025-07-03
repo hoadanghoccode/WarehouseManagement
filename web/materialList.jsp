@@ -192,18 +192,27 @@
                                         </optgroup>
                                     </c:forEach>
                                 </select>
+                                <select class="form-select" name="unitId" id="unitFilter">
+                                    <option value="">All Units</option>
+                                    <c:forEach var="unit" items="${units}">
+                                        <option value="${unit.unitId}" ${unitId == unit.unitId ? 'selected' : ''}>
+                                            ${unit.name}
+                                        </option>
+                                    </c:forEach>
+                                </select>
                                 <select class="form-select" id="statusFilter" name="status">
                                     <option value="">All Status</option>
                                     <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
                                     <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                                    <option value="new" ${status == 'new' ? 'selected' : ''}>New</option>
                                 </select>
                                 <button type="submit" class="btn btn-primary" style="padding: 6px 12px;">Filter</button>
                             </form>
                         </div>
-                             <c:if test="${perms['Material_ADD']}"> 
-                        <a href="add-material" class="btn btn-success">
-                            <i class="fas fa-plus"></i> Add Material
-                        </a>
+                        <c:if test="${perms['Material_ADD']}"> 
+                            <a href="add-material" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Add Material
+                            </a>
                         </c:if>
                     </div>
 
@@ -211,43 +220,53 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th class="col-md-1">#</th>
-                                    <th class="col-md-5">Name</th>
+                                    <!--<th class="col-md-1">#</th>-->
+                                    <th class="col-md-2">ID</th>
+                                    <th class="col-md-2">Image</th>
+                                    <th class="col-md-2">Name</th>
                                     <th class="col-md-2">Category</th>
-                                    <th class="col-md-2">Status</th>
+                                    <th class="col-md-2">Unit</th>
+                                    <th class="col-md-1">Status</th>
+                                    <th class="col-md-2">Created At</th>
                                     <th class="col-md-2">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:forEach var="material" items="${materials}" varStatus="status">
                                     <tr>
-                                        <td><strong>${status.index + 1 + (page - 1) * 5}</strong></td>
-                                        <td>${material.name}</td>
+                                        <!--<td><strong>${status.index + 1 + (page - 1) * 5}</strong></td>-->
+                                        <td>${material.materialId}</td>
                                         <td>
-                                            <c:set var="category" value="${material.categoryId}" />
-                                            <c:forEach var="cat" items="${categories}">
-                                                <c:if test="${cat.categoryId == category}">${cat.name}</c:if>
-                                            </c:forEach>
+                                            <c:if test="${not empty material.image}">
+                                                <img src="${material.image}" alt="Material Image" style="max-height: 50px; max-width: 50px;">
+                                            </c:if>
+                                            <c:if test="${empty material.image}">
+                                                <span>No Image</span>
+                                            </c:if>
                                         </td>
+                                        <td>${material.name}</td>
+                                        <td>${material.categoryName}</td>
+                                        <td>${material.unitName}</td>
                                         <td>
-                                            <span class="badge ${material.status == 'active' ? 'bg-success' : 'bg-danger'}">
+                                            <span class="badge ${material.status == 'active' ? 'bg-success' : material.status == 'new' ? 'bg-warning' : 'bg-danger'}">
                                                 ${material.status}
                                             </span>
                                         </td>
+                                        <td>${material.createAt}</td>
                                         <td>
                                             <div class="action-buttons">
-                                                                                                                                                    <c:if test="${perms['Material_VIEW']}">
+                                                <c:if test="${perms['Material_VIEW']}">
 
-                                                <button class="btn btn-info btn-sm view-detail" data-id="${material.materialId}" title="View">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                     </c:if>
-                                                                                                    <c:if test="${perms['Material_UPDATE']}">
+                                                    <button class="btn btn-info btn-sm view-detail" data-id="${material.materialId}" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </c:if>
+                                                <c:if test="${perms['Material_UPDATE']}">
 
-                                                <a href="update-material?id=${material.materialId}" class="btn btn-primary btn-sm" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                    </c:if>
+                                                    <a href="update-material?id=${material.materialId}" class="btn btn-primary btn-sm" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </c:if>
                                                 <c:if test="${perms['Material_DELETE']}">
                                                     <!-- soft-delete trigger -->
                                                     <button class="btn btn-danger btn-sm btn-delete" data-id="${material.materialId}" title="Deactivate">
@@ -267,10 +286,10 @@
                         <div class="pagination">
                             <c:choose>
                                 <c:when test="${page > 1}">
-                                    <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&status=${status}" title="First page">
+                                    <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}" title="First page">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
-                                    <a href="list-material?page=${page-1}&search=${search}&categoryId=${categoryId}&status=${status}" title="Previous page">
+                                    <a href="list-material?page=${page-1}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}" title="Previous page">
                                         <i class="fas fa-angle-left"></i>
                                     </a>
                                 </c:when>
@@ -292,7 +311,7 @@
                                                 <span class="current">${i}</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
+                                                <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">${i}</a>
                                             </c:otherwise>
                                         </c:choose>
                                     </c:forEach>
@@ -306,17 +325,17 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
+                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                             <c:if test="${totalPages > 6}">
                                                 <span style="padding: 8px 4px;">...</span>
-                                                <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&status=${status}">${totalPages}</a>
+                                                <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">${totalPages}</a>
                                             </c:if>
                                         </c:when>
                                         <c:when test="${page >= totalPages - 3}">
-                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&status=${status}">1</a>
+                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">1</a>
                                             <c:if test="${totalPages > 6}">
                                                 <span style="padding: 8px 4px;">...</span>
                                             </c:if>
@@ -326,13 +345,13 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
+                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&status=${status}">1</a>
+                                            <a href="list-material?page=1&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">1</a>
                                             <span style="padding: 8px 4px;">...</span>
                                             <c:forEach begin="${page - 1}" end="${page + 1}" var="i">
                                                 <c:choose>
@@ -340,12 +359,12 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&status=${status}">${i}</a>
+                                                        <a href="list-material?page=${i}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                             <span style="padding: 8px 4px;">...</span>
-                                            <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&status=${status}">${totalPages}</a>
+                                            <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}">${totalPages}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:otherwise>
@@ -353,10 +372,10 @@
 
                             <c:choose>
                                 <c:when test="${page < totalPages}">
-                                    <a href="list-material?page=${page+1}&search=${search}&categoryId=${categoryId}&status=${status}" title="Next page">
+                                    <a href="list-material?page=${page+1}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}" title="Next page">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
-                                    <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&status=${status}" title="Last page">
+                                    <a href="list-material?page=${totalPages}&search=${search}&categoryId=${categoryId}&unitId=${unitId}&status=${status}" title="Last page">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
                                 </c:when>
@@ -401,72 +420,75 @@
         </div>
 
         <!-- Delete Confirm Modal -->
-        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirm Deactivation</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Deactivation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to deactivate this material?
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button class="btn btn-danger" id="confirmDeleteButton">Deactivate</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        Are you sure you want to deactivate this material?
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button class="btn btn-danger" id="confirmDeleteButton">Deactivate</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Toast Container -->
-        <div class="position-fixed top-0 end-0 p-3" style="z-index:1080;">
-            <div id="actionToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body" id="actionToastBody"></div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    <div class="position-fixed top-0 end-0 p-3" style="z-index:1080;">
+                        <div id="actionToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body" id="actionToastBody"></div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    </div>
+
+        <!-- JS thư viện -->
+                    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    <script>
+                        $(function () {
+                            var deleteId = null;
+
+                // View detail
+                            $('.view-detail').on('click', function () {
+                                var materialId = $(this).data('id');
+                                $('#materialDetailContent').load('getMaterial.jsp?materialId=' + materialId);
+                                new bootstrap.Modal(document.getElementById('materialDetailModal')).show();
+                            });
+
+                // Open confirm modal
+                            $('.btn-delete').on('click', function () {
+                                deleteId = $(this).data('id');
+                                new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+                            });
+
+                // On confirm, redirect to delete
+                            $('#confirmDeleteButton').on('click', function () {
+                                window.location.href = 'delete-material?id=' + deleteId;
+                            });
+
+                // Show toast if redirected with success/error
+                            const params = new URLSearchParams(window.location.search);
+                            if (params.has('success') || params.has('error')) {
+                                const isSuccess = params.has('success');
+                                const msg = params.get(isSuccess ? 'success' : 'error');
+                                const toastEl = document.getElementById('actionToast');
+                                toastEl.classList.remove('text-bg-success', 'text-bg-danger');
+                                toastEl.classList.add(isSuccess ? 'text-bg-success' : 'text-bg-danger');
+                                document.getElementById('actionToastBody').textContent = msg;
+                                new bootstrap.Toast(toastEl).show();
+                                history.replaceState(null, '', location.pathname);
+                            }
+                        });
+                    </script>
                 </div>
             </div>
         </div>
-
-        <!-- JS thư viện -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            $(function () {
-                var deleteId = null;
-
-                // View detail
-                $('.view-detail').on('click', function () {
-                    var materialId = $(this).data('id');
-                    $('#materialDetailContent').load('getMaterial.jsp?materialId=' + materialId);
-                    new bootstrap.Modal(document.getElementById('materialDetailModal')).show();
-                });
-
-                // Open confirm modal
-                $('.btn-delete').on('click', function () {
-                    deleteId = $(this).data('id');
-                    new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
-                });
-
-                // On confirm, redirect to delete
-                $('#confirmDeleteButton').on('click', function () {
-                    window.location.href = 'delete-material?id=' + deleteId;
-                });
-
-                // Show toast if redirected with success/error
-                const params = new URLSearchParams(window.location.search);
-                if (params.has('success') || params.has('error')) {
-                    const isSuccess = params.has('success');
-                    const msg = params.get(isSuccess ? 'success' : 'error');
-                    const toastEl = document.getElementById('actionToast');
-                    toastEl.classList.remove('text-bg-success', 'text-bg-danger');
-                    toastEl.classList.add(isSuccess ? 'text-bg-success' : 'text-bg-danger');
-                    document.getElementById('actionToastBody').textContent = msg;
-                    new bootstrap.Toast(toastEl).show();
-                    history.replaceState(null, '', location.pathname);
-                }
-            });
-        </script>
     </body>
 </html>

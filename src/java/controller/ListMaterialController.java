@@ -2,6 +2,7 @@ package controller;
 
 import dal.CategoryDAO;
 import dal.MaterialDAO;
+import dal.UnitDAO;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -10,6 +11,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Material;
+import model.Category;
+import model.Unit;
 
 @WebServlet(name = "ListMaterialController", urlPatterns = {"/list-material"})
 public class ListMaterialController extends HttpServlet {
@@ -22,9 +25,10 @@ public class ListMaterialController extends HttpServlet {
         MaterialDAO dao = new MaterialDAO();
         String search = request.getParameter("search");
         Integer categoryId = parseIntOrNull(request.getParameter("categoryId"));
+        Integer unitId = parseIntOrNull(request.getParameter("unitId"));
         String status = request.getParameter("status");
 
-        List<Material> materials = dao.getAllMaterials(search, categoryId, status);
+        List<Material> materials = dao.getAllMaterials(search, categoryId, unitId, status);
 
         int page = getPageNumber(request);
         int totalSize = materials.size();
@@ -38,10 +42,12 @@ public class ListMaterialController extends HttpServlet {
         request.setAttribute("materials", pagedMaterials);
         request.setAttribute("search", search);
         request.setAttribute("categoryId", categoryId);
+        request.setAttribute("unitId", unitId);
         request.setAttribute("status", status);
         request.setAttribute("page", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("categories", dao.getAllCategories());
+        request.setAttribute("units", new UnitDAO().getAllUnits());
         request.setAttribute("parentCategories", new CategoryDAO().getAllParentCategory("active"));
         request.getRequestDispatcher("materialList.jsp").forward(request, response);
     }
