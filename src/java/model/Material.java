@@ -104,6 +104,11 @@ public class Material {
     public void setSupplierId(int supplierId) {
         this.supplierId = supplierId;
     }
+
+    @Override
+    public String toString() {
+        return "Material{" + "materialId=" + materialId + ", categoryId=" + categoryId + ", supplierId=" + supplierId + ", name=" + name + ", image=" + image + ", createAt=" + createAt + ", status=" + status + ", unitId=" + unitId + ", categoryName=" + categoryName + ", supplierName=" + supplierName + ", unitName=" + unitName + '}';
+    }
     
     
 }

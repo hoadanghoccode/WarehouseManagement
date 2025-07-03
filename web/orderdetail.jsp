@@ -160,8 +160,8 @@
                                                             </div>
                                                             <div class="item-specs">
                                                                 <c:choose>
-                                                                    <c:when test="${detail.subUnitId != null && detail.subUnitId > 0}">
-                                                                        Unit: ${detail.subUnitName}
+                                                                    <c:when test="${detail.unitName != null}">
+                                                                        Unit: ${detail.unitName}
                                                                     </c:when>
                                                                     <c:otherwise>
                                                                         Unit: N/A
@@ -175,7 +175,7 @@
                                                         <div class="item-quantity">
                                                             <span class="quantity-label">Quantity:</span>
                                                             <span class="quantity-value">
-                                                                <fmt:formatNumber value="${detail.quantity}" type="number"/> ${detail.subUnitName}
+                                                                <fmt:formatNumber value="${detail.quantity}" type="number"/> ${detail.unitName}
                                                             </span>
                                                         </div>
                                                     </div>
