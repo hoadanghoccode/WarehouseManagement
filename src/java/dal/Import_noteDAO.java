@@ -11,6 +11,7 @@ import java.util.List;
 import model.MaterialStatistic;
 import model.Import_note;
 import model.Import_note_detail;
+import model.Import_note_transaction;
 import model.Material;
 import model.Quality;
 
@@ -100,7 +101,9 @@ public class Import_noteDAO extends DBContext {
 
     public List<Import_note_detail> getImportNoteDetailsByImportNoteId(int importNoteId) {
         List<Import_note_detail> list = new ArrayList<>();
-        String sql = "SELECT * FROM import_note_detail WHERE import_note_id = ?";
+        String sql = "SELECT ind.*, m.Image FROM import_note_detail ind " +
+                     "LEFT JOIN Materials m ON ind.Material_id = m.Material_id " +
+                     "WHERE ind.import_note_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, importNoteId);
             ResultSet rs = ps.executeQuery();
@@ -112,12 +115,50 @@ public class Import_noteDAO extends DBContext {
                 ind.setQuantity(rs.getDouble("quantity"));
                 ind.setQualityId(rs.getInt("quality_id"));
                 ind.setImported(rs.getBoolean("imported"));
+                ind.setImage(rs.getString("Image")); 
                 list.add(ind);
             }
         } catch (SQLException e) {
             System.out.println("getImportNoteDetailsByImportNoteId error: " + e.getMessage());
         }
         return list;
+    }
+
+    public List<Import_note_transaction> getTransactionsByDetailId(int detailId) {
+        List<Import_note_transaction> list = new ArrayList<>();
+        String sql = "SELECT * FROM Import_note_transaction WHERE Import_note_detail_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, detailId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Import_note_transaction trans = new Import_note_transaction();
+                trans.setImportNoteTransactionId(rs.getInt("Import_note_transaction_id"));
+                trans.setImportNoteDetailId(rs.getInt("Import_note_detail_id"));
+                trans.setMaterialId(rs.getInt("Material_id"));
+                trans.setQuantity(rs.getDouble("Quantity"));
+                trans.setQualityId(rs.getInt("Quality_id"));
+                trans.setImported(rs.getBoolean("Imported"));
+                trans.setCreatedAt(rs.getDate("Created_at"));
+                list.add(trans);
+            }
+        } catch (SQLException e) {
+            System.out.println("getTransactionsByDetailId error: " + e.getMessage());
+        }
+        return list;
+    }
+
+    public double getTotalTransactionQuantity(int detailId) {
+        String sql = "SELECT COALESCE(SUM(Quantity), 0) AS total FROM Import_note_transaction WHERE Import_note_detail_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, detailId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("total");
+            }
+        } catch (SQLException e) {
+            System.out.println("getTotalTransactionQuantity error: " + e.getMessage());
+        }
+        return 0;
     }
 
     public List<Material> getAllMaterials() {
@@ -153,7 +194,9 @@ public class Import_noteDAO extends DBContext {
     }
 
     public Import_note_detail getUnimportedDetail(int detailId) throws SQLException {
-        String sql = "SELECT * FROM import_note_detail WHERE import_note_detail_id = ? AND imported = false";
+        String sql = "SELECT ind.*, m.Image FROM import_note_detail ind " +
+                     "LEFT JOIN Materials m ON ind.Material_id = m.Material_id " +
+                     "WHERE import_note_detail_id = ? AND imported = false";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, detailId);
             ResultSet rs = ps.executeQuery();
@@ -165,6 +208,7 @@ public class Import_noteDAO extends DBContext {
                 ind.setQuantity(rs.getDouble("quantity"));
                 ind.setQualityId(rs.getInt("quality_id"));
                 ind.setImported(rs.getBoolean("imported"));
+                ind.setImage(rs.getString("Image"));
                 return ind;
             }
         }
@@ -305,6 +349,18 @@ public class Import_noteDAO extends DBContext {
                 ps.setDouble(4, materialDetailQty + quantity);
                 ps.executeUpdate();
             }
+        }
+    }
+
+    public void insertImportNoteTransaction(int detailId, int materialId, int qualityId, double quantity) throws SQLException {
+        String sql = "INSERT INTO Import_note_transaction (Import_note_detail_id, Material_id, Quality_id, Quantity, Created_at) " +
+                     "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, detailId);
+            ps.setInt(2, materialId);
+            ps.setInt(3, qualityId);
+            ps.setDouble(4, quantity);
+            ps.executeUpdate();
         }
     }
 

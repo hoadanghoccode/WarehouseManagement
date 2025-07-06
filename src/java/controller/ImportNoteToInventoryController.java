@@ -20,15 +20,19 @@ public class ImportNoteToInventoryController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int importNoteId = Integer.parseInt(request.getParameter("importNoteId"));
-        String[] arr = request.getParameterValues("detailIds");
-        List<Integer> detailIds = new ArrayList<>();
-        if (arr != null) {
-            for (String s : arr) {
-                detailIds.add(Integer.parseInt(s));
+        String[] detailIds = request.getParameterValues("detailIds");
+        String[] quantities = request.getParameterValues("quantities"); 
+
+        List<Integer> detailIdList = new ArrayList<>();
+        List<Double> quantityList = new ArrayList<>();
+        if (detailIds != null) {
+            for (int i = 0; i < detailIds.length; i++) {
+                detailIdList.add(Integer.parseInt(detailIds[i]));
+                quantityList.add(Double.parseDouble(quantities[i])); 
             }
         }
 
-        boolean success = false;
+        boolean success = true;
         String message = null;
         Import_noteDAO dao = new Import_noteDAO();
         Connection conn = null;
@@ -37,45 +41,69 @@ public class ImportNoteToInventoryController extends HttpServlet {
             conn = dao.getConnection();
             conn.setAutoCommit(false);
 
-            for (int detailId : detailIds) {
+            for (int i = 0; i < detailIdList.size(); i++) {
+                int detailId = detailIdList.get(i);
+                double quantityToAdd = quantityList.get(i);
                 Import_note_detail det = dao.getUnimportedDetail(detailId);
                 if (det == null) {
-                    message = "Chi tiết ID " + detailId + " không hợp lệ hoặc đã được import.";
+                    success = false;
+                    message = (message != null ? message + "\n" : "") + "Detail ID " + detailId + " is invalid or already imported.";
+                    continue;
+                }
+
+                double originalQuantity = det.getQuantity();
+                double totalTransactionQuantity = dao.getTotalTransactionQuantity(detailId);
+                double remainingQuantity = originalQuantity - totalTransactionQuantity;
+
+                if (quantityToAdd <= 0) {
+                    success = false;
+                    message = (message != null ? message + "\n" : "") + "The quantity to add must be greater than 0 for detail ID " + detailId;
+                    continue;
+                }
+                if (quantityToAdd > remainingQuantity) {
+                    success = false;
+                    message = (message != null ? message + "\n" : "") + "The quantity to add (" + quantityToAdd + ") exceeds the remaining quantity (" + remainingQuantity + ") for detail ID " + detailId;
                     continue;
                 }
 
                 int mId = det.getMaterialId();
                 int qId = det.getQualityId();
-                double qty = det.getQuantity();
 
                 Integer mdId = dao.findMaterialDetailId(mId, qId);
                 if (mdId == null) {
-                    dao.insertMaterialDetail(mId, qId, qty);
+                    dao.insertMaterialDetail(mId, qId, quantityToAdd);
                     mdId = dao.findMaterialDetailId(mId, qId);
                 } else {
                     double oldQty = dao.getCurrentQuantity(mdId);
-                    dao.updateMaterialDetail(mdId, oldQty + qty);
+                    dao.updateMaterialDetail(mdId, oldQty + quantityToAdd);
                 }
 
-                dao.updateInventoryMaterialDaily(mId, qId, qty);
+                dao.updateInventoryMaterialDaily(mId, qId, quantityToAdd);
                 dao.insertMaterialTransactionHistory(mdId, detailId, "Imported from import note detail");
-                dao.markDetailImported(detailId);
+                dao.insertImportNoteTransaction(detailId, mId, qId, quantityToAdd);
+
+                if (totalTransactionQuantity + quantityToAdd >= originalQuantity) {
+                    dao.markDetailImported(detailId);
+                }
             }
 
             if (!dao.hasRemainingDetails(importNoteId)) {
                 dao.markNoteImported(importNoteId);
             }
 
+            if (!success) {
+                throw new SQLException("There are errors during the processing of details.");
+            }
+
             conn.commit();
-            success = true;
 
         } catch (SQLException e) {
-            message = "Lỗi cơ sở dữ liệu: " + e.getMessage();
+            success = false;
+            message = (message != null ? message : "");
             System.out.println("SQLException: " + e.getMessage());
             if (conn != null) {
                 try {
                     conn.rollback();
-                    success = false;
                 } catch (SQLException ex) {
                     System.out.println("Rollback failed: " + ex.getMessage());
                 }
@@ -94,10 +122,10 @@ public class ImportNoteToInventoryController extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             if (success) {
-                out.print("{\"success\":true,\"message\":\"Thêm vào kho thành công!\"}");
+                out.print("{\"success\":true,\"message\":\"Successfully added to inventory!\"}");
             } else {
                 out.print("{\"success\":false,\"message\":\"" + 
-                          (message != null ? message.replace("\"", "\\\"") : "Lỗi không xác định") + "\"}");
+                          (message != null ? message.replace("\"", "\\\"").replace("\n", "\\n") : "Undefined error") + "\"}");
             }
             out.flush();
         }
