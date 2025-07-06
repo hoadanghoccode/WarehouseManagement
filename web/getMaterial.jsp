@@ -54,7 +54,6 @@
   </div>
   <div class="col-md-6 detail-table">
     <% if (m != null) { %>
-      <p><strong>ID:</strong> <%= m.getMaterialId() %></p>
       <p><strong>Name:</strong> <%= m.getName() %></p>
       <p><strong>Category:</strong> <%= m.getCategoryName() %></p>
       <p><strong>Unit:</strong> <%= m.getUnitName() %></p>
@@ -98,7 +97,7 @@
               <span class="badge bg-danger"><%= qu!=null?qu.getQualityName():"N/A" %></span>
             <% } %>
           </td>
-          <td><%= md.getQuantity() %> <%= m.getUnitName() %></td>
+          <td><%= md.getQuantity() %></td>
           <td><%= md.getLastUpdated() %></td>
         </tr>
         <%    }

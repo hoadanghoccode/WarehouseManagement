@@ -3,7 +3,6 @@
 <%@ page import="dal.UserDAO, model.Users" %>
 <%@ page import="dal.WarehouseDAO, model.Warehouse" %>
 <%@ page import="dal.MaterialDAO, model.Material" %>
-<%@ page import="dal.SubUnitDAO, model.SubUnit" %>
 <%@ page import="dal.QualityDAO, model.Quality" %>
 <%
     int importNoteId = 0;
@@ -16,7 +15,6 @@
     UserDAO uDao = new UserDAO();
     WarehouseDAO wDao = new WarehouseDAO();
     MaterialDAO mDao = new MaterialDAO();
-    SubUnitDAO suDao = new SubUnitDAO();
     QualityDAO qDao = new QualityDAO();
 
     Users user = (in != null) ? uDao.getUserById(in.getUserId()) : null;
@@ -58,7 +56,6 @@
                 <tr>
                     <th>Detail ID</th>
                     <th>Material Name</th>
-                    <th>SubUnit Name</th>
                     <th>Quantity</th>
                     <th>Quality Name</th>
                     <th>Imported</th>
@@ -68,19 +65,17 @@
                 <% if (details != null && !details.isEmpty()) {
                     for (Import_note_detail ind : details) {
                         Material material = mDao.getMaterialById(ind.getMaterialId());
-                        SubUnit subUnit = suDao.getSubUnitById(ind.getSubUnitId());
                         Quality quality = qDao.getQualityById(ind.getQualityId());
                 %>
                     <tr>
                         <td><%= ind.getImportNoteDetailId() %></td>
                         <td><%= material != null ? material.getName() : "N/A" %></td>
-                        <td><%= subUnit != null ? subUnit.getName() : "N/A" %></td>
                         <td><%= ind.getQuantity() %></td>
                         <td><%= quality != null ? quality.getQualityName() : "N/A" %></td>
                         <td><%= ind.isImported() ? "Yes" : "No" %></td>
                     </tr>
                 <% } } else { %>
-                    <tr><td colspan="6" class="text-center text-muted">No import note details available.</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted">No import note details available.</td></tr>
                 <% } %>
             </tbody>
         </table>

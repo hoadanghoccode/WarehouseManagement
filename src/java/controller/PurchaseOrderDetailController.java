@@ -1,6 +1,6 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click .netbeans/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click .netbeans/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package controller;
 
@@ -11,7 +11,7 @@ package controller;
 import dal.MaterialDAO;
 import dal.PurchaseOrderDAO;
 import dal.QualityDAO;
-import dal.SubUnitDAO;
+import dal.UnitDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -59,8 +59,8 @@ public class PurchaseOrderDetailController extends HttpServlet {
         request.setAttribute("currentUser", currentUser);
         request.setAttribute("warehouses", dao.getAllWarehouses());
         request.setAttribute("suppliers", dao.getAllSuppliers());
-        request.setAttribute("materials", new MaterialDAO().getAllMaterials(null, null, null));
-        request.setAttribute("subUnits", new SubUnitDAO().getAllSubUnits(false));
+        request.setAttribute("materials", new MaterialDAO().getAllMaterials(null, null, null, null));
+        request.setAttribute("units", new UnitDAO().getAllUnits(false));
         request.setAttribute("qualities", new QualityDAO().getAllQualities());
         request.getRequestDispatcher("purchaseOrderDetail.jsp").forward(request, response);
     }

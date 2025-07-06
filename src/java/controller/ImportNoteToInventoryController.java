@@ -45,20 +45,19 @@ public class ImportNoteToInventoryController extends HttpServlet {
                 }
 
                 int mId = det.getMaterialId();
-                int suId = det.getSubUnitId();
                 int qId = det.getQualityId();
                 double qty = det.getQuantity();
 
-                Integer mdId = dao.findMaterialDetailId(mId, suId, qId);
+                Integer mdId = dao.findMaterialDetailId(mId, qId);
                 if (mdId == null) {
-                    dao.insertMaterialDetail(mId, suId, qId, qty);
-                    mdId = dao.findMaterialDetailId(mId, suId, qId);
+                    dao.insertMaterialDetail(mId, qId, qty);
+                    mdId = dao.findMaterialDetailId(mId, qId);
                 } else {
                     double oldQty = dao.getCurrentQuantity(mdId);
                     dao.updateMaterialDetail(mdId, oldQty + qty);
                 }
 
-                dao.updateInventoryMaterialDaily(mId, suId, qId, qty);
+                dao.updateInventoryMaterialDaily(mId, qId, qty);
                 dao.insertMaterialTransactionHistory(mdId, detailId, "Imported from import note detail");
                 dao.markDetailImported(detailId);
             }

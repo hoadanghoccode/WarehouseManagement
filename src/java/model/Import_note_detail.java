@@ -6,7 +6,6 @@ public class Import_note_detail {
     private int importNoteDetailId;
     private int importNoteId;
     private int materialId;
-    private int subUnitId;
     private double quantity;
     private int qualityId;
     private boolean imported;
@@ -14,11 +13,10 @@ public class Import_note_detail {
     // Constructors
     public Import_note_detail() {}
 
-    public Import_note_detail(int importNoteDetailId, int importNoteId, int materialId, int subUnitId, double quantity, int qualityId, boolean imported) {
+    public Import_note_detail(int importNoteDetailId, int importNoteId, int materialId, double quantity, int qualityId, boolean imported) {
         this.importNoteDetailId = importNoteDetailId;
         this.importNoteId = importNoteId;
         this.materialId = materialId;
-        this.subUnitId = subUnitId;
         this.quantity = quantity;
         this.qualityId = qualityId;
         this.imported = imported;
@@ -31,8 +29,6 @@ public class Import_note_detail {
     public void setImportNoteId(int importNoteId) { this.importNoteId = importNoteId; }
     public int getMaterialId() { return materialId; }
     public void setMaterialId(int materialId) { this.materialId = materialId; }
-    public int getSubUnitId() { return subUnitId; }
-    public void setSubUnitId(int subUnitId) { this.subUnitId = subUnitId; }
     public double getQuantity() { return quantity; }
     public void setQuantity(double quantity) { this.quantity = quantity; }
     public int getQualityId() { return qualityId; }

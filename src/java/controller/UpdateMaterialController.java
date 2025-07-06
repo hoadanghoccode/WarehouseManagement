@@ -15,7 +15,6 @@ import jakarta.servlet.http.Part;
 import model.Material;
 import controller.CloudinaryController;
 
-
 @WebServlet(name = "UpdateMaterialController", urlPatterns = {"/update-material"})
 @MultipartConfig
 public class UpdateMaterialController extends HttpServlet {
@@ -47,21 +46,34 @@ public class UpdateMaterialController extends HttpServlet {
             forwardWithError(request, response, "Material not found.", null);
             return;
         }
-        // 1. Status must be 'New'
-        if (!"new".equalsIgnoreCase(existing.getStatus())) {
-            forwardWithError(request, response, "Cannot update: Material status must be 'New'.", existing);
+        
+        // Disallow updates when status is 'active'
+        if ("active".equalsIgnoreCase(existing.getStatus())) {
+            forwardWithError(request, response, "Cannot update: Material status 'active' cannot be updated.", existing);
             return;
         }
-        // 2. Check pending orders/imports/exports/purchase
+
+        // Check for any pending orders/imports-exports/purchases
         boolean pendingOrder    = dao.isMaterialInOrderWithStatus(materialId, "pending");
         boolean pendingIE       = dao.isMaterialInPendingImportOrExport(materialId);
         boolean pendingPurchase = dao.isMaterialInPendingPurchaseOrder(materialId);
-        if (pendingOrder || pendingIE || pendingPurchase) {
-            StringBuilder err = new StringBuilder("Cannot update: pending ");
-            if (pendingOrder)    err.append("orders");
-            if (pendingIE)       err.append(pendingOrder ? "/imports-exports" : "imports-exports");
-            if (pendingPurchase) err.append(pendingOrder||pendingIE ? "/purchase orders" : "purchase orders");
-            forwardWithError(request, response, err.toString(), existing);
+
+        // If material is 'inactive', only activate status
+        if ("inactive".equalsIgnoreCase(existing.getStatus())) {
+            if (pendingOrder || pendingIE || pendingPurchase) {
+                StringBuilder err = new StringBuilder("Cannot activate: pending ");
+                if (pendingOrder)    err.append("orders");
+                if (pendingIE)       err.append(pendingOrder ? "/imports-exports" : "imports-exports");
+                if (pendingPurchase) err.append(pendingOrder||pendingIE ? "/purchase orders" : "purchase orders");
+                forwardWithError(request, response, err.toString(), existing);
+                return;
+            }
+            // Activate material
+            if (dao.updateStatusMaterial(materialId)) {
+                response.sendRedirect("list-material?success=Material activated successfully");
+            } else {
+                forwardWithError(request, response, "Unknown error when activating material.", existing);
+            }
             return;
         }
 

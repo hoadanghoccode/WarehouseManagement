@@ -5,14 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import model.MaterialStatistic;
 import model.Import_note;
 import model.Import_note_detail;
 import model.Material;
-import model.SubUnit;
 import model.Quality;
 
 public class Import_noteDAO extends DBContext {
@@ -110,7 +109,6 @@ public class Import_noteDAO extends DBContext {
                 ind.setImportNoteDetailId(rs.getInt("import_note_detail_id"));
                 ind.setImportNoteId(rs.getInt("import_note_id"));
                 ind.setMaterialId(rs.getInt("material_id"));
-                ind.setSubUnitId(rs.getInt("subunit_id"));
                 ind.setQuantity(rs.getDouble("quantity"));
                 ind.setQualityId(rs.getInt("quality_id"));
                 ind.setImported(rs.getBoolean("imported"));
@@ -123,15 +121,35 @@ public class Import_noteDAO extends DBContext {
     }
 
     public List<Material> getAllMaterials() {
-        return new MaterialDAO().getAllMaterials(null, null, null);
-    }
-
-    public List<SubUnit> getAllSubUnits() {
-        return new SubUnitDAO().getAllSubUnits("active");
+        List<Material> list = new ArrayList<>();
+        String sql = "SELECT Material_id, Name FROM Materials WHERE Status = 'active'";
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Material m = new Material();
+                m.setMaterialId(rs.getInt("Material_id"));
+                m.setName(rs.getString("Name"));
+                list.add(m);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public List<Quality> getAllQualities() {
-        return new QualityDAO().getAllQualities();
+        List<Quality> list = new ArrayList<>();
+        String sql = "SELECT Quality_id, Quality_name FROM Quality WHERE Status = 'active'";
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Quality q = new Quality();
+                q.setQualityId(rs.getInt("Quality_id"));
+                q.setQualityName(rs.getString("Quality_name"));
+                list.add(q);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public Import_note_detail getUnimportedDetail(int detailId) throws SQLException {
@@ -144,7 +162,6 @@ public class Import_noteDAO extends DBContext {
                 ind.setImportNoteDetailId(rs.getInt("import_note_detail_id"));
                 ind.setImportNoteId(rs.getInt("import_note_id"));
                 ind.setMaterialId(rs.getInt("material_id"));
-                ind.setSubUnitId(rs.getInt("subunit_id"));
                 ind.setQuantity(rs.getDouble("quantity"));
                 ind.setQualityId(rs.getInt("quality_id"));
                 ind.setImported(rs.getBoolean("imported"));
@@ -154,12 +171,11 @@ public class Import_noteDAO extends DBContext {
         return null;
     }
 
-    public Integer findMaterialDetailId(int materialId, int subUnitId, int qualityId) throws SQLException {
-        String sql = "SELECT material_detail_id FROM material_detail WHERE material_id = ? AND subunit_id = ? AND quality_id = ?";
+    public Integer findMaterialDetailId(int materialId, int qualityId) throws SQLException {
+        String sql = "SELECT material_detail_id FROM material_detail WHERE material_id = ? AND quality_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, materialId);
-            ps.setInt(2, subUnitId);
-            ps.setInt(3, qualityId);
+            ps.setInt(2, qualityId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt("material_detail_id");
@@ -189,13 +205,12 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    public void insertMaterialDetail(int materialId, int subUnitId, int qualityId, double qty) throws SQLException {
-        String sql = "INSERT INTO material_detail (material_id, subunit_id, quality_id, quantity, last_updated) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
+    public void insertMaterialDetail(int materialId, int qualityId, double qty) throws SQLException {
+        String sql = "INSERT INTO material_detail (material_id, quality_id, quantity, last_updated) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, materialId);
-            ps.setInt(2, subUnitId);
-            ps.setInt(3, qualityId);
-            ps.setDouble(4, qty);
+            ps.setInt(2, qualityId);
+            ps.setDouble(3, qty);
             ps.executeUpdate();
         }
     }
@@ -225,26 +240,6 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    public List<Material> getAllMaterial() {
-        List<Material> list = new ArrayList<>();
-        String sql = "SELECT Material_id, Name FROM materials WHERE Status = 'active'";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Material m = new Material();
-                m.setMaterialId(rs.getInt("Material_id"));
-                m.setName(rs.getString("Name"));
-                list.add(m);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
     public void insertMaterialTransactionHistory(int materialDetailId, int importNoteDetailId, String note) throws SQLException {
         String sql = "INSERT INTO MaterialTransactionHistory (Material_detail_id, Import_note_detail_id, Transaction_date, Note) "
                 + "VALUES (?, ?, CURDATE(), ?)";
@@ -256,13 +251,10 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    /**
-     * Cập nhật Import_qty trong InventoryMaterialDaily
-     */ //Hàm của b Linh
-    public void updateInventoryMaterialDaily(int materialId, int subUnitId, int qualityId, double quantity) throws SQLException {
-        Integer materialDetailId = findMaterialDetailId(materialId, subUnitId, qualityId);
+    public void updateInventoryMaterialDaily(int materialId, int qualityId, double quantity) throws SQLException {
+        Integer materialDetailId = findMaterialDetailId(materialId, qualityId);
         if (materialDetailId == null) {
-            System.out.println("Material_detail_id not found for materialId=" + materialId + ", subUnitId=" + subUnitId + ", qualityId=" + qualityId);
+            System.out.println("Material_detail_id not found for materialId=" + materialId + ", qualityId=" + qualityId);
             return;
         }
 

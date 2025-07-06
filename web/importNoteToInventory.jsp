@@ -3,7 +3,6 @@
 <%@ page import="dal.UserDAO, model.Users" %>
 <%@ page import="dal.WarehouseDAO, model.Warehouse" %>
 <%@ page import="dal.MaterialDAO, model.Material" %>
-<%@ page import="dal.SubUnitDAO, model.SubUnit" %>
 <%@ page import="dal.QualityDAO, model.Quality" %>
 <%
     int importNoteId = 0;
@@ -50,7 +49,6 @@
         <tr>
           <th>Detail ID</th>
           <th>Material Name</th>
-          <th>SubUnit Name</th>
           <th>Quantity</th>
           <th>Quality Name</th>
           <th>Imported</th>
@@ -60,21 +58,19 @@
         <% if (details != null && !details.isEmpty()) {
              for (Import_note_detail ind : details) {
                Material material = new MaterialDAO().getMaterialById(ind.getMaterialId());
-               SubUnit subUnit    = new SubUnitDAO().getSubUnitById(ind.getSubUnitId());
-               Quality quality    = new QualityDAO().getQualityById(ind.getQualityId());
+               Quality quality = new QualityDAO().getQualityById(ind.getQualityId());
         %>
         <tr data-id="<%= ind.getImportNoteDetailId() %>">
           <td><%= ind.getImportNoteDetailId() %></td>
           <td><%= material != null ? material.getName() : "N/A" %></td>
-          <td><%= subUnit  != null ? subUnit.getName()   : "N/A" %></td>
           <td><%= ind.getQuantity() %></td>
-          <td><%= quality  != null ? quality.getQualityName() : "N/A" %></td>
+          <td><%= quality != null ? quality.getQualityName() : "N/A" %></td>
           <td><%= ind.isImported() ? "Yes" : "No" %></td>
         </tr>
         <%   }
            } else { %>
         <tr>
-          <td colspan="6" class="text-center text-muted">
+          <td colspan="5" class="text-center text-muted">
             No import note details available.
           </td>
         </tr>
@@ -128,7 +124,7 @@
         type: 'POST',
         data: {
           importNoteId: <%= importNoteId %>,
-          detailIds:    detailIds
+          detailIds: detailIds
         },
         traditional: true,
         dataType: 'json',

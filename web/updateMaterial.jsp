@@ -109,7 +109,7 @@
                     <div class="form-group">
                         <label for="imageFile">Upload New Image (optional)</label>
                         <input type="file" id="imageFile" name="imageFile" accept="image/*"
-                               class="form-control" ${isInactive ? 'readonly' : ''}/>
+                               class="form-control" ${isInactive ? 'disabled' : ''}/>
                         <small class="text-muted">Leave blank to keep current image.</small>
                         <div class="mt-2">
                             <strong>Current Image:</strong><br>
@@ -120,7 +120,7 @@
                     <div class="form-group">
                         <label for="status">Status</label>
                         <select id="status" name="status" class="form-control" required>
-                            <!--<option value="new" ${material.status == 'new' ? 'selected' : ''}>New</option>-->
+                            <option value="new" ${material.status == 'new' ? 'selected' : ''} ${isInactive ? 'hidden' : ''}>New</option>
                             <option value="active" ${material.status == 'active' ? 'selected' : ''}>Active</option>
                             <option value="inactive" ${material.status == 'inactive' ? 'selected' : ''}>Inactive</option>
                         </select>
