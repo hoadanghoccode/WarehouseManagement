@@ -1,6 +1,6 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click .netbeans/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click .netbeans/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package model;
 
@@ -8,17 +8,28 @@ package model;
  *
  * @author legia
  */
-
 public class PurchaseOrderDetail {
     private int purchaseOrderDetailId;
     private int purchaseOrderId;
     private int materialId;
-    private int subUnitId;
     private Integer qualityId;
     private double quantity;
     private Double price;
+    private String materialName;
+    private String qualityName;  
 
     public PurchaseOrderDetail() {}
+
+    public PurchaseOrderDetail(int purchaseOrderDetailId, int purchaseOrderId, int materialId, Integer qualityId, double quantity, Double price, String materialName, String qualityName) {
+        this.purchaseOrderDetailId = purchaseOrderDetailId;
+        this.purchaseOrderId = purchaseOrderId;
+        this.materialId = materialId;
+        this.qualityId = qualityId;
+        this.quantity = quantity;
+        this.price = price;
+        this.materialName = materialName;
+        this.qualityName = qualityName;
+    }
 
     public int getPurchaseOrderDetailId() {
         return purchaseOrderDetailId;
@@ -44,14 +55,6 @@ public class PurchaseOrderDetail {
         this.materialId = materialId;
     }
 
-    public int getSubUnitId() {
-        return subUnitId;
-    }
-
-    public void setSubUnitId(int subUnitId) {
-        this.subUnitId = subUnitId;
-    }
-
     public Integer getQualityId() {
         return qualityId;
     }
@@ -74,5 +77,21 @@ public class PurchaseOrderDetail {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public String getMaterialName() {
+        return materialName;
+    }
+
+    public void setMaterialName(String materialName) {
+        this.materialName = materialName;
+    }
+
+    public String getQualityName() {
+        return qualityName;
+    }
+
+    public void setQualityName(String qualityName) {
+        this.qualityName = qualityName;
     }
 }

@@ -59,7 +59,7 @@ public class ImportChartPageController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         Import_noteDAO dao = new Import_noteDAO();
-        List<Material> materials = dao.getAllMaterial();
+        List<Material> materials = dao.getAllMaterials();
         request.setAttribute("materials", materials);
         request.getRequestDispatcher("dashboard.jsp").forward(request, response);
     }

@@ -44,16 +44,9 @@ public class DetailMaterialController extends HttpServlet {
             return;
         }
 
-        // Create response object
-        MaterialDetailResponse responseData = new MaterialDetailResponse();
-        responseData.setMaterial(material);
-        responseData.setDetails(details);
-
-        // Convert to JSON
-        Gson gson = new Gson();
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(gson.toJson(responseData));
+        request.setAttribute("material", material);
+        request.setAttribute("details", details);
+        request.getRequestDispatcher("materialDetail.jsp").forward(request, response);
     }
 
     // Inner class to structure the JSON response

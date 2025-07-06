@@ -12,7 +12,8 @@ import java.sql.Timestamp;
  */
 
 public class Unit {
-
+    
+    //Bạn Giang đang dùng tạm model này, đừng xoá nhé
     private int unitId;
     private String name;
     private String status;

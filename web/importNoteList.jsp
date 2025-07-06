@@ -163,6 +163,12 @@
             <div class="container">
                 <h1 class="title">Import Notes List</h1>
 
+                <c:if test="${not empty errorMessage}">
+                    <div class="alert alert-danger" role="alert">
+                        ${errorMessage}
+                    </div>
+                </c:if>
+
                 <div class="header-actions">
                     <div class="search-container">
                         <form action="import-note-list" method="get" id="filterForm">
