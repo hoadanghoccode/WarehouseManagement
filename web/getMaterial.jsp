@@ -37,6 +37,9 @@
 
   /* Khoảng cách giữa row ảnh-info và bảng */
   .row.image-info { margin-bottom: 1.5rem; }
+
+  /* Ẩn bảng mặc định */
+  .material-detail-table { display: none; }
 </style>
 
 <!-- Row ảnh + info -->
@@ -70,6 +73,9 @@
     <% } %>
   </div>
 </div>
+
+<!-- Nút hiển thị bảng -->
+<button type="button" class="btn btn-primary" id="showInventoryBtn">Show Quantity in Inventory</button>
 
 <div class="row">
   <div class="col-12">
@@ -110,3 +116,12 @@
     </table>
   </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(function(){
+    $('#showInventoryBtn').on('click', function(){
+      $('.material-detail-table').toggle();
+    });
+  });
+</script>
