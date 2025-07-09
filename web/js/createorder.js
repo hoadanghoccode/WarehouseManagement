@@ -23,14 +23,19 @@ function addOrderItem() {
             <div class="form-group">
                 <label for="material">Material <span class="required">*</span></label>
                 <div class="autocomplete-container">
-                    <input type="text" 
-                           class="form-control material-input" 
-                           placeholder="Search for materials..."
-                           autocomplete="off"
-                           oninput="handleMaterialSearch(this)"
-                           onfocus="showMaterialDropdown(this)"
-                           onblur="hideMaterialDropdown(this)"
-                           required>
+                    <div class="material-input-wrapper">
+                        <input type="text" 
+                               class="form-control material-input" 
+                               placeholder="Search for materials..."
+                               autocomplete="off"
+                               oninput="handleMaterialSearch(this)"
+                               onfocus="showMaterialDropdown(this)"
+                               onblur="hideMaterialDropdown(this)"
+                               required>
+                        <button type="button" class="clear-material-btn" onclick="clearMaterialInput(this)" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <input type="hidden" name="material[]" class="material-id-input" value="">
                     <div class="material-dropdown" style="display: none;">
                         <div class="dropdown-content">
@@ -61,7 +66,7 @@ function addOrderItem() {
 
     container.insertAdjacentHTML("beforeend", itemHtml);
     renumberItems();
-    
+
     // Initialize autocomplete for the new item
     initializeAutocomplete();
 }
@@ -70,21 +75,21 @@ function handleMaterialSearch(input) {
     const searchTerm = input.value.toLowerCase().trim();
     const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
     const dropdownContent = dropdown.querySelector('.dropdown-content');
-    
+
     // Clear previous results
     dropdownContent.innerHTML = '';
-    
+
     if (searchTerm === '') {
         // Show all materials when input is empty
         displayMaterialOptions(dropdownContent, allMaterials);
     } else {
         // Filter materials based on search term
-        const filteredMaterials = allMaterials.filter(material => 
+        const filteredMaterials = allMaterials.filter(material =>
             material.name.toLowerCase().includes(searchTerm)
         );
         displayMaterialOptions(dropdownContent, filteredMaterials);
     }
-    
+
     // Show dropdown
     dropdown.style.display = 'block';
 }
@@ -94,7 +99,7 @@ function displayMaterialOptions(container, materials) {
         container.innerHTML = '<div class="dropdown-item no-results">No materials found</div>';
         return;
     }
-    
+
     materials.forEach(material => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'dropdown-item';
@@ -103,7 +108,7 @@ function displayMaterialOptions(container, materials) {
                  data-unit-id="${material.unitId}" 
                  data-unit-name="${material.unitName}">
                 <div class="material-image">
-                    <img src="${material.image|| 'images/default-material.jpg'}" 
+                    <img src="${material.image || 'images/default-material.jpg'}" 
                          alt="${material.name}" 
                          onerror="this.src='images/default-material.jpg'">
                 </div>
@@ -115,13 +120,13 @@ function displayMaterialOptions(container, materials) {
                 </div>
             </div>
         `;
-        
+
         // Add click event
-        itemDiv.addEventListener('click', function(e) {
+        itemDiv.addEventListener('click', function (e) {
             e.preventDefault();
             selectMaterial(this.querySelector('.material-option'));
         });
-        
+
         container.appendChild(itemDiv);
     });
 }
@@ -133,22 +138,55 @@ function selectMaterial(materialOption) {
     const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
     const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
     const dropdown = autocompleteContainer.querySelector('.material-dropdown');
-    
+    const clearBtn = autocompleteContainer.querySelector('.clear-material-btn');
+
     // Get material data
     const materialId = materialOption.dataset.materialId;
     const materialName = materialOption.querySelector('.material-name').textContent;
     const unitId = materialOption.dataset.unitId;
     const unitName = materialOption.dataset.unitName;
-    
+
     // Set values
     materialInput.value = materialName;
     materialIdInput.value = materialId;
     unitDisplay.value = unitName;
     unitIdInput.value = unitId;
-    
+
+    // Disable input và show clear button
+    materialInput.disabled = true;
+    materialInput.classList.add('material-selected');
+    clearBtn.style.display = 'block';
+
     // Hide dropdown
     dropdown.style.display = 'none';
-    
+
+    // Trigger validation
+    checkDuplicateItems();
+}
+
+function clearMaterialInput(clearBtn) {
+    const autocompleteContainer = clearBtn.closest('.autocomplete-container');
+    const materialInput = autocompleteContainer.querySelector('.material-input');
+    const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
+    const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
+    const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
+
+    // Clear all values
+    materialInput.value = '';
+    materialIdInput.value = '';
+    unitDisplay.value = 'Select Material First';
+    unitIdInput.value = '';
+
+    // Enable input và hide clear button
+    materialInput.disabled = false;
+    materialInput.classList.remove('material-selected');
+    clearBtn.style.display = 'none';
+
+    // Focus vào input
+    setTimeout(() => {
+        materialInput.focus();
+    }, 100);
+
     // Trigger validation
     checkDuplicateItems();
 }
@@ -156,12 +194,12 @@ function selectMaterial(materialOption) {
 function showMaterialDropdown(input) {
     const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
     const dropdownContent = dropdown.querySelector('.dropdown-content');
-    
+
     // If dropdown is empty, populate with all materials
     if (dropdownContent.children.length === 0) {
         displayMaterialOptions(dropdownContent, allMaterials);
     }
-    
+
     dropdown.style.display = 'block';
 }
 
@@ -170,7 +208,7 @@ function hideMaterialDropdown(input) {
     setTimeout(() => {
         const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
         dropdown.style.display = 'none';
-        
+
         // Validate selection
         validateMaterialSelection(input);
     }, 200);
@@ -181,7 +219,7 @@ function validateMaterialSelection(input) {
     const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
     const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
     const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
-    
+
     // If no material is selected (hidden input is empty), clear everything
     if (!materialIdInput.value) {
         input.value = '';
@@ -195,11 +233,18 @@ function clearMaterialSelection(orderItem) {
     const materialIdInput = orderItem.querySelector('.material-id-input');
     const unitDisplay = orderItem.querySelector('.unit-display');
     const unitIdInput = orderItem.querySelector('.unit-id-input');
-    
+    const clearBtn = orderItem.querySelector('.clear-material-btn');
+
     materialInput.value = '';
     materialIdInput.value = '';
     unitDisplay.value = 'Select Material First';
     unitIdInput.value = '';
+
+    // Enable input và hide clear button
+    materialInput.disabled = false;
+    materialInput.classList.remove('material-selected');
+    if (clearBtn)
+        clearBtn.style.display = 'none';
 }
 
 function removeOrderItem(btn) {
@@ -228,12 +273,14 @@ function adjustQuantity(button, change) {
     const quantityInput = button.parentElement.querySelector('.quantity-input');
     let currentValue = parseInt(quantityInput.value) || 1;
     let newValue = currentValue + change;
-    
-    if (newValue < 1) newValue = 1;
-    if (newValue > 9999) newValue = 9999;
-    
+
+    if (newValue < 1)
+        newValue = 1;
+    if (newValue > 9999)
+        newValue = 9999;
+
     quantityInput.value = newValue;
-    
+
     // Trigger validation
     checkDuplicateItems();
 }
@@ -319,7 +366,8 @@ function hideCancelModal() {
 }
 
 function confirmCancel() {
-    window.location.reload();
+//    window.location.reload();
+    window.location.href = 'orderlist';
 }
 
 function showDuplicateModal() {
@@ -355,9 +403,9 @@ function initializeAutocomplete() {
     if (!document.getElementById('autocomplete-styles')) {
         addAutocompleteStyles();
     }
-    
+
     // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!e.target.closest('.autocomplete-container')) {
             document.querySelectorAll('.material-dropdown').forEach(dropdown => {
                 dropdown.style.display = 'none';
@@ -372,6 +420,44 @@ function addAutocompleteStyles() {
     style.textContent = `
         .autocomplete-container {
             position: relative;
+        }
+        
+        .material-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .material-input.material-selected {
+            background-color: #f8f9fa !important;
+            cursor: default;
+        }
+        
+        .clear-material-btn {
+            position: absolute;
+            right: 8px;
+            top: 47%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .clear-material-btn:hover {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        
+        .clear-material-btn i {
+            font-size: 12px;
         }
         
         .material-dropdown {
@@ -506,7 +592,7 @@ function addAutocompleteStyles() {
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize autocomplete
     initializeAutocomplete();
-    
+
     // Nếu có items được restore từ server (khi có lỗi), cần xử lý lại
     document.querySelectorAll('.material-input').forEach(input => {
         if (input.value) {
@@ -518,10 +604,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
                 const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
                 const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
-                
+                const clearBtn = autocompleteContainer.querySelector('.clear-material-btn');
+
                 materialIdInput.value = matchingMaterial.materialId;
                 unitDisplay.value = matchingMaterial.unitName;
                 unitIdInput.value = matchingMaterial.unitId;
+
+                // Disable input và show clear button
+                input.disabled = true;
+                input.classList.add('material-selected');
+                if (clearBtn)
+                    clearBtn.style.display = 'block';
             }
         }
     });
