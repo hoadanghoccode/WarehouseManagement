@@ -5,15 +5,16 @@
         <group>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/OrderDetail.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/MaterialDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Material.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Unit.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/UnitDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/OrderDAO.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UnitServlet.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Order.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UpdateOrderServlet.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CreateOrderServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/createorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/createorder.js</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderDetailController.java</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/web/orderdetail.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/js/editorder.js</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/editorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/OrderDAO.java</file>
         </group>
     </open-files>
 </project-private>
