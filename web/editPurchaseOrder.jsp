@@ -95,36 +95,31 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Material</th>
-                                                <th>SubUnit</th>
-                                                <th>Quality</th>
+                                                <th>Purchase Order Detail ID</th>
+                                                <th>Material ID</th>
+                                                <th>Quality ID</th>
                                                 <th>Quantity</th>
                                                 <th>Price</th>
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <c:if test="${empty purchaseOrder.purchaseOrderDetails}">
+                                                <tr><td colspan="6">No details available.</td></tr>
+                                            </c:if>
                                             <c:forEach var="detail" items="${purchaseOrder.purchaseOrderDetails}" varStatus="status">
                                                 <tr>
                                                     <td>${status.index + 1}</td>
                                                     <td>
-                                                        <c:forEach var="material" items="${materials}">
-                                                            <c:if test="${material.materialId == detail.materialId}">${material.name}</c:if>
-                                                        </c:forEach>
+                                                        <input type="hidden" name="detailId" value="${detail.purchaseOrderDetailId}">
+                                                        ${detail.purchaseOrderDetailId}
                                                     </td>
+                                                    <td>${detail.materialId}</td>
                                                     <td>
-                                                        <c:forEach var="subUnit" items="${subUnits}">
-                                                            <c:if test="${subUnit.subUnitId == detail.subUnitId}">${subUnit.name}</c:if>
-                                                        </c:forEach>
-                                                    </td>
-                                                    <td>
-                                                        <c:forEach var="quality" items="${qualities}">
-                                                            <c:if test="${quality.qualityId == detail.qualityId}">${quality.qualityName}</c:if>
-                                                        </c:forEach>
+                                                        <c:if test="${not empty detail.qualityId}">${detail.qualityId}</c:if>
                                                         <c:if test="${empty detail.qualityId}">N/A</c:if>
                                                     </td>
                                                     <td>${detail.quantity}</td>
                                                     <td>
-                                                        <input type="hidden" name="detailId" value="${detail.purchaseOrderDetailId}">
                                                         <input type="number" class="form-control" name="price" value="${detail.price != null ? detail.price : ''}" step="0.01" required>
                                                     </td>
                                                 </tr>
@@ -135,7 +130,7 @@
                             </div>
                         </div>      
 
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">Update Purchase Order</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">Update Purchase Order</button>
                     </form>
 
                     <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">

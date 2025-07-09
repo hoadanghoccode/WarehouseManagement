@@ -22,7 +22,7 @@ public class PurchaseOrders {
     private String note;
     private Date lastUpdated;
     private List<PurchaseOrderDetail> purchaseOrderDetails;
-    private String fullName; 
+    private String fullName;
 
     public PurchaseOrders() {}
 

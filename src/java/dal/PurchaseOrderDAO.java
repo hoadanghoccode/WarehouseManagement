@@ -1,6 +1,6 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click .netbeans/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click .netbeans/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package dal;
 
@@ -150,7 +150,7 @@ public class PurchaseOrderDAO extends DBContext {
                 po.setSupplierId(rs.getObject("Supplier_id") != null ? rs.getInt("Supplier_id") : null);
                 po.setNote(rs.getString("Note"));
                 po.setLastUpdated(rs.getDate("Last_updated"));
-                po.setFullName(rs.getString("Full_name")); // Add full_name
+                po.setFullName(rs.getString("Full_name")); 
                 po.setPurchaseOrderDetails(getPurchaseOrderDetailsByPurchaseOrderId(purchaseOrderId));
                 return po;
             }
@@ -162,7 +162,11 @@ public class PurchaseOrderDAO extends DBContext {
 
     public List<PurchaseOrderDetail> getPurchaseOrderDetailsByPurchaseOrderId(int purchaseOrderId) {
         List<PurchaseOrderDetail> list = new ArrayList<>();
-        String query = "SELECT * FROM PurchaseOrder_detail WHERE PurchaseOrder_id = ?";
+        String query = "SELECT pod.*, m.Name AS materialName, q.Quality_name AS qualityName " +
+                      "FROM PurchaseOrder_detail pod " +
+                      "LEFT JOIN Materials m ON pod.Material_id = m.Material_id " +
+                      "LEFT JOIN Quality q ON pod.Quality_id = q.Quality_id " +
+                      "WHERE pod.PurchaseOrder_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, purchaseOrderId);
@@ -172,14 +176,16 @@ public class PurchaseOrderDAO extends DBContext {
                 pod.setPurchaseOrderDetailId(rs.getInt("PurchaseOrder_detail_id"));
                 pod.setPurchaseOrderId(rs.getInt("PurchaseOrder_id"));
                 pod.setMaterialId(rs.getInt("Material_id"));
-                pod.setSubUnitId(rs.getInt("SubUnit_id"));
                 pod.setQualityId(rs.getObject("Quality_id") != null ? rs.getInt("Quality_id") : null);
                 pod.setQuantity(rs.getDouble("Quantity"));
                 pod.setPrice(rs.getObject("Price") != null ? rs.getDouble("Price") : null);
+                pod.setMaterialName(rs.getString("materialName"));
+                pod.setQualityName(rs.getString("qualityName"));
                 list.add(pod);
             }
         } catch (SQLException e) {
             System.out.println("getPurchaseOrderDetailsByPurchaseOrderId error: " + e.getMessage());
+            e.printStackTrace();
         }
         return list;
     }
@@ -297,19 +303,18 @@ public class PurchaseOrderDAO extends DBContext {
             }
 
             List<PurchaseOrderDetail> details = getPurchaseOrderDetailsByPurchaseOrderId(purchaseOrderId);
-            String insertImportNoteDetailQuery = "INSERT INTO Import_note_detail (Import_note_id, Material_id, SubUnit_id, Quality_id, Quantity, Imported) VALUES (?, ?, ?, ?, ?, ?)";
+            String insertImportNoteDetailQuery = "INSERT INTO Import_note_detail (Import_note_id, Material_id, Quality_id, Quantity, Imported) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement psImportNoteDetail = connection.prepareStatement(insertImportNoteDetailQuery);
             for (PurchaseOrderDetail detail : details) {
                 psImportNoteDetail.setInt(1, importNoteId);
                 psImportNoteDetail.setInt(2, detail.getMaterialId());
-                psImportNoteDetail.setInt(3, detail.getSubUnitId());
                 if (detail.getQualityId() != null) {
-                    psImportNoteDetail.setInt(4, detail.getQualityId());
+                    psImportNoteDetail.setInt(3, detail.getQualityId());
                 } else {
-                    psImportNoteDetail.setNull(4, java.sql.Types.INTEGER);
+                    psImportNoteDetail.setNull(3, java.sql.Types.INTEGER);
                 }
-                psImportNoteDetail.setDouble(5, detail.getQuantity());
-                psImportNoteDetail.setBoolean(6, false);
+                psImportNoteDetail.setDouble(4, detail.getQuantity());
+                psImportNoteDetail.setBoolean(5, false);
                 psImportNoteDetail.addBatch();
             }
             int[] detailResults = psImportNoteDetail.executeBatch();

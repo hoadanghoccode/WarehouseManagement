@@ -11,39 +11,36 @@ import java.sql.ResultSet;
 public class Material {
     private int materialId;
     private int categoryId;
-    private int supplierId;
+    private int unitId;
     private String name;
     private String image;
     private Date createAt;
     private String status;
-    private int unitId;
     private String categoryName;
-    private String supplierName;
     private String unitName;
   
     // Constructors
     public Material() {}
 
-    public Material(int materialId, int categoryId, String name, String image, Date createAt, String status) {
+    public Material(int materialId, int categoryId, int unitId, String name, String image, Date createAt, String status) {
         this.materialId = materialId;
         this.categoryId = categoryId;
+        this.unitId = unitId;
         this.name = name;
         this.image = image;
         this.createAt = createAt;
         this.status = status;
     }
 
-    public Material(int materialId, int categoryId, int supplierId, String name, String image, Date createAt, String status, int unitId, String categoryName, String supplierName, String unitName) {
+    public Material(int materialId, int categoryId, int unitId, String name, String image, Date createAt, String status, String categoryName, String unitName) {
         this.materialId = materialId;
         this.categoryId = categoryId;
-        this.supplierId = supplierId;
+        this.unitId = unitId;
         this.name = name;
         this.image = image;
         this.createAt = createAt;
         this.status = status;
-        this.unitId = unitId;
         this.categoryName = categoryName;
-        this.supplierName = supplierName;
         this.unitName = unitName;
     }
 
@@ -56,6 +53,8 @@ public class Material {
     public void setMaterialId(int materialId) { this.materialId = materialId; }
     public int getCategoryId() { return categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+    public int getUnitId() { return unitId; }
+    public void setUnitId(int unitId) { this.unitId = unitId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getImage() { return image; }
@@ -64,50 +63,14 @@ public class Material {
     public void setCreateAt(Date createAt) { this.createAt = createAt; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-    public int getUnitId() {
-        return unitId;
-    }
-
-    public void setUnitId(int unitId) {
-        this.unitId = unitId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public String getSupplierName() {
-        return supplierName;
-    }
-
-    public void setSupplierName(String supplierName) {
-        this.supplierName = supplierName;
-    }
-
-    public String getUnitName() {
-        return unitName;
-    }
-
-    public void setUnitName(String unitName) {
-        this.unitName = unitName;
-    }
-
-    public int getSupplierId() {
-        return supplierId;
-    }
-
-    public void setSupplierId(int supplierId) {
-        this.supplierId = supplierId;
-    }
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public String getUnitName() { return unitName; }
+    public void setUnitName(String unitName) { this.unitName = unitName; }
 
     @Override
     public String toString() {
-        return "Material{" + "materialId=" + materialId + ", categoryId=" + categoryId + ", supplierId=" + supplierId + ", name=" + name + ", image=" + image + ", createAt=" + createAt + ", status=" + status + ", unitId=" + unitId + ", categoryName=" + categoryName + ", supplierName=" + supplierName + ", unitName=" + unitName + '}';
+        return "Material{" + "materialId=" + materialId + ", categoryId=" + categoryId + ", unitId=" + unitId + ", name=" + name + ", image=" + image + ", createAt=" + createAt + ", status=" + status + ", categoryName=" + categoryName + ", unitName=" + unitName + '}';
     }
     
     
