@@ -90,22 +90,22 @@ public class DashboardController extends HttpServlet {
         List<Material> todayMaterials;
         MaterialTransactionHistory latestTransaction;
         int totalMaterials;
-        double totalInventory;
+        int activeCount;
         int todayImports;
         int todayExports;
-
         if (fromDate != null && toDate != null) {
             todayMaterials = materialDAO.getMaterialsInDateRange(fromDate, toDate, null);
             latestTransaction = transactionDAO.getLatestTransaction(fromDate, toDate);
             totalMaterials = materialDAO.getMaterialCountInDateRange(fromDate, toDate);
-            totalInventory = materialDAO.getInventoryQuantityInDateRange(fromDate, toDate);
+            activeCount = materialDAO.getActiveMaterialCountInRange(fromDate, toDate);
+            
             todayImports = importDAO.getImportNoteCountInDateRange(fromDate, toDate);
             todayExports = exportDAO.getExportNoteCountInDateRange(fromDate, toDate);
         } else {
             todayMaterials = materialDAO.getNewMaterialsToday();
             latestTransaction = transactionDAO.getLatestTransaction();
             totalMaterials = materialDAO.getTotalMaterialCount();
-            totalInventory = materialDAO.getTotalInventoryQuantity();
+            activeCount = materialDAO.getActiveMaterialCount();
             todayImports = importDAO.getTodayImportNoteCount();
             todayExports = exportDAO.getTodayExportNoteCount();
         }
@@ -116,7 +116,7 @@ public class DashboardController extends HttpServlet {
         request.setAttribute("todayMaterials", todayMaterials);
         request.setAttribute("latestTransaction", latestTransaction);
         request.setAttribute("totalMaterials", totalMaterials);
-        request.setAttribute("totalInventory", totalInventory);
+        request.setAttribute("activeCount", activeCount);
         request.setAttribute("todayImports", todayImports);
         request.setAttribute("todayExports", todayExports);
         System.out.println("✅ todayMaterials size = " + todayMaterials.size());

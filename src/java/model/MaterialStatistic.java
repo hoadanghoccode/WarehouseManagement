@@ -12,21 +12,34 @@ public class MaterialStatistic {
 
     private int materialId;
     private double totalQuantity;
-    private String materialName;
+//    private String materialName;
+    private int month;
     private double totalImport;
     private double totalExport;
     private double stock;
+    private int materialCount;
+    private String unitName;
 
     public MaterialStatistic() {
     }
 
-    public MaterialStatistic(int materialId, double totalQuantity, String materialName, double totalImport, double totalExport, double stock) {
+    public MaterialStatistic(int materialId, double totalQuantity, int month, double totalImport, double totalExport, double stock, int materialCount, String unitName) {
         this.materialId = materialId;
         this.totalQuantity = totalQuantity;
-        this.materialName = materialName;
+        this.month = month;
         this.totalImport = totalImport;
         this.totalExport = totalExport;
         this.stock = stock;
+        this.materialCount = materialCount;
+        this.unitName = unitName;
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
     }
 
     public int getMaterialId() {
@@ -43,14 +56,6 @@ public class MaterialStatistic {
 
     public void setTotalQuantity(double totalQuantity) {
         this.totalQuantity = totalQuantity;
-    }
-
-    public String getMaterialName() {
-        return materialName;
-    }
-
-    public void setMaterialName(String materialName) {
-        this.materialName = materialName;
     }
 
     public double getTotalImport() {
@@ -75,6 +80,22 @@ public class MaterialStatistic {
 
     public void setStock(double stock) {
         this.stock = stock;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
+    }
+
+    public int getMaterialCount() {
+        return materialCount;
+    }
+
+    public void setMaterialCount(int materialCount) {
+        this.materialCount = materialCount;
     }
 
 }

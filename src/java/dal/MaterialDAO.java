@@ -111,13 +111,13 @@ public class MaterialDAO extends DBContext {
             ps.setString(2, material.getName());
             ps.setString(3, material.getImage());
             ps.setString(4, material.getStatus());
-            ps.setTimestamp(5, Timestamp.from(Instant.now())); 
+            ps.setTimestamp(5, Timestamp.from(Instant.now()));
             ps.setInt(6, material.getMaterialId());
 
             // Check if material is in pending order or pending import/export
-            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())|| 
-                isMaterialInPendingPurchaseOrder(material.getMaterialId())) {
-                return false; 
+            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())
+                    || isMaterialInPendingPurchaseOrder(material.getMaterialId())) {
+                return false;
             }
 
             int rowsAffected = ps.executeUpdate();
@@ -386,106 +386,178 @@ public class MaterialDAO extends DBContext {
 
     public List<Material> getNewMaterialsToday() {
         List<Material> list = new ArrayList<>();
-        String sql = """
-        SELECT m.Material_id, m.Name AS materialName, m.Image, m.Create_at,
-               c.Name AS categoryName,
-               s.Name AS supplierName,
-               u.Name AS unitName
+    String sql = """
+        SELECT 
+            m.Material_id,
+            m.Name AS materialName,
+            m.Image,
+            m.Create_at,
+            c.Name AS categoryName,
+            u.Name AS unitName
         FROM materials m
         JOIN category c ON m.Category_id = c.Category_id
-        JOIN suppliers s ON m.SupplierId = s.Supplier_id
         JOIN units u ON m.Unit_id = u.Unit_id
         WHERE DATE(m.Create_at) = CURDATE()
         ORDER BY m.Create_at DESC
     """;
 
-        try (
-                PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+    try (PreparedStatement ps = connection.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                Material m = new Material();
-                m.setMaterialId(rs.getInt("Material_id"));
-                m.setName(rs.getString("materialName"));
-                m.setImage(rs.getString("Image"));
-                m.setCreateAt(rs.getDate("Create_at"));
-                m.setCategoryName(rs.getString("categoryName"));
-                m.setSupplierName(rs.getString("supplierName"));
-                m.setUnitName(rs.getString("unitName"));
-                list.add(m);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        while (rs.next()) {
+            Material m = new Material();
+            m.setMaterialId(rs.getInt("Material_id"));
+            m.setName(rs.getString("materialName"));
+            m.setImage(rs.getString("Image"));
+            m.setCreateAt(rs.getDate("Create_at"));
+            m.setCategoryName(rs.getString("categoryName"));
+            m.setUnitName(rs.getString("unitName")); 
+            list.add(m);
         }
 
-        return list;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
 
-    public List<MaterialStatistic> getMaterialStatistics(Integer materialIdFilter) {
-        List<MaterialStatistic> list = new ArrayList<>();
+    return list;
+    }
 
+    public List<MaterialStatistic> getMaterialMonthlyStats(int materialId, Date from, Date to) {
+        List<MaterialStatistic> list = new ArrayList<>();
         String sql = """
-        SELECT 
-            m.material_id,
-            m.name,
-            COALESCE(SUM(i.quantity), 0) AS totalImport,
-            COALESCE(SUM(e.quantity), 0) AS totalExport,
-            COALESCE(SUM(d.quantity), 0) AS stock
-        FROM materials m
-        LEFT JOIN import_note_detail i ON m.material_id = i.material_id AND i.Imported = 1
-        LEFT JOIN export_note_detail e ON m.material_id = e.material_id
-        LEFT JOIN material_detail d ON m.material_id = d.material_id
-        """ + (materialIdFilter != null ? "WHERE m.material_id = ? " : "") + """
-        GROUP BY m.material_id, m.name
-        """;
+      SELECT 
+           result.material_id,
+           result.month,
+           result.year,
+           SUM(result.totalImport) AS totalImport,
+           SUM(result.totalExport) AS totalExport,
+           MAX(result.stock) AS stock,
+           u.name AS unitName
+       FROM (
+           -- NHẬP
+           SELECT 
+               m.material_id,
+               MONTH(n.imported_at) AS month,
+               YEAR(n.imported_at) AS year,
+               SUM(CASE WHEN i.imported = 1 THEN i.quantity ELSE 0 END) AS totalImport,
+               0 AS totalExport,
+               0 AS stock
+           FROM materials m
+           JOIN import_note_detail i ON m.material_id = i.material_id
+           JOIN import_note n ON i.import_note_id = n.import_note_id
+           WHERE m.material_id = ?
+             AND n.imported_at BETWEEN ? AND ?
+           GROUP BY m.material_id, MONTH(n.imported_at), YEAR(n.imported_at)
+       
+           UNION ALL
+       
+           -- TỒN
+           SELECT 
+               m.material_id,
+               MONTH(md.last_updated) AS month,
+               YEAR(md.last_updated) AS year,
+               0 AS totalImport,
+               0 AS totalExport,
+               SUM(md.quantity) AS stock
+           FROM materials m
+           JOIN material_detail md ON m.material_id = md.material_id
+           WHERE m.material_id = ?
+             AND md.last_updated BETWEEN ? AND ?
+           GROUP BY m.material_id, MONTH(md.last_updated), YEAR(md.last_updated)
+       
+           UNION ALL
+       
+           -- XUẤT
+           SELECT 
+               m.material_id,
+               MONTH(ex.exported_at) AS month,
+               YEAR(ex.exported_at) AS year,
+               0 AS totalImport,
+               SUM(e.quantity) AS totalExport,
+               0 AS stock
+           FROM materials m
+           JOIN export_note_detail e ON m.material_id = e.material_id
+           JOIN export_note ex ON e.export_note_id = ex.export_note_id
+           WHERE m.material_id = ?
+             AND ex.exported_at BETWEEN ? AND ?
+           GROUP BY m.material_id, MONTH(ex.exported_at), YEAR(ex.exported_at)
+       ) AS result
+       JOIN materials m2 ON m2.material_id = result.material_id
+       JOIN units u ON m2.unit_id = u.unit_id
+       GROUP BY result.material_id, result.month, result.year
+       ORDER BY result.year, result.month
+    """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (materialIdFilter != null) {
-                ps.setInt(1, materialIdFilter);
-            }
+            ps.setInt(1, materialId); // import
+            ps.setDate(2, from);
+            ps.setDate(3, to);
+            ps.setInt(4, materialId); // stock
+            ps.setDate(5, from);
+            ps.setDate(6, to);
+            ps.setInt(7, materialId); // export
+            ps.setDate(8, from);
+            ps.setDate(9, to);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    int month = rs.getInt("month");
+                    if (rs.wasNull()) {
+                        continue;
+                    }
                     MaterialStatistic stat = new MaterialStatistic();
                     stat.setMaterialId(rs.getInt("material_id"));
-                    stat.setMaterialName(rs.getString("name"));
+                    stat.setMonth(month);
                     stat.setTotalImport(rs.getDouble("totalImport"));
                     stat.setTotalExport(rs.getDouble("totalExport"));
                     stat.setStock(rs.getDouble("stock"));
+                    stat.setUnitName(rs.getString("unitName"));
                     list.add(stat);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return list;
+
     }
 
     public List<Material> getMaterialsInDateRange(Date fromDate, Date toDate, Integer materialIdFilter) {
-    List<Material> list = new ArrayList<>();
+           List<Material> list = new ArrayList<>();
     StringBuilder sql = new StringBuilder("""
-        SELECT m.*, 
-               c.Name AS categoryName, 
-               s.Name AS supplierName, 
-               u.Name AS unitName
+        SELECT 
+            m.*, 
+            c.Name AS categoryName, 
+            u.Name AS unitName
         FROM materials m
         JOIN category c ON m.category_id = c.category_id
-        JOIN suppliers s ON m.supplierId = s.supplier_id
         JOIN units u ON m.unit_id = u.unit_id
         WHERE 1=1
     """);
 
-    if (fromDate != null) sql.append(" AND DATE(m.create_at) >= ? ");
-    if (toDate != null) sql.append(" AND DATE(m.create_at) <= ? ");
-    if (materialIdFilter != null) sql.append(" AND m.material_id = ? ");
+    if (fromDate != null) {
+        sql.append(" AND DATE(m.create_at) >= ? ");
+    }
+    if (toDate != null) {
+        sql.append(" AND DATE(m.create_at) <= ? ");
+    }
+    if (materialIdFilter != null) {
+        sql.append(" AND m.material_id = ? ");
+    }
+
     sql.append(" ORDER BY m.create_at DESC");
 
     try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
         int index = 1;
-        if (fromDate != null) ps.setDate(index++, fromDate);
-        if (toDate != null) ps.setDate(index++, toDate);
-        if (materialIdFilter != null) ps.setInt(index++, materialIdFilter);
+        if (fromDate != null) {
+            ps.setDate(index++, fromDate);
+        }
+        if (toDate != null) {
+            ps.setDate(index++, toDate);
+        }
+        if (materialIdFilter != null) {
+            ps.setInt(index++, materialIdFilter);
+        }
 
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
@@ -497,21 +569,20 @@ public class MaterialDAO extends DBContext {
             m.setStatus(rs.getString("status"));
             m.setCategoryId(rs.getInt("category_id"));
             m.setCategoryName(rs.getString("categoryName"));
-            m.setSupplierId(rs.getInt("supplierId"));
-            m.setSupplierName(rs.getString("supplierName"));
             m.setUnitId(rs.getInt("unit_id"));
             m.setUnitName(rs.getString("unitName"));
             list.add(m);
         }
     } catch (Exception e) {
-        System.out.println("❌ Không có vật tư mới.");
+        System.out.println("❌ Không thể lấy danh sách vật tư theo ngày:");
         e.printStackTrace();
     }
+
     return list;
-}
+    }
 
     public int getMaterialCountInDateRange(Date fromDate, Date toDate) {
-        String sql = "SELECT COUNT(*) FROM materials WHERE DATE(create_at) BETWEEN ? AND ?";
+        String sql = "SELECT COUNT(*) FROM materials WHERE DATE(last_updated) BETWEEN ? AND ?";
         try (
                 PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setDate(1, fromDate);
@@ -526,47 +597,99 @@ public class MaterialDAO extends DBContext {
         return 0;
     }
 
-    public double getInventoryQuantityInDateRange(Date fromDate, Date toDate) {
-        String sql = "SELECT SUM(Quantity) FROM material_detail WHERE DATE(last_updated) BETWEEN ? AND ?";
-        try (
-                PreparedStatement ps = connection.prepareStatement(sql)) {
+    public int getActiveMaterialCount() {
+        String sql = """
+        SELECT COUNT(DISTINCT material_id)
+        FROM material_detail
+        WHERE quantity > 0
+    """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0; // Trả về 0 nếu có lỗi
+    }
+
+    public int getActiveMaterialCountInRange(Date fromDate, Date toDate) {
+        String sql = """
+        SELECT COUNT(DISTINCT material_id)
+        FROM material_detail
+        WHERE quantity > 0
+          AND DATE(last_updated) BETWEEN ? AND ?
+    """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setDate(1, fromDate);
             ps.setDate(2, toDate);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return rs.getDouble(1);
+                return rs.getInt(1);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return 0.0;
+
+        return 0;
     }
 
     public static void main(String[] args) {
-        // Bước 1: Chọn khoảng ngày muốn test
-        LocalDate fromLocal = LocalDate.of(2025, 7, 1);
-        LocalDate toLocal = LocalDate.of(2025, 7, 2);
-        Date fromDate = Date.valueOf(fromLocal);
-        Date toDate = Date.valueOf(toLocal);
+//        // Bước 1: Chọn khoảng ngày muốn test
+//        LocalDate fromLocal = LocalDate.of(2025, 7, 1);
+//        LocalDate toLocal = LocalDate.of(2025, 7, 2);
+//        Date fromDate = Date.valueOf(fromLocal);
+//        Date toDate = Date.valueOf(toLocal);
+//
+//        // Bước 2: Gọi DAO
+//        MaterialDAO dao = new MaterialDAO();
+//        List<Material> newMaterials = dao.getMaterialsInDateRange(fromDate, toDate, null);
+//
+//        // Bước 3: In kết quả
+//        System.out.println("📌 Danh sách vật tư mới từ " + fromDate + " đến " + toDate);
+//        if (newMaterials.isEmpty()) {
+//            System.out.println("❌ Không có vật tư mới.");
+//        } else {
+//            for (Material m : newMaterials) {
+//                System.out.println("✅ ID: " + m.getMaterialId()
+//                        + ", Tên: " + m.getName()
+//                        + ", Danh mục: " + m.getCategoryName()
+//                        + ", Nhà cung cấp: " + m.getSupplierName()
+//                        + ", Đơn vị: " + m.getUnitName()
+//                        + ", Ngày tạo: " + m.getCreateAt()
+//                        + ", Trạng thái: " + m.getStatus());
+//            }
+//        }
 
-        // Bước 2: Gọi DAO
         MaterialDAO dao = new MaterialDAO();
-        List<Material> newMaterials = dao.getMaterialsInDateRange(fromDate, toDate, null);
+//        int materialId = 1; // ID vật tư cần test
+//        int year = 2025;
+//
+//        LocalDate fromLocal = LocalDate.of(year, 1, 1);
+//        LocalDate toLocal = LocalDate.of(year, 12, 31);
+//
+//        Date fromDate = Date.valueOf(fromLocal);
+//        Date toDate = Date.valueOf(toLocal);
+//
+//        List<MaterialStatistic> stats = dao.getMaterialMonthlyStats(materialId, fromDate, toDate);
+//
+//        System.out.println("📊 Monthly Stats for materialId = " + materialId + " in year " + year);
+//        for (MaterialStatistic stat : stats) {
+//            System.out.printf("Tháng %02d | Nhập: %.2f | Xuất: %.2f | Tồn: %.2f | Đơn vị: %s%n",
+//                    stat.getMonth(), stat.getTotalImport(), stat.getTotalExport(), stat.getStock(), stat.getUnitName());
+////        }
+//            // Kiểm tra tổng số vật tư
 
-        // Bước 3: In kết quả
-        System.out.println("📌 Danh sách vật tư mới từ " + fromDate + " đến " + toDate);
-        if (newMaterials.isEmpty()) {
-            System.out.println("❌ Không có vật tư mới.");
-        } else {
-            for (Material m : newMaterials) {
-                System.out.println("✅ ID: " + m.getMaterialId()
-                        + ", Tên: " + m.getName()
-                        + ", Danh mục: " + m.getCategoryName()
-                        + ", Nhà cung cấp: " + m.getSupplierName()
-                        + ", Đơn vị: " + m.getUnitName()
-                        + ", Ngày tạo: " + m.getCreateAt()
-                        + ", Trạng thái: " + m.getStatus());
-            }
+
+    List<Material> newMaterials = dao.getNewMaterialsToday();
+
+    System.out.println("📦 New Materials Added Today: " + newMaterials.size());
+    for (Material m : newMaterials) {
+        System.out.println("- " + m.getName() + " | Đơn vị: " + m.getUnitName() + 
+                           " | Ngày tạo: " + m.getCreateAt());
         }
     }
 }

@@ -5,23 +5,23 @@
 
 package controller;
 
-import dal.Import_noteDAO;
+import com.google.gson.Gson;
+import dal.MaterialDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDate;
 import java.util.List;
-import model.Material;
+import model.MaterialStatistic;
 
 /**
  *
  * @author duong
  */
-@WebServlet(name="ImportChartPageController", urlPatterns={"/indexInventory"})
-public class ImportChartPageController extends HttpServlet {
+public class MaterialMonthlyStatsController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -38,10 +38,10 @@ public class ImportChartPageController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ImportChartPageController</title>");  
+            out.println("<title>Servlet MaterialMonthlyStatsController</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ImportChartPageController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet MaterialMonthlyStatsController at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,13 +58,37 @@ public class ImportChartPageController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        Import_noteDAO dao = new Import_noteDAO();
-        List<Material> materials = dao.getAllMaterial();
-        request.setAttribute("materials", materials);
-        request.getRequestDispatcher("dashboard.jsp").forward(request, response);
-    }
-   
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
+        try (PrintWriter out = response.getWriter()) {
+
+            String materialIdStr = request.getParameter("materialId");
+            String yearStr = request.getParameter("year");
+
+            if (materialIdStr == null || yearStr == null || materialIdStr.isEmpty() || yearStr.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("{\"error\": \"Missing materialId or year parameter\"}");
+                return;
+            }
+
+            int materialId = Integer.parseInt(materialIdStr);
+            int year = Integer.parseInt(yearStr);
+
+            LocalDate fromDate = LocalDate.of(year, 1, 1);
+            LocalDate toDate = LocalDate.of(year, 12, 31);
+
+            MaterialDAO materialDAO = new MaterialDAO();
+            List<MaterialStatistic> stats = materialDAO.getMaterialMonthlyStats(
+                    materialId,
+                    java.sql.Date.valueOf(fromDate),
+                    java.sql.Date.valueOf(toDate)
+            );
+
+            new Gson().toJson(stats, out);
+
+    } 
+    }
     /** 
      * Handles the HTTP <code>POST</code> method.
      * @param request servlet request
