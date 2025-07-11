@@ -37,9 +37,8 @@ public class TransactionHistoryDAO {
             
             COALESCE(ind.Material_id, exd.Material_id) AS materialId,
             m.name AS materialName,
-            
-            COALESCE(ind.SubUnit_id, exd.SubUnit_id) AS subUnitId,
-            su.name AS subUnitName,
+            m.unit_id,
+            u.name AS unitName,
             
             COALESCE(ind.Quality_id, exd.Quality_id) AS qualityId,
             q.quality_name AS qualityName,
@@ -49,11 +48,11 @@ public class TransactionHistoryDAO {
         FROM materialtransactionhistory mth
         LEFT JOIN import_note_detail ind ON mth.Import_note_detail_id = ind.Import_note_detail_id
         LEFT JOIN export_note_detail exd ON mth.Export_note_detail_id = exd.Export_note_detail_id
-        LEFT JOIN materials m ON m.Material_id = COALESCE(ind.Material_id, exd.Material_id)
-        LEFT JOIN subunits su ON su.SubUnit_id = COALESCE(ind.SubUnit_id, exd.SubUnit_id)
-        LEFT JOIN quality q ON q.Quality_id = COALESCE(ind.Quality_id, exd.Quality_id)
+        LEFT JOIN materials m ON m.material_id = COALESCE(ind.material_id, exd.material_id)
+        LEFT JOIN units u ON u.unit_id = m.unit_id
+        LEFT JOIN quality q ON q.quality_id = COALESCE(ind.quality_id, exd.quality_id)
 
-        ORDER BY mth.Transaction_date DESC
+        ORDER BY mth.transaction_date DESC
         LIMIT 1;
     """;
 
@@ -68,8 +67,8 @@ public class TransactionHistoryDAO {
             m.setNote(rs.getString("Note"));
             m.setMaterialId(rs.getInt("materialId"));
             m.setMaterialName(rs.getString("materialName"));
-            m.setSubUnitId(rs.getInt("subUnitId"));
-            m.setSubUnitName(rs.getString("subUnitName"));
+            m.setUnitId(rs.getInt("unit_id"));
+            m.setUnitName(rs.getString("unitName"));
             m.setQualityId(rs.getInt("qualityId"));
             m.setQualityName(rs.getString("qualityName"));
             m.setQuantity(rs.getDouble("quantity"));
@@ -83,23 +82,27 @@ public class TransactionHistoryDAO {
 }
     
    public MaterialTransactionHistory getLatestTransaction(Date from, Date to) {
-    MaterialTransactionHistory m = null;
+      MaterialTransactionHistory m = null;
+
     String sql = """
         SELECT 
             mth.Material_transaction_history_id AS materialTransactionHistoryId,
             mth.Transaction_date,
             mth.Note,
+            
             md.Material_id,
             m.Name AS materialName,
-            md.SubUnit_id,
-            su.Name AS subUnitName,
+            m.Unit_id,
+            u.Name AS unitName,
+            
             md.Quality_id,
             q.Quality_name AS qualityName,
             md.Quantity
+
         FROM materialtransactionhistory mth
         LEFT JOIN material_detail md ON mth.Material_detail_id = md.Material_detail_id
         LEFT JOIN materials m ON md.Material_id = m.Material_id
-        LEFT JOIN subunits su ON md.SubUnit_id = su.SubUnit_id
+        LEFT JOIN units u ON m.Unit_id = u.Unit_id
         LEFT JOIN quality q ON md.Quality_id = q.Quality_id
         WHERE mth.Transaction_date BETWEEN ? AND ?
         ORDER BY mth.Transaction_date DESC
@@ -121,8 +124,8 @@ public class TransactionHistoryDAO {
             m.setNote(rs.getString("Note"));
             m.setMaterialId(rs.getInt("Material_id"));
             m.setMaterialName(rs.getString("materialName"));
-            m.setSubUnitId(rs.getInt("SubUnit_id"));
-            m.setSubUnitName(rs.getString("subUnitName"));
+            m.setUnitId(rs.getInt("Unit_id"));
+            m.setUnitName(rs.getString("unitName"));
             m.setQualityId(rs.getInt("Quality_id"));
             m.setQualityName(rs.getString("qualityName"));
             m.setQuantity(rs.getDouble("Quantity"));
@@ -131,32 +134,49 @@ public class TransactionHistoryDAO {
         System.err.println("❌ Không có giao dịch nào trong khoảng ngày đã chọn.");
         e.printStackTrace();
     }
+
     return m;
 }
     public static void main(String[] args) {
-        // Chọn khoảng thời gian muốn test
-        LocalDate fromLocal = LocalDate.of(2025, 6, 30);
-        LocalDate toLocal = LocalDate.of(2025, 7, 1);
+//        // Chọn khoảng thời gian muốn test
+//        LocalDate fromLocal = LocalDate.of(2025, 6, 30);
+//        LocalDate toLocal = LocalDate.of(2025, 7, 10);
+//
+//        Date fromDate = Date.valueOf(fromLocal);
+//        Date toDate = Date.valueOf(toLocal);
+//
+//        TransactionHistoryDAO dao = new TransactionHistoryDAO();
+//        MaterialTransactionHistory latest = dao.getLatestTransaction(fromDate, toDate);
+//
+//        // Kiểm tra kết quả
+//        if (latest != null) {
+//            System.out.println("✅ Giao dịch mới nhất:");
+//            System.out.println("➤ ID: " + latest.getMaterialTransactionHistoryId());
+//            System.out.println("➤ Ngày giao dịch: " + latest.getTransactionDate());
+//            System.out.println("➤ Vật tư: " + latest.getMaterialName());
+//            System.out.println("➤ SubUnit: " + latest.getUnitName());
+//            System.out.println("➤ Quality: " + latest.getQualityName());
+//            System.out.println("➤ Số lượng: " + latest.getQuantity());
+//            System.out.println("➤ Ghi chú: " + latest.getNote());
+//        } else {
+//            System.out.println("❌ Không có giao dịch nào trong khoảng ngày đã chọn.");
+//        }
+//
+   TransactionHistoryDAO dao = new  TransactionHistoryDAO(); // Hoặc DAO bạn đang dùng để chứa hàm này
+    MaterialTransactionHistory latest = dao.getLatestTransaction();
 
-        Date fromDate = Date.valueOf(fromLocal);
-        Date toDate = Date.valueOf(toLocal);
-
-        TransactionHistoryDAO dao = new TransactionHistoryDAO();
-        MaterialTransactionHistory latest = dao.getLatestTransaction(fromDate, toDate);
-
-        // Kiểm tra kết quả
-        if (latest != null) {
-            System.out.println("✅ Giao dịch mới nhất:");
-            System.out.println("➤ ID: " + latest.getMaterialTransactionHistoryId());
-            System.out.println("➤ Ngày giao dịch: " + latest.getTransactionDate());
-            System.out.println("➤ Vật tư: " + latest.getMaterialName());
-            System.out.println("➤ SubUnit: " + latest.getSubUnitName());
-            System.out.println("➤ Quality: " + latest.getQualityName());
-            System.out.println("➤ Số lượng: " + latest.getQuantity());
-            System.out.println("➤ Ghi chú: " + latest.getNote());
-        } else {
-            System.out.println("❌ Không có giao dịch nào trong khoảng ngày đã chọn.");
-        }
+    if (latest != null) {
+        System.out.println("📦 Latest Transaction:");
+        System.out.println("ID: " + latest.getMaterialTransactionHistoryId());
+        System.out.println("Ngày giao dịch: " + latest.getTransactionDate());
+        System.out.println("Ghi chú: " + latest.getNote());
+        System.out.println("Vật tư: " + latest.getMaterialName() + " (ID: " + latest.getMaterialId() + ")");
+        System.out.println("Đơn vị tính: " + latest.getUnitName() + " (ID: " + latest.getUnitId() + ")");
+        System.out.println("Chất lượng: " + latest.getQualityName() + " (ID: " + latest.getQualityId() + ")");
+        System.out.println("Số lượng: " + latest.getQuantity());
+    } else {
+        System.out.println("❌ Không tìm thấy giao dịch vật tư nào.");
+    }
     }
     
 
