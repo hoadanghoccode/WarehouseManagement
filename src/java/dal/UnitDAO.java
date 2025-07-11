@@ -3,13 +3,14 @@ package dal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import model.Unit;
 import model.Units;
 
 public class UnitDAO extends DBContext {
-    
+
     //Giữ hàm này cho b Giang theo db mới nhé <3
     public List<Unit> getAllUnits() {
         List<Unit> list = new ArrayList<>();
@@ -102,91 +103,6 @@ public class UnitDAO extends DBContext {
         return null;
     }
 
-    public boolean createUnit(Units unit) {
-        String sql = "INSERT INTO Units (Name, SubUnit_id, Factor, Status, Created_at, Updated_at) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, unit.getName());
-            stmt.setInt(2, unit.getSubUnitId());
-            stmt.setDouble(3, unit.getFactor());
-            stmt.setString(4, unit.getIsActive() ? "active" : "inactive");
-            stmt.setTimestamp(5, unit.getCreatedAt());
-            stmt.setTimestamp(6, unit.getUpdatedAt());
-            int affectedRows = stmt.executeUpdate();
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    unit.setUnitId(rs.getInt(1));
-                }
-            }
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            System.err.println("Error creating unit: " + e.getMessage());
-            return false;
-        }
-    }
-
-    public boolean updateUnit(Units unit) {
-        String sql = "UPDATE Units SET Name = ?, SubUnit_id = ?, Factor = ?, Status = ?, Updated_at = ? WHERE Unit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, unit.getName());
-            stmt.setInt(2, unit.getSubUnitId());
-            stmt.setDouble(3, unit.getFactor());
-            stmt.setString(4, unit.getIsActive() ? "active" : "inactive");
-            stmt.setTimestamp(5, unit.getUpdatedAt());
-            stmt.setInt(6, unit.getUnitId());
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            System.err.println("Error updating unit ID " + unit.getUnitId() + ": " + e.getMessage());
-            return false;
-        }
-    }
-
-    public boolean deleteUnit(int unitId) {
-        String sql = "UPDATE Units SET Status = 'inactive', Updated_at = ? WHERE Unit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
-            stmt.setInt(2, unitId);
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            System.err.println("Error deleting unit ID " + unitId + ": " + e.getMessage());
-            return false;
-        }
-    }
-
-    public boolean permanentDeleteUnit(int unitId) {
-        String sql = "DELETE FROM Units WHERE Unit_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, unitId);
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            System.err.println("Error permanently deleting unit ID " + unitId + ": " + e.getMessage());
-            return false;
-        }
-    }
-
-    public boolean isDuplicateUnitName(String name, Integer excludeId) {
-        String sql = "SELECT COUNT(*) FROM Units WHERE Name = ?";
-        if (excludeId != null) {
-            sql += " AND Unit_id != ?";
-        }
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, name);
-            if (excludeId != null) {
-                stmt.setInt(2, excludeId);
-            }
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error checking duplicate unit name: " + e.getMessage());
-        }
-        return false;
-    }
-
     //B Minh cần hàm này nên đừng xóa
     public List<Units> getAllUnitsWithSubUnit(String status) {
         List<Units> units = new ArrayList<>();
@@ -224,5 +140,125 @@ public class UnitDAO extends DBContext {
             System.err.println("Error fetching units with status " + status + ": " + e.getMessage());
         }
         return units;
+    }
+
+    public boolean createUnit(Unit unit) {
+        String sql = "INSERT INTO Units (Name, Status, Created_at, Updated_at) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, unit.getName());
+            stmt.setString(2, unit.getStatus());
+            stmt.setTimestamp(3, unit.getCreatedAt());
+            stmt.setTimestamp(4, unit.getUpdatedAt());
+            int affectedRows = stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    unit.setUnitId(rs.getInt(1));
+                }
+            }
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error creating unit: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateUnit(Unit unit) {
+        // Check for transaction dependencies
+        if (hasTransactionDependencies(unit.getUnitId())) {
+            System.err.println("Cannot update unit ID " + unit.getUnitId() + ": Unit is used in transactions");
+            return false;
+        }
+        String sql = "UPDATE Units SET Name = ?, Status = ?, Updated_at = ? WHERE Unit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, unit.getName());
+            stmt.setString(2, unit.getStatus());
+            stmt.setTimestamp(3, unit.getUpdatedAt());
+            stmt.setInt(4, unit.getUnitId());
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating unit ID " + unit.getUnitId() + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean deleteUnit(int unitId) {
+        // Check for transaction dependencies
+        if (hasTransactionDependencies(unitId)) {
+            System.err.println("Cannot deactivate unit ID " + unitId + ": Unit is used in transactions");
+            return false;
+        }
+        String sql = "UPDATE Units SET Status = 'inactive', Updated_at = ? WHERE Unit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            stmt.setInt(2, unitId);
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deactivating unit ID " + unitId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean permanentDeleteUnit(int unitId) {
+        // Check for transaction dependencies
+        if (hasTransactionDependencies(unitId)) {
+            System.err.println("Cannot permanently delete unit ID " + unitId + ": Unit is used in transactions");
+            return false;
+        }
+        String sql = "DELETE FROM Units WHERE Unit_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, unitId);
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error permanently deleting unit ID " + unitId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean isDuplicateUnitName(String name, Integer excludeId) {
+        String sql = "SELECT COUNT(*) FROM Units WHERE Name = ?";
+        if (excludeId != null) {
+            sql += " AND Unit_id != ?";
+        }
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            if (excludeId != null) {
+                stmt.setInt(2, excludeId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking duplicate unit name: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean hasTransactionDependencies(int unitId) {
+        String sql = "SELECT COUNT(*) FROM Materials m " +
+                     "LEFT JOIN Import_note_detail ind ON m.Material_id = ind.Material_id " +
+                     "LEFT JOIN Export_note_detail end ON m.Material_id = end.Material_id " +
+                     "LEFT JOIN Order_detail od ON m.Material_id = od.Material_id " +
+                     "LEFT JOIN PurchaseOrder_detail pod ON m.Material_id = pod.Material_id " +
+                     "WHERE m.Unit_id = ? " +
+                     "AND (ind.Material_id IS NOT NULL OR end.Material_id IS NOT NULL OR od.Material_id IS NOT NULL OR pod.Material_id IS NOT NULL)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, unitId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    System.err.println("Unit ID " + unitId + " has " + count + " transaction dependencies");
+                    return count > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking transaction dependencies for unit ID " + unitId + ": " + e.getMessage());
+        }
+        System.err.println("Unit ID " + unitId + " has no transaction dependencies");
+        return false;
     }
 }
