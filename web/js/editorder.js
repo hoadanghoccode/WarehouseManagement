@@ -9,13 +9,13 @@ let itemCounter = 0;
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize autocomplete
     initializeAutocomplete();
-    
+
     // Load existing order items
     loadExistingOrderItems();
-    
+
     // Setup form validation
     setupFormValidation();
-    
+
     // Create required modals
     createErrorModal();
     createDuplicateModal();
@@ -26,17 +26,17 @@ function loadExistingOrderItems() {
     if (typeof existingOrderDetails !== 'undefined' && existingOrderDetails.length > 0) {
         const container = document.getElementById("orderItemsContainer");
         const noMsg = document.getElementById("noItemsMessage");
-        
+
         // Hide no items message
         if (noMsg) {
             noMsg.style.display = "none";
         }
-        
+
         // Load each existing item
         existingOrderDetails.forEach(detail => {
             addOrderItemWithData(detail);
         });
-        
+
         // Renumber items after loading
         renumberItems();
     }
@@ -46,7 +46,7 @@ function addOrderItemWithData(data = null) {
     itemCounter++;
     const container = document.getElementById("orderItemsContainer");
     const noMsg = document.getElementById("noItemsMessage");
-    
+
     if (noMsg) {
         noMsg.style.display = "none";
     }
@@ -77,6 +77,7 @@ function addOrderItemWithData(data = null) {
                            onfocus="showMaterialDropdown(this)"
                            onblur="hideMaterialDropdown(this)"
                            value="${materialData ? materialData.name : ''}"
+                           ${materialData ? 'disabled style="padding-right: 30px;"' : ''}
                            required>
                     <input type="hidden" name="material[]" class="material-id-input" value="${materialData ? materialData.materialId : ''}">
                     <div class="material-dropdown" style="display: none;">
@@ -107,10 +108,17 @@ function addOrderItemWithData(data = null) {
     </div>`;
 
     container.insertAdjacentHTML("beforeend", itemHtml);
-    
+
+    // Nếu có dữ liệu sẵn thì hiển thị nút X
+    if (materialData) {
+        const newItem = container.lastElementChild;
+        const autocompleteContainer = newItem.querySelector('.autocomplete-container');
+        showClearButton(autocompleteContainer);
+    }
+
     // Initialize autocomplete for the new item
     initializeAutocomplete();
-    
+
     // Check for duplicates
     checkDuplicateItems();
 }
@@ -121,6 +129,11 @@ function addOrderItem() {
 }
 
 function handleMaterialSearch(input) {
+    // Không cho phép search nếu input đang disabled
+    if (input.disabled) {
+        return;
+    }
+    
     const searchTerm = input.value.toLowerCase().trim();
     const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
     const dropdownContent = dropdown.querySelector('.dropdown-content');
@@ -148,7 +161,7 @@ function displayMaterialOptions(container, materials) {
         container.innerHTML = '<div class="dropdown-item no-results">No materials found</div>';
         return;
     }
-    
+
     materials.forEach(material => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'dropdown-item';
@@ -169,13 +182,13 @@ function displayMaterialOptions(container, materials) {
                 </div>
             </div>
         `;
-        
+
         // Add click event
-        itemDiv.addEventListener('click', function(e) {
+        itemDiv.addEventListener('click', function (e) {
             e.preventDefault();
             selectMaterial(this.querySelector('.material-option'));
         });
-        
+
         container.appendChild(itemDiv);
     });
 }
@@ -187,27 +200,56 @@ function selectMaterial(materialOption) {
     const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
     const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
     const dropdown = autocompleteContainer.querySelector('.material-dropdown');
-    
+
     // Get material data
     const materialId = materialOption.dataset.materialId;
     const materialName = materialOption.querySelector('.material-name').textContent;
     const unitId = materialOption.dataset.unitId;
     const unitName = materialOption.dataset.unitName;
-    
+
     // Set values
     materialInput.value = materialName;
     materialIdInput.value = materialId;
     unitDisplay.value = unitName;
     unitIdInput.value = unitId;
-    
+
+    // Disable input và hiển thị nút X
+    materialInput.disabled = true;
+    materialInput.style.paddingRight = '30px'; // Tạo chỗ cho nút X
+    showClearButton(autocompleteContainer);
+
     // Hide dropdown
     dropdown.style.display = 'none';
-    
+
     // Trigger validation
     checkDuplicateItems();
 }
 
+function showClearButton(container) {
+    // Xóa nút X cũ nếu có
+    const existingClearBtn = container.querySelector('.clear-material-btn');
+    if (existingClearBtn) {
+        existingClearBtn.remove();
+    }
+
+    // Tạo nút X mới
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'clear-material-btn';
+    clearBtn.innerHTML = '<i class="fas fa-times"></i>';
+    clearBtn.onclick = function () {
+        clearMaterialSelection(container.closest('.order-item'));
+    };
+
+    container.appendChild(clearBtn);
+}
+
 function showMaterialDropdown(input) {
+    // Không hiển thị dropdown nếu input đang disabled
+    if (input.disabled) {
+        return;
+    }
+    
     const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
     const dropdownContent = dropdown.querySelector('.dropdown-content');
     
@@ -219,14 +261,17 @@ function showMaterialDropdown(input) {
     dropdown.style.display = 'block';
 }
 
+
 function hideMaterialDropdown(input) {
     // Use setTimeout to allow click events to fire first
     setTimeout(() => {
         const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
         dropdown.style.display = 'none';
         
-        // Validate selection
-        validateMaterialSelection(input);
+        // Validate selection chỉ khi input không disabled
+        if (!input.disabled) {
+            validateMaterialSelection(input);
+        }
     }, 200);
 }
 
@@ -235,7 +280,7 @@ function validateMaterialSelection(input) {
     const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
     const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
     const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
-    
+
     // If no material is selected (hidden input is empty), clear everything
     if (!materialIdInput.value) {
         input.value = '';
@@ -249,11 +294,28 @@ function clearMaterialSelection(orderItem) {
     const materialIdInput = orderItem.querySelector('.material-id-input');
     const unitDisplay = orderItem.querySelector('.unit-display');
     const unitIdInput = orderItem.querySelector('.unit-id-input');
-    
+    const clearBtn = orderItem.querySelector('.clear-material-btn');
+
+    // Clear values
     materialInput.value = '';
     materialIdInput.value = '';
     unitDisplay.value = 'Select Material First';
     unitIdInput.value = '';
+
+    // Enable input và reset style
+    materialInput.disabled = false;
+    materialInput.style.paddingRight = '';
+
+    // Ẩn nút X
+    if (clearBtn) {
+        clearBtn.remove();
+    }
+
+    // Focus vào input để người dùng có thể nhập lại
+    materialInput.focus();
+
+    // Trigger validation
+    checkDuplicateItems();
 }
 
 function removeOrderItem(btn) {
@@ -283,12 +345,14 @@ function adjustQuantity(button, change) {
     const quantityInput = button.parentElement.querySelector('.quantity-input');
     let currentValue = parseInt(quantityInput.value) || 1;
     let newValue = currentValue + change;
-    
-    if (newValue < 1) newValue = 1;
-    if (newValue > 9999) newValue = 9999;
-    
+
+    if (newValue < 1)
+        newValue = 1;
+    if (newValue > 9999)
+        newValue = 9999;
+
     quantityInput.value = newValue;
-    
+
     // Trigger validation
     checkDuplicateItems();
 }
@@ -411,9 +475,9 @@ function initializeAutocomplete() {
     if (!document.getElementById('autocomplete-styles')) {
         addAutocompleteStyles();
     }
-    
+
     // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!e.target.closest('.autocomplete-container')) {
             document.querySelectorAll('.material-dropdown').forEach(dropdown => {
                 dropdown.style.display = 'none';
@@ -531,6 +595,37 @@ function addAutocompleteStyles() {
         
         .unit-display {
             background-color: #f8f9fa !important;
+            cursor: not-allowed;
+        }
+        
+        /* CSS cho nút X */
+        .clear-material-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        
+        .clear-material-btn:hover {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .material-input:disabled {
+            background-color: #f8f9fa;
             cursor: not-allowed;
         }
         
