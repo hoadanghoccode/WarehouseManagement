@@ -132,7 +132,7 @@
                                 <i class="fa fa-plus me-1"></i> Add Audit
                             </button>
                         </c:if>
-                            
+
                     </div>
                 </div>
 
@@ -215,7 +215,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Modal Confirm Approve -->
                 <div class="modal fade" id="confirmApproveModal" tabindex="-1">
                     <div class="modal-dialog">
@@ -230,6 +230,26 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="button" id="confirmApproveBtn" class="btn btn-success">Approve</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Confirm Reject -->
+                <div class="modal fade" id="confirmRejectModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Reject Inventory Audit</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <label for="rejectNoteInput" class="form-label mb-2">Reason for rejection <span class="text-danger">*</span></label>
+                                <textarea id="rejectNoteInput" class="form-control" rows="3" placeholder="Enter reason for rejection..." required></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="confirmRejectBtn" class="btn btn-danger">Reject</button>
                             </div>
                         </div>
                     </div>
@@ -277,70 +297,54 @@
 
                                             <td>${audit.auditDate}</td>
                                             <td>
-                                                <span class="badge ${audit.status == 'completed' ? 'bg-success' : 'bg-secondary'}">${audit.status}</span>
-                                            </td>
-                                            <!--<td>${audit.note}</td>-->
-                                            <c:if test="${perms['InventoryAudit_VIEW']}">
-                                                <td>
-                                                    <button type="button"
-                                                            class="btn btn-info btn-sm btn-view-audit"
-                                                            data-id="${audit.id}"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#auditDetailModal">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
+                                                <span class="badge
+                                                      ${audit.status == 'completed' ? 'bg-success' : 
+                                                        audit.status == 'rejected' ? 'bg-danger' : 
+                                                        'bg-secondary'}">
+                                                          ${audit.status}
+                                                      </span>
                                                 </td>
+                                                                                            <!--<td>${audit.note}</td>-->
+                                                <c:if test="${perms['InventoryAudit_VIEW']}">
+                                                    <td>
+                                                        <button type="button"
+                                                                class="btn btn-info btn-sm btn-view-audit"
+                                                                data-id="${audit.id}"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#auditDetailModal">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </button>
+                                                    </td>
 
-                                            </c:if>
-                                        </tr>
-                                    </c:forEach>
-                                </tbody>
-                            </table>
-                        </div>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="no-data">
-                            <i class="fas fa-folder-open fa-3x"></i>
-                            <h3>No audit record found</h3>
-                        </div>
-                    </c:otherwise>
-                </c:choose>
+                                                </c:if>
+                                            </tr>
+                                        </c:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="no-data">
+                                <i class="fas fa-folder-open fa-3x"></i>
+                                <h3>No audit record found</h3>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
 
-                <!-- Pagination (reuse style Supplier page) -->
-                <c:if test="${numPages > 1}">
-                    <div class="pagination">
-                        <!-- First / Prev -->
-                        <c:url var="firstUrl" value="/auditlist">
-                            <c:param name="page" value="1"/>
-                            <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
-                            <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
-                            <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
-                            <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
-                            <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
-                        </c:url>
-                        <c:url var="prevUrl" value="/auditlist">
-                            <c:param name="page" value="${page-1}"/>
-                            <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
-                            <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
-                            <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
-                            <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
-                            <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
-                        </c:url>
-                        <c:choose>
-                            <c:when test="${page > 1}">
-                                <a href="${firstUrl}" title="First"><i class="fas fa-angle-double-left"></i></a>
-                                <a href="${prevUrl}"  title="Prev" ><i class="fas fa-angle-left"></i></a>
-                                </c:when>
-                                <c:otherwise>
-                                <span class="disabled"><i class="fas fa-angle-double-left"></i></span>
-                                <span class="disabled"><i class="fas fa-angle-left"></i></span>
-                                </c:otherwise>
-                            </c:choose>
-
-                        <!-- Page numbers -->
-                        <c:forEach begin="1" end="${numPages}" var="i">
-                            <c:url var="pageUrl" value="/auditlist">
-                                <c:param name="page" value="${i}"/>
+                    <!-- Pagination (reuse style Supplier page) -->
+                    <c:if test="${numPages > 1}">
+                        <div class="pagination">
+                            <!-- First / Prev -->
+                            <c:url var="firstUrl" value="/auditlist">
+                                <c:param name="page" value="1"/>
+                                <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
+                                <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
+                                <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
+                                <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
+                                <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
+                            </c:url>
+                            <c:url var="prevUrl" value="/auditlist">
+                                <c:param name="page" value="${page-1}"/>
                                 <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
                                 <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
                                 <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
@@ -348,351 +352,418 @@
                                 <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
                             </c:url>
                             <c:choose>
-                                <c:when test="${i == page}">
-                                    <span class="current">${i}</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <a href="${pageUrl}">${i}</a>
-                                </c:otherwise>
-                            </c:choose>
-                        </c:forEach>
+                                <c:when test="${page > 1}">
+                                    <a href="${firstUrl}" title="First"><i class="fas fa-angle-double-left"></i></a>
+                                    <a href="${prevUrl}"  title="Prev" ><i class="fas fa-angle-left"></i></a>
+                                    </c:when>
+                                    <c:otherwise>
+                                    <span class="disabled"><i class="fas fa-angle-double-left"></i></span>
+                                    <span class="disabled"><i class="fas fa-angle-left"></i></span>
+                                    </c:otherwise>
+                                </c:choose>
 
-                        <!-- Next / Last -->
-                        <c:url var="nextUrl" value="/auditlist">
-                            <c:param name="page" value="${page+1}"/>
-                            <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
-                            <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
-                            <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
-                            <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
-                            <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
-                        </c:url>
-                        <c:url var="lastUrl" value="/auditlist">
-                            <c:param name="page" value="${numPages}"/>
-                            <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
-                            <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
-                            <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
-                            <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
-                            <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
-                        </c:url>
-                        <c:choose>
-                            <c:when test="${page < numPages}">
-                                <a href="${nextUrl}" title="Next"><i class="fas fa-angle-right"></i></a>
-                                <a href="${lastUrl}" title="Last"><i class="fas fa-angle-double-right"></i></a>
-                                </c:when>
-                                <c:otherwise>
-                                <span class="disabled"><i class="fas fa-angle-right"></i></span>
-                                <span class="disabled"><i class="fas fa-angle-double-right"></i></span>
-                                </c:otherwise>
-                            </c:choose>
-                    </div>
-                    <div class="page-info">
-                        Page ${page} of ${numPages} (${totalAudit} total)
-                    </div>
-                </c:if>
+                            <!-- Page numbers -->
+                            <c:forEach begin="1" end="${numPages}" var="i">
+                                <c:url var="pageUrl" value="/auditlist">
+                                    <c:param name="page" value="${i}"/>
+                                    <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
+                                    <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
+                                    <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
+                                    <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
+                                    <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
+                                </c:url>
+                                <c:choose>
+                                    <c:when test="${i == page}">
+                                        <span class="current">${i}</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="${pageUrl}">${i}</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
 
-            </div>
-        </section>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            $(document).ready(function () {
+                            <!-- Next / Last -->
+                            <c:url var="nextUrl" value="/auditlist">
+                                <c:param name="page" value="${page+1}"/>
+                                <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
+                                <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
+                                <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
+                                <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
+                                <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
+                            </c:url>
+                            <c:url var="lastUrl" value="/auditlist">
+                                <c:param name="page" value="${numPages}"/>
+                                <c:if test="${not empty param.code}"><c:param name="code" value="${param.code}"/></c:if>
+                                <c:if test="${not empty param.status}"><c:param name="status" value="${param.status}"/></c:if>
+                                <c:if test="${not empty param.dateFrom}"><c:param name="dateFrom" value="${param.dateFrom}"/></c:if>
+                                <c:if test="${not empty param.dateTo}"><c:param name="dateTo" value="${param.dateTo}"/></c:if>
+                                <c:if test="${not empty param.createdBy}"><c:param name="createdBy" value="${param.createdBy}"/></c:if>
+                            </c:url>
+                            <c:choose>
+                                <c:when test="${page < numPages}">
+                                    <a href="${nextUrl}" title="Next"><i class="fas fa-angle-right"></i></a>
+                                    <a href="${lastUrl}" title="Last"><i class="fas fa-angle-double-right"></i></a>
+                                    </c:when>
+                                    <c:otherwise>
+                                    <span class="disabled"><i class="fas fa-angle-right"></i></span>
+                                    <span class="disabled"><i class="fas fa-angle-double-right"></i></span>
+                                    </c:otherwise>
+                                </c:choose>
+                        </div>
+                        <div class="page-info">
+                            Page ${page} of ${numPages} (${totalAudit} total)
+                        </div>
+                    </c:if>
+
+                </div>
+            </section>
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
                 var currentAuditId = null;
-                $('.btn-view-audit').on('click', function () {
-                    currentAuditId = $(this).data('id');
-                    var auditId = $(this).data('id');
-                    console.log('auditId ne', auditId);
-                    $('#auditDetailBody').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
-                    $.ajax({
-                        url: '${pageContext.request.contextPath}/inventoryauditdetail?view=detail&auditId=' + auditId,
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function (data) {
-                            // data should be an object containing audit info & detail list
-                            var html = '<div class="mb-3"><b>Audit Code:</b> ' + data.audit.auditCode + '</div>';
-                            html += '<div class="mb-3"><b>Created By:</b> ' + data.audit.createdByName + '</div>';
-                            html += '<div class="mb-3"><b>Audit Date:</b> ' + data.audit.auditDate + '</div>';
-                            html += '<hr>';
-                            html += '<h6>Audit Material Details:</h6>';
-                            html += '<table class="table table-bordered">';
-                            html += '<thead><tr><th>#</th><th>Material Name</th><th>System Quantity</th><th>Actual Quantity</th><th>Difference</th><th>Reason</th></tr></thead><tbody>';
-                            data.details.forEach(function (item, idx) {
-                                html += '<tr>';
-                                html += '<td>' + (idx + 1) + '</td>';
-                                html += '<td>' + item.materialName + '</td>';
-                                html += '<td>' + item.systemQty + '</td>';
-                                html += '<td>' + item.actualQty + '</td>';
-                                html += '<td>' + item.difference + '</td>';
-                                html += '<td>' + (item.reason ? item.reason : '') + '</td>';
-                                html += '</tr>';
-                            });
-                            html += '</tbody></table>';
-                            $('#auditDetailBody').html(html);
-                            if (data.audit.status === 'draft' && ${sessionScope.roleId} == 2) {
-                                $('#btnApproveAudit').show();
-                                $('#btnRejectAudit').show();
-                            } else {
-                                $('#btnApproveAudit').hide();
-                                $('#btnRejectAudit').hide();
+                $(document).ready(function () {
+                    $('.btn-view-audit').on('click', function () {
+                        currentAuditId = $(this).data('id');
+                        var auditId = $(this).data('id');
+                        console.log('auditId ne', auditId);
+                        $('#auditDetailBody').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+                        $.ajax({
+                            url: '${pageContext.request.contextPath}/inventoryauditdetail?view=detail&auditId=' + auditId,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                // data should be an object containing audit info & detail list
+                                var html = '<div class="mb-3"><b>Audit Code:</b> ' + data.audit.auditCode + '</div>';
+                                html += '<div class="mb-3"><b>Created By:</b> ' + data.audit.createdByName + '</div>';
+                                html += '<div class="mb-3"><b>Audit Date:</b> ' + data.audit.auditDate + '</div>';
+                                if (data.audit.status === 'rejected' && data.audit.note) {
+                                    html += '<div class="alert alert-danger mt-2"><b>Reject reason:</b> ' + data.audit.note + '</div>';
+                                }
+                                html += '<hr>';
+                                html += '<h6>Audit Material Details:</h6>';
+                                html += '<table class="table table-bordered">';
+                                html += '<thead><tr><th>#</th><th>Material Name</th><th>System Quantity</th><th>Actual Quantity</th><th>Difference</th><th>Reason</th></tr></thead><tbody>';
+                                data.details.forEach(function (item, idx) {
+                                    html += '<tr>';
+                                    html += '<td>' + (idx + 1) + '</td>';
+                                    html += '<td>' + item.materialName + '</td>';
+                                    html += '<td>' + item.systemQty + '</td>';
+                                    html += '<td>' + item.actualQty + '</td>';
+                                    html += '<td>' + item.difference + '</td>';
+                                    html += '<td>' + (item.reason ? item.reason : '') + '</td>';
+                                    html += '</tr>';
+                                });
+                                html += '</tbody></table>';
+                                $('#auditDetailBody').html(html);
+                                if (data.audit.status === 'draft' && ${sessionScope.roleId} == 2) {
+                                    $('#btnApproveAudit').show();
+                                    $('#btnRejectAudit').show();
+                                } else {
+                                    $('#btnApproveAudit').hide();
+                                    $('#btnRejectAudit').hide();
+                                }
+                            },
+                            error: function (xhr) {
+                                $('#auditDetailBody').html('<div class="alert alert-danger">Failed to load audit details!</div>');
                             }
-                        },
-                        error: function (xhr) {
-                            $('#auditDetailBody').html('<div class="alert alert-danger">Failed to load audit details!</div>');
+                        });
+                    });
+                    console.log('currentAuditId', currentAuditId);
+                    // Gắn sự kiện Approve
+                    $('#auditDetailModal').on('click', '#btnApproveAudit', function () {
+                        if (!currentAuditId) {
+                            showAlert(false, "Cannot find Audit ID!");
+                            return;
                         }
+                        $('#confirmApproveModal').modal('show');
+                    });
+                    // Xác nhận approve trong modal
+                    $('#confirmApproveBtn').click(function () {
+                        if (!currentAuditId)
+                            return;
+                        $.ajax({
+                            url: '${pageContext.request.contextPath}/approveaudit',
+                            type: 'POST',
+                            data: {auditId: currentAuditId},
+                            success: function (data) {
+                                showAlert(true, 'Approved successfully!');
+                                $('#auditDetailModal').modal('hide');
+                                $('#confirmApproveModal').modal('hide');
+                                location.reload();
+                            },
+                            error: function () {
+                                showAlert(false, 'Approve failed!');
+                                $('#confirmApproveModal').modal('hide');
+                            }
+                        });
                     });
                 });
-
-                // Gắn sự kiện Approve
-                $('#auditDetailModal').on('click', '#btnApproveAudit', function () {
+                // Bấm Reject hiển thị modal nhập lý do
+                $('#auditDetailModal').on('click', '#btnRejectAudit', function () {
                     if (!currentAuditId) {
                         showAlert(false, "Cannot find Audit ID!");
                         return;
                     }
-                    $('#confirmApproveModal').modal('show');
+                    // Reset note input
+                    $('#rejectNoteInput').val('');
+                    $('#confirmRejectModal').modal('show');
                 });
-                // Xác nhận approve trong modal
-                $('#confirmApproveBtn').click(function () {
-                    if (!currentAuditId) return;
+
+                // Xác nhận Reject
+                $('#confirmRejectBtn').click(function () {
+                    if (!currentAuditId)
+                        return;
+                    var note = $('#rejectNoteInput').val().trim();
+                    if (!note) {
+                        $('#rejectNoteInput').addClass('is-invalid');
+                        return;
+                    }
+                    $('#rejectNoteInput').removeClass('is-invalid');
                     $.ajax({
-                        url: '${pageContext.request.contextPath}/approveaudit',
+                        url: '${pageContext.request.contextPath}/rejectaudit',
                         type: 'POST',
-                        data: {auditId: currentAuditId},
+                        data: {auditId: currentAuditId, rejectNote: note},
                         success: function (data) {
-                            showAlert(true, 'Approved successfully!');
+                            showAlert(true, 'Rejected successfully!');
                             $('#auditDetailModal').modal('hide');
-                            $('#confirmApproveModal').modal('hide');
-                            location.reload();
+                            $('#confirmRejectModal').modal('hide');
+                            setTimeout(() => location.reload(), 1000);
                         },
                         error: function () {
-                            showAlert(false, 'Approve failed!');
-                            $('#confirmApproveModal').modal('hide');
+                            showAlert(false, 'Reject failed!');
+                            $('#confirmRejectModal').modal('hide');
                         }
                     });
                 });
-            });
-        </script>
-        <script>
-            // Show the audit modal
-            $('#btnOpenAuditModal').click(function () {
-                $('#auditModal').modal('show');
-            });
 
-            // When entering actual quantity, check for discrepancy
-            $('#auditModal').on('input', '.actual-qty-input', function () {
-                var actual = parseFloat($(this).val()) || 0;
-                var sys = parseFloat($(this).data('sysqty')) || 0;
-                var $block = $(this).closest('.inventory-item-row');
-                if (actual !== sys) {
-                    $block.find('.reason-row').removeClass('d-none');
-                    $block.find('.reason-input').attr('required', true);
-                } else {
-                    $block.find('.reason-row').addClass('d-none');
-                    $block.find('.reason-input').val('').removeAttr('required');
-                }
-            });
+                // Khi sửa lại ghi chú sẽ ẩn lỗi
+                $('#rejectNoteInput').on('input', function () {
+                    $(this).removeClass('is-invalid');
+                });
+            </script>
+            <script>
+                // Show the audit modal
+                $('#btnOpenAuditModal').click(function () {
+                    $('#auditModal').modal('show');
+                });
 
-            // Save audit (collect data, send via ajax, handle on backend)
-            $('#btnSaveAudit').click(function () {
-                let data = [];
-                let valid = true;
-                $('#inventoryAuditForm .inventory-item-row').each(function () {
-                    let $row = $(this);
-
-                    // Xóa lỗi cũ
-                    $row.find('.is-invalid').removeClass('is-invalid');
-                    $row.find('.invalid-feedback').remove();
-
-                    let materialId = $row.find('.actual-qty-available-input').attr('name').split('_')[1];
-                    let sysAvailable = parseFloat($row.find('.sys-qty-available').text()) || 0;
-                    let actualAvailable = $row.find('.actual-qty-available-input').val();
-                    let sysNotAvailable = parseFloat($row.find('.sys-qty-notavailable').text()) || 0;
-                    let actualNotAvailable = $row.find('.actual-qty-notavailable-input').val();
-                    let reason = $row.find('.reason-input').val();
-
-                    // Validate actual available
-                    if (actualAvailable === '') {
-                        valid = false;
-                        let $input = $row.find('.actual-qty-available-input');
-                        $input.addClass('is-invalid');
-                        $input.after('<div class="invalid-feedback">Required</div>');
+                // When entering actual quantity, check for discrepancy
+                $('#auditModal').on('input', '.actual-qty-input', function () {
+                    var actual = parseFloat($(this).val()) || 0;
+                    var sys = parseFloat($(this).data('sysqty')) || 0;
+                    var $block = $(this).closest('.inventory-item-row');
+                    if (actual !== sys) {
+                        $block.find('.reason-row').removeClass('d-none');
+                        $block.find('.reason-input').attr('required', true);
+                    } else {
+                        $block.find('.reason-row').addClass('d-none');
+                        $block.find('.reason-input').val('').removeAttr('required');
                     }
-                    // Validate actual not available
-                    if (actualNotAvailable === '') {
-                        valid = false;
-                        let $input = $row.find('.actual-qty-notavailable-input');
-                        $input.addClass('is-invalid');
-                        $input.after('<div class="invalid-feedback">Required</div>');
-                    }
-                    // Validate reason if visible
-                    if ($row.find('.reason-input').is(':visible') && reason.trim() === '') {
-                        valid = false;
-                        let $input = $row.find('.reason-input');
-                        $input.addClass('is-invalid');
-                        $input.after('<div class="invalid-feedback">Required</div>');
-                    }
+                });
 
-                    data.push({
-                        materialId: materialId,
-                        availableSystem: sysAvailable,
-                        availableActual: parseFloat(actualAvailable) || 0,
-                        notAvailableSystem: sysNotAvailable,
-                        notAvailableActual: parseFloat(actualNotAvailable) || 0,
-                        reason: reason
+                // Save audit (collect data, send via ajax, handle on backend)
+                $('#btnSaveAudit').click(function () {
+                    let data = [];
+                    let valid = true;
+                    $('#inventoryAuditForm .inventory-item-row').each(function () {
+                        let $row = $(this);
+
+                        // Xóa lỗi cũ
+                        $row.find('.is-invalid').removeClass('is-invalid');
+                        $row.find('.invalid-feedback').remove();
+
+                        let materialId = $row.find('.actual-qty-available-input').attr('name').split('_')[1];
+                        let sysAvailable = parseFloat($row.find('.sys-qty-available').text()) || 0;
+                        let actualAvailable = $row.find('.actual-qty-available-input').val();
+                        let sysNotAvailable = parseFloat($row.find('.sys-qty-notavailable').text()) || 0;
+                        let actualNotAvailable = $row.find('.actual-qty-notavailable-input').val();
+                        let reason = $row.find('.reason-input').val();
+
+                        // Validate actual available
+                        if (actualAvailable === '') {
+                            valid = false;
+                            let $input = $row.find('.actual-qty-available-input');
+                            $input.addClass('is-invalid');
+                            $input.after('<div class="invalid-feedback">Required</div>');
+                        }
+                        // Validate actual not available
+                        if (actualNotAvailable === '') {
+                            valid = false;
+                            let $input = $row.find('.actual-qty-notavailable-input');
+                            $input.addClass('is-invalid');
+                            $input.after('<div class="invalid-feedback">Required</div>');
+                        }
+                        // Validate reason if visible
+                        if ($row.find('.reason-input').is(':visible') && reason.trim() === '') {
+                            valid = false;
+                            let $input = $row.find('.reason-input');
+                            $input.addClass('is-invalid');
+                            $input.after('<div class="invalid-feedback">Required</div>');
+                        }
+
+                        data.push({
+                            materialId: materialId,
+                            availableSystem: sysAvailable,
+                            availableActual: parseFloat(actualAvailable) || 0,
+                            notAvailableSystem: sysNotAvailable,
+                            notAvailableActual: parseFloat(actualNotAvailable) || 0,
+                            reason: reason
+                        });
+                    });
+                    if (!valid) {
+                        // Không submit nếu có lỗi
+                        return;
+                    }
+                    // Send to backend via ajax (adjust url to your servlet)
+                    $.ajax({
+                        url: 'inventoryaudit', // Create a servlet to handle this data
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(data),
+                        success: function () {
+                            showAlert(true, 'Saved successfully!');
+                            $('#auditModal').modal('hide');
+                        },
+                        error: function () {
+                            showAlert(false, 'An error occurred!');
+                        }
                     });
                 });
-                if (!valid) {
-                    // Không submit nếu có lỗi
-                    return;
-                }
-                // Send to backend via ajax (adjust url to your servlet)
-                $.ajax({
-                    url: 'inventoryaudit', // Create a servlet to handle this data
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(data),
-                    success: function () {
-                        showAlert(true, 'Saved successfully!');
-                        $('#auditModal').modal('hide');
-                    },
-                    error: function () {
-                        showAlert(false, 'An error occurred!');
-                    }
-                });
-            });
-        </script>
-        <script>
-            $('#btnOpenAuditModal').click(function () {
-                $('#auditModalBody').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
-                $.ajax({
-                    url: '${pageContext.request.contextPath}/inventoryaudit?action=listMaterial',
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function (data) {
-                        var html = '<form id="inventoryAuditForm">';
-                        html += '<table class="table table-bordered align-middle text-center">';
-                        html += '<thead class="table-light">';
-                        html += '<tr>';
-                        html += '<th style="width: 60px;">ID</th>';
-                        html += '<th style="width: 70px;">Image</th>';
-                        html += '<th>Name</th>';
-                        html += '<th style="width: 110px;">Available (System)</th>';
-                        html += '<th style="width: 90px;">Available (Actual)</th>';
-                        html += '<th style="width: 110px;">Not Available (System)</th>';
-                        html += '<th style="width: 90px;">Not Available (Actual)</th>';
-                        html += '<th style="width: 220px;">Reason</th>';
-                        html += '</tr>';
-                        html += '</thead><tbody>';
-                        data.forEach(function (item, idx) {
-                            html += '<tr class="inventory-item-row">';
-                            html += '<td>' + item.materialId + '</td>';
-                            html += '<td>';
-                            if (item.materialImage) {
-                                html += '<img src="' + item.materialImage + '" alt="Material Image" style="max-width:40px;max-height:40px;vertical-align:middle;"/>';
-                            }
-                            html += '</td>';
-                            html += '<td>' + item.materialName + '</td>';
-                            html += '<td><span class="sys-qty-available">' + item.availableQty + '</span></td>';
-                            html += '<td>';
-                            html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-available-input" style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;" placeholder="Actual" data-sysqty="' + item.availableQty + '" name="actualAvailable_' + item.materialId + '">';
-                            html += '</td>';
-                            html += '<td><span class="sys-qty-notavailable">' + item.notAvailableQty + '</span></td>';
-                            html += '<td>';
-                            html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-notavailable-input" style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;" placeholder="Actual" data-sysqty="' + item.notAvailableQty + '" name="actualNotAvailable_' + item.materialId + '">';
-                            html += '</td>';
-                            html += '<td>';
-                            html += '<input type="text" class="form-control reason-input d-none" style="min-width: 180px; padding: 2px 6px; font-size: 14px;" name="reason_' + item.materialId + '" placeholder="Enter reason for discrepancy">';
-                            html += '</td>';
+            </script>
+            <script>
+                $('#btnOpenAuditModal').click(function () {
+                    $('#auditModalBody').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+                    $.ajax({
+                        url: '${pageContext.request.contextPath}/inventoryaudit?action=listMaterial',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            var html = '<form id="inventoryAuditForm">';
+                            html += '<table class="table table-bordered align-middle text-center">';
+                            html += '<thead class="table-light">';
+                            html += '<tr>';
+                            html += '<th style="width: 60px;">ID</th>';
+                            html += '<th style="width: 70px;">Image</th>';
+                            html += '<th>Name</th>';
+                            html += '<th style="width: 110px;">Available (System)</th>';
+                            html += '<th style="width: 90px;">Available (Actual)</th>';
+                            html += '<th style="width: 110px;">Not Available (System)</th>';
+                            html += '<th style="width: 90px;">Not Available (Actual)</th>';
+                            html += '<th style="width: 220px;">Reason</th>';
                             html += '</tr>';
-                        });
-                        html += '</tbody></table></form>';
-                        $('#auditModalBody').html(html);
-                    },
-                    error: function (xhr) {
-                        console.log('error', xhr);
-                        $('#auditModalBody').html('<div class="alert alert-danger">Failed to load inventory!</div>');
+                            html += '</thead><tbody>';
+                            data.forEach(function (item, idx) {
+                                html += '<tr class="inventory-item-row">';
+                                html += '<td>' + item.materialId + '</td>';
+                                html += '<td>';
+                                if (item.materialImage) {
+                                    html += '<img src="' + item.materialImage + '" alt="Material Image" style="max-width:40px;max-height:40px;vertical-align:middle;"/>';
+                                }
+                                html += '</td>';
+                                html += '<td>' + item.materialName + '</td>';
+                                html += '<td><span class="sys-qty-available">' + item.availableQty + '</span></td>';
+                                html += '<td>';
+                                html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-available-input" style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;" placeholder="Actual" data-sysqty="' + item.availableQty + '" name="actualAvailable_' + item.materialId + '">';
+                                html += '</td>';
+                                html += '<td><span class="sys-qty-notavailable">' + item.notAvailableQty + '</span></td>';
+                                html += '<td>';
+                                html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-notavailable-input" style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;" placeholder="Actual" data-sysqty="' + item.notAvailableQty + '" name="actualNotAvailable_' + item.materialId + '">';
+                                html += '</td>';
+                                html += '<td>';
+                                html += '<input type="text" class="form-control reason-input d-none" style="min-width: 180px; padding: 2px 6px; font-size: 14px;" name="reason_' + item.materialId + '" placeholder="Enter reason for discrepancy">';
+                                html += '</td>';
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table></form>';
+                            $('#auditModalBody').html(html);
+                        },
+                        error: function (xhr) {
+                            console.log('error', xhr);
+                            $('#auditModalBody').html('<div class="alert alert-danger">Failed to load inventory!</div>');
+                        }
+                    });
+                    $('#auditModal').modal('show');
+                });
+
+                // Show/hide reason input if actual differs from system (for both available and not available)
+                $('#auditModal').on('input', '.actual-qty-available-input, .actual-qty-notavailable-input', function () {
+                    var $row = $(this).closest('tr');
+                    var sysAvailable = parseFloat($row.find('.sys-qty-available').text()) || 0;
+                    var actualAvailable = parseFloat($row.find('.actual-qty-available-input').val()) || 0;
+                    var sysNotAvailable = parseFloat($row.find('.sys-qty-notavailable').text()) || 0;
+                    var actualNotAvailable = parseFloat($row.find('.actual-qty-notavailable-input').val()) || 0;
+                    var $reason = $row.find('.reason-input');
+                    if (actualAvailable !== sysAvailable || actualNotAvailable !== sysNotAvailable) {
+                        $reason.removeClass('d-none').attr('required', true);
+                    } else {
+                        $reason.addClass('d-none').val('').removeAttr('required');
                     }
                 });
-                $('#auditModal').modal('show');
-            });
-  
-            // Show/hide reason input if actual differs from system (for both available and not available)
-            $('#auditModal').on('input', '.actual-qty-available-input, .actual-qty-notavailable-input', function () {
-                var $row = $(this).closest('tr');
-                var sysAvailable = parseFloat($row.find('.sys-qty-available').text()) || 0;
-                var actualAvailable = parseFloat($row.find('.actual-qty-available-input').val()) || 0;
-                var sysNotAvailable = parseFloat($row.find('.sys-qty-notavailable').text()) || 0;
-                var actualNotAvailable = parseFloat($row.find('.actual-qty-notavailable-input').val()) || 0;
-                var $reason = $row.find('.reason-input');
-                if (actualAvailable !== sysAvailable || actualNotAvailable !== sysNotAvailable) {
-                    $reason.removeClass('d-none').attr('required', true);
-                } else {
-                    $reason.addClass('d-none').val('').removeAttr('required');
-                }
-            });
-        </script>
-        <script>
-            /**
-             * Hàm showAlert(status, message):
-             *   - status = true  → alert màu xanh (alert-success)
-             *   - status = false → alert màu đỏ  (alert-danger)
-             * alert sẽ nằm cố định bên phải, tự đóng sau 4s
-             */
-            function showAlert(status, message) {
-                // Xóa alert cũ nếu có
-                const existingAlert = document.querySelector('.custom-alert');
-                if (existingAlert) {
-                    existingAlert.remove();
-                }
-                console.log('here', status);
-                // Tạo alert mới
-                const alertDiv = document.createElement('div');
-                if (status === true) {
-                    alertDiv.className = `alert alert-success alert-dismissible fade show custom-alert`;
-
-                } else {
-                    alertDiv.className = `alert alert-danger alert-dismissible fade show custom-alert`;
-
-                }
-                alertDiv.setAttribute('role', 'alert');
-                alertDiv.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    min-width: 300px;
-                    z-index: 9999;
-                    padding: 1rem;
-                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-                    border-radius: 0.375rem;
-                `;
-
-                // Thêm icon
-                const icon = document.createElement('i');
-
-                icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
-                alertDiv.appendChild(icon);
-
-                // Thêm message
-                const messageText = document.createTextNode(message);
-                alertDiv.appendChild(messageText);
-
-
-
-                // Thêm vào body
-                document.body.appendChild(alertDiv);
-
-                // Animation khi hiện alert
-                setTimeout(() => {
-                    alertDiv.style.opacity = '1';
-                }, 100);
-
-//                 Tự động đóng sau 4s
-                setTimeout(() => {
-                    if (alertDiv && document.body.contains(alertDiv)) {
-                        alertDiv.classList.remove('show');
-                        setTimeout(() => alertDiv.remove(), 150);
+            </script>
+            <script>
+                /**
+                 * Hàm showAlert(status, message):
+                 *   - status = true  → alert màu xanh (alert-success)
+                 *   - status = false → alert màu đỏ  (alert-danger)
+                 * alert sẽ nằm cố định bên phải, tự đóng sau 4s
+                 */
+                function showAlert(status, message) {
+                    // Xóa alert cũ nếu có
+                    const existingAlert = document.querySelector('.custom-alert');
+                    if (existingAlert) {
+                        existingAlert.remove();
                     }
-                }, 4000);
-            }
-        </script>
+                    console.log('here', status);
+                    // Tạo alert mới
+                    const alertDiv = document.createElement('div');
+                    if (status === true) {
+                        alertDiv.className = `alert alert-success alert-dismissible fade show custom-alert`;
 
-    </body>
-</html>
+                    } else {
+                        alertDiv.className = `alert alert-danger alert-dismissible fade show custom-alert`;
+
+                    }
+                    alertDiv.setAttribute('role', 'alert');
+                    alertDiv.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        min-width: 300px;
+                        z-index: 9999;
+                        padding: 1rem;
+                        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                        border-radius: 0.375rem;
+                    `;
+
+                    // Thêm icon
+                    const icon = document.createElement('i');
+
+                    icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+                    alertDiv.appendChild(icon);
+
+                    // Thêm message
+                    const messageText = document.createTextNode(message);
+                    alertDiv.appendChild(messageText);
+
+
+
+                    // Thêm vào body
+                    document.body.appendChild(alertDiv);
+
+                    // Animation khi hiện alert
+                    setTimeout(() => {
+                        alertDiv.style.opacity = '1';
+                    }, 100);
+
+                    //                 Tự động đóng sau 4s
+                    setTimeout(() => {
+                        if (alertDiv && document.body.contains(alertDiv)) {
+                            alertDiv.classList.remove('show');
+                            setTimeout(() => alertDiv.remove(), 150);
+                        }
+                    }, 4000);
+                }
+            </script>
+
+        </body>
+    </html>

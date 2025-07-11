@@ -1,11 +1,10 @@
 package controller;
 
 import com.google.gson.Gson;
-import dal.CategoryDAO;
 import dal.MaterialDAO;
 import dal.OrderDAO;
-import dal.SubUnitDAO;
 import dal.SupplierDAO;
+import dal.UnitDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -17,18 +16,45 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.Category;
+import model.Material;
 import model.Order;
 import model.OrderDetail;
-import model.SubUnit;
 import model.Supplier;
+import model.Unit;
 import model.Users;
 
 /**
  * UpdateOrderServlet - Handles order updates
+ *
  * @author ADMIN
  */
 public class UpdateOrderServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet UpdateOrderServlet</title>");
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet UpdateOrderServlet at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
 
     /**
      * Handles the HTTP GET method - Display update form
@@ -36,7 +62,7 @@ public class UpdateOrderServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             // Get order ID from parameter
             String orderIdParam = request.getParameter("orderId");
@@ -45,17 +71,16 @@ public class UpdateOrderServlet extends HttpServlet {
                 request.getRequestDispatcher("orders.jsp").forward(request, response);
                 return;
             }
-            
+
             int orderId = Integer.parseInt(orderIdParam);
-            
+
             // Initialize DAOs
             OrderDAO orderDAO = new OrderDAO();
             SupplierDAO supplierDAO = new SupplierDAO();
-            CategoryDAO categoryDAO = new CategoryDAO();
-            SubUnitDAO subUnitDAO = new SubUnitDAO();
+            UnitDAO unitDAO = new UnitDAO();
             MaterialDAO materialDAO = new MaterialDAO();
             Gson gson = new Gson();
-            
+
             // Get order details
             Order order = orderDAO.getOrderById(orderId);
             if (order == null) {
@@ -63,24 +88,41 @@ public class UpdateOrderServlet extends HttpServlet {
                 request.getRequestDispatcher("orders.jsp").forward(request, response);
                 return;
             }
-            
+
             // Get supporting data
             List<Supplier> supplierList = supplierDAO.getAllSuppliers();
-            List<Category> categoryList = categoryDAO.getAllSubCategory();
-            List<SubUnit> unitList = subUnitDAO.getAllSubUnits("active");
+
+            // Set material and unit names for order details
             for (OrderDetail orderDetail : order.getOrderDetails()) {
-                orderDetail.setMaterialName(materialDAO.getMaterialById(orderDetail.getMaterialId()).getName());
+                Material material = materialDAO.getMaterialById(orderDetail.getMaterialId());
+                if (material != null) {
+                    orderDetail.setMaterialName(material.getName());
+                    orderDetail.setMaterialImage(material.getImage());
+                    
+                    Unit unit = unitDAO.getUnitById(material.getUnitId());
+                    if (unit != null) {
+                        orderDetail.setUnitName(unit.getName());
+                    }
+                }
             }
-            
+
+            // Lấy tất cả materials với thông tin unit name (giống như CreateOrderServlet)
+            List<Material> allMaterials = materialDAO.getAllMaterials();
+            for (Material material : allMaterials) {
+                Unit unit = unitDAO.getUnitById(material.getUnitId());
+                if (unit != null) {
+                    material.setUnitName(unit.getName());
+                }
+            }
+
             // Set attributes for JSP
             request.setAttribute("order", order);
-            request.setAttribute("categoriesJson", gson.toJson(categoryList));
-            request.setAttribute("unitsJson", gson.toJson(unitList));
             request.setAttribute("suppliers", supplierList);
-            
+            request.setAttribute("allMaterialsJson", gson.toJson(allMaterials));
+
             // Forward to update form
             request.getRequestDispatcher("editorder.jsp").forward(request, response);
-            
+
         } catch (NumberFormatException e) {
             request.setAttribute("error", "Invalid order ID format");
             request.getRequestDispatcher("orders.jsp").forward(request, response);
@@ -97,9 +139,9 @@ public class UpdateOrderServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
-        
+
         try {
             // Get order ID
             String orderIdParam = request.getParameter("orderId");
@@ -107,20 +149,20 @@ public class UpdateOrderServlet extends HttpServlet {
                 returnWithError(request, response, -1, "Order ID is required");
                 return;
             }
-            
+
             int orderId = Integer.parseInt(orderIdParam);
-            
+
             // 1. Lấy thông tin cơ bản
             String orderType = request.getParameter("orderType");
             String note = request.getParameter("note");
             String supplierRaw = request.getParameter("supplier");
-            
+
             // Nếu không chọn loại đơn hàng
             if (orderType == null || orderType.trim().isEmpty()) {
                 returnWithError(request, response, orderId, "You must select Order Type");
                 return;
             }
-            
+
             // Lấy session và kiểm tra đăng nhập
             HttpSession session = request.getSession(false);
             Users user = (Users) session.getAttribute("USER");
@@ -129,10 +171,9 @@ public class UpdateOrderServlet extends HttpServlet {
                 return;
             }
             int userId = user.getUserId();
-            
-            // Lấy và validate supplier
+
+            // Lấy và validate supplier (giống như CreateOrderServlet)
             int supplierId = -1;
-            // Xử lý purchase của b Giang
             if (!"purchase".equals(orderType) && supplierRaw != null && !supplierRaw.trim().isEmpty()) {
                 try {
                     supplierId = Integer.parseInt(supplierRaw);
@@ -143,17 +184,16 @@ public class UpdateOrderServlet extends HttpServlet {
             } else if (!"purchase".equals(orderType) && supplierRaw == null) {
                 supplierId = 1;
             }
-            
+
             // 2. Lấy danh sách các item
             String[] materialIds = request.getParameterValues("material[]");
-            String[] unitIds = request.getParameterValues("unit[]");
             String[] quantities = request.getParameterValues("quantity[]");
-            
+
             if (materialIds == null || materialIds.length == 0) {
                 returnWithError(request, response, orderId, "You must add at least one order item");
                 return;
             }
-            
+
             // 3. Get existing order
             OrderDAO orderDAO = new OrderDAO();
             Order existingOrder = orderDAO.getOrderById(orderId);
@@ -161,77 +201,72 @@ public class UpdateOrderServlet extends HttpServlet {
                 returnWithError(request, response, orderId, "Order not found");
                 return;
             }
-            
-            // 4. Xử lý gộp các item trùng materialId và unitId
-            List<OrderDetail> consolidatedDetails = consolidateOrderItems(materialIds, unitIds, quantities, orderType, orderId);
-            
+
+            // 4. Xử lý gộp các item trùng materialId (giống như CreateOrderServlet)
+            List<OrderDetail> consolidatedDetails = consolidateOrderItems(materialIds, quantities, orderType, orderId);
+
             if (consolidatedDetails.isEmpty()) {
                 returnWithError(request, response, orderId, "No valid order items found");
                 return;
             }
-            
+
             // 5. Update order fields
             existingOrder.setType(orderType);
             existingOrder.setNote(note);
             existingOrder.setSupplier(supplierId);
+            existingOrder.setUserId(userId);
             existingOrder.setOrderDetails(consolidatedDetails);
-            
+
             // 6. Lưu vào DB
             boolean success = orderDAO.updateOrder(existingOrder);
-            
+
             if (success) {
                 response.sendRedirect("orderdetail?oid=" + orderId + "&success=Order updated successfully");
             } else {
                 returnWithError(request, response, orderId, "Failed to update order due to database issue");
             }
-            
+
         } catch (NumberFormatException e) {
             String orderIdParam = request.getParameter("orderId");
-            int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty()) ? 
-                          Integer.parseInt(orderIdParam) : -1;
+            int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty())
+                    ? Integer.parseInt(orderIdParam) : -1;
             returnWithError(request, response, orderId, "Invalid number format in form data");
         } catch (Exception e) {
             e.printStackTrace();
             String orderIdParam = request.getParameter("orderId");
-            int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty()) ? 
-                          Integer.parseInt(orderIdParam) : -1;
+            int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty())
+                    ? Integer.parseInt(orderIdParam) : -1;
             returnWithError(request, response, orderId, "Error updating order: " + e.getMessage());
         }
     }
-    
-    private List<OrderDetail> consolidateOrderItems(String[] materialIds, String[] unitIds,
-            String[] quantities, String orderType, int orderId) throws Exception {
 
-        // Sử dụng Map với key là "materialId_unitId" để gộp các item trùng nhau
-        Map<String, OrderDetail> consolidatedMap = new HashMap<>();
+    // Sử dụng cùng logic consolidate như CreateOrderServlet
+    private List<OrderDetail> consolidateOrderItems(String[] materialIds, String[] quantities, String orderType, int orderId) throws Exception {
+        // Sử dụng Map với key là materialId để gộp các item trùng nhau
+        Map<Integer, OrderDetail> consolidatedMap = new HashMap<>();
 
         for (int i = 0; i < materialIds.length; i++) {
             try {
                 int materialId = Integer.parseInt(materialIds[i]);
-                int unitId = Integer.parseInt(unitIds[i]);
                 int quantity = Integer.parseInt(quantities[i]);
 
                 if (quantity <= 0) {
                     throw new Exception("Quantity must be greater than 0 for item " + (i + 1));
                 }
 
-                // Tạo key để nhận diện item trùng nhau
-                String key = materialId + "_" + unitId;
-
-                if (consolidatedMap.containsKey(key)) {
+                if (consolidatedMap.containsKey(materialId)) {
                     // Nếu đã tồn tại item này, cộng thêm số lượng
-                    OrderDetail existingDetail = consolidatedMap.get(key);
+                    OrderDetail existingDetail = consolidatedMap.get(materialId);
                     existingDetail.setQuantity(existingDetail.getQuantity() + quantity);
                 } else {
                     // Tạo OrderDetail mới
                     OrderDetail detail = new OrderDetail();
                     detail.setOrderId(orderId);
                     detail.setMaterialId(materialId);
-                    detail.setSubUnitId(unitId);
                     detail.setQuantity(quantity);
                     detail.setQualityId("exportToRepair".equals(orderType) ? 2 : 1);
 
-                    consolidatedMap.put(key, detail);
+                    consolidatedMap.put(materialId, detail);
                 }
 
             } catch (NumberFormatException ex) {
@@ -242,34 +277,48 @@ public class UpdateOrderServlet extends HttpServlet {
         // Chuyển từ Map về List
         return new ArrayList<>(consolidatedMap.values());
     }
-    
-    private void returnWithError(HttpServletRequest request, HttpServletResponse response, 
-                               int orderId, String message) throws ServletException, IOException {
+
+    // Sử dụng cùng logic returnWithError như CreateOrderServlet
+    private void returnWithError(HttpServletRequest request, HttpServletResponse response,
+            int orderId, String message) throws ServletException, IOException {
+
+        SupplierDAO supplierDAO = new SupplierDAO();
+        MaterialDAO materialDAO = new MaterialDAO();
+        UnitDAO unitDAO = new UnitDAO();
+        Gson gson = new Gson();
+
+        // Lấy lại tất cả materials với unit name (giống như CreateOrderServlet)
+        List<Material> allMaterials = materialDAO.getAllMaterials();
+        for (Material material : allMaterials) {
+            Unit unit = unitDAO.getUnitById(material.getUnitId());
+            if (unit != null) {
+                material.setUnitName(unit.getName());
+            }
+        }
+
+        request.setAttribute("suppliers", supplierDAO.getAllSuppliers());
+        request.setAttribute("allMaterialsJson", gson.toJson(allMaterials));
 
         // Nếu có orderId, load lại order data để hiển thị form
         if (orderId > 0) {
             try {
                 OrderDAO orderDAO = new OrderDAO();
-                SupplierDAO supplierDAO = new SupplierDAO();
-                CategoryDAO categoryDAO = new CategoryDAO();
-                SubUnitDAO subUnitDAO = new SubUnitDAO();
-                MaterialDAO materialDAO = new MaterialDAO();
-                Gson gson = new Gson();
-
                 Order order = orderDAO.getOrderById(orderId);
                 if (order != null) {
-                    List<Supplier> supplierList = supplierDAO.getAllSuppliers();
-                    List<Category> categoryList = categoryDAO.getAllSubCategory();
-                    List<SubUnit> unitList = subUnitDAO.getAllSubUnits("active");
-                    
+                    // Set material and unit names for order details
                     for (OrderDetail orderDetail : order.getOrderDetails()) {
-                        orderDetail.setMaterialName(materialDAO.getMaterialById(orderDetail.getMaterialId()).getName());
+                        Material material = materialDAO.getMaterialById(orderDetail.getMaterialId());
+                        if (material != null) {
+                            orderDetail.setMaterialName(material.getName());
+                            orderDetail.setMaterialImage(material.getImage());
+                            
+                            Unit unit = unitDAO.getUnitById(material.getUnitId());
+                            if (unit != null) {
+                                orderDetail.setUnitName(unit.getName());
+                            }
+                        }
                     }
-
                     request.setAttribute("order", order);
-                    request.setAttribute("suppliers", supplierList);
-                    request.setAttribute("categoriesJson", gson.toJson(categoryList));
-                    request.setAttribute("unitsJson", gson.toJson(unitList));
                 }
             } catch (Exception e) {
                 e.printStackTrace();

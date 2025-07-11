@@ -6,10 +6,13 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<%@ page import="model.Users" %>
-<%@ page import="model.MaterialTransactionHistory" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.time.Year" %>
+<%@ page import="java.util.List" %>
+<%@ page import="model.Material" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <%
     Users u = (Users) session.getAttribute("USER");
@@ -119,7 +122,7 @@
                                 </button>
                             </div>
                         </form>
-                        
+
                         <!-- Main Content -->
                         <div class="col-md-9 col-lg-10">
                             <div class="p-4">
@@ -162,13 +165,17 @@
                                             <div class="card shadow-sm border-0">
                                                 <div class="card-body d-flex justify-content-between align-items-center">
                                                     <div>
-                                                        <h3 class="mb-1">${totalInventory}</h3>
-                                                        <p class="mb-0 text-muted">Total Inventory</p>
+                                                        <h3 class="mb-1">${activeCount} / ${totalMaterials}</h3>
+                                                        <!-- Sửa tại đây -->
+                                                        <p class="mb-0 text-muted text-nowrap" style="max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                            Active Materials in Stock
+                                                        </p>
                                                     </div>
                                                     <i class="fas fa-warehouse fa-2x text-success"></i>
                                                 </div>
                                             </div>
                                         </div>
+
 
                                         <!-- Đơn nhập hôm nay -->
                                         <div class="col-md-6 col-xl-3">
@@ -215,143 +222,8 @@
                                                             </div>-->
 
                             <!-- Charts and Tables Row -->
-
-                            <!-- Charts and Tables Row -->
-                            <!-- Dropdown chọn vật tư -->
-                            <select id="materialSelect" class="form-select mb-3">
-                                <option value="">-- Tất cả vật tư --</option>
-                                <c:forEach var="m" items="${materials}">
-                                    <option value="${m.materialId}">${m.name}</option>
-                                </c:forEach>
-                            </select>
-
-                            <!-- Canvas biểu đồ -->
-                            <canvas id="importChart" height="100"></canvas>
-
-                            <hr class="my-4"/>
-
-                            <h5 class="mt-4">🍩 Tình trạng sử dụng vật tư</h5>
-
-                            <!-- Dropdown chọn vật tư -->
-                            <select id="materialSelectPie" class="form-select mb-3">
-                                <c:forEach var="m" items="${materials}" varStatus="loop">
-                                    <option value="${m.materialId}" ${loop.index == 0 ? "selected" : ""}>
-                                        ${m.name}
-                                    </option>
-                                </c:forEach>
-                            </select>
-
-                            <!-- Canvas biểu đồ pie -->
-                            <style>
-                                /* Container để căn giữa biểu đồ */
-                                .chart-container {
-                                    width: 100%;
-                                    display: flex;
-                                    justify-content: center;
-                                    margin-top: 20px;
-                                }
-
-                                /* Canvas biểu đồ */
-                                #materialPieChart {
-                                    width: 500px !important;
-                                    height: 500px !important;
-                                }
-
-                                /* Tăng kích thước chữ phần chú thích */
-                                .chart-legend-text {
-                                    font-size: 18px !important;
-                                    font-weight: bold;
-                                }
-                            </style>
-
-                            <div class="chart-container">
-                                <canvas id="materialPieChart"></canvas>
-                            </div>
-
-                            <div class="card mb-4">
-                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">📌Recent Transaction</h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    <c:if test="${not empty latestTransaction}">
-                                        <div class="table-responsive">
-                                            <table class="table table-hover mb-0">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>Material Name</th>
-                                                        <th>SubUnit</th>
-                                                        <th>Quality</th>
-                                                        <th>Quantity</th>
-                                                        <th>Date</th>
-                                                        <th>Note</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>${latestTransaction.materialTransactionHistoryId}</td>
-                                                        <td>${latestTransaction.materialName}</td>
-                                                        <td>${latestTransaction.subUnitName}</td>
-                                                        <td>${latestTransaction.qualityName}</td>
-                                                        <td>${latestTransaction.quantity}</td>
-                                                        <td>${latestTransaction.transactionDate}</td>
-                                                        <td>${latestTransaction.note}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </c:if>
-                                    <c:if test="${empty latestTransaction}">
-                                        <div class="p-3 text-muted">Không có giao dịch nào gần đây.</div>
-                                    </c:if>
-                                </div>
-                            </div>
-                            <div class="card mb-4">
-                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">📌 New Material</h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    <c:if test="${not empty todayMaterials}">
-                                        <p style="padding: 10px; font-weight: bold; color: green;">
-                                        </p>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover mb-0">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>Material Name</th>
-                                                        <th>Category</th>
-                                                        <th>Supplier</th>
-                                                        <th>Unit</th>
-                                                        <th>Image</th>
-                                                        <th>Created At</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <c:forEach var="m" items="${todayMaterials}">
-
-                                                        <tr>
-                                                            <td>${m.materialId}</td>
-                                                            <td>${m.name}</td>
-                                                            <td>${m.categoryName}</td>
-                                                            <td>${m.supplierName}</td>
-                                                            <td>${m.unitName}</td>
-                                                            <td><img src="${m.image}" alt="ảnh vật tư" style="height:40px;border-radius:4px;" /></td>
-                                                            <td>${m.createAt}</td>
-                                                        </tr>
-                                                    </c:forEach>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </c:if>
-                                    <c:if test="${empty todayMaterials}">
-                                        <div class="p-3 text-muted">Không có vật tư mới trong ngày hôm nay.</div>
-                                    </c:if>
-                                </div>
-                            </div>
-
                             <div
-                                <!-- Quick Actions -->
+                                <!--Quick Actions-->
                                 <div class="card mt-4">
                                     <div class="card-header">
                                         <h5 class="mb-0">Quick Actions</h5>
@@ -369,11 +241,16 @@
                                             </button>
                                         </div>
                                     </div>
+
                                 </div>
+                            </div>
+
+                            <div class="container mt-4">
+                                <h2 class="mb-3">📊 Thống kê số lượng vật tư theo tháng</h2>
 
 
                                 <!-- Low Stock Items -->
-                                <div class="row">
+                                <!-- <div class="row">
                                     <div class="col-12">
                                         <div class="card table-container">
                                             <div class="card-header bg-white">
@@ -383,313 +260,293 @@
                                                 </div>
                                             </div>
                                             <div class="card-body p-0">
+                                <!-- Dropdown chọn vật tư và năm -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label>Chọn vật tư:</label>
+                                        <select id="materialSelectBar" class="form-select">
+                                            <option value="" disabled selected>-- Chọn vật tư --</option>
+                                            <c:forEach var="m" items="${materials}">
+                                                <option value="${m.materialId}">${m.name}</option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Chọn năm:</label>
+                                        <select id="yearSelect" class="form-select">
+                                            <option value="" disabled selected>-- Chọn năm --</option>
+                                            <% int currentYear = Year.now().getValue(); for (int y = currentYear; y >= 2020; y--) { %>
+                                            <option value="<%= y %>"><%= y %></option>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Canvas biểu đồ cột -->
+                                <canvas id="materialChart" height="100"></canvas>
+
+                                <hr class="my-5" />
+
+                                <h5>🍩 Tình trạng sử dụng vật tư</h5>
+                                <select id="materialSelectPie" class="form-select mb-3">
+                                    <c:forEach var="m" items="${materials}" varStatus="loop">
+                                        <option value="${m.materialId}" ${loop.index == 0 ? "selected" : ""}>
+                                            ${m.name}
+                                        </option>
+                                    </c:forEach>
+                                </select>
+
+                                <!-- Thu nhỏ biểu đồ tại đây -->
+                                <div class="d-flex justify-content-center">
+                                    <div style="width: 400px; height: 400px;"> 
+                                        <canvas id="materialPieChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="card mb-4">
+                                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">📌Recent Transaction</h5>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <c:if test="${not empty latestTransaction}">
                                                 <div class="table-responsive">
                                                     <table class="table table-hover mb-0">
                                                         <thead class="table-light">
                                                             <tr>
-                                                                <th>SKU</th>
-                                                                <th>Product Name</th>
-                                                                <th>Category</th>
-                                                                <th>Current Stock</th>
-                                                                <th>Min. Required</th>
-                                                                <th>Location</th>
-                                                                <th>Action</th>
+                                                                <th>Material Name</th>
+                                                                <th>Unit</th>
+                                                                <th>Quality</th>
+                                                                <th>Quantity</th>
+                                                                <th>Date</th>
+                                                                <th>Note</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td><strong>SKU-001</strong></td>
-                                                                <td>Wireless Headphones</td>
-                                                                <td>Electronics</td>
-                                                                <td><span class="badge bg-danger">5</span></td>
-                                                                <td>20</td>
-                                                                <td>A-1-15</td>
-                                                                <td>
-                                                                    <button class="btn btn-sm btn-primary">Reorder</button>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td><strong>SKU-045</strong></td>
-                                                                <td>USB Cables</td>
-                                                                <td>Accessories</td>
-                                                                <td><span class="badge bg-warning">8</span></td>
-                                                                <td>50</td>
-                                                                <td>B-2-08</td>
-                                                                <td>
-                                                                    <button class="btn btn-sm btn-primary">Reorder</button>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td><strong>SKU-123</strong></td>
-                                                                <td>Laptop Chargers</td>
-                                                                <td>Electronics</td>
-                                                                <td><span class="badge bg-danger">3</span></td>
-                                                                <td>15</td>
-                                                                <td>A-3-22</td>
-                                                                <td>
-                                                                    <button class="btn btn-sm btn-primary">Reorder</button>
-                                                                </td>
+
+                                                                <td>${latestTransaction.materialName}</td>
+                                                                <td>${latestTransaction.unitName}</td>
+                                                                <td>${latestTransaction.qualityName}</td>
+                                                                <td>${latestTransaction.quantity}</td>
+                                                                <td>${latestTransaction.transactionDate}</td>
+                                                                <td>${latestTransaction.note}</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                            </div>
+                                            </c:if>
+                                            <c:if test="${empty latestTransaction}">
+                                                <div class="p-3 text-muted">Không có giao dịch nào gần đây.</div>
+                                            </c:if>
                                         </div>
                                     </div>
-                                </div>
+                                    <div class="card mb-4">
+                                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">📌 New Material</h5>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <c:if test="${not empty todayMaterials}">
+<!--                                                <p style="padding: 10px; font-weight: bold; color: green;">
+                                                </p>-->
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>Material Name</th>
+                                                                <th>Category</th>
+                                                                <th>Unit</th>
+                                                                <th>Image</th>
+                                                                <th>Created At</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <c:forEach var="m" items="${todayMaterials}">
+                                                                <tr>
+                                                                    <td>${m.name}</td>
+                                                                    <td>${m.categoryName}</td>
+                                                                    <td>${m.unitName}</td>
+                                                                    <td><img src="${m.image}" alt="ảnh vật tư" style="height:40px;border-radius:4px;" /></td>
+                                                                    <td>${m.createAt}</td>
+                                                                </tr>
+                                                            </c:forEach>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </c:if>
+                                            <c:if test="${empty todayMaterials}">
+                                                <div class="p-3 text-muted">Không có vật tư mới trong ngày hôm nay.</div>
+                                            </c:if>
+                                        </div>
+                                    </div>
+                                </div> 
                             </div>
+                        </div>
 
 
-                            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-                            <script>
-                                // Simple JavaScript for interactivity
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    // Add click handlers for navigation
-                                    const navLinks = document.querySelectorAll('.sidebar .nav-link');
-                                    navLinks.forEach(link => {
-                                        link.addEventListener('click', function (e) {
-                                            e.preventDefault();
-                                            navLinks.forEach(l => l.classList.remove('active'));
-                                            this.classList.add('active');
-                                        });
+
+
+
+
+                        <script>
+                            // Biểu đồ cột: Thống kê nhập/xuất/tồn theo tháng
+
+                            async function loadChart() {
+                                const materialSelect = document.getElementById("materialSelectBar");
+                                const yearSelect = document.getElementById("yearSelect");
+
+                                if (!materialSelect || !yearSelect) {
+                                    console.error("❌ Không tìm thấy select vật tư hoặc năm");
+                                    return;
+                                }
+
+                                const selectedMaterialId = materialSelect.value?.trim();
+                                const selectedYear = yearSelect.value?.trim();
+
+                                if (!selectedMaterialId || !selectedYear) {
+                                    console.warn("⛔ Vui lòng chọn vật tư và năm trước khi vẽ biểu đồ");
+                                    return;
+                                }
+
+                                const contextPath = "<%= request.getContextPath() %>";
+                                const url = contextPath + "/material-monthly-chart?materialId=" + selectedMaterialId + "&year=" + selectedYear;
+                                console.log("📊 Final Fetching:", url);
+
+                                try {
+                                    const res = await fetch(url);
+                                    if (!res.ok) {
+                                        const err = await res.text();
+                                        console.error("❌ API Error:", err);
+                                        return;
+                                    }
+
+                                    const data = await res.json();
+                                    const labels = Array.from({length: 12}, (_, i) => "Tháng " + (i + 1));
+                                    const importData = Array(12).fill(0);
+                                    const exportData = Array(12).fill(0);
+                                    const stockData = Array(12).fill(0);
+                                    const unitName = data[0]?.unitName || '';
+
+                                    data.forEach(stat => {
+                                        const idx = stat.month - 1;
+                                        importData[idx] = stat.totalImport || 0;
+                                        exportData[idx] = stat.totalExport || 0;
+                                        stockData[idx] = stat.stock || 0;
                                     });
-                                    // Auto-refresh stats (simulation)
-                                    setInterval(function () {
-                                        const statsElements = document.querySelectorAll('.card h3');
-                                        statsElements.forEach(element => {
-                                            if (element.textContent.includes('$')) {
-                                                const currentValue = parseFloat(element.textContent.replace(/[$,]/g, ''));
-                                                const newValue = currentValue + Math.floor(Math.random() * 100);
-                                                element.textContent = '$' + newValue.toLocaleString();
-                                            }
-                                        });
-                                    }, 30000); // Update every 30 seconds
-                                });
-                            </script>
 
-                            <!-- Chart.js + script gọi dữ liệu -->
-                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-                            <script>
-                                async function drawChart(materialId = "") {
-                                    try {
-                                        const res = await fetch(
-                                                '${pageContext.request.contextPath}/importchart' + (materialId ? '?materialId=' + materialId : '')
-                                                );
-                                        const data = await res.json();
-
-                                        const labels = data.map(item => "VT-" + item.materialId);
-                                        const importData = data.map(item => item.totalImport);
-                                        const exportData = data.map(item => item.totalExport);
-                                        const stockData = data.map(item => item.stock);
-
-                                        const ctx = document.getElementById("importChart").getContext('2d');
-                                        if (window.myChart)
-                                            window.myChart.destroy();
-
-                                        window.myChart = new Chart(ctx, {
-                                            type: 'bar',
-                                            data: {
-                                                labels: labels,
-                                                datasets: [
-                                                    {
-                                                        label: 'Nhập',
-                                                        data: importData,
-                                                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
-                                                    },
-                                                    {
-                                                        label: 'Xuất',
-                                                        data: exportData,
-                                                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
-                                                    },
-                                                    {
-                                                        label: 'Tồn',
-                                                        data: stockData,
-                                                        backgroundColor: 'rgba(255, 206, 86, 0.7)'
-                                                    }
-                                                ]
-                                            },
-                                            options: {
-                                                responsive: true,
-                                                scales: {
-                                                    y: {
-                                                        beginAtZero: true
-                                                    }
-                                                },
-                                                plugins: {
-                                                    legend: {
-                                                        position: 'top'
-                                                    },
-                                                    title: {
-                                                        display: true,
-                                                        text: 'Thống kê vật tư'
-                                                    }
-                                                }
-                                            }
-                                        });
-                                    } catch (err) {
-                                        console.error("❌ Lỗi khi load biểu đồ:", err);
-                                }
-                                }
-
-                                // Gọi khi load và khi chọn vật tư
-                                window.onload = function () {
-                                    drawChart();
-                                    const select = document.getElementById("materialSelect");
-                                    if (select) {
-                                        select.addEventListener("change", function () {
-                                            drawChart(this.value);
-                                        });
+                                    const chartCtx = document.getElementById("materialChart").getContext("2d");
+                                    if (window.materialChart && typeof window.materialChart.destroy === "function") {
+                                        window.materialChart.destroy();
                                     }
-                                };
-                            </script>
 
-                            <!-- Chart.js CDN -->
-                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                                    window.materialChart = new Chart(chartCtx, {
+                                        type: 'bar',
+                                        data: {
+                                            labels,
+                                            datasets: [
+                                                {label: 'Nhập', data: importData, backgroundColor: 'rgba(75,192,192,0.7)'},
+                                                {label: 'Xuất', data: exportData, backgroundColor: 'rgba(255,99,132,0.7)'},
+                                                {label: 'Tồn', data: stockData, backgroundColor: 'rgba(255,206,86,0.7)'}
+                                            ]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            plugins: {
+                                                title: {
+                                                    display: true,
 
-                            <!-- Script vẽ biểu đồ -->
-                            <script>
-                                async function drawChart(materialId = "") {
-                                    try {
-                                        const url = '${pageContext.request.contextPath}/importchart' + (materialId ? '?materialId=' + materialId : '');
-                                        const res = await fetch(url);
-                                        if (!res.ok) {
-                                            const errText = await res.text();
-                                            console.error("❌ API Error:", errText);
-                                            alert("Không lấy được dữ liệu biểu đồ.");
-                                            return;
-                                        }
-
-                                        const data = await res.json();
-
-                                        const labels = data.map(item => "VT-" + item.materialId);
-                                        const importData = data.map(item => item.totalImport);
-                                        const exportData = data.map(item => item.totalExport);
-                                        const stockData = data.map(item => item.stock);
-
-                                        const ctx = document.getElementById("importChart").getContext('2d');
-                                        if (window.myChart)
-                                            window.myChart.destroy();
-
-                                        window.myChart = new Chart(ctx, {
-                                            type: 'bar',
-                                            data: {
-                                                labels: labels,
-                                                datasets: [
-                                                    {
-                                                        label: 'Nhập',
-                                                        data: importData,
-                                                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
-                                                    },
-                                                    {
-                                                        label: 'Xuất',
-                                                        data: exportData,
-                                                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
-                                                    },
-                                                    {
-                                                        label: 'Tồn',
-                                                        data: stockData,
-                                                        backgroundColor: 'rgba(255, 206, 86, 0.7)'
-                                                    }
-                                                ]
+                                                }
                                             },
-                                            options: {
-                                                responsive: true,
-                                                scales: {
-                                                    y: {
-                                                        beginAtZero: true
-                                                    }
-                                                },
-                                                plugins: {
-                                                    legend: {
-                                                        position: 'top'
-                                                    },
+                                            scales: {
+                                                y: {
+                                                    beginAtZero: true,
                                                     title: {
                                                         display: true,
-                                                        text: 'Thống kê vật tư'
+                                                        text: "Số lượng vật tư"
+                                                    },
+                                                    ticks: {
+                                                        callback: function (value) {
+                                                            return value.toLocaleString('vi-VN') + ' ' + unitName;
+                                                        }
                                                     }
                                                 }
                                             }
-                                        });
-                                    } catch (err) {
-                                        console.error("❌ Lỗi khi load biểu đồ:", err);
+                                        }
+                                    });
+
+                                } catch (err) {
+                                    console.error("❌ Lỗi khi fetch hoặc render biểu đồ:", err);
                                 }
+                            }
+
+                            // Biểu đồ tròn: Tình trạng vật tư
+                            async function drawPieChart() {
+                                const materialId = document.getElementById("materialSelectPie").value;
+                                if (!materialId) {
+                                    console.warn("\u2757 Chưa chọn vật tư để vẽ pie chart");
+                                    return;
                                 }
-                            </script>
-                            <script>
-                                async function drawPieChart() {
-                                    const select = document.getElementById("materialSelectPie");
-                                    if (!select) {
-                                        console.error("Không tìm thấy dropdown 'materialSelectPie'");
+
+                                const url = "<%= request.getContextPath() %>/materialqualitychart?materialId=" + materialId;
+                                try {
+                                    const res = await fetch(url);
+                                    const data = await res.json();
+
+                                    if (data.error) {
+                                        alert("Lỗi dữ liệu: " + data.error);
                                         return;
                                     }
 
-                                    const materialId = select.value;
-                                    console.log("📥 Selected materialId =", materialId);
-                                    if (!materialId || materialId.trim() === "") {
-                                        alert("Vui lòng chọn vật tư hợp lệ!");
-                                        return;
+                                    const ctx = document.getElementById("materialPieChart").getContext("2d");
+                                    if (window.pieChart && typeof window.pieChart.destroy === "function") {
+                                        window.pieChart.destroy();
                                     }
 
-                                    try {
-                                        const url = '${pageContext.request.contextPath}/materialqualitychart?materialId=' + materialId;
-                                        console.log("📡 Fetching URL:", url);
-                                        const res = await fetch(url);
-                                        const data = await res.json();
-                                        console.log("📦 Server response:", data);
-                                        if (data.error) {
-                                            alert("❌ Lỗi: " + data.error);
-                                            return;
-                                        }
-
-                                        const ctx = document.getElementById("materialPieChart").getContext("2d");
-                                        if (window.pieChart)
-                                            window.pieChart.destroy();
-                                        window.pieChart = new Chart(ctx, {
-                                            type: 'pie',
-                                            data: {
-                                                labels: Object.keys(data),
-                                                datasets: [{
-                                                        label: 'Tình trạng',
-                                                        data: Object.values(data),
-                                                        backgroundColor: ['#36A2EB', '#FF6384']
-                                                    }]
-                                            },
-                                            options: {
-                                                responsive: true,
-                                                plugins: {
-                                                    legend: {
-                                                        position: 'bottom'
-                                                    }
+                                    window.pieChart = new Chart(ctx, {
+                                        type: 'pie',
+                                        data: {
+                                            labels: Object.keys(data),
+                                            datasets: [{
+                                                    label: 'Tình trạng',
+                                                    data: Object.values(data),
+                                                    backgroundColor: ['#36A2EB', '#FF6384']
+                                                }]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            plugins: {
+                                                legend: {
+                                                    position: 'bottom'
                                                 }
                                             }
-                                        });
-                                    } catch (e) {
-                                        console.error("❌ Lỗi khi gọi API:", e);
-                                        alert("Không thể vẽ biểu đồ tròn");
-                                    }
+                                        }
+                                    });
+
+                                } catch (e) {
+                                    console.error("\u274c Pie Chart API error:", e);
                                 }
+                            }
 
-                                window.onload = function () {
-                                    // Vẽ biểu đồ cột
-                                    drawChart();
-                                    // Gán sự kiện thay đổi dropdown biểu đồ cột
-                                    const selectBar = document.getElementById("materialSelect");
-                                    if (selectBar) {
-                                        selectBar.addEventListener("change", function () {
-                                            drawChart(this.value);
-                                        });
-                                    }
+                            // DOM loaded
+                            window.addEventListener("DOMContentLoaded", () => {
+                                const matSel = document.getElementById("materialSelectBar");
+                                const yearSel = document.getElementById("yearSelect");
+                                const pieSel = document.getElementById("materialSelectPie");
 
-                                    // Gán sự kiện và vẽ biểu đồ tròn
-                                    const selectPie = document.getElementById("materialSelectPie");
-                                    if (selectPie) {
-                                        selectPie.addEventListener("change", drawPieChart);
-                                    }
+                                if (matSel && matSel.options.length > 1 && !matSel.value)
+                                    matSel.selectedIndex = 1;
+                                if (yearSel && yearSel.options.length > 1 && !yearSel.value)
+                                    yearSel.selectedIndex = 1;
 
-                                    drawPieChart();
-                                };
-                            </script>
+                                loadChart();
+                                drawPieChart();
 
-                            </body>
-                            </html>
+                                matSel?.addEventListener("change", loadChart);
+                                yearSel?.addEventListener("change", loadChart);
+                                pieSel?.addEventListener("change", drawPieChart);
+                            });
+                        </script>
+
+
+                        </body>
+                        </html>

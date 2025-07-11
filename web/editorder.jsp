@@ -73,13 +73,13 @@
                             </c:forEach>
                         </select>
                     </div>-->
-                            
+
                         </div>
 
-                                    <div class="form-group col-md-6">
-                                        <label for="note">Note</label>
-                                        <textarea class="form-control" id="note" name="note" rows="3" placeholder="Additional notes or comments...">${order.note}</textarea>
-                                    </div>
+                        <div class="form-group col-md-6">
+                            <label for="note">Note</label>
+                            <textarea class="form-control" id="note" name="note" rows="3" placeholder="Additional notes or comments...">${order.note}</textarea>
+                        </div>
                     </div>
 
                     <!-- Order Items Section -->
@@ -163,15 +163,14 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
         <script>
-                        const categories = ${categoriesJson};
-                        const units = ${unitsJson};
+                        const allMaterials = ${allMaterialsJson};
+
                         const existingOrderDetails = [
             <c:forEach var="detail" items="${order.orderDetails}" varStatus="status">
                         {
                         materialId: ${detail.materialId},
                                 materialName: '${detail.materialName}',
-                                subUnitId: ${detail.subUnitId},
-                                subUnitName: '${detail.subUnitName}',
+                                subUnitName: '${detail.unitName}',
                                 quantity: ${detail.quantity}
                         }<c:if test="${!status.last}">,</c:if>
             </c:forEach>

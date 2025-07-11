@@ -5,10 +5,31 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.Unit;
 import model.Units;
 
 public class UnitDAO extends DBContext {
-
+    
+    //Giữ hàm này cho b Giang theo db mới nhé <3
+    public List<Unit> getAllUnits() {
+        List<Unit> list = new ArrayList<>();
+        String query = "SELECT Unit_id, Name, Status FROM Units WHERE Status = 'active'";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Unit u = new Unit();
+                u.setUnitId(rs.getInt("Unit_id"));
+                u.setName(rs.getString("Name"));
+                u.setStatus(rs.getString("Status"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            System.out.println("getAllUnits error: " + e.getMessage());
+        }
+        return list;
+    }
+    
     public List<Units> getAllUnits(boolean onlyActive) {
         List<Units> units = new ArrayList<>();
         String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units"
@@ -31,9 +52,10 @@ public class UnitDAO extends DBContext {
         return units;
     }
 
-    public List<Units> getAllUnits(String status) {
-        List<Units> units = new ArrayList<>();
-        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units";
+    //Bạn Minh cần hàm này nha
+    public List<Unit> getAllUnits(String status) {
+        List<Unit> units = new ArrayList<>();
+        String sql = "SELECT * FROM Units";
         if (status != null && !status.isEmpty()) {
             sql += " WHERE Status = ?";
         }
@@ -43,12 +65,10 @@ public class UnitDAO extends DBContext {
             }
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    units.add(new Units(
+                    units.add(new Unit(
                             rs.getInt("Unit_id"),
                             rs.getString("Name"),
-                            rs.getInt("SubUnit_id"),
-                            rs.getDouble("Factor"),
-                            "active".equals(rs.getString("Status")),
+                            rs.getString("Status"),
                             rs.getTimestamp("Created_at"),
                             rs.getTimestamp("Updated_at")
                     ));
@@ -60,18 +80,17 @@ public class UnitDAO extends DBContext {
         return units;
     }
 
-    public Units getUnitById(int unitId) {
-        String sql = "SELECT Unit_id, Name, SubUnit_id, Factor, Status, Created_at, Updated_at FROM Units WHERE Unit_id = ?";
+    //Bạn Minh sửa hàm này nha
+    public Unit getUnitById(int unitId) {
+        String sql = "SELECT * FROM Units WHERE Unit_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Units(
+                    return new Unit(
                             rs.getInt("Unit_id"),
                             rs.getString("Name"),
-                            rs.getInt("SubUnit_id"),
-                            rs.getDouble("Factor"),
-                            "active".equals(rs.getString("Status")),
+                            rs.getString("Status"),
                             rs.getTimestamp("Created_at"),
                             rs.getTimestamp("Updated_at")
                     );
@@ -167,7 +186,7 @@ public class UnitDAO extends DBContext {
         }
         return false;
     }
-    
+
     //B Minh cần hàm này nên đừng xóa
     public List<Units> getAllUnitsWithSubUnit(String status) {
         List<Units> units = new ArrayList<>();

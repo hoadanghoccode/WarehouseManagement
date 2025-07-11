@@ -66,10 +66,10 @@ public class ApproveAuditController extends HttpServlet {
         processRequest(request, response);
     } 
 
-    @Override
+     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Đảm bảo Admin mới được phép
+        // Check quyền admin (giống approve)
         Users user = (Users) request.getSession().getAttribute("USER");
         if (user == null || user.getRoleId() != 2) {
             response.setStatus(403);
@@ -78,6 +78,8 @@ public class ApproveAuditController extends HttpServlet {
         }
 
         String auditIdStr = request.getParameter("auditId");
+        String rejectNote = request.getParameter("rejectNote"); // Lý do reject (có thể null)
+
         if (auditIdStr == null) {
             response.setStatus(400);
             response.getWriter().write("{\"msg\":\"Missing auditId!\"}");
@@ -86,21 +88,17 @@ public class ApproveAuditController extends HttpServlet {
 
         int auditId = Integer.parseInt(auditIdStr);
         AuditInventoryDAO auditDao = new AuditInventoryDAO();
-        OrderDAO orderDao = new OrderDAO();
 
         try {
-            // 1. Lấy chi tiết kiểm kê (nếu cần log, kiểm tra)
-            List<InventoryAuditDetail> details = auditDao.getDetailsByAuditId(auditId);
-
-            // 2. Tạo Order điều chỉnh tồn kho tự động qua DAO
-            auditDao.createAdjustmentOrdersAfterAuditApproved(auditId, user.getUserId());
-
-            // 3. Cập nhật trạng thái phiếu kiểm kê
-            auditDao.updateAuditStatus(auditId, "completed");
+            // Nếu có rejectNote thì update cả note, không thì chỉ update status
+            if (rejectNote != null && !rejectNote.trim().isEmpty()) {
+                auditDao.updateAuditStatusAndNote(auditId, "rejected", rejectNote.trim());
+            } else {
+                auditDao.updateAuditStatus(auditId, "rejected");
+            }
 
             response.setStatus(200);
-            response.getWriter().write("{\"msg\":\"Approved and generated inventory adjustment orders successfully!\"}");
-
+            response.getWriter().write("{\"msg\":\"Inventory audit #" + auditId + " has been rejected!\"}");
         } catch (Exception ex) {
             ex.printStackTrace();
             response.setStatus(500);

@@ -5,26 +5,19 @@
 
 package controller;
 
-import com.google.gson.Gson;
-import dal.Import_noteDAO;
-import dal.MaterialDAO;
+import dal.AuditInventoryDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-import model.MaterialStatistic;
 
 /**
  *
- * @author duong
+ * @author PC
  */
-@WebServlet(name="ImportChartController", urlPatterns={"/importchart"})
-public class ImportChartController extends HttpServlet {
+public class RejectAuditController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -41,10 +34,10 @@ public class ImportChartController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ImportChartController</title>");  
+            out.println("<title>Servlet RejectAuditController</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ImportChartController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet RejectAuditController at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -61,28 +54,8 @@ public class ImportChartController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        
-       try {
-        String materialIdRaw = request.getParameter("materialId");
-        Integer materialId = (materialIdRaw != null && !materialIdRaw.isEmpty())
-                            ? Integer.parseInt(materialIdRaw)
-                            : null;
-
-        MaterialDAO dao = new MaterialDAO();
-        List<MaterialStatistic> stats = dao.getMaterialStatistics(materialId);
-
-        Gson gson = new Gson();
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        gson.toJson(stats, response.getWriter());
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-    }
-    }
-    
-   
+        processRequest(request, response);
+    } 
 
     /** 
      * Handles the HTTP <code>POST</code> method.
@@ -92,9 +65,32 @@ public class ImportChartController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        processRequest(request, response);
+     protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String rawId = request.getParameter("auditId");
+        String rejectNote = request.getParameter("rejectNote"); // Lý do reject (optional)
+        String message;
+
+        try {
+            int auditId = Integer.parseInt(rawId);
+
+            AuditInventoryDAO dao = new AuditInventoryDAO();
+
+            // Nếu muốn update cả note, dùng hàm mới (bạn cần thêm ở DAO)
+            if (rejectNote != null && !rejectNote.trim().isEmpty()) {
+                dao.updateAuditStatusAndNote(auditId, "rejected", rejectNote.trim());
+            } else {
+                dao.updateAuditStatus(auditId, "rejected");
+            }
+
+            message = "Inventory audit #" + auditId + " has been rejected successfully.";
+            request.setAttribute("success", message);
+        } catch (Exception ex) {
+            message = "Error: " + ex.getMessage();
+            request.setAttribute("error", message);
+        }
+        // Chuyển về trang danh sách, hoặc reload lại detail tùy logic
+        request.getRequestDispatcher("/InventoryAudit.jsp").forward(request, response);
     }
 
     /** 

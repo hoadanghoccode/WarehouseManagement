@@ -8,6 +8,7 @@ import dal.MaterialDAO;
 import dal.OrderDAO;
 import dal.SubUnitDAO;
 import dal.SupplierDAO;
+import dal.UnitDAO;
 import dal.UserDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -38,7 +39,7 @@ public class OrderDetailController extends HttpServlet {
     private UserDAO userDAO;
     private SupplierDAO supplierDAO;
     private MaterialDAO materialDAO;
-    private SubUnitDAO subUnitDAO;
+    private UnitDAO unitDAO;
 
     @Override
     public void init() throws ServletException {
@@ -48,7 +49,7 @@ public class OrderDetailController extends HttpServlet {
             userDAO = new UserDAO();
             supplierDAO = new SupplierDAO();
             materialDAO = new MaterialDAO();
-            subUnitDAO = new SubUnitDAO();
+            unitDAO = new UnitDAO();
             LOGGER.info("OrderDetailController initialized successfully");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to initialize OrderDetailController", e);
@@ -118,27 +119,20 @@ public class OrderDetailController extends HttpServlet {
             for (OrderDetail od : orderDetailList) {
                 try {
                     if (od.getMaterialId() > 0) {
+                        
                         var material = materialDAO.getMaterialIdBy(od.getMaterialId());
                         if (material != null) {
                             od.setMaterialName(material.getName());
                             od.setMaterialImage(material.getImage());
+                            od.setUnitName(unitDAO.getUnitById(material.getUnitId()).getName());
                         } else {
                             od.setMaterialName("Unknown Material");
                         }
                     }
 
-                    if (od.getSubUnitId() > 0) {
-                        var subunit = subUnitDAO.getSubUnitById(od.getSubUnitId());
-                        if (subunit != null) {
-                            od.setSubUnitName(subunit.getName());
-                        } else {
-                            od.setSubUnitName("Unknown Unit");
-                        }
-                    }
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, "Error loading detail for OrderDetail ID: " + od.getOrderDetailId(), ex);
                     od.setMaterialName("N/A");
-                    od.setSubUnitName("N/A");
                 }
             }
 
@@ -253,7 +247,7 @@ public class OrderDetailController extends HttpServlet {
             }
 
             // Redirect về trang detail để hiển thị kết quả
-            response.sendRedirect("orderdetail?oid=" + orderId);
+            response.sendRedirect("orderlist");
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating order status", e);

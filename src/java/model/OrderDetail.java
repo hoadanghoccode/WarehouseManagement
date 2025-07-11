@@ -15,33 +15,22 @@ public class OrderDetail {
     private String materialName;
     private String materialImage;
     private int orderId;
-    private int subUnitId;
-    private String subUnitName;
+    private String unitName;
     private int qualityId;
     private int quantity;
 
-    public OrderDetail() {
-    }
-
-    public OrderDetail(int orderDetailId, int materialId, int orderId, int subUnitId, int qualityId, int quantity) {
-        this.orderDetailId = orderDetailId;
-        this.materialId = materialId;
-        this.orderId = orderId;
-        this.subUnitId = subUnitId;
-        this.qualityId = qualityId;
-        this.quantity = quantity;
-    }
-
-    public OrderDetail(int orderDetailId, int materialId, String materialName, int orderId, int subUnitId, String subUnitName, int qualityId, int quantity, String materialImage) {
+    public OrderDetail(int orderDetailId, int materialId, String materialName, String materialImage, int orderId, String unitName, int qualityId, int quantity) {
         this.orderDetailId = orderDetailId;
         this.materialId = materialId;
         this.materialName = materialName;
+        this.materialImage = materialImage;
         this.orderId = orderId;
-        this.subUnitId = subUnitId;
-        this.subUnitName = subUnitName;
+        this.unitName = unitName;
         this.qualityId = qualityId;
         this.quantity = quantity;
-        this.materialImage = materialImage;
+    }
+
+    public OrderDetail() {
     }
 
 
@@ -77,14 +66,6 @@ public class OrderDetail {
         this.orderDetailId = orderDetailId;
     }
 
-    public int getSubUnitId() {
-        return subUnitId;
-    }
-
-    public void setSubUnitId(int subUnitId) {
-        this.subUnitId = subUnitId;
-    }
-
     public int getQualityId() {
         return qualityId;
     }
@@ -101,14 +82,6 @@ public class OrderDetail {
         this.materialName = materialName;
     }
 
-    public String getSubUnitName() {
-        return subUnitName;
-    }
-
-    public void setSubUnitName(String subUnitName) {
-        this.subUnitName = subUnitName;
-    }
-
     public String getMaterialImage() {
         return materialImage;
     }
@@ -117,9 +90,18 @@ public class OrderDetail {
         this.materialImage = materialImage;
     }
 
-    @Override
-    public String toString() {
-        return "OrderDetail{" + "orderDetailId=" + orderDetailId + ", materialId=" + materialId + ", materialName=" + materialName + ", materialImage=" + materialImage + ", orderId=" + orderId + ", subUnitId=" + subUnitId + ", subUnitName=" + subUnitName + ", qualityId=" + qualityId + ", quantity=" + quantity + '}';
+    public String getUnitName() {
+        return unitName;
     }
 
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
+    }
+
+    @Override
+    public String toString() {
+        return "OrderDetail{" + "orderDetailId=" + orderDetailId + ", materialId=" + materialId + ", materialName=" + materialName + ", materialImage=" + materialImage + ", orderId=" + orderId + ", unitName=" + unitName + ", qualityId=" + qualityId + ", quantity=" + quantity + '}';
+    }
+
+    
 }

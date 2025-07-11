@@ -28,7 +28,7 @@ public class OrderDAO extends DBContext {
 
     public boolean createOrder(Order order) {
         String orderQuery = "INSERT INTO Orders (Warehouse_id, User_id, Type, Supplier_id, Note, Status) VALUES (?, ?, ?, ?, ?, ?)";
-        String orderDetailQuery = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, SubUnit_id, Quantity) VALUES (?, ?, ?, ?, ?)";
+        String orderDetailQuery = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, Quantity) VALUES (?, ?, ?, ?)";
 
         PreparedStatement psOrder = null;
         PreparedStatement psOrderDetail = null;
@@ -77,8 +77,7 @@ public class OrderDAO extends DBContext {
                                 psOrderDetail.setNull(3, java.sql.Types.INTEGER);
                             }
 
-                            psOrderDetail.setInt(4, detail.getSubUnitId());
-                            psOrderDetail.setInt(5, detail.getQuantity());
+                            psOrderDetail.setInt(4, detail.getQuantity());
                             psOrderDetail.addBatch();
                         }
 
@@ -191,7 +190,6 @@ public class OrderDAO extends DBContext {
                     detail.setQualityId(qualityId);
                 }
 
-                detail.setSubUnitId(rs.getInt("SubUnit_id"));
                 detail.setQuantity(rs.getInt("Quantity"));
                 details.add(detail);
             }
@@ -553,13 +551,12 @@ public class OrderDAO extends DBContext {
     }
 
     public void insertOrderDetail(OrderDetail detail) throws SQLException {
-        String sql = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, SubUnit_id, Quantity) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, Quantity) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, detail.getMaterialId());
             ps.setInt(2, detail.getOrderId());
             ps.setInt(3, detail.getQualityId());
-            ps.setInt(4, detail.getSubUnitId());
-            ps.setDouble(5, detail.getQuantity());
+            ps.setDouble(4, detail.getQuantity());
             ps.executeUpdate();
         }
     }
@@ -567,7 +564,7 @@ public class OrderDAO extends DBContext {
     public boolean updateOrder(Order order) {
         String updateOrderSQL = "UPDATE Orders SET Type = ?, Supplier_id = ?, Note = ?, Status = ? WHERE Order_id = ?";
         String deleteDetailsSQL = "DELETE FROM Order_detail WHERE Order_id = ?";
-        String insertDetailSQL = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, SubUnit_id, Quantity) VALUES (?, ?, ?, ?, ?)";
+        String insertDetailSQL = "INSERT INTO Order_detail (Material_id, Order_id, Quality_id, Quantity) VALUES (?, ?, ?, ?)";
 
         PreparedStatement psOrder = null;
         PreparedStatement psDelete = null;
@@ -620,8 +617,7 @@ public class OrderDAO extends DBContext {
                         psInsert.setNull(3, java.sql.Types.INTEGER);
                     }
 
-                    psInsert.setInt(4, detail.getSubUnitId());
-                    psInsert.setInt(5, detail.getQuantity());
+                    psInsert.setInt(4, detail.getQuantity());
                     psInsert.addBatch();
                 }
 
@@ -682,6 +678,45 @@ public class OrderDAO extends DBContext {
      * @param userId User ID who approves the order
      * @return true if successful, false otherwise
      */
+    private boolean updateMaterialStatusIfNew(List<OrderDetail> orderDetails) {
+        if (orderDetails == null || orderDetails.isEmpty()) {
+            return true;
+        }
+
+        PreparedStatement psUpdateMaterial = null;
+        try {
+            String updateMaterialQuery = "UPDATE Materials SET Status = 'active' WHERE Material_id = ? AND Status = 'new'";
+            psUpdateMaterial = connection.prepareStatement(updateMaterialQuery);
+
+            for (OrderDetail detail : orderDetails) {
+                psUpdateMaterial.setInt(1, detail.getMaterialId());
+                psUpdateMaterial.addBatch();
+            }
+
+            int[] updateResults = psUpdateMaterial.executeBatch();
+
+            // Log which materials were updated
+            for (int i = 0; i < updateResults.length; i++) {
+                if (updateResults[i] > 0) {
+                    System.out.println("Material ID " + orderDetails.get(i).getMaterialId() + " status updated from 'new' to 'active'");
+                }
+            }
+
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error updating material status: " + e.getMessage());
+            return false;
+        } finally {
+            try {
+                if (psUpdateMaterial != null) {
+                    psUpdateMaterial.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Error closing material update statement: " + e.getMessage());
+            }
+        }
+    }
+
     public boolean approveOrderAndCreateImportNote(int orderId, int userId) {
         PreparedStatement psUpdateOrder = null;
         PreparedStatement psInsertImportNote = null;
@@ -699,7 +734,14 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 2. Update order status to approved
+            // 2. Update material status from 'new' to 'active' if applicable
+            if (!updateMaterialStatusIfNew(order.getOrderDetails())) {
+                System.err.println("Failed to update material status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Update order status to approved
             String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
             psUpdateOrder = connection.prepareStatement(updateOrderQuery);
             psUpdateOrder.setInt(1, orderId);
@@ -711,7 +753,7 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 3. Create import note only for import type orders
+            // 4. Create import note only for import type orders
             if ("import".equals(order.getType())) {
                 String insertImportNoteQuery = "INSERT INTO Import_note (Order_id, User_id, Warehouse_id) VALUES (?, ?, ?)";
                 psInsertImportNote = connection.prepareStatement(insertImportNoteQuery, Statement.RETURN_GENERATED_KEYS);
@@ -726,23 +768,22 @@ public class OrderDAO extends DBContext {
                     if (generatedKeys.next()) {
                         int importNoteId = generatedKeys.getInt(1);
 
-                        // 4. Create import note details
+                        // 5. Create import note details
                         if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
-                            String insertImportDetailQuery = "INSERT INTO Import_note_detail (Import_note_id, Material_id, SubUnit_id, Quantity, Quality_id) VALUES (?, ?, ?, ?, ?)";
+                            String insertImportDetailQuery = "INSERT INTO Import_note_detail (Import_note_id, Material_id, Quantity, Quality_id) VALUES (?, ?, ?, ?)";
                             psInsertImportDetail = connection.prepareStatement(insertImportDetailQuery);
 
                             for (OrderDetail detail : order.getOrderDetails()) {
                                 psInsertImportDetail.setInt(1, importNoteId);
                                 psInsertImportDetail.setInt(2, detail.getMaterialId());
-                                psInsertImportDetail.setInt(3, detail.getSubUnitId());
-                                psInsertImportDetail.setInt(4, detail.getQuantity());
+                                psInsertImportDetail.setInt(3, detail.getQuantity());
 
                                 // Handle Quality_id - use default quality if not specified
                                 if (detail.getQualityId() > 0) {
-                                    psInsertImportDetail.setInt(5, detail.getQualityId());
+                                    psInsertImportDetail.setInt(4, detail.getQualityId());
                                 } else {
                                     // You might want to set a default quality ID or handle this differently
-                                    psInsertImportDetail.setInt(5, 1); // Assuming 1 is default quality
+                                    psInsertImportDetail.setInt(4, 1); // Assuming 1 is default quality
                                 }
 
                                 psInsertImportDetail.addBatch();
@@ -823,7 +864,14 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 2. Update order status to approved
+            // 2. Update material status from 'new' to 'active' if applicable
+            if (!updateMaterialStatusIfNew(order.getOrderDetails())) {
+                System.err.println("Failed to update material status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Update order status to approved
             String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
             psUpdateOrder = connection.prepareStatement(updateOrderQuery);
             psUpdateOrder.setInt(1, orderId);
@@ -835,7 +883,7 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 3. Create export note for export or exportToRepair type orders
+            // 4. Create export note for export or exportToRepair type orders
             if ("export".equals(order.getType()) || "exportToRepair".equals(order.getType())) {
                 String insertExportNoteQuery = "INSERT INTO Export_note (Order_id, User_id, Warehouse_id) VALUES (?, ?, ?)";
                 psInsertExportNote = connection.prepareStatement(insertExportNoteQuery, Statement.RETURN_GENERATED_KEYS);
@@ -850,23 +898,22 @@ public class OrderDAO extends DBContext {
                     if (generatedKeys.next()) {
                         int exportNoteId = generatedKeys.getInt(1);
 
-                        // 4. Create export note details
+                        // 5. Create export note details
                         if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
-                            String insertExportDetailQuery = "INSERT INTO Export_note_detail (Export_note_id, Material_id, SubUnit_id, Quantity, Quality_id) VALUES (?, ?, ?, ?, ?)";
+                            String insertExportDetailQuery = "INSERT INTO Export_note_detail (Export_note_id, Material_id, Quantity, Quality_id) VALUES (?, ?, ?, ?)";
                             psInsertExportDetail = connection.prepareStatement(insertExportDetailQuery);
 
                             for (OrderDetail detail : order.getOrderDetails()) {
                                 psInsertExportDetail.setInt(1, exportNoteId);
                                 psInsertExportDetail.setInt(2, detail.getMaterialId());
-                                psInsertExportDetail.setInt(3, detail.getSubUnitId());
-                                psInsertExportDetail.setInt(4, detail.getQuantity());
+                                psInsertExportDetail.setInt(3, detail.getQuantity());
 
                                 // Handle Quality_id - use default quality if not specified
                                 if (detail.getQualityId() > 0) {
-                                    psInsertExportDetail.setInt(5, detail.getQualityId());
+                                    psInsertExportDetail.setInt(4, detail.getQualityId());
                                 } else {
                                     // You might want to set a default quality ID or handle this differently
-                                    psInsertExportDetail.setInt(5, 1); // Assuming 1 is default quality
+                                    psInsertExportDetail.setInt(4, 1); // Assuming 1 is default quality
                                 }
 
                                 psInsertExportDetail.addBatch();
@@ -930,7 +977,6 @@ public class OrderDAO extends DBContext {
         }
     }
 
-//    Xử lý purchase của b Giang
     public boolean approveOrderAndCreatePurchaseNote(int orderId, int userId) {
         PreparedStatement psUpdateOrder = null;
         PreparedStatement psInsertPurchaseNote = null;
@@ -948,7 +994,14 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 2. Update order status to approved
+            // 2. Update material status from 'new' to 'active' if applicable
+            if (!updateMaterialStatusIfNew(order.getOrderDetails())) {
+                System.err.println("Failed to update material status");
+                connection.rollback();
+                return false;
+            }
+
+            // 3. Update order status to approved
             String updateOrderQuery = "UPDATE Orders SET Status = 'approved' WHERE Order_id = ?";
             psUpdateOrder = connection.prepareStatement(updateOrderQuery);
             psUpdateOrder.setInt(1, orderId);
@@ -960,7 +1013,7 @@ public class OrderDAO extends DBContext {
                 return false;
             }
 
-            // 3. Create purchase note only for purchase type orders
+            // 4. Create purchase note only for purchase type orders
             if ("purchase".equals(order.getType())) {
                 String insertPurchaseNoteQuery = "INSERT INTO PurchaseOrders (Order_id, User_id, Warehouse_id, Status) VALUES (?, ?, ?, 'new')";
                 psInsertPurchaseNote = connection.prepareStatement(insertPurchaseNoteQuery, Statement.RETURN_GENERATED_KEYS);
@@ -975,22 +1028,21 @@ public class OrderDAO extends DBContext {
                     if (generatedKeys.next()) {
                         int purchaseNoteId = generatedKeys.getInt(1);
 
-                        // 4. Create purchase note details
+                        // 5. Create purchase note details
                         if (order.getOrderDetails() != null && !order.getOrderDetails().isEmpty()) {
-                            String insertPurchaseDetailQuery = "INSERT INTO PurchaseOrder_detail (PurchaseOrder_id, Material_id, SubUnit_id, Quantity, Quality_id) VALUES (?, ?, ?, ?, ?)";
+                            String insertPurchaseDetailQuery = "INSERT INTO PurchaseOrder_detail (PurchaseOrder_id, Material_id, Quantity, Quality_id) VALUES (?, ?, ?, ?)";
                             psInsertPurchaseDetail = connection.prepareStatement(insertPurchaseDetailQuery);
 
                             for (OrderDetail detail : order.getOrderDetails()) {
                                 psInsertPurchaseDetail.setInt(1, purchaseNoteId);
                                 psInsertPurchaseDetail.setInt(2, detail.getMaterialId());
-                                psInsertPurchaseDetail.setInt(3, detail.getSubUnitId());
-                                psInsertPurchaseDetail.setInt(4, detail.getQuantity());
+                                psInsertPurchaseDetail.setInt(3, detail.getQuantity());
 
                                 // Handle Quality_id - use default quality if not specified
                                 if (detail.getQualityId() > 0) {
-                                    psInsertPurchaseDetail.setInt(5, detail.getQualityId());
+                                    psInsertPurchaseDetail.setInt(4, detail.getQualityId());
                                 } else {
-                                    psInsertPurchaseDetail.setInt(5, 1); // Assuming 1 is default quality
+                                    psInsertPurchaseDetail.setInt(4, 1); // Assuming 1 is default quality
                                 }
 
                                 psInsertPurchaseDetail.addBatch();
