@@ -1,19 +1,31 @@
 package model;
 
-public class ExportNoteDetail {
+import java.sql.Timestamp;
+
+public class ExportNoteTransaction {
+    private int exportNoteTransactionId;
     private int exportNoteDetailId;
     private int exportNoteId;
     private int materialId;
     private String materialName;
     private int unitId;
     private String unitName;
-    private double quantity;
+    private double requestedQuantity;
+    private double exportedQuantity;
+    private double remainingQuantity;
     private boolean exported;
     private int qualityId;
     private String qualityName;
     private double availableQuantity;
-    private String materialImage;
-    private ExportNoteTransaction transaction;
+    private Timestamp createdAt;
+
+    public int getExportNoteTransactionId() {
+        return exportNoteTransactionId;
+    }
+
+    public void setExportNoteTransactionId(int exportNoteTransactionId) {
+        this.exportNoteTransactionId = exportNoteTransactionId;
+    }
 
     public int getExportNoteDetailId() {
         return exportNoteDetailId;
@@ -63,12 +75,28 @@ public class ExportNoteDetail {
         this.unitName = unitName;
     }
 
-    public double getQuantity() {
-        return quantity;
+    public double getRequestedQuantity() {
+        return requestedQuantity;
     }
 
-    public void setQuantity(double quantity) {
-        this.quantity = quantity;
+    public void setRequestedQuantity(double requestedQuantity) {
+        this.requestedQuantity = requestedQuantity;
+    }
+
+    public double getExportedQuantity() {
+        return exportedQuantity;
+    }
+
+    public void setExportedQuantity(double exportedQuantity) {
+        this.exportedQuantity = exportedQuantity;
+    }
+
+    public double getRemainingQuantity() {
+        return remainingQuantity;
+    }
+
+    public void setRemainingQuantity(double remainingQuantity) {
+        this.remainingQuantity = remainingQuantity;
     }
 
     public boolean isExported() {
@@ -103,19 +131,11 @@ public class ExportNoteDetail {
         this.availableQuantity = availableQuantity;
     }
 
-    public String getMaterialImage() {
-        return materialImage;
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
-    public void setMaterialImage(String materialImage) {
-        this.materialImage = materialImage;
-    }
-
-    public ExportNoteTransaction getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(ExportNoteTransaction transaction) {
-        this.transaction = transaction;
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 }

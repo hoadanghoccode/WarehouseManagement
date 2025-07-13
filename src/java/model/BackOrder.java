@@ -21,6 +21,7 @@ public class BackOrder {
     private String note;
     private int userId;
     private String userName;
+    private int exportNoteDetailId; // Link to Export_note_detail
 
     public int getBackOrderId() {
         return backOrderId;
@@ -79,14 +80,11 @@ public class BackOrder {
     }
 
     public String getQualityType() {
-        switch (qualityId) {
-            case 1:
-                return "Available";
-            case 2:
-                return "Not Available";
-            default:
-                return "Unknown";
-        }
+        return qualityType != null ? qualityType : switch (qualityId) {
+            case 1 -> "Available";
+            case 2 -> "Not Available";
+            default -> "Unknown";
+        };
     }
 
     public void setQualityType(String qualityType) {
@@ -146,11 +144,7 @@ public class BackOrder {
     }
 
     public void setNote(String note) {
-        if (note != null && ("Low".equals(note) || "Medium".equals(note) || "High".equals(note))) {
-            this.note = note;
-        } else {
-            this.note = "Low";
-        }
+        this.note = note != null && ("Low".equals(note) || "Medium".equals(note) || "High".equals(note)) ? note : "Low";
     }
 
     public int getUserId() {
@@ -167,5 +161,13 @@ public class BackOrder {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public int getExportNoteDetailId() {
+        return exportNoteDetailId;
+    }
+
+    public void setExportNoteDetailId(int exportNoteDetailId) {
+        this.exportNoteDetailId = exportNoteDetailId;
     }
 }
