@@ -1,8 +1,6 @@
 <%@ page import="java.util.List" %>
-<%@ page import="model.Units" %>
-<%@ page import="model.SubUnit" %>
+<%@ page import="model.Unit" %>
 <%@ page import="dal.UnitDAO" %>
-<%@ page import="dal.SubUnitDAO" %>
 <%@ page import="com.google.gson.Gson" %>
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -22,7 +20,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Units List</title>
+    <title>Unit List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="icon" href="img/logo.png" type="image/png">
@@ -182,15 +180,6 @@
             background-color: #059669;
         }
 
-        .btn-info {
-            background-color: #06b6d4;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background-color: #0891b2;
-        }
-
         .btn-danger {
             background-color: #ef4444;
             color: white;
@@ -198,6 +187,12 @@
 
         .btn-danger:hover {
             background-color: #dc2626;
+        }
+
+        .btn-disabled {
+            background-color: #d1d5db;
+            color: #6b7280;
+            cursor: not-allowed;
         }
 
         .table-container {
@@ -210,7 +205,6 @@
         table.table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
         }
 
         table.table th {
@@ -300,31 +294,15 @@
             cursor: not-allowed;
         }
 
-        .modal .modal-image {
-            width: 200px;
-            height: auto;
-            float: left;
-            margin-right: 20px;
-        }
-
+        /* Giảm kích thước bảng trong view modal để phù hợp với modal-md */
         .modal .detail-table {
-            float: right;
-            width: calc(100% - 220px);
+            width: 100%;
+            font-size: 13px;
         }
 
-        .material-detail-table {
-            margin-top: 20px;
-            clear: both;
-        }
-
-        .modal-image-placeholder {
-            width: 200px;
-            height: 150px;
-            background-color: #f3f4f6;
-            border: 1px solid #e5e7eb;
-            text-align: center;
-            padding-top: 60px;
-            color: #6b7280;
+        .modal .detail-table th,
+        .modal .detail-table td {
+            padding: 8px;
         }
 
         @media (max-width: 768px) {
@@ -368,7 +346,7 @@
         <%@ include file="sidebar.jsp" %>
         <div class="main-content">
             <div class="container">
-                <h1 class="title">Units List</h1>
+                <h1 class="title">Unit List</h1>
 
                 <div class="header-actions">
                     <div class="search-container">
@@ -377,16 +355,8 @@
                                 <i class="fas fa-search search-icon"></i>
                                 <input type="text" name="search" value="${search}" placeholder="Search by name..." class="search-input form-control" />
                             </div>
-                            <select class="form-select" name="subUnitId" id="subUnitFilter">
-                                <option value="">All SubUnits</option>
-                                <c:forEach var="subUnit" items="${subUnits}">
-                                    <option value="${subUnit.subUnitId}" ${subUnitId == subUnit.subUnitId ? 'selected' : ''}>
-                                        ${subUnit.name}
-                                    </option>
-                                </c:forEach>
-                            </select>
                             <select class="form-select" id="statusFilter" name="status">
-                                <option value="">All Status</option>
+                                <option value="">All Statuses</option>
                                 <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
                                 <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
                             </select>
@@ -399,9 +369,6 @@
                                 <i class="fas fa-plus"></i> Add Unit
                             </button>
                         </c:if>
-                        <a href="${pageContext.request.contextPath}/subunit" class="btn btn-info" title="Go to SubUnits">
-                            <i class="fas fa-list"></i> Go to SubUnits
-                        </a>
                     </div>
                 </div>
 
@@ -410,11 +377,9 @@
                         <thead>
                             <tr>
                                 <th class="col-md-1">#</th>
-                                <th class="col-md-2">Name</th>
-                                <th class="col-md-2">Factor</th>
-                                <th class="col-md-2">SubUnit</th>
-                                <th class="col-md-2">Status</th>
-                                <th class="col-md-2">Action</th>
+                                <th class="col-md-4">Name</th>
+                                <th class="col-md-3">Status</th>
+                                <th class="col-md-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -423,30 +388,24 @@
                                     <td><strong>${status.index + 1 + (currentPage - 1) * 5}</strong></td>
                                     <td>${not empty unit.name ? unit.name : 'N/A'}</td>
                                     <td>
-                                        ${not empty unit.factor ? unit.factor : 'N/A'}
-                                    </td>
-                                    <td><c:forEach var="sub" items="${subUnits}">
-                                            <c:if test="${sub.subUnitId == unit.subUnitId}">${sub.name}</c:if>
-                                        </c:forEach></td>
-                                    <td>
-                                        <span class="badge ${unit.isActive ? 'bg-success' : 'bg-danger'}">
-                                            ${unit.isActive ? 'Active' : 'Inactive'}
+                                        <span class="badge ${unit.status == 'active' ? 'bg-success' : 'bg-danger'}">
+                                            ${unit.status == 'active' ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
                                             <c:if test="${perms['Unit_VIEW']}">
-                                                <button class="btn btn-info btn-sm view-detail" data-id="${unit.unitId}" title="View">
+                                                <button class="btn btn-info btn-sm view-detail" data-id="${unit.unitId}" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </c:if>
                                             <c:if test="${perms['Unit_UPDATE']}">
-                                                <button class="btn btn-primary btn-sm btn-edit-unit" data-id="${unit.unitId}" title="Edit">
+                                                <button class="btn btn-primary btn-sm btn-edit-unit" data-id="${unit.unitId}" data-has-dependencies="${unit.hasDependencies}" title="Edit" ${unit.hasDependencies ? 'disabled class="btn-disabled"' : ''}>
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </c:if>
                                             <c:if test="${perms['Unit_DELETE']}">
-                                                <button class="btn btn-danger btn-sm btn-delete" data-id="${unit.unitId}" title="Deactivate" data-status="${unit.isActive ? 'active' : 'inactive'}">
+                                                <button class="btn btn-danger btn-sm btn-delete" data-id="${unit.unitId}" data-status="${unit.status}" data-has-dependencies="${unit.hasDependencies}" title="${unit.status == 'active' ? 'Deactivate' : 'Permanent Delete'}" ${unit.hasDependencies ? 'disabled class="btn-disabled"' : ''}>
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </c:if>
@@ -462,18 +421,18 @@
                     <div class="pagination">
                         <c:choose>
                             <c:when test="${currentPage > 1}">
-                                <a href="${pageContext.request.contextPath}/unit?page=1&search=${search}&subUnitId=${subUnitId}&status=${status}" title="First page">
+                                <a href="${pageContext.request.contextPath}/unit?page=1&search=${search}&status=${status}" title="First Page">
                                     <i class="fas fa-angle-double-left"></i>
                                 </a>
-                                <a href="${pageContext.request.contextPath}/unit?page=${currentPage-1}&search=${search}&subUnitId=${subUnitId}&status=${status}" title="Previous page">
+                                <a href="${pageContext.request.contextPath}/unit?page=${currentPage-1}&search=${search}&status=${status}" title="Previous Page">
                                     <i class="fas fa-angle-left"></i>
                                 </a>
                             </c:when>
                             <c:otherwise>
-                                <span class="disabled" title="First page">
+                                <span class="disabled" title="First Page">
                                     <i class="fas fa-angle-double-left"></i>
                                 </span>
-                                <span class="disabled" title="Previous page">
+                                <span class="disabled" title="Previous Page">
                                     <i class="fas fa-angle-left"></i>
                                 </span>
                             </c:otherwise>
@@ -487,7 +446,7 @@
                                             <span class="current">${i}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&subUnitId=${subUnitId}&status=${status}">${i}</a>
+                                            <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&status=${status}">${i}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:forEach>
@@ -501,17 +460,17 @@
                                                     <span class="current">${i}</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&subUnitId=${subUnitId}&status=${status}">${i}</a>
+                                                    <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&status=${status}">${i}</a>
                                                 </c:otherwise>
                                             </c:choose>
                                         </c:forEach>
                                         <c:if test="${totalPages > 6}">
                                             <span style="padding: 8px 4px;">...</span>
-                                            <a href="${pageContext.request.contextPath}/unit?page=${totalPages}&search=${search}&subUnitId=${subUnitId}&status=${status}">${totalPages}</a>
+                                            <a href="${pageContext.request.contextPath}/unit?page=${totalPages}&search=${search}&status=${status}">${totalPages}</a>
                                         </c:if>
                                     </c:when>
                                     <c:when test="${currentPage >= totalPages - 3}">
-                                        <a href="${pageContext.request.contextPath}/unit?page=1&search=${search}&subUnitId=${subUnitId}&status=${status}">1</a>
+                                        <a href="${pageContext.request.contextPath}/unit?page=1&search=${search}&status=${status}">1</a>
                                         <c:if test="${totalPages > 6}">
                                             <span style="padding: 8px 4px;">...</span>
                                         </c:if>
@@ -521,13 +480,13 @@
                                                     <span class="current">${i}</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&subUnitId=${subUnitId}&status=${status}">${i}</a>
+                                                    <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&status=${status}">${i}</a>
                                                 </c:otherwise>
                                             </c:choose>
                                         </c:forEach>
                                     </c:when>
                                     <c:otherwise>
-                                        <a href="${pageContext.request.contextPath}/unit?page=1&search=${search}&subUnitId=${subUnitId}&status=${status}">1</a>
+                                        <a href="${pageContext.request.contextPath}/unit?page=1&search=${search}&status=${status}">1</a>
                                         <span style="padding: 8px 4px;">...</span>
                                         <c:forEach begin="${currentPage - 2}" end="${currentPage + 2}" var="i">
                                             <c:choose>
@@ -535,12 +494,12 @@
                                                     <span class="current">${i}</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&subUnitId=${subUnitId}&status=${status}">${i}</a>
+                                                    <a href="${pageContext.request.contextPath}/unit?page=${i}&search=${search}&status=${status}">${i}</a>
                                                 </c:otherwise>
                                             </c:choose>
                                         </c:forEach>
                                         <span style="padding: 8px 4px;">...</span>
-                                        <a href="${pageContext.request.contextPath}/unit?page=${totalPages}&search=${search}&subUnitId=${subUnitId}&status=${status}">${totalPages}</a>
+                                        <a href="${pageContext.request.contextPath}/unit?page=${totalPages}&search=${search}&status=${status}">${totalPages}</a>
                                     </c:otherwise>
                                 </c:choose>
                             </c:otherwise>
@@ -548,41 +507,41 @@
 
                         <c:choose>
                             <c:when test="${currentPage < totalPages}">
-                                <a href="${pageContext.request.contextPath}/unit?page=${currentPage+1}&search=${search}&subUnitId=${subUnitId}&status=${status}" title="Next page">
+                                <a href="${pageContext.request.contextPath}/unit?page=${currentPage+1}&search=${search}&status=${status}" title="Next Page">
                                     <i class="fas fa-angle-right"></i>
                                 </a>
-                                <a href="${pageContext.request.contextPath}/unit?page=${totalPages}&search=${search}&subUnitId=${subUnitId}&status=${status}" title="Last page">
+                                <a href="${pageContext.request.contextPath}/unit?page=${totalPages}&search=${search}&status=${status}" title="Last Page">
                                     <i class="fas fa-angle-double-right"></i>
                                 </a>
                             </c:when>
                             <c:otherwise>
-                                <span class="disabled" title="Next page">
+                                <span class="disabled" title="Next Page">
                                     <i class="fas fa-angle-right"></i>
                                 </span>
-                                <span class="disabled" title="Last page">
+                                <span class="disabled" title="Last Page">
                                     <i class="fas fa-angle-double-right"></i>
                                 </span>
                             </c:otherwise>
                         </c:choose>
                     </div>
                     <div style="text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;">
-                        Page ${currentPage} of ${totalPages}
+                        Page ${currentPage} / ${totalPages}
                         <c:if test="${not empty totalUnits}">
-                            (${totalUnits} total units)
+                            (${totalUnits} units)
                         </c:if>
                     </div>
                 </c:if>
 
-                <!-- Modals -->
+                <!-- Modal chỉnh sửa/thêm -->
                 <div class="modal fade" id="unitModal" tabindex="-1" aria-labelledby="unitModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-md">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="unitModalLabel">Unit</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body" id="unitModalBody">
-                                <!-- Dynamic content will be loaded here via AJAX -->
+                                <!-- Nội dung động sẽ được tải qua AJAX -->
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -592,6 +551,7 @@
                     </div>
                 </div>
 
+                <!-- Modal xác nhận xóa -->
                 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -600,7 +560,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body" id="deleteConfirmMessage">
-                                <!-- Dynamic message will be loaded here -->
+                                <!-- Thông điệp động sẽ được tải tại đây -->
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -610,7 +570,7 @@
                     </div>
                 </div>
 
-                <!-- Toast for notifications -->
+                <!-- Toast thông báo -->
                 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
                     <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
                         <div class="toast-header">
@@ -632,7 +592,7 @@
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
             const toast = new bootstrap.Toast(document.getElementById('liveToast'));
 
-            // Add Unit
+            // Thêm đơn vị
             $('.btn-add-unit').click(function() {
                 $('#unitModalLabel').text('Add Unit');
                 $('#saveUnitBtn').data('action', 'add').show();
@@ -641,12 +601,9 @@
                     method: 'GET',
                     dataType: 'json',
                     success: function(data) {
-                        if (data.success && data.subUnits) {
-                            let options = data.subUnits.map(sub => '<option value="' + sub.subUnitId + '">' + sub.name + '</option>').join('');
+                        if (data.success) {
                             let html = '<form id="unitForm">';
                             html += '<div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" name="name" required></div>';
-                            html += '<div class="mb-3"><label class="form-label">SubUnit</label><select class="form-select" name="subUnitId" required><option value="">Select SubUnit</option>' + options + '</select></div>';
-                            html += '<div class="mb-3"><label class="form-label">Factor</label><input type="number" step="0.01" class="form-control" name="factor" value="1.0" required></div>';
                             html += '<div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status" required><option value="active">Active</option><option value="inactive">Inactive</option></select></div>';
                             html += '</form>';
                             $('#unitModalBody').html(html);
@@ -655,17 +612,23 @@
                         }
                     },
                     error: function(xhr, status, error) {
-                        let errorMessage = 'Error: Cannot load data. Status: ' + status;
+                        let errorMessage = 'Error: Unable to load data. Status: ' + status;
                         if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
                         $('#unitModalBody').html('<p class="text-danger">' + errorMessage + '</p>');
-                        console.error('AJAX Error: ', status, error, xhr.responseText);
+                        console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
                 unitModal.show();
             });
 
-            // Edit Unit
+            // Chỉnh sửa đơn vị
             $('.btn-edit-unit').click(function() {
+                const hasDependencies = $(this).data('has-dependencies') === true;
+                if (hasDependencies) {
+                    $('#toastMessage').text('Cannot edit unit: It is used in transactions');
+                    toast.show();
+                    return;
+                }
                 const unitId = $(this).data('id');
                 $('#unitModalLabel').text('Edit Unit');
                 $('#saveUnitBtn').data('action', 'edit').data('id', unitId).show();
@@ -674,35 +637,38 @@
                     method: 'GET',
                     dataType: 'json',
                     success: function(data) {
-                        if (data.success && data.unit && data.subUnits) {
+                        if (data.success && data.unit) {
                             let unit = data.unit;
-                            let options = data.subUnits.map(sub => '<option value="' + sub.subUnitId + '"' + (sub.subUnitId == unit.subUnitId ? ' selected' : '') + '>' + sub.name + '</option>').join('');
                             let html = '<form id="unitForm">';
                             html += '<input type="hidden" name="id" value="' + unit.unitId + '">';
                             html += '<div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" name="name" value="' + (unit.name || '') + '" required></div>';
-                            html += '<div class="mb-3"><label class="form-label">SubUnit</label><select class="form-select" name="subUnitId" required><option value="">Select SubUnit</option>' + options + '</select></div>';
-                            html += '<div class="mb-3"><label class="form-label">Factor</label><input type="number" step="0.01" class="form-control" name="factor" value="' + (unit.factor != null ? unit.factor : '1.0') + '" required></div>';
-                            html += '<div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status" required><option value="active"' + (unit.isActive ? ' selected' : '') + '>Active</option><option value="inactive"' + (!unit.isActive ? ' selected' : '') + '>Inactive</option></select></div>';
+                            html += '<div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status" required><option value="active"' + (unit.status == 'active' ? ' selected' : '') + '>Active</option><option value="inactive"' + (unit.status == 'inactive' ? ' selected' : '') + '>Inactive</option></select></div>';
                             html += '</form>';
                             $('#unitModalBody').html(html);
                         } else {
-                            $('#unitModalBody').html('<p class="text-danger">Cannot load edit unit form!</p>');
+                            $('#unitModalBody').html('<p class="text-danger">' + (data.message || 'Cannot load edit unit form!') + '</p>');
+                            $('#toastMessage').text(data.message || 'Cannot load edit unit form!');
+                            toast.show();
+                            unitModal.hide();
                         }
                     },
                     error: function(xhr, status, error) {
-                        let errorMessage = 'Error: Cannot load data. Status: ' + status;
+                        let errorMessage = 'Error: Unable to load data. Status: ' + status;
                         if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
                         $('#unitModalBody').html('<p class="text-danger">' + errorMessage + '</p>');
-                        console.error('AJAX Error: ', status, error, xhr.responseText);
+                        $('#toastMessage').text(errorMessage);
+                        toast.show();
+                        unitModal.hide();
+                        console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
                 unitModal.show();
             });
 
-            // View Unit
+            // Xem chi tiết đơn vị
             $('.view-detail').click(function() {
                 const unitId = $(this).data('id');
-                $('#unitModalLabel').text('View Unit');
+                $('#unitModalLabel').text('View Unit Details');
                 $('#saveUnitBtn').hide();
                 $.ajax({
                     url: '${pageContext.request.contextPath}/unit?action=view&id=' + unitId,
@@ -713,9 +679,7 @@
                             let unit = data.unit;
                             let html = '<div class="row"><div class="col-md-12"><table class="table detail-table">';
                             html += '<tr><th>Name</th><td>' + (unit.name || 'N/A') + '</td></tr>';
-                            html += '<tr><th>SubUnit</th><td>' + (unit.subUnitName || 'N/A') + '</td></tr>';
-                            html += '<tr><th>Factor</th><td>' + (unit.factor != null ? unit.factor : 'N/A') + '</td></tr>';
-                            html += '<tr><th>Status</th><td>' + (unit.status || 'N/A') + '</td></tr>';
+                            html += '<tr><th>Status</th><td>' + (unit.status == 'active' ? 'Active' : 'Inactive') + '</td></tr>';
                             html += '<tr><th>Created At</th><td>' + (unit.createdAt || 'N/A') + '</td></tr>';
                             html += '<tr><th>Updated At</th><td>' + (unit.updatedAt || 'N/A') + '</td></tr>';
                             html += '</table></div></div>';
@@ -726,16 +690,17 @@
                     },
                     error: function(xhr, status, error) {
                         $('#unitModalBody').html('<p class="text-danger">Error loading data</p>');
-                        console.error('AJAX Error: ', status, error, xhr.responseText);
+                        console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
                 unitModal.show();
             });
 
-            // Save Unit
+            // Lưu đơn vị
             $('#saveUnitBtn').click(function() {
                 const action = $(this).data('action');
-                const url = '${pageContext.request.contextPath}/unit?action=' + action + (action === 'edit' ? '&id=' + $(this).data('id') : '');
+                const unitId = $(this).data('id');
+                const url = '${pageContext.request.contextPath}/unit?action=' + action + (action === 'edit' ? '&id=' + unitId : '');
                 const formData = $('#unitForm').serialize();
                 $.ajax({
                     url: url,
@@ -743,36 +708,45 @@
                     data: formData,
                     dataType: 'json',
                     success: function(data) {
+                        $('#toastMessage').text(data.message);
+                        toast.show();
                         if (data.success) {
-                            $('#toastMessage').text(data.message);
-                            toast.show();
                             unitModal.hide();
                             setTimeout(() => location.reload(), 1000);
                         } else {
-                            $('#toastMessage').text(data.message || 'Operation failed');
-                            toast.show();
+                            unitModal.hide();
                         }
                     },
                     error: function(xhr, status, error) {
-                        $('#toastMessage').text('An error occurred: ' + status);
+                        let errorMessage = 'Error: ' + status;
+                        if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
+                        $('#toastMessage').text(errorMessage);
                         toast.show();
-                        console.error('AJAX Error: ', status, error, xhr.responseText);
+                        unitModal.hide();
+                        console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
             });
 
-            // Delete Unit
+            // Xóa đơn vị
             $('.btn-delete').click(function() {
+                const hasDependencies = $(this).data('has-dependencies') === true;
+                if (hasDependencies) {
+                    $('#toastMessage').text('Cannot delete unit: It is used in transactions');
+                    toast.show();
+                    return;
+                }
                 const unitId = $(this).data('id');
                 const status = $(this).data('status');
                 let message = status === 'active' 
-                    ? 'The unit status will change to Inactive. Do you want to continue?' 
+                    ? 'The unit\'s status will be changed to Inactive. Do you want to continue?' 
                     : 'Do you want to permanently delete this unit?';
                 $('#deleteConfirmMessage').text(message);
                 $('#confirmDeleteButton').data('id', unitId).data('action', status === 'active' ? 'deactivate' : 'permanentDelete');
                 deleteModal.show();
             });
 
+            // Xử lý xác nhận xóa
             $('#confirmDeleteButton').click(function() {
                 const unitId = $(this).data('id');
                 const action = $(this).data('action');
@@ -787,27 +761,28 @@
                         if (data.success) {
                             deleteModal.hide();
                             setTimeout(() => location.reload(), 1000);
+                        } else {
+                            deleteModal.hide();
                         }
                     },
                     error: function(xhr, status, error) {
-                        let errorMessage = 'An error occurred: ' + status;
+                        let errorMessage = 'Error: ' + status;
                         if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
                         $('#toastMessage').text(errorMessage);
                         toast.show();
-                        console.error('AJAX Error: ', status, error, xhr.responseText);
+                        deleteModal.hide();
+                        console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
             });
 
-            // Handle filtering and search with AJAX
+            // Xử lý lọc và tìm kiếm với AJAX
             $('#filterForm').on('submit', function(e) {
                 e.preventDefault();
                 var search = $('input[name="search"]').val();
-                var subUnitId = $('#subUnitFilter').val();
                 var status = $('#statusFilter').val();
                 $.get('${pageContext.request.contextPath}/unit', {
                     search: search,
-                    subUnitId: subUnitId,
                     status: status,
                     page: 1
                 }, function(data) {
@@ -817,7 +792,7 @@
                 });
             });
 
-            // Show toast if redirected with success/error
+            // Hiển thị toast nếu chuyển hướng với thông báo thành công/lỗi
             const params = new URLSearchParams(window.location.search);
             if (params.has('success') || params.has('error')) {
                 const isSuccess = params.has('success');

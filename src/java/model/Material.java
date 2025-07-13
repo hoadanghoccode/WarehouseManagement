@@ -18,7 +18,7 @@ public class Material {
     private String status;
     private String categoryName;
     private String unitName;
-  
+    private int supplierId;
     // Constructors
     public Material() {}
 
@@ -30,6 +30,19 @@ public class Material {
         this.image = image;
         this.createAt = createAt;
         this.status = status;
+    }
+
+    public Material(int materialId, int categoryId, int unitId, String name, String image, Date createAt, String status, String categoryName, String unitName, int supplierId) {
+        this.materialId = materialId;
+        this.categoryId = categoryId;
+        this.unitId = unitId;
+        this.name = name;
+        this.image = image;
+        this.createAt = createAt;
+        this.status = status;
+        this.categoryName = categoryName;
+        this.unitName = unitName;
+        this.supplierId = supplierId;
     }
 
     public Material(int materialId, int categoryId, int unitId, String name, String image, Date createAt, String status, String categoryName, String unitName) {
@@ -67,6 +80,14 @@ public class Material {
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
     public String getUnitName() { return unitName; }
     public void setUnitName(String unitName) { this.unitName = unitName; }
+
+    public int getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
+    }
 
     @Override
     public String toString() {
