@@ -294,7 +294,6 @@
             cursor: not-allowed;
         }
 
-        /* Giảm kích thước bảng trong view modal để phù hợp với modal-md */
         .modal .detail-table {
             width: 100%;
             font-size: 13px;
@@ -532,7 +531,7 @@
                     </div>
                 </c:if>
 
-                <!-- Modal chỉnh sửa/thêm -->
+                <!-- Modal add/edit -->
                 <div class="modal fade" id="unitModal" tabindex="-1" aria-labelledby="unitModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-md">
                         <div class="modal-content">
@@ -551,7 +550,7 @@
                     </div>
                 </div>
 
-                <!-- Modal xác nhận xóa -->
+                <!-- Modal confirm xóa -->
                 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -560,7 +559,6 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body" id="deleteConfirmMessage">
-                                <!-- Thông điệp động sẽ được tải tại đây -->
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -592,7 +590,7 @@
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
             const toast = new bootstrap.Toast(document.getElementById('liveToast'));
 
-            // Thêm đơn vị
+            // add
             $('.btn-add-unit').click(function() {
                 $('#unitModalLabel').text('Add Unit');
                 $('#saveUnitBtn').data('action', 'add').show();
@@ -621,7 +619,7 @@
                 unitModal.show();
             });
 
-            // Chỉnh sửa đơn vị
+            // edit
             $('.btn-edit-unit').click(function() {
                 const hasDependencies = $(this).data('has-dependencies') === true;
                 if (hasDependencies) {
@@ -665,7 +663,7 @@
                 unitModal.show();
             });
 
-            // Xem chi tiết đơn vị
+            // view
             $('.view-detail').click(function() {
                 const unitId = $(this).data('id');
                 $('#unitModalLabel').text('View Unit Details');
@@ -696,7 +694,7 @@
                 unitModal.show();
             });
 
-            // Lưu đơn vị
+            // Lưu 
             $('#saveUnitBtn').click(function() {
                 const action = $(this).data('action');
                 const unitId = $(this).data('id');
@@ -728,7 +726,7 @@
                 });
             });
 
-            // Xóa đơn vị
+            // Xóa 
             $('.btn-delete').click(function() {
                 const hasDependencies = $(this).data('has-dependencies') === true;
                 if (hasDependencies) {
