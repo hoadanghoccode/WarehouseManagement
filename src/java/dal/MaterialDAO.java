@@ -125,20 +125,20 @@ public class MaterialDAO extends DBContext {
     }
 
      public boolean updateMaterial(Material material) {
-        String query = "UPDATE Materials SET Category_id = ?, SupplierId = ?, Name = ?, Image = ?, Status = ?, Last_updated = ? WHERE Material_id = ?";
+        String query = "UPDATE Materials SET Category_id = ?, Unit_id = ?, Name = ?, Image = ?, Status = ?, Last_updated = ? WHERE Material_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, material.getCategoryId());
-            ps.setInt(2, material.getSupplierId());
+            ps.setInt(2, material.getUnitId());
             ps.setString(3, material.getName());
             ps.setString(4, material.getImage());
             ps.setString(5, material.getStatus());
             ps.setTimestamp(6, Timestamp.from(Instant.now())); 
             ps.setInt(7, material.getMaterialId());
 
-            // Check if material is in pending order or pending import/export
-            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId())) {
-                return false; // Prevent update if material is in pending state
+            if (isMaterialInOrderWithStatus(material.getMaterialId(), "pending") || isMaterialInPendingImportOrExport(material.getMaterialId()) ||
+                isMaterialInPendingPurchaseOrder(material.getMaterialId())) {
+                return false; 
             }
 
             int rowsAffected = ps.executeUpdate();
@@ -207,7 +207,6 @@ public class MaterialDAO extends DBContext {
                     md.setMaterialId(rs.getInt("Material_id"));
                     md.setQualityId(rs.getInt("Quality_id"));
                     md.setQuantity(rs.getDouble("Quantity"));
-                    // nếu bạn muốn đầy đủ giờ phút, có thể chuyển sang Timestamp trong model
                     md.setLastUpdated(rs.getDate("Last_updated"));
                     list.add(md);
                 }
@@ -347,7 +346,7 @@ public class MaterialDAO extends DBContext {
     }
 
     public boolean isMaterialInPendingPurchaseOrder(int materialId) {
-        String query = "SELECT 1 FROM PurchaseOrder_detail pod JOIN PurchaseOrders po ON pod.PurchaseOrder_id = po.PurchaseOrder_id WHERE pod.Material_id = ? AND po.Status = 'pending' LIMIT 1";
+        String query = "SELECT 1 FROM PurchaseOrder_detail pod JOIN PurchaseOrders po ON pod.PurchaseOrder_id = po.PurchaseOrder_id WHERE pod.Material_id = ? AND po.Status != 'purchased' LIMIT 1";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, materialId);
