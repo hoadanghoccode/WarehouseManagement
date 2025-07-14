@@ -24,10 +24,11 @@ public class InventoryDAO extends DBContext {
                     MaterialInventory inventory = new MaterialInventory();
                     inventory.setMaterialId(rs.getInt("material_id"));
                     inventory.setCategoryId(rs.getInt("category_id"));
-                    inventory.setSubUnitId(rs.getInt("subunit_id"));
+                    inventory.setUnitId(rs.getInt("unit_id"));
                     inventory.setMaterialName(rs.getString("material_name"));
                     inventory.setCategoryName(rs.getString("category_name"));
-                    inventory.setSubUnitName(rs.getString("subunit_name"));
+                    inventory.setUnitName(rs.getString("unit_name"));
+                    inventory.setImage(rs.getString("image"));
                     inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
                     inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
                     inventory.setInventoryDate(rs.getDate("last_updated"));
@@ -44,17 +45,17 @@ public class InventoryDAO extends DBContext {
 
     private String buildInventoryQuery(int categoryId, int qualityId, String searchTerm, String sortBy) {
         StringBuilder sql = new StringBuilder(
-            "SELECT m.Material_id AS material_id, m.Category_id AS category_id, md.SubUnit_id AS subunit_id, " +
-            "m.Name AS material_name, c.Name AS category_name, su.Name AS subunit_name, " +
+            "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.Unit_id AS unit_id, " +
+            "m.Name AS material_name, c.Name AS category_name, u.Name AS unit_name, m.Image AS image, " +
             "SUM(CASE WHEN q.Quality_name = 'available' THEN md.Quantity ELSE 0 END) AS available_qty, " +
             "SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE 0 END) AS not_available_qty, " +
             "MAX(md.Last_updated) AS last_updated, NULL AS note " +
             "FROM Materials m " +
             "JOIN Material_detail md ON m.Material_id = md.Material_id " +
-            "JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id " +
+            "JOIN Units u ON m.Unit_id = u.Unit_id " +
             "JOIN Category c ON m.Category_id = c.Category_id " +
             "JOIN Quality q ON md.Quality_id = q.Quality_id " +
-            "WHERE m.Status = 'active' AND su.Status = 'active' AND c.Status = 'active' "
+            "WHERE m.Status = 'active' AND u.Status = 'active' AND c.Status = 'active' "
         );
 
         if (categoryId > 0) {
@@ -64,10 +65,10 @@ public class InventoryDAO extends DBContext {
             sql.append(" AND md.Quality_id = ? ");
         }
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR su.Name LIKE ?) ");
+            sql.append(" AND (CAST(m.Material_id AS CHAR) LIKE ? OR m.Name LIKE ? OR c.Name LIKE ? OR u.Name LIKE ?) ");
         }
 
-        sql.append(" GROUP BY m.Material_id, m.Category_id, md.SubUnit_id, m.Name, c.Name, su.Name ");
+        sql.append(" GROUP BY m.Material_id, m.Category_id, m.Unit_id, m.Name, c.Name, u.Name, m.Image ");
 
         String safeSortBy = "available_qty DESC";
         if (sortBy != null && sortBy.matches("^(material_id|material_name|available_qty|not_available_qty) (ASC|DESC)$")) {
@@ -104,43 +105,45 @@ public class InventoryDAO extends DBContext {
         }
     }
 
-    public MaterialInventory getLatestInventoryDetails(int materialId, int subUnitId) {
+    public MaterialInventory getLatestInventoryDetails(int materialId, int unitId) {
         MaterialInventory inventory = null;
-        String sql = "SELECT m.Material_id AS material_id, m.Category_id AS category_id, md.SubUnit_id AS subunit_id, " +
-                     "m.Name AS material_name, c.Name AS category_name, su.Name AS subunit_name, " +
+        String sql = "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.Unit_id AS unit_id, " +
+                     "m.Name AS material_name, c.Name AS category_name, u.Name AS unit_name, m.Image AS image, " +
                      "imd.Ending_qty AS available_qty, " +
                      "(SELECT COALESCE(SUM(md2.Quantity), 0) FROM Material_detail md2 " +
                      "JOIN Quality q ON md2.Quality_id = q.Quality_id " +
-                     "WHERE md2.Material_id = m.Material_id AND md2.SubUnit_id = md.SubUnit_id AND q.Quality_name = 'notAvailable') AS not_available_qty, " +
+                     "WHERE md2.Material_id = m.Material_id AND q.Quality_name = 'notAvailable') AS not_available_qty, " +
                      "imd.Import_qty AS import_qty, imd.Export_qty AS export_qty, " +
                      "imd.Inventory_Material_date AS inventory_date, imd.Note AS note " +
                      "FROM InventoryMaterialDaily imd " +
                      "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
                      "JOIN Materials m ON md.Material_id = m.Material_id " +
-                     "JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id " +
+                     "JOIN Units u ON m.Unit_id = u.Unit_id " +
                      "JOIN Category c ON m.Category_id = c.Category_id " +
-                     "WHERE m.Material_id = ? AND md.SubUnit_id = ? " +
+                     "WHERE m.Material_id = ? AND m.Unit_id = ? " +
                      "AND imd.Inventory_Material_date = (" +
                      "    SELECT MAX(Inventory_Material_date) " +
                      "    FROM InventoryMaterialDaily imd2 " +
                      "    JOIN Material_detail md2 ON imd2.Material_detail_id = md2.Material_detail_id " +
-                     "    WHERE md2.Material_id = ? AND md2.SubUnit_id = ?" +
+                     "    JOIN Materials m2 ON md2.Material_id = m2.Material_id " +
+                     "    WHERE m2.Material_id = ? AND m2.Unit_id = ?" +
                      ")";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, materialId);
-            stmt.setInt(2, subUnitId);
+            stmt.setInt(2, unitId);
             stmt.setInt(3, materialId);
-            stmt.setInt(4, subUnitId);
+            stmt.setInt(4, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     inventory = new MaterialInventory();
                     inventory.setMaterialId(rs.getInt("material_id"));
                     inventory.setCategoryId(rs.getInt("category_id"));
-                    inventory.setSubUnitId(rs.getInt("subunit_id"));
+                    inventory.setUnitId(rs.getInt("unit_id"));
                     inventory.setMaterialName(rs.getString("material_name"));
                     inventory.setCategoryName(rs.getString("category_name"));
-                    inventory.setSubUnitName(rs.getString("subunit_name"));
+                    inventory.setUnitName(rs.getString("unit_name"));
+                    inventory.setImage(rs.getString("image"));
                     inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
                     inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
                     inventory.setImportQty(rs.getBigDecimal("import_qty") != null ? rs.getBigDecimal("import_qty") : BigDecimal.ZERO);
