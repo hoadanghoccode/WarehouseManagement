@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExportNoteDAO extends DBContext {
+
     private static final int PAGE_SIZE = 5;
 
     public ExportNoteDAO() {
@@ -527,221 +528,223 @@ public class ExportNoteDAO extends DBContext {
     }
 
     public void markAsExported(
-    int exportNoteId,
-    List<Integer> detailIds,
-    List<Double> detailQuantities,
-    List<Integer> detailMaterialIds,
-    List<Integer> unitIds,
-    List<Integer> detailQualityIds,
-    List<Integer> transactionIds,
-    HttpServletRequest request
-) throws SQLException {
-    connection.setAutoCommit(false);
-    StringBuilder pendingMessage = new StringBuilder();
+            int exportNoteId,
+            List<Integer> detailIds,
+            List<Double> detailQuantities,
+            List<Integer> detailMaterialIds,
+            List<Integer> unitIds,
+            List<Integer> detailQualityIds,
+            List<Integer> transactionIds,
+            HttpServletRequest request
+    ) throws SQLException {
+        connection.setAutoCommit(false);
+        StringBuilder pendingMessage = new StringBuilder();
 
-    try {
-        // Validate inputs
-        if (detailIds.size() != detailQuantities.size() || detailIds.size() != detailMaterialIds.size() ||
-            detailIds.size() != unitIds.size() || detailIds.size() != detailQualityIds.size()) {
-            throw new SQLException("Mismatched input arrays for detail export.");
-        }
-
-        // Validate transactions belong to the correct export note
-        for (int transactionId : transactionIds) {
-            ExportNoteTransaction tx = getTransactionById(transactionId);
-            if (tx.getExportNoteId() != exportNoteId) {
-                pendingMessage.append("Transaction #").append(transactionId)
-                    .append(" does not belong to Export Note ID ").append(exportNoteId).append(". ");
-            }
-        }
-
-        // Validate inventory for new export details
-        for (int i = 0; i < detailIds.size(); i++) {
-            int detailId = detailIds.get(i);
-            double requestedQty = detailQuantities.get(i);
-            int materialId = detailMaterialIds.get(i);
-            int qualityId = detailQualityIds.get(i);
-            int materialDetailId = getMaterialDetailId(materialId, qualityId);
-            double availableQty = getAvailableQuantity(materialDetailId);
-
-            if (requestedQty < 0) {
-                pendingMessage.append("Invalid requested quantity for Detail ID ").append(detailId)
-                    .append(": ").append(String.format("%.2f", requestedQty)).append(". ");
-            }
-            if (availableQty <= 0) {
-                pendingMessage.append("No inventory available for Material ID ").append(materialId).append(". ");
-            }
-        }
-
-        // Validate inventory for existing transactions
-        for (int transactionId : transactionIds) {
-            ExportNoteTransaction tx = getTransactionById(transactionId);
-            int materialDetailId = getMaterialDetailId(tx.getMaterialId(), tx.getQualityId());
-            double availableQty = getAvailableQuantity(materialDetailId);
-            double remainingQty = tx.getRemainingQuantity();
-
-            if (remainingQty < 0) {
-                pendingMessage.append("Invalid remaining quantity for Transaction ID ").append(transactionId)
-                    .append(": ").append(String.format("%.2f", remainingQty)).append(". ");
-            }
-            if (availableQty < remainingQty) {
-                pendingMessage.append("Transaction #").append(transactionId)
-                    .append(": Insufficient inventory. Required: ").append(String.format("%.2f", remainingQty))
-                    .append(", Available: ").append(String.format("%.2f", availableQty)).append(". ");
-            }
-        }
-
-        if (pendingMessage.length() > 0) {
-            throw new SQLException(pendingMessage.toString());
-        }
-
-        // Process new export details
-        for (int i = 0; i < detailIds.size(); i++) {
-            int detailId = detailIds.get(i);
-            double requestedQty = detailQuantities.get(i);
-            int materialId = detailMaterialIds.get(i);
-            int qualityId = detailQualityIds.get(i);
-            int materialDetailId = getMaterialDetailId(materialId, qualityId);
-            double availableQty = getAvailableQuantity(materialDetailId);
-
-            boolean firstExport = isFirstExport(detailId);
-            if (!firstExport) continue; // Skip if not first export, handled in transaction loop
-
-            double exportQty = Math.min(availableQty, requestedQty);
-            double remainingQty = requestedQty - exportQty;
-
-            // Update Export_note_detail
-            try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE Export_note_detail SET Exported = ? WHERE Export_note_detail_id = ?"
-            )) {
-                stmt.setBoolean(1, remainingQty == 0);
-                stmt.setInt(2, detailId);
-                stmt.executeUpdate();
+        try {
+            // Validate inputs
+            if (detailIds.size() != detailQuantities.size() || detailIds.size() != detailMaterialIds.size()
+                    || detailIds.size() != unitIds.size() || detailIds.size() != detailQualityIds.size()) {
+                throw new SQLException("Mismatched input arrays for detail export.");
             }
 
-            // Insert Export_note_transaction (remove Remaining_quantity)
-            try (PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO Export_note_transaction (Export_note_detail_id, Material_id, Quality_id, Requested_quantity, Exported_quantity, Exported, Created_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)"
-            )) {
-                stmt.setInt(1, detailId);
-                stmt.setInt(2, materialId);
-                stmt.setInt(3, qualityId);
-                stmt.setDouble(4, requestedQty);
-                stmt.setDouble(5, exportQty);
-                stmt.setBoolean(6, remainingQty == 0);
-                stmt.executeUpdate();
+            // Validate transactions belong to the correct export note
+            for (int transactionId : transactionIds) {
+                ExportNoteTransaction tx = getTransactionById(transactionId);
+                if (tx.getExportNoteId() != exportNoteId) {
+                    pendingMessage.append("Transaction #").append(transactionId)
+                            .append(" does not belong to Export Note ID ").append(exportNoteId).append(". ");
+                }
             }
 
-            // Update inventory
-            if (exportQty > 0) {
-                updateInventoryMaterialDaily(materialDetailId, exportQty);
-                updateMaterialDetailQuantity(materialDetailId, exportQty);
+            // Validate inventory for new export details
+            for (int i = 0; i < detailIds.size(); i++) {
+                int detailId = detailIds.get(i);
+                double requestedQty = detailQuantities.get(i);
+                int materialId = detailMaterialIds.get(i);
+                int qualityId = detailQualityIds.get(i);
+                int materialDetailId = getMaterialDetailId(materialId, qualityId);
+                double availableQty = getAvailableQuantity(materialDetailId);
 
+                if (requestedQty < 0) {
+                    pendingMessage.append("Invalid requested quantity for Detail ID ").append(detailId)
+                            .append(": ").append(String.format("%.2f", requestedQty)).append(". ");
+                }
+                if (availableQty <= 0) {
+                    pendingMessage.append("No inventory available for Material ID ").append(materialId).append(". ");
+                }
+            }
+
+            // Validate inventory for existing transactions
+            for (int transactionId : transactionIds) {
+                ExportNoteTransaction tx = getTransactionById(transactionId);
+                int materialDetailId = getMaterialDetailId(tx.getMaterialId(), tx.getQualityId());
+                double availableQty = getAvailableQuantity(materialDetailId);
+                double remainingQty = tx.getRemainingQuantity();
+
+                if (remainingQty < 0) {
+                    pendingMessage.append("Invalid remaining quantity for Transaction ID ").append(transactionId)
+                            .append(": ").append(String.format("%.2f", remainingQty)).append(". ");
+                }
+                if (availableQty < remainingQty) {
+                    pendingMessage.append("Transaction #").append(transactionId)
+                            .append(": Insufficient inventory. Required: ").append(String.format("%.2f", remainingQty))
+                            .append(", Available: ").append(String.format("%.2f", availableQty)).append(". ");
+                }
+            }
+
+            if (pendingMessage.length() > 0) {
+                throw new SQLException(pendingMessage.toString());
+            }
+
+            // Process new export details
+            for (int i = 0; i < detailIds.size(); i++) {
+                int detailId = detailIds.get(i);
+                double requestedQty = detailQuantities.get(i);
+                int materialId = detailMaterialIds.get(i);
+                int qualityId = detailQualityIds.get(i);
+                int materialDetailId = getMaterialDetailId(materialId, qualityId);
+                double availableQty = getAvailableQuantity(materialDetailId);
+
+                boolean firstExport = isFirstExport(detailId);
+                if (!firstExport) {
+                    continue; // Skip if not first export, handled in transaction loop
+                }
+                double exportQty = Math.min(availableQty, requestedQty);
+                double remainingQty = requestedQty - exportQty;
+
+                // Update Export_note_detail
                 try (PreparedStatement stmt = connection.prepareStatement(
-                    "INSERT INTO MaterialTransactionHistory (Material_detail_id, Export_note_detail_id, Transaction_date, Note) VALUES (?, ?, CURDATE(), ?)"
+                        "UPDATE Export_note_detail SET Exported = ? WHERE Export_note_detail_id = ?"
                 )) {
-                    stmt.setInt(1, materialDetailId);
+                    stmt.setBoolean(1, remainingQty == 0);
                     stmt.setInt(2, detailId);
-                    stmt.setString(3, "Exported " + String.format("%.2f", exportQty) + " units");
                     stmt.executeUpdate();
                 }
-            }
 
-            // Inform user about partial export
-            if (remainingQty > 0) {
-                pendingMessage.append("Material ID ").append(materialId)
-                    .append(": Partial export of ").append(String.format("%.2f", exportQty))
-                    .append(" units. Remaining: ").append(String.format("%.2f", remainingQty))
-                    .append(" units not exported due to insufficient inventory. ");
-            } else {
-                pendingMessage.append("Material ID ").append(materialId)
-                    .append(": Fully exported ").append(String.format("%.2f", exportQty))
-                    .append(" units. ");
-            }
-        }
-
-        // Process existing transactions
-        for (int transactionId : transactionIds) {
-            ExportNoteTransaction tx = getTransactionById(transactionId);
-            int exportNoteDetailId = tx.getExportNoteDetailId();
-            double remainingQty = tx.getRemainingQuantity();
-            int materialDetailId = getMaterialDetailId(tx.getMaterialId(), tx.getQualityId());
-            double availableQty = getAvailableQuantity(materialDetailId);
-
-            double exportQty = Math.min(availableQty, remainingQty);
-            double newRemainingQty = remainingQty - exportQty;
-
-            // Update Export_note_transaction (remove Remaining_quantity)
-            try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE Export_note_transaction SET Exported_quantity = Exported_quantity + ?, Exported = ? WHERE Export_note_transaction_id = ?"
-            )) {
-                stmt.setDouble(1, exportQty);
-                stmt.setBoolean(2, newRemainingQty == 0);
-                stmt.setInt(3, transactionId);
-                stmt.executeUpdate();
-            }
-
-            // Update Export_note_detail
-            try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE Export_note_detail SET Exported = ? WHERE Export_note_detail_id = ?"
-            )) {
-                stmt.setBoolean(1, newRemainingQty == 0);
-                stmt.setInt(2, exportNoteDetailId);
-                stmt.executeUpdate();
-            }
-
-            // Update inventory
-            if (exportQty > 0) {
-                updateInventoryMaterialDaily(materialDetailId, exportQty);
-                updateMaterialDetailQuantity(materialDetailId, exportQty);
-
+                // Insert Export_note_transaction (remove Remaining_quantity)
                 try (PreparedStatement stmt = connection.prepareStatement(
-                    "INSERT INTO MaterialTransactionHistory (Material_detail_id, Export_note_detail_id, Transaction_date, Note) VALUES (?, ?, CURDATE(), ?)"
+                        "INSERT INTO Export_note_transaction (Export_note_detail_id, Material_id, Quality_id, Requested_quantity, Exported_quantity, Exported, Created_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)"
                 )) {
-                    stmt.setInt(1, materialDetailId);
-                    stmt.setInt(2, exportNoteDetailId);
-                    stmt.setString(3, "Exported " + String.format("%.2f", exportQty) + " units from transaction");
+                    stmt.setInt(1, detailId);
+                    stmt.setInt(2, materialId);
+                    stmt.setInt(3, qualityId);
+                    stmt.setDouble(4, requestedQty);
+                    stmt.setDouble(5, exportQty);
+                    stmt.setBoolean(6, remainingQty == 0);
                     stmt.executeUpdate();
+                }
+
+                // Update inventory
+                if (exportQty > 0) {
+                    updateInventoryMaterialDaily(materialDetailId, exportQty);
+                    updateMaterialDetailQuantity(materialDetailId, exportQty);
+
+                    try (PreparedStatement stmt = connection.prepareStatement(
+                            "INSERT INTO MaterialTransactionHistory (Material_detail_id, Export_note_detail_id, Transaction_date, Note) VALUES (?, ?, CURDATE(), ?)"
+                    )) {
+                        stmt.setInt(1, materialDetailId);
+                        stmt.setInt(2, detailId);
+                        stmt.setString(3, "Exported " + String.format("%.2f", exportQty) + " units");
+                        stmt.executeUpdate();
+                    }
+                }
+
+                // Inform user about partial export
+                if (remainingQty > 0) {
+                    pendingMessage.append("Material ID ").append(materialId)
+                            .append(": Partial export of ").append(String.format("%.2f", exportQty))
+                            .append(" units. Remaining: ").append(String.format("%.2f", remainingQty))
+                            .append(" units not exported due to insufficient inventory. ");
+                } else {
+                    pendingMessage.append("Material ID ").append(materialId)
+                            .append(": Fully exported ").append(String.format("%.2f", exportQty))
+                            .append(" units. ");
                 }
             }
 
-            // Inform user about partial export
-            if (newRemainingQty > 0) {
-                pendingMessage.append("Transaction ID ").append(transactionId)
-                    .append(": Partial export of ").append(String.format("%.2f", exportQty))
-                    .append(" units. Remaining: ").append(String.format("%.2f", newRemainingQty))
-                    .append(" units not exported due to insufficient inventory. ");
-            } else {
-                pendingMessage.append("Transaction ID ").append(transactionId)
-                    .append(": Fully exported ").append(String.format("%.2f", exportQty))
-                    .append(" units. ");
+            // Process existing transactions
+            for (int transactionId : transactionIds) {
+                ExportNoteTransaction tx = getTransactionById(transactionId);
+                int exportNoteDetailId = tx.getExportNoteDetailId();
+                double remainingQty = tx.getRemainingQuantity();
+                int materialDetailId = getMaterialDetailId(tx.getMaterialId(), tx.getQualityId());
+                double availableQty = getAvailableQuantity(materialDetailId);
+
+                double exportQty = Math.min(availableQty, remainingQty);
+                double newRemainingQty = remainingQty - exportQty;
+
+                // Update Export_note_transaction (remove Remaining_quantity)
+                try (PreparedStatement stmt = connection.prepareStatement(
+                        "UPDATE Export_note_transaction SET Exported_quantity = Exported_quantity + ?, Exported = ? WHERE Export_note_transaction_id = ?"
+                )) {
+                    stmt.setDouble(1, exportQty);
+                    stmt.setBoolean(2, newRemainingQty == 0);
+                    stmt.setInt(3, transactionId);
+                    stmt.executeUpdate();
+                }
+
+                // Update Export_note_detail
+                try (PreparedStatement stmt = connection.prepareStatement(
+                        "UPDATE Export_note_detail SET Exported = ? WHERE Export_note_detail_id = ?"
+                )) {
+                    stmt.setBoolean(1, newRemainingQty == 0);
+                    stmt.setInt(2, exportNoteDetailId);
+                    stmt.executeUpdate();
+                }
+
+                // Update inventory
+                if (exportQty > 0) {
+                    updateInventoryMaterialDaily(materialDetailId, exportQty);
+                    updateMaterialDetailQuantity(materialDetailId, exportQty);
+
+                    try (PreparedStatement stmt = connection.prepareStatement(
+                            "INSERT INTO MaterialTransactionHistory (Material_detail_id, Export_note_detail_id, Transaction_date, Note) VALUES (?, ?, CURDATE(), ?)"
+                    )) {
+                        stmt.setInt(1, materialDetailId);
+                        stmt.setInt(2, exportNoteDetailId);
+                        stmt.setString(3, "Exported " + String.format("%.2f", exportQty) + " units from transaction");
+                        stmt.executeUpdate();
+                    }
+                }
+
+                // Inform user about partial export
+                if (newRemainingQty > 0) {
+                    pendingMessage.append("Transaction ID ").append(transactionId)
+                            .append(": Partial export of ").append(String.format("%.2f", exportQty))
+                            .append(" units. Remaining: ").append(String.format("%.2f", newRemainingQty))
+                            .append(" units not exported due to insufficient inventory. ");
+                } else {
+                    pendingMessage.append("Transaction ID ").append(transactionId)
+                            .append(": Fully exported ").append(String.format("%.2f", exportQty))
+                            .append(" units. ");
+                }
             }
-        }
 
-        // Update Export_note status
-        boolean allExported = !hasPendingExportDetails(exportNoteId);
-        try (PreparedStatement stmt = connection.prepareStatement(
-            "UPDATE Export_note SET Exported = ?, Exported_at = ? WHERE Export_note_id = ?"
-        )) {
-            stmt.setBoolean(1, allExported);
-            stmt.setDate(2, allExported ? new Date(System.currentTimeMillis()) : null);
-            stmt.setInt(3, exportNoteId);
-            stmt.executeUpdate();
-        }
+            // Update Export_note status
+            boolean allExported = !hasPendingExportDetails(exportNoteId);
+            try (PreparedStatement stmt = connection.prepareStatement(
+                    "UPDATE Export_note SET Exported = ?, Exported_at = ? WHERE Export_note_id = ?"
+            )) {
+                stmt.setBoolean(1, allExported);
+                stmt.setDate(2, allExported ? new Date(System.currentTimeMillis()) : null);
+                stmt.setInt(3, exportNoteId);
+                stmt.executeUpdate();
+            }
 
-        if (pendingMessage.length() == 0) {
-            pendingMessage.append("Export processed successfully.");
-        }
-        request.setAttribute("pendingMessage", pendingMessage.toString());
+            if (pendingMessage.length() == 0) {
+                pendingMessage.append("Export processed successfully.");
+            }
+            request.setAttribute("pendingMessage", pendingMessage.toString());
 
-        connection.commit();
-    } catch (SQLException e) {
-        connection.rollback();
-        throw e;
-    } finally {
-        connection.setAutoCommit(true);
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
     }
-}
+
     public boolean hasPendingExportDetails(int exportNoteId) throws SQLException {
         String sql = """
             SELECT COUNT(*) 
@@ -759,22 +762,30 @@ public class ExportNoteDAO extends DBContext {
         return false;
     }
 
-    public int getTodayExportNoteCount() throws SQLException {
+    public int getTodayExportNoteCount() {
         String sql = "SELECT COUNT(*) FROM Export_note WHERE DATE(Exported_at) = CURDATE() AND Exported = 1";
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return 0;
     }
 
-    public int getExportNoteCountInDateRange(Date fromDate, Date toDate) throws SQLException {
+    public int getExportNoteCountInDateRange(Date fromDate, Date toDate) {
         String sql = "SELECT COUNT(*) FROM Export_note WHERE DATE(Exported_at) BETWEEN ? AND ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDate(1, fromDate);
             ps.setDate(2, toDate);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return 0;
     }

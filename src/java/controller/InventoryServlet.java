@@ -40,7 +40,7 @@ public class InventoryServlet extends HttpServlet {
                 PrintWriter out = response.getWriter();
                 MaterialInventory errorResponse = new MaterialInventory();
                 errorResponse.setNote("An unexpected error occurred: " + e.getMessage());
-                out.write(gson.toJson(errorResponse));
+                out.print(gson.toJson(errorResponse));
                 out.flush();
             } else {
                 request.setAttribute("errorMsg", "An unexpected error occurred: " + e.getMessage());
@@ -63,9 +63,9 @@ public class InventoryServlet extends HttpServlet {
         String sortBy = request.getParameter("sortBy");
 
         System.out.println("InventoryServlet - Parameters: categoryId=" + categoryId +
-                         ", qualityId=" + qualityId +
-                         ", searchTerm=" + (searchTerm != null ? searchTerm : "null") +
-                         ", sortBy=" + (sortBy != null ? sortBy : "null"));
+                ", qualityId=" + qualityId +
+                ", searchTerm=" + (searchTerm != null ? searchTerm : "null") +
+                ", sortBy=" + (sortBy != null ? sortBy : "null"));
 
         List<MaterialInventory> inventoryList = inventoryDAO.getInventory(categoryId, qualityId, searchTerm, sortBy);
         List<Category> categoryList = inventoryDAO.getActiveCategories();
@@ -101,19 +101,19 @@ public class InventoryServlet extends HttpServlet {
     private void handleGetLatestDetails(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         int materialId = parseIntParameter(request.getParameter("materialId"), 0);
-        int subUnitId = parseIntParameter(request.getParameter("subUnitId"), 0);
+        int unitId = parseIntParameter(request.getParameter("unitId"), 0);
 
         System.out.println("InventoryServlet - Fetching details for materialId=" + materialId +
-                         ", subUnitId=" + subUnitId);
+                ", unitId=" + unitId);
 
-        MaterialInventory inventory = inventoryDAO.getLatestInventoryDetails(materialId, subUnitId);
+        MaterialInventory inventory = inventoryDAO.getLatestInventoryDetails(materialId, unitId);
         if (inventory == null) {
-            System.out.println("InventoryServlet - No data found for materialId=" + materialId + ", subUnitId=" + subUnitId);
+            System.out.println("InventoryServlet - No data found for materialId=" + materialId + ", unitId=" + unitId);
         }
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
-        out.write(gson.toJson(inventory != null ? inventory : new MaterialInventory()));
+        out.print(gson.toJson(inventory != null ? inventory : new MaterialInventory()));
         out.flush();
     }
 
