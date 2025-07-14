@@ -6,6 +6,13 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/AuditInventoryDAO.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/UnitServlet.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DashboardController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/ExportNoteDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/dal/Import_noteDAO.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/DeleteCategory.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/ExportNoteListServlet.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/dashboard.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/orderlist.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/changepassword.jsp</file>
         </group>
     </open-files>
 </project-private>
