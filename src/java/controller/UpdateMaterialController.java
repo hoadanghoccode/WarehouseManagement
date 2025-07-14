@@ -52,23 +52,9 @@ public class UpdateMaterialController extends HttpServlet {
             forwardWithError(request, response, "Cannot update: Material status 'active' cannot be updated.", existing);
             return;
         }
-
-        // Check for any pending orders/imports-exports/purchases
-        boolean pendingOrder    = dao.isMaterialInOrderWithStatus(materialId, "pending");
-        boolean pendingIE       = dao.isMaterialInPendingImportOrExport(materialId);
-        boolean pendingPurchase = dao.isMaterialInPendingPurchaseOrder(materialId);
-
+        
         // If material is 'inactive', only activate status
         if ("inactive".equalsIgnoreCase(existing.getStatus())) {
-            if (pendingOrder || pendingIE || pendingPurchase) {
-                StringBuilder err = new StringBuilder("Cannot activate: pending ");
-                if (pendingOrder)    err.append("orders");
-                if (pendingIE)       err.append(pendingOrder ? "/imports-exports" : "imports-exports");
-                if (pendingPurchase) err.append(pendingOrder||pendingIE ? "/purchase orders" : "purchase orders");
-                forwardWithError(request, response, err.toString(), existing);
-                return;
-            }
-            // Activate material
             if (dao.updateStatusMaterial(materialId)) {
                 response.sendRedirect("list-material?success=Material activated successfully");
             } else {
