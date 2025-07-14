@@ -4,7 +4,6 @@ import java.sql.Date;
 import java.util.List;
 
 public class ExportNote {
-
     private int exportNoteId;
     private int orderId;
     private int userId;
@@ -15,10 +14,11 @@ public class ExportNote {
     private String customerName;
     private boolean exported;
     private Date exportedAt;
-    private boolean allExported;
-    private boolean hasBackOrder;
     private List<ExportNoteDetail> details;
+    private boolean hasBackOrder;
+    private boolean allExported;
 
+    // Getters and Setters
     public int getExportNoteId() {
         return exportNoteId;
     }
@@ -99,15 +99,15 @@ public class ExportNote {
         this.exportedAt = exportedAt;
     }
 
-    public boolean isAllExported() {
-        return allExported;
+    public List<ExportNoteDetail> getDetails() {
+        return details;
     }
 
-    public void setAllExported(boolean allExported) {
-        this.allExported = allExported;
+    public void setDetails(List<ExportNoteDetail> details) {
+        this.details = details;
     }
 
-    public boolean isHasBackOrder() {
+    public boolean hasBackOrder() {
         return hasBackOrder;
     }
 
@@ -115,11 +115,11 @@ public class ExportNote {
         this.hasBackOrder = hasBackOrder;
     }
 
-    public List<ExportNoteDetail> getDetails() {
-        return details;
+    public boolean isAllExported() {
+        return allExported;
     }
 
-    public void setDetails(List<ExportNoteDetail> details) {
-        this.details = details;
+    public void setAllExported(boolean allExported) {
+        this.allExported = allExported;
     }
 }
