@@ -7,7 +7,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Exported Notes List</title>
+    <title>Export Notes List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="icon" href="img/logo.png" type="image/png">
@@ -302,11 +302,6 @@
             margin-right: 20px;
         }
 
-        .modal .detail-table {
-            float: right;
-            width: calc(100% - 220px);
-        }
-
         .modal-image-placeholder {
             width: 200px;
             height: 150px;
@@ -429,17 +424,17 @@
         <%@ include file="sidebar.jsp" %>
         <div class="main-content">
             <div class="container">
-                <h1 class="title">Exported Notes List</h1>
+                <h1 class="title">Export Notes List</h1>
 
                 <div class="stats-info">
                     <i class="fas fa-info-circle"></i>
-                    <span>Displaying <strong>${totalNotes}</strong> exported notes</span>
+                    <span>Displaying <strong>${totalNotes}</strong> export notes</span>
                 </div>
 
                 <div class="header-actions">
                     <div class="search-container">
                         <form action="/WarehouseManagement/exportnotelist" method="get" id="filterForm">
-                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: nowrap;">
+                            <div style="display: flex; gapMeal: 12px; align-items: center; flex-wrap: nowrap;">
                                 <div class="search-input-container">
                                     <i class="fas fa-search search-icon"></i>
                                     <input class="search-input" type="text" name="search" value="${search}" placeholder="Search by order ID or user..." class="search-input form-control" />
@@ -503,7 +498,7 @@
                                 <tr>
                                     <td colspan="7" class="no-data">
                                         <i class="fas fa-exclamation-circle no-data-icon"></i><br>
-                                        No exported notes found.
+                                        No export notes found.
                                     </td>
                                 </tr>
                             </c:if>
@@ -590,7 +585,7 @@
                 </div>
                 <div style="text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;">
                     Page ${page} of ${totalPages}
-                    <c:if test="${not empty exportNotes}"> (${totalNotes} total exported notes)</c:if>
+                    <c:if test="${not empty exportNotes}"> (${totalNotes} total export notes)</c:if>
                 </div>
 
                 <!-- Modal for Viewing Export Note Details -->
@@ -693,14 +688,7 @@
                 });
             });
 
-            $('#inventoryModal').on('click', '.checkbox-all', function () {
-                $('.checkbox-item').prop('checked', this.checked);
-            });
-
-            $('#inventoryModal').on('click', '.checkbox-item', function () {
-                $('.checkbox-all').prop('checked', $('.checkbox-item:checked').length === $('.checkbox-item').length);
-            });
-
+            // Handle export button click
             $('#exportButton').on('click', function () {
                 const exportNoteId = $('#inventoryContent').find('input[name="exportNoteId"]').val();
 
@@ -712,18 +700,22 @@
                 }
 
                 const selectedItems = [];
+                const transactionIds = [];
                 $('#inventoryContent .checkbox-item:checked').each(function () {
                     const $this = $(this);
                     selectedItems.push({
                         detailId: $this.val(),
                         materialId: $this.data('material-id'),
-                        subUnitId: $this.data('subunit-id'),
+                        unitId: $this.data('unit-id'),
                         qualityId: $this.data('quality-id'),
                         quantity: $this.data('requested-quantity')
                     });
+                    if ($this.data('transaction-id')) {
+                        transactionIds.push($this.data('transaction-id'));
+                    }
                 });
 
-                if (selectedItems.length === 0) {
+                if (selectedItems.length === 0 && transactionIds.length === 0) {
                     $('#confirmExportMessage').text('Please select at least one item to export.');
                     $('#confirmExportFooter').hide();
                     confirmExportModal.show();
@@ -732,18 +724,22 @@
 
                 $('#confirmExportMessage').text('Are you sure you want to export the selected items from inventory?');
                 $('#confirmExportFooter').show();
-                $('#confirmExportBtn').data('export-note-id', exportNoteId).data('selected-items', selectedItems);
+                $('#confirmExportBtn').data('export-note-id', exportNoteId)
+                                     .data('selected-items', selectedItems)
+                                     .data('transaction-ids', transactionIds);
                 confirmExportModal.show();
             });
 
+            // Handle confirm export
             $('#confirmExportBtn').on('click', function () {
                 const exportNoteId = $(this).data('export-note-id');
                 const selectedItems = $(this).data('selected-items');
+                const transactionIds = $(this).data('transaction-ids');
 
                 const detailIds = selectedItems.map(i => i.detailId);
                 const quantities = selectedItems.map(i => i.quantity);
                 const materialIds = selectedItems.map(i => i.materialId);
-                const subUnitIds = selectedItems.map(i => i.subUnitId);
+                const unitIds = selectedItems.map(i => i.unitId);
                 const qualityIds = selectedItems.map(i => i.qualityId);
 
                 $.ajax({
@@ -756,21 +752,25 @@
                         detailIds: detailIds,
                         quantities: quantities,
                         materialIds: materialIds,
-                        subUnitIds: subUnitIds,
-                        qualityIds: qualityIds
+                        unitIds: unitIds,
+                        qualityIds: qualityIds,
+                        transactionIds: transactionIds
                     },
                     dataType: 'json',
                     success: function (res) {
-                        let message = res.message;
-                        if (message.includes('BackOrder')) {
-                            message = 'Some items have insufficient stock. The remaining quantities have been added to a backorder.';
+                        if (res.success === false) {
+                            $('#confirmExportMessage').text(res.message || 'Export failed.');
+                        } else {
+                            $('#confirmExportMessage').text(res.message || 'Export processed successfully.');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
                         }
-                        $('#confirmExportMessage').text(message);
                         $('#confirmExportFooter').hide();
                         confirmExportModal.show();
                     },
                     error: function (xhr) {
-                        $('#confirmExportMessage').text('Error: ' + xhr.responseText);
+                        $('#confirmExportMessage').text('Error: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
                         $('#confirmExportFooter').hide();
                         confirmExportModal.show();
                     }
@@ -780,7 +780,6 @@
             // Reload page when confirmExportModal is hidden
             $('#confirmExportModal').on('hidden.bs.modal', function () {
                 inventoryModal.hide();
-                location.reload();
             });
         });
     </script>

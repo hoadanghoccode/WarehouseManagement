@@ -20,7 +20,7 @@ public class DeleteMaterialController extends HttpServlet {
         if (deleted) {
             response.sendRedirect("list-material?success=Deactivated successfully");
         } else {
-            response.sendRedirect("list-material?error=Cannot deactivate: pending orders or imports/exports");
+            response.sendRedirect("list-material?error=Cannot deactivate: pending orders/imports/exports or in purchase orders");
         }
     }
 
