@@ -13,7 +13,7 @@ import model.MaterialInfo;
 
 public class InventoryHistoryDAO extends DBContext {
 
-    public List<InventoryHistory> getFilteredInventoryHistories(int materialId, int subUnitId, String startDate, String endDate, 
+    public List<InventoryHistory> getFilteredInventoryHistories(int materialId, int unitId, String startDate, String endDate, 
                                                                String transactionType, String sortBy, int page, int pageSize) {
         List<InventoryHistory> inventoryHistories = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
@@ -26,7 +26,8 @@ public class InventoryHistoryDAO extends DBContext {
             "FROM InventoryMaterialDaily imd " +
             "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
             "JOIN Quality q ON md.Quality_id = q.Quality_id " +
-            "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
+            "JOIN Materials m ON md.Material_id = m.Material_id " +
+            "WHERE md.Material_id = ? AND m.Unit_id = ? "
         );
 
         // Apply date range filter only if dates are provided
@@ -71,7 +72,7 @@ public class InventoryHistoryDAO extends DBContext {
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             stmt.setInt(paramIndex++, materialId);
-            stmt.setInt(paramIndex++, subUnitId);
+            stmt.setInt(paramIndex++, unitId);
             if (startDate != null && !startDate.isEmpty()) {
                 stmt.setString(paramIndex++, startDate);
             }
@@ -82,7 +83,7 @@ public class InventoryHistoryDAO extends DBContext {
             stmt.setInt(paramIndex++, (page - 1) * pageSize);
 
             System.out.println("Executing query: " + sql.toString());
-            System.out.println("Parameters: materialId=" + materialId + ", subUnitId=" + subUnitId + 
+            System.out.println("Parameters: materialId=" + materialId + ", unitId=" + unitId + 
                               ", startDate=" + startDate + ", endDate=" + endDate + 
                               ", pageSize=" + pageSize + ", offset=" + ((page - 1) * pageSize));
 
@@ -107,12 +108,13 @@ public class InventoryHistoryDAO extends DBContext {
         return inventoryHistories;
     }
 
-    public int getTotalRecords(int materialId, int subUnitId, String startDate, String endDate, String transactionType) {
+    public int getTotalRecords(int materialId, int unitId, String startDate, String endDate, String transactionType) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT imd.Inventory_Material_date) AS total " +
             "FROM InventoryMaterialDaily imd " +
             "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
-            "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
+            "JOIN Materials m ON md.Material_id = m.Material_id " +
+            "WHERE md.Material_id = ? AND m.Unit_id = ? "
         );
 
         // Apply date range filter only if dates are provided
@@ -135,7 +137,7 @@ public class InventoryHistoryDAO extends DBContext {
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             stmt.setInt(paramIndex++, materialId);
-            stmt.setInt(paramIndex++, subUnitId);
+            stmt.setInt(paramIndex++, unitId);
             if (startDate != null && !startDate.isEmpty()) {
                 stmt.setString(paramIndex++, startDate);
             }
@@ -154,18 +156,19 @@ public class InventoryHistoryDAO extends DBContext {
         }
         return 0;
     }
-    
-    public double getTotalHistoricalImportQty(int materialId, int subUnitId) {
+
+    public double getTotalHistoricalImportQty(int materialId, int unitId) {
         String sql = """
             SELECT COALESCE(SUM(imd.Import_qty), 0) AS totalImport
             FROM InventoryMaterialDaily imd
             JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id
+            JOIN Materials m ON md.Material_id = m.Material_id
             WHERE md.Material_id = ? 
-            AND md.SubUnit_id = ?
+            AND m.Unit_id = ?
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, materialId);
-            stmt.setInt(2, subUnitId);
+            stmt.setInt(2, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getDouble("totalImport");
@@ -178,17 +181,18 @@ public class InventoryHistoryDAO extends DBContext {
         return 0.0;
     }
 
-    public double getTotalHistoricalExportQty(int materialId, int subUnitId) {
+    public double getTotalHistoricalExportQty(int materialId, int unitId) {
         String sql = """
             SELECT COALESCE(SUM(imd.Export_qty), 0) AS totalExport
             FROM InventoryMaterialDaily imd
             JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id
+            JOIN Materials m ON md.Material_id = m.Material_id
             WHERE md.Material_id = ? 
-            AND md.SubUnit_id = ?
+            AND m.Unit_id = ?
         """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, materialId);
-            stmt.setInt(2, subUnitId);
+            stmt.setInt(2, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getDouble("totalExport");
@@ -201,7 +205,7 @@ public class InventoryHistoryDAO extends DBContext {
         return 0.0;
     }
 
-    public Map<String, Double> getTotalImportExportByPeriod(int materialId, int subUnitId, String totalPeriod, String totalStartDate, String totalEndDate) {
+    public Map<String, Double> getTotalImportExportByPeriod(int materialId, int unitId, String totalPeriod, String totalStartDate, String totalEndDate) {
         Map<String, Double> totals = new HashMap<>();
         totals.put("totalImport", 0.0);
         totals.put("totalExport", 0.0);
@@ -212,7 +216,8 @@ public class InventoryHistoryDAO extends DBContext {
             "SUM(imd.Export_qty) AS totalExport " +
             "FROM InventoryMaterialDaily imd " +
             "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
-            "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
+            "JOIN Materials m ON md.Material_id = m.Material_id " +
+            "WHERE md.Material_id = ? AND m.Unit_id = ? "
         );
 
         // Apply period filter only if not "all"
@@ -230,7 +235,7 @@ public class InventoryHistoryDAO extends DBContext {
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             stmt.setInt(paramIndex++, materialId);
-            stmt.setInt(paramIndex++, subUnitId);
+            stmt.setInt(paramIndex++, unitId);
             if ("custom_total".equals(totalPeriod) && totalStartDate != null && !totalStartDate.isEmpty() && totalEndDate != null && !totalEndDate.isEmpty()) {
                 stmt.setString(paramIndex++, totalStartDate);
                 stmt.setString(paramIndex++, totalEndDate);
@@ -244,7 +249,7 @@ public class InventoryHistoryDAO extends DBContext {
             }
 
             System.out.println("Executing total query: " + sql.toString());
-            System.out.println("Parameters: materialId=" + materialId + ", subUnitId=" + subUnitId + 
+            System.out.println("Parameters: materialId=" + materialId + ", unitId=" + unitId + 
                               ", totalPeriod=" + totalPeriod + ", totalStartDate=" + totalStartDate + 
                               ", totalEndDate=" + totalEndDate);
 
@@ -261,7 +266,7 @@ public class InventoryHistoryDAO extends DBContext {
         return totals;
     }
 
-    public InventoryHistory getLatestHistoryByDate(int materialId, int subUnitId, String startDate, String endDate) {
+    public InventoryHistory getLatestHistoryByDate(int materialId, int unitId, String startDate, String endDate) {
         StringBuilder sql = new StringBuilder(
             "SELECT imd.Inventory_Material_date AS transactionDate, " +
             "SUM(CASE WHEN q.Quality_name = 'available' THEN imd.Ending_qty ELSE 0 END) AS availableQty, " +
@@ -272,7 +277,8 @@ public class InventoryHistoryDAO extends DBContext {
             "FROM InventoryMaterialDaily imd " +
             "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
             "JOIN Quality q ON md.Quality_id = q.Quality_id " +
-            "WHERE md.Material_id = ? AND md.SubUnit_id = ? "
+            "JOIN Materials m ON md.Material_id = m.Material_id " +
+            "WHERE md.Material_id = ? AND m.Unit_id = ? "
         );
 
         // Apply date range filter only if dates are provided
@@ -288,7 +294,7 @@ public class InventoryHistoryDAO extends DBContext {
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             stmt.setInt(paramIndex++, materialId);
-            stmt.setInt(paramIndex++, subUnitId);
+            stmt.setInt(paramIndex++, unitId);
             if (startDate != null && !startDate.isEmpty()) {
                 stmt.setString(paramIndex++, startDate);
             }
@@ -352,16 +358,16 @@ public class InventoryHistoryDAO extends DBContext {
             SELECT 
                 m.Name AS materialName,
                 c.Name AS categoryName,
-                su.Name AS subUnitName,
+                u.Name AS unitName,
                 SUM(md.Quantity) AS availableQty
             FROM Materials m
             JOIN Category c ON m.Category_id = c.Category_id
             JOIN Material_detail md ON m.Material_id = md.Material_id
-            JOIN SubUnits su ON md.SubUnit_id = su.SubUnit_id
+            JOIN Units u ON m.Unit_id = u.Unit_id
             JOIN Quality q ON md.Quality_id = q.Quality_id
             WHERE m.Material_id = ?
               AND q.Quality_name = 'available'
-            GROUP BY m.Name, c.Name, su.Name
+            GROUP BY m.Name, c.Name, u.Name
         """;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -371,7 +377,7 @@ public class InventoryHistoryDAO extends DBContext {
                 MaterialInfo info = new MaterialInfo();
                 info.setMaterialName(rs.getString("materialName"));
                 info.setCategoryName(rs.getString("categoryName"));
-                info.setSubUnitName(rs.getString("subUnitName"));
+                info.setSubUnitName(rs.getString("unitName")); // Changed to unitName
                 info.setAvailableQty(rs.getDouble("availableQty"));
                 return info;
             }
@@ -399,10 +405,10 @@ public class InventoryHistoryDAO extends DBContext {
         return false;
     }
 
-    public boolean isSubUnitExists(int subUnitId) {
-        String sql = "SELECT COUNT(*) FROM SubUnits WHERE SubUnit_id = ?";
+    public boolean isUnitExists(int unitId) {
+        String sql = "SELECT COUNT(*) FROM Units WHERE Unit_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, subUnitId);
+            stmt.setInt(1, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
