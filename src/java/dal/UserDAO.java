@@ -252,7 +252,7 @@ public class UserDAO extends DBContext {
         return null;
     }
 
-    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer departmentId, Integer roleId, Boolean status, String sortOrder) {
+    public List<Users> getUsers(int page, int pageSize, String searchQuery, Integer departmentId, Integer roleId, Boolean status, String sort) {
         List<Users> users = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT u.*, r.Name AS Role_name, dhu.Department_id, d.Name AS Department_name "
@@ -282,9 +282,15 @@ public class UserDAO extends DBContext {
             sql.append(" AND u.Status = ?");
             params.add(status ? 1 : 0);
         }
-        sql.append(" ORDER BY u.Updated_at ")
-                .append(sortOrder != null && sortOrder.equalsIgnoreCase("asc") ? "ASC" : "DESC")
-                .append(" LIMIT ? OFFSET ?");
+        // Handle sorting by Full_name
+        if ("name_asc".equalsIgnoreCase(sort)) {
+            sql.append(" ORDER BY u.Full_name ASC");
+        } else if ("name_desc".equalsIgnoreCase(sort)) {
+            sql.append(" ORDER BY u.Full_name DESC");
+        } else {
+            sql.append(" ORDER BY u.Updated_at DESC"); // Default sorting
+        }
+        sql.append(" LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
         try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
