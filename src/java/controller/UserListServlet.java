@@ -41,7 +41,7 @@ public class UserListServlet extends HttpServlet {
         Integer departmentId = null;
         Integer roleId = null;
         Boolean status = null;
-        String sortOrder = "desc";
+        String sort = request.getParameter("sort"); // Get sort parameter (name_asc, name_desc)
 
         try {
             page = Integer.parseInt(request.getParameter("page"));
@@ -66,11 +66,7 @@ public class UserListServlet extends HttpServlet {
             status = Boolean.parseBoolean(statusParam);
         }
 
-        if (request.getParameter("sortOrder") != null) {
-            sortOrder = request.getParameter("sortOrder");
-        }
-
-        List<Users> users = dao.getUsers(page, pageSize, searchQuery, departmentId, roleId, status, sortOrder);
+        List<Users> users = dao.getUsers(page, pageSize, searchQuery, departmentId, roleId, status, sort);
         int totalUsers = dao.getTotalUsers(searchQuery, departmentId, roleId, status);
         int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
 
@@ -85,7 +81,7 @@ public class UserListServlet extends HttpServlet {
         request.setAttribute("selectedDepartmentId", departmentId);
         request.setAttribute("selectedRoleId", roleId);
         request.setAttribute("selectedStatus", statusParam);
-        request.setAttribute("sortOrder", sortOrder);
+        request.setAttribute("sort", sort); // Set sort attribute for JSP
         request.setAttribute("departments", departments);
         request.setAttribute("roles", roles);
 

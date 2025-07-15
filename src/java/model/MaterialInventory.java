@@ -7,14 +7,17 @@ public class MaterialInventory {
 
     private int materialId;
     private int categoryId;
-    private int subUnitId;
+    private int unitId;
     private String materialName;
     private String categoryName;
-    private String subUnitName;
+    private String unitName;
+    private String image;
     private BigDecimal availableQty;
     private BigDecimal notAvailableQty;
     private BigDecimal importQty;
     private BigDecimal exportQty;
+    private BigDecimal totalImport;
+    private BigDecimal totalExport;
     private Date inventoryDate;
     private String note;
 
@@ -25,22 +28,27 @@ public class MaterialInventory {
     public MaterialInventory(BigDecimal availableQty, BigDecimal notAvailableQty) {
         this.availableQty = availableQty;
         this.notAvailableQty = notAvailableQty;
+        this.totalImport = BigDecimal.ZERO;
+        this.totalExport = BigDecimal.ZERO;
     }
 
-    public MaterialInventory(int materialId, int categoryId, int subUnitId, String materialName,
-                            String categoryName, String subUnitName, BigDecimal availableQty,
-                            BigDecimal notAvailableQty, BigDecimal importQty, BigDecimal exportQty, Date inventoryDate,
-                            String note) {
+    public MaterialInventory(int materialId, int categoryId, int unitId, String materialName,
+                             String categoryName, String unitName, String image, BigDecimal availableQty,
+                             BigDecimal notAvailableQty, BigDecimal importQty, BigDecimal exportQty,
+                             BigDecimal totalImport, BigDecimal totalExport, Date inventoryDate, String note) {
         this.materialId = materialId;
         this.categoryId = categoryId;
-        this.subUnitId = subUnitId;
+        this.unitId = unitId;
         this.materialName = materialName;
         this.categoryName = categoryName;
-        this.subUnitName = subUnitName;
+        this.unitName = unitName;
+        this.image = image;
         this.availableQty = availableQty;
         this.notAvailableQty = notAvailableQty;
         this.importQty = importQty;
         this.exportQty = exportQty;
+        this.totalImport = totalImport;
+        this.totalExport = totalExport;
         this.inventoryDate = inventoryDate;
         this.note = note;
     }
@@ -62,12 +70,12 @@ public class MaterialInventory {
         this.categoryId = categoryId;
     }
 
-    public int getSubUnitId() {
-        return subUnitId;
+    public int getUnitId() {
+        return unitId;
     }
 
-    public void setSubUnitId(int subUnitId) {
-        this.subUnitId = subUnitId;
+    public void setUnitId(int unitId) {
+        this.unitId = unitId;
     }
 
     public String getMaterialName() {
@@ -86,12 +94,20 @@ public class MaterialInventory {
         this.categoryName = categoryName;
     }
 
-    public String getSubUnitName() {
-        return subUnitName != null ? subUnitName : "N/A";
+    public String getUnitName() {
+        return unitName != null ? unitName : "N/A";
     }
 
-    public void setSubUnitName(String subUnitName) {
-        this.subUnitName = subUnitName;
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
+    }
+
+    public String getImage() {
+        return image != null ? image : "";
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public BigDecimal getAvailableQty() {
@@ -126,6 +142,22 @@ public class MaterialInventory {
         this.exportQty = exportQty;
     }
 
+    public BigDecimal getTotalImport() {
+        return totalImport != null ? totalImport : BigDecimal.ZERO;
+    }
+
+    public void setTotalImport(BigDecimal totalImport) {
+        this.totalImport = totalImport;
+    }
+
+    public BigDecimal getTotalExport() {
+        return totalExport != null ? totalExport : BigDecimal.ZERO;
+    }
+
+    public void setTotalExport(BigDecimal totalExport) {
+        this.totalExport = totalExport;
+    }
+
     public Date getInventoryDate() {
         return inventoryDate;
     }
@@ -142,20 +174,22 @@ public class MaterialInventory {
         this.note = note;
     }
 
-    // Optional: Thêm toString cho debug
     @Override
     public String toString() {
         return "MaterialInventory{" +
                 "materialId=" + materialId +
                 ", categoryId=" + categoryId +
-                ", subUnitId=" + subUnitId +
+                ", unitId=" + unitId +
                 ", materialName='" + materialName + '\'' +
                 ", categoryName='" + categoryName + '\'' +
-                ", subUnitName='" + subUnitName + '\'' +
+                ", unitName='" + unitName + '\'' +
+                ", image='" + image + '\'' +
                 ", availableQty=" + availableQty +
                 ", notAvailableQty=" + notAvailableQty +
                 ", importQty=" + importQty +
                 ", exportQty=" + exportQty +
+                ", totalImport=" + totalImport +
+                ", totalExport=" + totalExport +
                 ", inventoryDate=" + inventoryDate +
                 ", note='" + note + '\'' +
                 '}';

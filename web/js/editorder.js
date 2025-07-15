@@ -1,4 +1,4 @@
-/* 
+/*
  * editorder.js - JavaScript for Update Order functionality
  * Based on createorder.js with modifications for editing existing orders
  */
@@ -6,58 +6,61 @@
 let itemCounter = 0;
 
 // Initialize the edit order page
-document.addEventListener('DOMContentLoaded', function () {
-    // Initialize autocomplete
-    initializeAutocomplete();
-    
-    // Load existing order items
-    loadExistingOrderItems();
-    
-    // Setup form validation
-    setupFormValidation();
-    
-    // Create required modals
-    createErrorModal();
-    createDuplicateModal();
-    addDuplicateWarningStyles();
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize autocomplete
+  initializeAutocomplete();
+
+  // Load existing order items
+  loadExistingOrderItems();
+
+  // Setup form validation
+  setupFormValidation();
+
+  // Create required modals
+  createErrorModal();
+  createDuplicateModal();
+  addDuplicateWarningStyles();
 });
 
 function loadExistingOrderItems() {
-    if (typeof existingOrderDetails !== 'undefined' && existingOrderDetails.length > 0) {
-        const container = document.getElementById("orderItemsContainer");
-        const noMsg = document.getElementById("noItemsMessage");
-        
-        // Hide no items message
-        if (noMsg) {
-            noMsg.style.display = "none";
-        }
-        
-        // Load each existing item
-        existingOrderDetails.forEach(detail => {
-            addOrderItemWithData(detail);
-        });
-        
-        // Renumber items after loading
-        renumberItems();
+  if (
+    typeof existingOrderDetails !== "undefined" &&
+    existingOrderDetails.length > 0
+  ) {
+    const container = document.getElementById("orderItemsContainer");
+    const noMsg = document.getElementById("noItemsMessage");
+
+    // Hide no items message
+    if (noMsg) {
+      noMsg.style.display = "none";
     }
+
+    // Load each existing item
+    existingOrderDetails.forEach((detail) => {
+      addOrderItemWithData(detail);
+    });
+
+    // Renumber items after loading
+    renumberItems();
+  }
 }
 
 function addOrderItemWithData(data = null) {
-    itemCounter++;
-    const container = document.getElementById("orderItemsContainer");
-    const noMsg = document.getElementById("noItemsMessage");
-    
-    if (noMsg) {
-        noMsg.style.display = "none";
-    }
+  itemCounter++;
+  const container = document.getElementById("orderItemsContainer");
+  const noMsg = document.getElementById("noItemsMessage");
 
-    // Find material data if provided
-    let materialData = null;
-    if (data && data.materialId) {
-        materialData = allMaterials.find(m => m.materialId == data.materialId);
-    }
+  if (noMsg) {
+    noMsg.style.display = "none";
+  }
 
-    const itemHtml = `
+  // Find material data if provided
+  let materialData = null;
+  if (data && data.materialId) {
+    materialData = allMaterials.find((m) => m.materialId == data.materialId);
+  }
+
+  const itemHtml = `
     <div class="order-item" data-item-id="${itemCounter}">
         <button type="button" class="remove-item-btn" onclick="removeOrderItem(this)">
             <i class="fas fa-times"></i>
@@ -76,9 +79,16 @@ function addOrderItemWithData(data = null) {
                            oninput="handleMaterialSearch(this)"
                            onfocus="showMaterialDropdown(this)"
                            onblur="hideMaterialDropdown(this)"
-                           value="${materialData ? materialData.name : ''}"
+                           value="${materialData ? materialData.name : ""}"
+                           ${
+                             materialData
+                               ? 'disabled style="padding-right: 30px;"'
+                               : ""
+                           }
                            required>
-                    <input type="hidden" name="material[]" class="material-id-input" value="${materialData ? materialData.materialId : ''}">
+                    <input type="hidden" name="material[]" class="material-id-input" value="${
+                      materialData ? materialData.materialId : ""
+                    }">
                     <div class="material-dropdown" style="display: none;">
                         <div class="dropdown-content">
                             <!-- Dropdown items will be populated here -->
@@ -88,8 +98,12 @@ function addOrderItemWithData(data = null) {
             </div>
             <div class="form-group">
                 <label for="unit">Unit <span class="required">*</span></label>
-                <input type="text" class="form-control unit-display" value="${materialData ? materialData.unitName : 'Select Material First'}" readonly>
-                <input type="hidden" name="unit[]" class="unit-id-input" value="${materialData ? materialData.unitId : ''}">
+                <input type="text" class="form-control unit-display" value="${
+                  materialData ? materialData.unitName : "Select Material First"
+                }" readonly>
+                <input type="hidden" name="unit[]" class="unit-id-input" value="${
+                  materialData ? materialData.unitId : ""
+                }">
             </div>
         </div>
         <div class="form-row">
@@ -98,7 +112,9 @@ function addOrderItemWithData(data = null) {
                 <div class="quantity-container">
                     <div class="quantity-controls">
                         <button type="button" class="quantity-btn" onclick="adjustQuantity(this, -1)">-</button>
-                        <input type="number" name="quantity[]" class="form-control quantity-input" value="${data ? data.quantity : 1}" min="1" max="9999" required onchange="checkDuplicateItems();" />
+                        <input type="number" name="quantity[]" class="form-control quantity-input" value="${
+                          data ? data.quantity : 1
+                        }" min="1" max="9999" required onchange="checkDuplicateItems();" />
                         <button type="button" class="quantity-btn" onclick="adjustQuantity(this, 1)">+</button>
                     </div>
                 </div>
@@ -106,58 +122,79 @@ function addOrderItemWithData(data = null) {
         </div>
     </div>`;
 
-    container.insertAdjacentHTML("beforeend", itemHtml);
-    
-    // Initialize autocomplete for the new item
-    initializeAutocomplete();
-    
-    // Check for duplicates
-    checkDuplicateItems();
+  container.insertAdjacentHTML("beforeend", itemHtml);
+
+  // Nếu có dữ liệu sẵn thì hiển thị nút X
+  if (materialData) {
+    const newItem = container.lastElementChild;
+    const autocompleteContainer = newItem.querySelector(
+      ".autocomplete-container"
+    );
+    showClearButton(autocompleteContainer);
+  }
+
+  // Initialize autocomplete for the new item
+  initializeAutocomplete();
+
+  // Check for duplicates
+  checkDuplicateItems();
 }
 
 function addOrderItem() {
-    addOrderItemWithData();
-    renumberItems();
+  addOrderItemWithData();
+  renumberItems();
 }
 
 function handleMaterialSearch(input) {
-    const searchTerm = input.value.toLowerCase().trim();
-    const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
-    const dropdownContent = dropdown.querySelector('.dropdown-content');
-    
-    // Clear previous results
-    dropdownContent.innerHTML = '';
-    
-    if (searchTerm === '') {
-        // Show all materials when input is empty
-        displayMaterialOptions(dropdownContent, allMaterials);
-    } else {
-        // Filter materials based on search term
-        const filteredMaterials = allMaterials.filter(material => 
-            material.name.toLowerCase().includes(searchTerm)
-        );
-        displayMaterialOptions(dropdownContent, filteredMaterials);
-    }
-    
-    // Show dropdown
-    dropdown.style.display = 'block';
+  // Không cho phép search nếu input đang disabled
+  if (input.disabled) {
+    return;
+  }
+
+  const searchTerm = input.value.toLowerCase().trim();
+  const dropdown = input
+    .closest(".autocomplete-container")
+    .querySelector(".material-dropdown");
+  const dropdownContent = dropdown.querySelector(".dropdown-content");
+
+  // Clear previous results
+  dropdownContent.innerHTML = "";
+
+  if (searchTerm === "") {
+    // Show all materials when input is empty
+    displayMaterialOptions(dropdownContent, allMaterials);
+  } else {
+    // Filter materials based on search term
+    const filteredMaterials = allMaterials.filter((material) =>
+      material.name.toLowerCase().includes(searchTerm)
+    );
+    displayMaterialOptions(dropdownContent, filteredMaterials);
+  }
+
+  // Show dropdown
+  dropdown.style.display = "block";
 }
 
 function displayMaterialOptions(container, materials) {
-    if (materials.length === 0) {
-        container.innerHTML = '<div class="dropdown-item no-results">No materials found</div>';
-        return;
-    }
-    
-    materials.forEach(material => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'dropdown-item';
-        itemDiv.innerHTML = `
-            <div class="material-option" data-material-id="${material.materialId}" 
+  if (materials.length === 0) {
+    container.innerHTML =
+      '<div class="dropdown-item no-results">No materials found</div>';
+    return;
+  }
+
+  materials.forEach((material) => {
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "dropdown-item";
+    itemDiv.innerHTML = `
+            <div class="material-option" data-material-id="${
+              material.materialId
+            }" 
                  data-unit-id="${material.unitId}" 
                  data-unit-name="${material.unitName}">
                 <div class="material-image">
-                    <img src="${material.image || 'images/default-material.jpg'}" 
+                    <img src="${
+                      material.image || "images/default-material.jpg"
+                    }" 
                          alt="${material.name}" 
                          onerror="this.src='images/default-material.jpg'">
                 </div>
@@ -169,263 +206,328 @@ function displayMaterialOptions(container, materials) {
                 </div>
             </div>
         `;
-        
-        // Add click event
-        itemDiv.addEventListener('click', function(e) {
-            e.preventDefault();
-            selectMaterial(this.querySelector('.material-option'));
-        });
-        
-        container.appendChild(itemDiv);
+
+    // Add click event
+    itemDiv.addEventListener("click", function (e) {
+      e.preventDefault();
+      selectMaterial(this.querySelector(".material-option"));
     });
+
+    container.appendChild(itemDiv);
+  });
 }
 
 function selectMaterial(materialOption) {
-    const autocompleteContainer = materialOption.closest('.autocomplete-container');
-    const materialInput = autocompleteContainer.querySelector('.material-input');
-    const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
-    const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
-    const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
-    const dropdown = autocompleteContainer.querySelector('.material-dropdown');
-    
-    // Get material data
-    const materialId = materialOption.dataset.materialId;
-    const materialName = materialOption.querySelector('.material-name').textContent;
-    const unitId = materialOption.dataset.unitId;
-    const unitName = materialOption.dataset.unitName;
-    
-    // Set values
-    materialInput.value = materialName;
-    materialIdInput.value = materialId;
-    unitDisplay.value = unitName;
-    unitIdInput.value = unitId;
-    
-    // Hide dropdown
-    dropdown.style.display = 'none';
-    
-    // Trigger validation
-    checkDuplicateItems();
+  const autocompleteContainer = materialOption.closest(
+    ".autocomplete-container"
+  );
+  const materialInput = autocompleteContainer.querySelector(".material-input");
+  const materialIdInput =
+    autocompleteContainer.querySelector(".material-id-input");
+  const unitDisplay = autocompleteContainer
+    .closest(".order-item")
+    .querySelector(".unit-display");
+  const unitIdInput = autocompleteContainer
+    .closest(".order-item")
+    .querySelector(".unit-id-input");
+  const dropdown = autocompleteContainer.querySelector(".material-dropdown");
+
+  // Get material data
+  const materialId = materialOption.dataset.materialId;
+  const materialName =
+    materialOption.querySelector(".material-name").textContent;
+  const unitId = materialOption.dataset.unitId;
+  const unitName = materialOption.dataset.unitName;
+
+  // Set values
+  materialInput.value = materialName;
+  materialIdInput.value = materialId;
+  unitDisplay.value = unitName;
+  unitIdInput.value = unitId;
+
+  // Disable input và hiển thị nút X
+  materialInput.disabled = true;
+  materialInput.style.paddingRight = "30px"; // Tạo chỗ cho nút X
+  showClearButton(autocompleteContainer);
+
+  // Hide dropdown
+  dropdown.style.display = "none";
+
+  // Trigger validation
+  checkDuplicateItems();
+}
+
+function showClearButton(container) {
+  // Xóa nút X cũ nếu có
+  const existingClearBtn = container.querySelector(".clear-material-btn");
+  if (existingClearBtn) {
+    existingClearBtn.remove();
+  }
+
+  // Tạo nút X mới
+  const clearBtn = document.createElement("button");
+  clearBtn.type = "button";
+  clearBtn.className = "clear-material-btn";
+  clearBtn.innerHTML = '<i class="fas fa-times"></i>';
+  clearBtn.onclick = function () {
+    clearMaterialSelection(container.closest(".order-item"));
+  };
+
+  container.appendChild(clearBtn);
 }
 
 function showMaterialDropdown(input) {
-    const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
-    const dropdownContent = dropdown.querySelector('.dropdown-content');
-    
-    // If dropdown is empty, populate with all materials
-    if (dropdownContent.children.length === 0) {
-        displayMaterialOptions(dropdownContent, allMaterials);
-    }
-    
-    dropdown.style.display = 'block';
+  // Không hiển thị dropdown nếu input đang disabled
+  if (input.disabled) {
+    return;
+  }
+
+  const dropdown = input
+    .closest(".autocomplete-container")
+    .querySelector(".material-dropdown");
+  const dropdownContent = dropdown.querySelector(".dropdown-content");
+
+  // If dropdown is empty, populate with all materials
+  if (dropdownContent.children.length === 0) {
+    displayMaterialOptions(dropdownContent, allMaterials);
+  }
+
+  dropdown.style.display = "block";
 }
 
 function hideMaterialDropdown(input) {
-    // Use setTimeout to allow click events to fire first
-    setTimeout(() => {
-        const dropdown = input.closest('.autocomplete-container').querySelector('.material-dropdown');
-        dropdown.style.display = 'none';
-        
-        // Validate selection
-        validateMaterialSelection(input);
-    }, 200);
+  // Use setTimeout to allow click events to fire first
+  setTimeout(() => {
+    const dropdown = input
+      .closest(".autocomplete-container")
+      .querySelector(".material-dropdown");
+    dropdown.style.display = "none";
+
+    // Validate selection chỉ khi input không disabled
+    if (!input.disabled) {
+      validateMaterialSelection(input);
+    }
+  }, 200);
 }
 
 function validateMaterialSelection(input) {
-    const autocompleteContainer = input.closest('.autocomplete-container');
-    const materialIdInput = autocompleteContainer.querySelector('.material-id-input');
-    const unitDisplay = autocompleteContainer.closest('.order-item').querySelector('.unit-display');
-    const unitIdInput = autocompleteContainer.closest('.order-item').querySelector('.unit-id-input');
-    
-    // If no material is selected (hidden input is empty), clear everything
-    if (!materialIdInput.value) {
-        input.value = '';
-        unitDisplay.value = 'Select Material First';
-        unitIdInput.value = '';
-    }
+  const autocompleteContainer = input.closest(".autocomplete-container");
+  const materialIdInput =
+    autocompleteContainer.querySelector(".material-id-input");
+  const unitDisplay = autocompleteContainer
+    .closest(".order-item")
+    .querySelector(".unit-display");
+  const unitIdInput = autocompleteContainer
+    .closest(".order-item")
+    .querySelector(".unit-id-input");
+
+  // If no material is selected (hidden input is empty), clear everything
+  if (!materialIdInput.value) {
+    input.value = "";
+    unitDisplay.value = "Select Material First";
+    unitIdInput.value = "";
+  }
 }
 
 function clearMaterialSelection(orderItem) {
-    const materialInput = orderItem.querySelector('.material-input');
-    const materialIdInput = orderItem.querySelector('.material-id-input');
-    const unitDisplay = orderItem.querySelector('.unit-display');
-    const unitIdInput = orderItem.querySelector('.unit-id-input');
-    
-    materialInput.value = '';
-    materialIdInput.value = '';
-    unitDisplay.value = 'Select Material First';
-    unitIdInput.value = '';
+  const materialInput = orderItem.querySelector(".material-input");
+  const materialIdInput = orderItem.querySelector(".material-id-input");
+  const unitDisplay = orderItem.querySelector(".unit-display");
+  const unitIdInput = orderItem.querySelector(".unit-id-input");
+  const clearBtn = orderItem.querySelector(".clear-material-btn");
+
+  // Clear values
+  materialInput.value = "";
+  materialIdInput.value = "";
+  unitDisplay.value = "Select Material First";
+  unitIdInput.value = "";
+
+  // Enable input và reset style
+  materialInput.disabled = false;
+  materialInput.style.paddingRight = "";
+
+  // Ẩn nút X
+  if (clearBtn) {
+    clearBtn.remove();
+  }
+
+  // Focus vào input để người dùng có thể nhập lại
+  materialInput.focus();
+
+  // Trigger validation
+  checkDuplicateItems();
 }
 
 function removeOrderItem(btn) {
-    const item = btn.closest(".order-item");
-    item.remove();
+  const item = btn.closest(".order-item");
+  item.remove();
 
-    const container = document.getElementById("orderItemsContainer");
-    const remaining = container.querySelectorAll(".order-item");
-    if (remaining.length === 0) {
-        document.getElementById("noItemsMessage").style.display = "block";
-    }
+  const container = document.getElementById("orderItemsContainer");
+  const remaining = container.querySelectorAll(".order-item");
+  if (remaining.length === 0) {
+    document.getElementById("noItemsMessage").style.display = "block";
+  }
 
-    renumberItems();
-    checkDuplicateItems();
+  renumberItems();
+  checkDuplicateItems();
 }
 
 function renumberItems() {
-    document.querySelectorAll(".order-item").forEach((item, index) => {
-        const label = item.querySelector(".item-number");
-        if (label) {
-            label.textContent = `Item #${index + 1}`;
-        }
-    });
+  document.querySelectorAll(".order-item").forEach((item, index) => {
+    const label = item.querySelector(".item-number");
+    if (label) {
+      label.textContent = `Item #${index + 1}`;
+    }
+  });
 }
 
 function adjustQuantity(button, change) {
-    const quantityInput = button.parentElement.querySelector('.quantity-input');
-    let currentValue = parseInt(quantityInput.value) || 1;
-    let newValue = currentValue + change;
-    
-    if (newValue < 1) newValue = 1;
-    if (newValue > 9999) newValue = 9999;
-    
-    quantityInput.value = newValue;
-    
-    // Trigger validation
-    checkDuplicateItems();
+  const quantityInput = button.parentElement.querySelector(".quantity-input");
+  let currentValue = parseInt(quantityInput.value) || 1;
+  let newValue = currentValue + change;
+
+  if (newValue < 1) newValue = 1;
+  if (newValue > 9999) newValue = 9999;
+
+  quantityInput.value = newValue;
+
+  // Trigger validation
+  checkDuplicateItems();
 }
 
 function cancelOrder() {
-    showCancelModal();
+  showCancelModal();
 }
 
 // Function to check and warn about duplicate items
 function checkDuplicateItems() {
-    const items = document.querySelectorAll(".order-item");
-    const duplicateGroups = new Map();
+  const items = document.querySelectorAll(".order-item");
+  const duplicateGroups = new Map();
 
-    // Reset all previous warnings
-    items.forEach(item => {
-        item.classList.remove('duplicate-warning');
-        const existingWarning = item.querySelector('.duplicate-warning-text');
-        if (existingWarning) {
-            existingWarning.remove();
-        }
-    });
+  // Reset all previous warnings
+  items.forEach((item) => {
+    item.classList.remove("duplicate-warning");
+    const existingWarning = item.querySelector(".duplicate-warning-text");
+    if (existingWarning) {
+      existingWarning.remove();
+    }
+  });
 
-    // Find duplicate items (based on materialId only)
-    items.forEach((item, index) => {
-        const materialIdInput = item.querySelector(".material-id-input");
-        const materialId = materialIdInput.value;
+  // Find duplicate items (based on materialId only)
+  items.forEach((item, index) => {
+    const materialIdInput = item.querySelector(".material-id-input");
+    const materialId = materialIdInput.value;
 
-        if (materialId) {
-            if (!duplicateGroups.has(materialId)) {
-                duplicateGroups.set(materialId, []);
-            }
-            duplicateGroups.get(materialId).push({item, index});
-        }
-    });
+    if (materialId) {
+      if (!duplicateGroups.has(materialId)) {
+        duplicateGroups.set(materialId, []);
+      }
+      duplicateGroups.get(materialId).push({ item, index });
+    }
+  });
 
-    // Display warnings for duplicate groups
-    duplicateGroups.forEach((group, materialId) => {
-        if (group.length > 1) {
-            // Calculate total quantity of duplicate group
-            let totalQuantity = 0;
-            const materialName = group[0].item.querySelector(".material-input").value;
-            const unitName = group[0].item.querySelector(".unit-display").value;
+  // Display warnings for duplicate groups
+  duplicateGroups.forEach((group, materialId) => {
+    if (group.length > 1) {
+      // Calculate total quantity of duplicate group
+      let totalQuantity = 0;
+      const materialName = group[0].item.querySelector(".material-input").value;
+      const unitName = group[0].item.querySelector(".unit-display").value;
 
-            group.forEach(({item}) => {
-                const quantityInput = item.querySelector("input[name='quantity[]']");
-                const quantity = parseInt(quantityInput.value) || 0;
-                totalQuantity += quantity;
+      group.forEach(({ item }) => {
+        const quantityInput = item.querySelector("input[name='quantity[]']");
+        const quantity = parseInt(quantityInput.value) || 0;
+        totalQuantity += quantity;
 
-                // Add warning class
-                item.classList.add('duplicate-warning');
-            });
+        // Add warning class
+        item.classList.add("duplicate-warning");
+      });
 
-            // Add warning message to first item of the group
-            const firstItem = group[0].item;
-            const warningText = document.createElement('div');
-            warningText.className = 'duplicate-warning-text';
-            warningText.innerHTML = `
+      // Add warning message to first item of the group
+      const firstItem = group[0].item;
+      const warningText = document.createElement("div");
+      warningText.className = "duplicate-warning-text";
+      warningText.innerHTML = `
                 <i class="fas fa-exclamation-triangle"></i>
                 Duplicate material detected! "${materialName}" appears ${group.length} times 
                 (Total: ${totalQuantity} ${unitName}). These will be merged when saved.
             `;
 
-            const itemHeader = firstItem.querySelector('.item-header');
-            itemHeader.appendChild(warningText);
-        }
-    });
+      const itemHeader = firstItem.querySelector(".item-header");
+      itemHeader.appendChild(warningText);
+    }
+  });
 }
 
 function showCancelModal() {
-    const modal = document.getElementById('cancelModal');
-    modal.style.display = 'flex';
-    setTimeout(() => {
-        modal.classList.add('show');
-    }, 10);
+  const modal = document.getElementById("cancelModal");
+  modal.style.display = "flex";
+  setTimeout(() => {
+    modal.classList.add("show");
+  }, 10);
 }
 
 function hideCancelModal() {
-    const modal = document.getElementById('cancelModal');
-    modal.classList.remove('show');
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 300);
+  const modal = document.getElementById("cancelModal");
+  modal.classList.remove("show");
+  setTimeout(() => {
+    modal.style.display = "none";
+  }, 300);
 }
 
 function confirmCancel() {
-    // Navigate back to order list
-    window.location.href = 'orderlist';
+  // Navigate back to order list
+  window.location.href = "orderlist";
 }
 
 function showDuplicateModal() {
-    const modal = document.getElementById('duplicateModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        setTimeout(() => {
-            modal.classList.add('show');
-        }, 10);
-    }
+  const modal = document.getElementById("duplicateModal");
+  if (modal) {
+    modal.style.display = "flex";
+    setTimeout(() => {
+      modal.classList.add("show");
+    }, 10);
+  }
 }
 
 function hideDuplicateModal() {
-    const modal = document.getElementById('duplicateModal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-    }
+  const modal = document.getElementById("duplicateModal");
+  if (modal) {
+    modal.classList.remove("show");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 300);
+  }
 }
 
 function confirmDuplicateSubmit() {
-    hideDuplicateModal();
-    setTimeout(() => {
-        document.getElementById('orderForm').submit();
-    }, 300);
+  hideDuplicateModal();
+  setTimeout(() => {
+    document.getElementById("orderForm").submit();
+  }, 300);
 }
 
 // Initialize autocomplete functionality
 function initializeAutocomplete() {
-    // Add CSS for autocomplete if not already added
-    if (!document.getElementById('autocomplete-styles')) {
-        addAutocompleteStyles();
+  // Add CSS for autocomplete if not already added
+  if (!document.getElementById("autocomplete-styles")) {
+    addAutocompleteStyles();
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".autocomplete-container")) {
+      document.querySelectorAll(".material-dropdown").forEach((dropdown) => {
+        dropdown.style.display = "none";
+      });
     }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.autocomplete-container')) {
-            document.querySelectorAll('.material-dropdown').forEach(dropdown => {
-                dropdown.style.display = 'none';
-            });
-        }
-    });
+  });
 }
 
 function addAutocompleteStyles() {
-    const style = document.createElement('style');
-    style.id = 'autocomplete-styles';
-    style.textContent = `
+  const style = document.createElement("style");
+  style.id = "autocomplete-styles";
+  style.textContent = `
         .autocomplete-container {
             position: relative;
         }
@@ -534,6 +636,37 @@ function addAutocompleteStyles() {
             cursor: not-allowed;
         }
         
+        /* CSS cho nút X */
+        .clear-material-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        
+        .clear-material-btn:hover {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .material-input:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .material-option {
@@ -556,54 +689,54 @@ function addAutocompleteStyles() {
             }
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 // Form validation setup
 function setupFormValidation() {
-    const orderForm = document.getElementById('orderForm');
+  const orderForm = document.getElementById("orderForm");
 
-    if (orderForm) {
-        orderForm.addEventListener('submit', function (e) {
-            // Check number of items
-            const orderItems = document.querySelectorAll('.order-item');
+  if (orderForm) {
+    orderForm.addEventListener("submit", function (e) {
+      // Check number of items
+      const orderItems = document.querySelectorAll(".order-item");
 
-            if (orderItems.length === 0) {
-                e.preventDefault();
-                showErrorModal();
-                return false;
-            }
+      if (orderItems.length === 0) {
+        e.preventDefault();
+        showErrorModal();
+        return false;
+      }
 
-            // Check if all items have materials selected
-            let hasInvalidItems = false;
-            orderItems.forEach(item => {
-                const materialIdInput = item.querySelector('.material-id-input');
-                if (!materialIdInput.value) {
-                    hasInvalidItems = true;
-                    item.classList.add('error-highlight');
-                }
-            });
+      // Check if all items have materials selected
+      let hasInvalidItems = false;
+      orderItems.forEach((item) => {
+        const materialIdInput = item.querySelector(".material-id-input");
+        if (!materialIdInput.value) {
+          hasInvalidItems = true;
+          item.classList.add("error-highlight");
+        }
+      });
 
-            if (hasInvalidItems) {
-                e.preventDefault();
-                alert('Please select materials for all items before submitting.');
-                return false;
-            }
+      if (hasInvalidItems) {
+        e.preventDefault();
+        alert("Please select materials for all items before submitting.");
+        return false;
+      }
 
-            // Check for duplicate items and show modal
-            const duplicateItems = document.querySelectorAll('.duplicate-warning');
-            if (duplicateItems.length > 0) {
-                e.preventDefault();
-                showDuplicateModal();
-                return false;
-            }
-        });
-    }
+      // Check for duplicate items and show modal
+      const duplicateItems = document.querySelectorAll(".duplicate-warning");
+      if (duplicateItems.length > 0) {
+        e.preventDefault();
+        showDuplicateModal();
+        return false;
+      }
+    });
+  }
 }
 
 // Modal creation functions
 function createDuplicateModal() {
-    const modalHtml = `
+  const modalHtml = `
         <div id="duplicateModal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div class="modal-header">
@@ -644,12 +777,12 @@ function createDuplicateModal() {
         </div>
     `;
 
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    addDuplicateModalStyles();
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+  addDuplicateModalStyles();
 }
 
 function createErrorModal() {
-    const modalHtml = `
+  const modalHtml = `
         <div id="errorModal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div class="modal-header">
@@ -681,47 +814,47 @@ function createErrorModal() {
         </div>
     `;
 
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    addErrorModalStyles();
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+  addErrorModalStyles();
 }
 
 function showErrorModal() {
-    const modal = document.getElementById('errorModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        setTimeout(() => {
-            modal.classList.add('show');
-        }, 10);
-    }
+  const modal = document.getElementById("errorModal");
+  if (modal) {
+    modal.style.display = "flex";
+    setTimeout(() => {
+      modal.classList.add("show");
+    }, 10);
+  }
 }
 
 function hideErrorModal() {
-    const modal = document.getElementById('errorModal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-    }
+  const modal = document.getElementById("errorModal");
+  if (modal) {
+    modal.classList.remove("show");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 300);
+  }
 }
 
 function hideErrorModalAndAddItem() {
-    hideErrorModal();
-    setTimeout(() => {
-        addOrderItem();
-        const container = document.getElementById("orderItemsContainer");
-        if (container) {
-            container.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-        }
-    }, 350);
+  hideErrorModal();
+  setTimeout(() => {
+    addOrderItem();
+    const container = document.getElementById("orderItemsContainer");
+    if (container) {
+      container.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, 350);
 }
 
 function addDuplicateWarningStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
+  const style = document.createElement("style");
+  style.textContent = `
         .duplicate-warning {
             border: 2px solid #ffc107 !important;
             background-color: #fff8e1;
@@ -755,12 +888,12 @@ function addDuplicateWarningStyles() {
             background-color: #fff5f5;
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 function addDuplicateModalStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
+  const style = document.createElement("style");
+  style.textContent = `
         .warning-box {
             background: linear-gradient(135deg, #fff8f0 0%, #ffeaa7 100%);
             border: 1px solid #ffc107;
@@ -810,12 +943,12 @@ function addDuplicateModalStyles() {
             color: #212529;
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 function addErrorModalStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
+  const style = document.createElement("style");
+  style.textContent = `
         .error-box {
             background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
             border: 1px solid #feb2b2;
@@ -887,36 +1020,36 @@ function addErrorModalStyles() {
             margin-right: 8px;
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 // Close modal when clicking outside or pressing ESC
-document.addEventListener('click', function (e) {
-    if (e.target && e.target.id === 'cancelModal') {
-        hideCancelModal();
-    }
-    if (e.target && e.target.id === 'errorModal') {
-        hideErrorModal();
-    }
-    if (e.target && e.target.id === 'duplicateModal') {
-        hideDuplicateModal();
-    }
+document.addEventListener("click", function (e) {
+  if (e.target && e.target.id === "cancelModal") {
+    hideCancelModal();
+  }
+  if (e.target && e.target.id === "errorModal") {
+    hideErrorModal();
+  }
+  if (e.target && e.target.id === "duplicateModal") {
+    hideDuplicateModal();
+  }
 });
 
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        const cancelModal = document.getElementById('cancelModal');
-        const errorModal = document.getElementById('errorModal');
-        const duplicateModal = document.getElementById('duplicateModal');
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    const cancelModal = document.getElementById("cancelModal");
+    const errorModal = document.getElementById("errorModal");
+    const duplicateModal = document.getElementById("duplicateModal");
 
-        if (cancelModal && cancelModal.style.display === 'flex') {
-            hideCancelModal();
-        }
-        if (errorModal && errorModal.style.display === 'flex') {
-            hideErrorModal();
-        }
-        if (duplicateModal && duplicateModal.style.display === 'flex') {
-            hideDuplicateModal();
-        }
+    if (cancelModal && cancelModal.style.display === "flex") {
+      hideCancelModal();
     }
+    if (errorModal && errorModal.style.display === "flex") {
+      hideErrorModal();
+    }
+    if (duplicateModal && duplicateModal.style.display === "flex") {
+      hideDuplicateModal();
+    }
+  }
 });

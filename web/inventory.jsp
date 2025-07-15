@@ -3,258 +3,434 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Current Inventory</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="icon" href="img/logo.png" type="image/png">
-        <link rel="stylesheet" href="css/bootstrap1.min.css" />
-        <link rel="stylesheet" href="vendors/themefy_icon/themify-icons.css" />
-        <link rel="stylesheet" href="vendors/swiper_slider/css/swiper.min.css" />
-        <link rel="stylesheet" href="vendors/select2/css/select2.min.css" />
-        <link rel="stylesheet" href="vendors/niceselect/css/nice-select.css" />
-        <link rel="stylesheet" href="vendors/owl_carousel/css/owl.carousel.css" />
-        <link rel="stylesheet" href="vendors/gijgo/gijgo.min.css" />
-        <link rel="stylesheet" href="vendors/font_awesome/css/all.min.css" />
-        <link rel="stylesheet" href="vendors/tagsinput/tagsinput.css" />
-        <link rel="stylesheet" href="vendors/datepicker/date-picker.css" />
-        <link rel="stylesheet" href="vendors/datatable/css/jquery.dataTables.min.css" />
-        <link rel="stylesheet" href="vendors/datatable/css/responsive.dataTables.min.css" />
-        <link rel="stylesheet" href="vendors/datatable/css/buttons.dataTables.min.css" />
-        <link rel="stylesheet" href="vendors/text_editor/summernote-bs4.css" />
-        <link rel="stylesheet" href="vendors/morris/morris.css" />
-        <link rel="stylesheet" href="vendors/material_icon/material-icons.css" />
-        <link rel="stylesheet" href="css/metisMenu.css" />
-        <link rel="stylesheet" href="css/style1.css" />
-        <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS" />
-        <style>
-            body {
-                font-family: "Segoe UI", Tahoma, sans-serif;
-                background-color: #f3f4f6;
-                margin: 0;
-                padding: 0;
-                color: #374151;
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Inventory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="img/logo.png" type="image/png">
+    <link rel="stylesheet" href="css/bootstrap1.min.css" />
+    <link rel="stylesheet" href="vendors/themefy_icon/themify-icons.css" />
+    <link rel="stylesheet" href="vendors/swiper_slider/css/swiper.min.css" />
+    <link rel="stylesheet" href="vendors/select2/css/select2.min.css" />
+    <link rel="stylesheet" href="vendors/niceselect/css/nice-select.css" />
+    <link rel="stylesheet" href="vendors/owl_carousel/css/owl.carousel.css" />
+    <link rel="stylesheet" href="vendors/gijgo/gijgo.min.css" />
+    <link rel="stylesheet" href="vendors/font_awesome/css/all.min.css" />
+    <link rel="stylesheet" href="vendors/tagsinput/tagsinput.css" />
+    <link rel="stylesheet" href="vendors/datepicker/date-picker.css" />
+    <link rel="stylesheet" href="vendors/datatable/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="vendors/datatable/css/responsive.dataTables.min.css" />
+    <link rel="stylesheet" href="vendors/datatable/css/buttons.dataTables.min.css" />
+    <link rel="stylesheet" href="vendors/text_editor/summernote-bs4.css" />
+    <link rel="stylesheet" href="vendors/morris/morris.css" />
+    <link rel="stylesheet" href="vendors/material_icon/material-icons.css" />
+    <link rel="stylesheet" href="css/metisMenu.css" />
+    <link rel="stylesheet" href="css/style1.css" />
+    <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .main-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 0;
+            background-color: #f8fafc;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 32px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        .stats-grid {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .stat-icon.usable {
+            color: #22c55e;
+        }
+
+        .stat-icon.not-usable {
+            color: #ef4444;
+        }
+
+        .stat-icon.import {
+            color: #10b981;
+        }
+
+        .stat-icon.export {
+            color: #f43f5e;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        .table-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        table.table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        table.table th {
+            background-color: #f8fafc;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        table.table td {
+            padding: 16px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        table.table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        table.table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-buttons .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 64px 32px;
+            color: #6b7280;
+            background-color: #f3f4f6;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        .no-data-icon {
+            font-size: 48px;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+
+        .modal-content {
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .detail-item {
+            margin-bottom: 14px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .detail-item strong {
+            color: #333;
+            width: 120px;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+        }
+
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #374151;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .pagination a:hover {
+            background-color: #f3f4f6;
+        }
+
+        .pagination .current {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .pagination .disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+
+        .search-input {
+    padding: 8px 16px 8px 52px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 400px;
+    background-color: white;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 14px;
+    z-index: 11;
+}
+
+        .search-input-container {
+            position: relative;
+        }
+
+        .form-select, .form-control {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: white;
+            transition: all 0.2s;
+            width: 280px;
+            margin-bottom: 10px;
+        }
+
+        .form-select:focus, .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-outline-primary {
+            background-color: transparent;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #f3f4f6;
+        }
+
+        .material-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
             }
-            .main_content {
-                flex: 1;
-                margin-left: 260px;
-                padding: 0;
-                background-color: #f8fafc;
-                min-height: 100vh;
-                transition: margin-left 0.3s ease;
-            }
+
             .container {
-                padding-top: 24px;
-                padding-bottom: 24px;
-                padding-left: 290px;
-                max-width: 1404px;
-                margin: 0 auto;
+                padding: 10px;
             }
+
             .title {
-                font-size: 28px;
-                font-weight: 600;
-                color: #1f2937;
-                margin-bottom: 16px;
+                font-size: 20px;
             }
-            .subtitle {
-                font-size: 16px;
-                color: #6b7280;
-                margin-bottom: 24px;
-            }
+
             .stats-grid {
-                display: flex;
+                flex-direction: column;
+            }
+
+            .header-actions {
+                flex-direction: column;
                 gap: 16px;
-                margin-bottom: 24px;
+                align-items: stretch;
             }
-            .stat-card {
-                background-color: white;
-                border-radius: 8px;
-                padding: 16px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-                flex: 1;
-                text-align: center;
+
+            .search-container {
+                flex-direction: column;
+                gap: 10px;
             }
-            .stat-icon {
-                font-size: 24px;
-                margin-bottom: 8px;
+
+            .filter-row {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
             }
-            .stat-icon.usable {
-                color: #22c55e;
-            }
-            .stat-icon.not-usable {
-                color: #ef4444;
-            }
-            .stat-value {
-                font-size: 24px;
-                font-weight: 600;
-                color: #1f2937;
-            }
-            .stat-label {
-                font-size: 14px;
-                color: #6b7280;
-                text-transform: uppercase;
-            }
-            .table-container {
-                overflow-x: auto;
-                background-color: white;
-                border-radius: 12px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-            }
-            table.table {
+
+            .search-input, .form-select, .form-control {
                 width: 100%;
-                border-collapse: collapse;
-                min-width: 800px; /* Adjusted for fewer columns */
+                min-width: 200px;
             }
-            table.table th, table.table td {
-                padding: 12px 16px;
-                text-align: left;
-                border-bottom: 1px solid #e5e7eb;
-                font-size: 14px;
-                vertical-align: middle;
-            }
-            table.table th {
-                background-color: #f3f4f6;
-                font-weight: 600;
-                color: #1f2937;
-            }
-            table.table tbody tr:nth-child(even) {
-                background-color: #f9fafb;
-            }
-            table.table tbody tr:hover {
-                background-color: #eef2ff;
-            }
+
             .action-buttons {
-                display: flex;
-                gap: 8px;
+                flex-direction: column;
+                gap: 4px;
             }
-            .action-buttons .btn {
-                padding: 6px 12px;
-                font-size: 12px;
-                border-radius: 10px;
+
+            .material-image {
+                width: 40px;
+                height: 40px;
             }
-            .no-data {
-                text-align: center;
-                padding: 16px;
-                background-color: #f3f4f6;
-                border-radius: 8px;
-                font-size: 16px;
-                color: #6b7280;
+        }
+
+        @media (min-width: 769px) {
+            .search-container {
+                max-width: 800px;
             }
-            .modal-content {
-                background-color: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            }
-            .modal-header {
-                background-color: #f3f4f6;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            .modal-title {
-                font-size: 18px;
-                font-weight: 600;
-                color: #1f2937;
-            }
-            .modal-body {
-                padding: 24px;
-            }
-            .detail-item {
-                margin-bottom: 14px;
-                display: flex;
-                gap: 8px;
-            }
-            .detail-item strong {
-                color: #333;
-                width: 120px;
-                font-weight: 600;
-            }
-            .error {
-                color: #dc3545;
-                font-size: 14px;
-            }
-            .pagination {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 8px;
-                margin-top: 32px;
-            }
-            .pagination a, .pagination span {
-                padding: 8px 12px;
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                text-decoration: none;
-                color: #374151;
-                font-size: 14px;
-                transition: all 0.2s;
-            }
-            .pagination a:hover {
-                background-color: #f3f4f6;
-            }
-            .pagination .current {
-                background-color: #3b82f6;
-                color: white;
-                border-color: #3b82f6;
-            }
-            .form-select, .form-control {
-                border-radius: 6px;
-                padding: 8px;
-                font-size: 14px;
-                border: 1px solid #d1d5db;
-            }
-            .form-select:focus, .form-control:focus {
-                border-color: #3b82f6;
-                box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
-            }
-            .input-group .btn-search {
-                background-color:#0f3151; 
-                padding: 8px 16px;
-                font-size: 14px;
-                font-weight: 500;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                transition: background-color 0.2s ease, transform 0.2s ease;
-            }
-            .input-group .btn-search:hover {
-                background-color: #2563eb;
-                transform: translateY(-1px);
-            }
-            .input-group .btn-search:active {
-                transform: translateY(0);
-            }
-            @media (max-width: 768px) {
-                .main_content {
-                    margin-left: 0;
-                    padding: 10px;
-                }
-                .container {
-                    padding: 10px;
-                }
-                .stats-grid {
-                    flex-direction: column;
-                }
-                .row {
-                    flex-direction: column;
-                }
-                .table-container {
-                    overflow-x: auto;
-                }
-                .action-buttons {
-                    flex-direction: column;
-                    gap: 4px;
-                }
-                .input-group .btn-search {
-                    padding: 6px 12px;
-                    font-size: 12px;
-                }
-            }
-        </style>
-    </head>
-    <body>
+        }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
         <jsp:include page="sidebar.jsp" flush="true" />
-        <section class="main-content">
+        <div class="main-content">
             <%@ include file="navbar.jsp" %>
             <div class="container">
                 <h1 class="title">Current Inventory</h1>
@@ -272,49 +448,71 @@
                         <div class="stat-value" id="notUsableItems"><fmt:formatNumber value="${summary.notAvailableQty}" pattern="#,##0.00"/></div>
                         <div class="stat-label">Not Usable Materials</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon import"><i class="fas fa-arrow-up"></i></div>
+                        <div class="stat-value" id="totalImport"><fmt:formatNumber value="${summary.totalImport}" pattern="#,##0.00"/></div>
+                        <div class="stat-label">Total Import</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon export"><i class="fas fa-arrow-down"></i></div>
+                        <div class="stat-value" id="totalExport"><fmt:formatNumber value="${summary.totalExport}" pattern="#,##0.00"/></div>
+                        <div class="stat-label">Total Export</div>
+                    </div>
                 </div>
 
                 <!-- Filters -->
-                <form action="${pageContext.request.contextPath}/inventory" method="get" id="filterForm">
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-3">
-                            <select class="form-select" id="categoryFilter" name="categoryId">
-                                <option value="0" ${categoryId == 0 ? 'selected' : ''}>All Categories</option>
-                                <c:forEach var="category" items="${categoryList}">
-                                    <option value="${category.categoryId}" ${category.categoryId == categoryId ? 'selected' : ''}><c:out value="${category.name}"/></option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="qualityFilter" name="qualityId">
-                                <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
-                                <c:forEach var="quality" items="${qualityList}">
-                                    <option value="${quality.qualityId}" ${quality.qualityId == qualityId ? 'selected' : ''}><c:out value="${quality.qualityName}"/></option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="sortByFilter" name="sortBy">
-                                <option value="material_id ASC" ${sortBy == 'material_id ASC' ? 'selected' : ''}>Material ID (Asc)</option>
-                                <option value="material_id DESC" ${sortBy == 'material_id DESC' ? 'selected' : ''}>Material ID (Desc)</option>
-                                <option value="material_name ASC" ${sortBy == 'material_name ASC' ? 'selected' : ''}>Material Name (Asc)</option>
-                                <option value="material_name DESC" ${sortBy == 'material_name DESC' ? 'selected' : ''}>Material Name (Desc)</option>
-                                <option value="available_qty ASC" ${sortBy == 'available_qty ASC' ? 'selected' : ''}>Available Qty (Asc)</option>
-                                <option value="available_qty DESC" ${sortBy == 'available_qty DESC' ? 'selected' : ''}>Available Qty (Desc)</option>
-                                <option value="not_available_qty ASC" ${sortBy == 'not_available_qty ASC' ? 'selected' : ''}>Not Available Qty (Asc)</option>
-                                <option value="not_available_qty DESC" ${sortBy == 'not_available_qty DESC' ? 'selected' : ''}>Not Available Qty (Desc)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                <input type="text" id="searchInput" name="searchTerm" class="form-control" placeholder="Search..." value="${searchTerm}">
-                                <button style="margin-left: 5px;" class="btn btn-primary btn-md rounded-pill btn-search" type="submit">
-                                    <i class="fas fa-search"></i> Search
-                                </button>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <form action="${pageContext.request.contextPath}/inventory" method="get" id="filterForm">
+                            <div class="filter-row">
+                                <div class="search-input-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input class="search-input form-control" type="text" id="searchInput" name="searchTerm" placeholder="Search..." value="${searchTerm}"/>
+                                </div>
+                                <select class="form-select" id="categoryFilter" name="categoryId">
+                                    <option value="0" ${categoryId == 0 ? 'selected' : ''}>All Categories</option>
+                                    <c:forEach var="category" items="${categoryList}">
+                                        <option value="${category.categoryId}" ${category.categoryId == categoryId ? 'selected' : ''}><c:out value="${category.name}"/></option>
+                                    </c:forEach>
+                                </select>
+                                <select class="form-select" id="qualityFilter" name="qualityId">
+                                    <option value="0" ${qualityId == 0 ? 'selected' : ''}>All Qualities</option>
+                                    <c:forEach var="quality" items="${qualityList}">
+                                        <option value="${quality.qualityId}" ${quality.qualityId == qualityId ? 'selected' : ''}><c:out value="${quality.qualityName}"/></option>
+                                    </c:forEach>
+                                </select>
+                                <select class="form-select" id="sortByFilter" name="sortBy">
+                                    <option value="material_id ASC" ${sortBy == 'material_id ASC' ? 'selected' : ''}>Material ID (Asc)</option>
+                                    <option value="material_id DESC" ${sortBy == 'material_id DESC' ? 'selected' : ''}>Material ID (Desc)</option>
+                                    <option value="material_name ASC" ${sortBy == 'material_name ASC' ? 'selected' : ''}>Material Name (Asc)</option>
+                                    <option value="material_name DESC" ${sortBy == 'material_name DESC' ? 'selected' : ''}>Material Name (Desc)</option>
+                                    <option value="available_qty ASC" ${sortBy == 'available_qty ASC' ? 'selected' : ''}>Available Qty (Asc)</option>
+                                    <option value="available_qty DESC" ${sortBy == 'available_qty DESC' ? 'selected' : ''}>Available Qty (Desc)</option>
+                                    <option value="not_available_qty ASC" ${sortBy == 'not_available_qty ASC' ? 'selected' : ''}>Not Available Qty (Asc)</option>
+                                    <option value="not_available_qty DESC" ${sortBy == 'not_available_qty DESC' ? 'selected' : ''}>Not Available Qty (Desc)</option>
+                                    <option value="import_qty ASC" ${sortBy == 'import_qty ASC' ? 'selected' : ''}>Import Qty (Asc)</option>
+                                    <option value="import_qty DESC" ${sortBy == 'import_qty DESC' ? 'selected' : ''}>Import Qty (Desc)</option>
+                                    <option value="export_qty ASC" ${sortBy == 'export_qty ASC' ? 'selected' : ''}>Export Qty (Asc)</option>
+                                    <option value="export_qty DESC" ${sortBy == 'export_qty DESC' ? 'selected' : ''}>Export Qty (Desc)</option>
+                                </select>
                             </div>
-                        </div>
+                            <div class="filter-row">
+                                <select class="form-select" id="periodFilter" name="period" onchange="handlePeriodChange()">
+                                    <option value="all" ${period == 'all' ? 'selected' : ''}>All Time</option>
+                                    <option value="7" ${period == '7' ? 'selected' : ''}>Last 7 Days</option>
+                                    <option value="30" ${period == '30' ? 'selected' : ''}>Last 30 Days</option>
+                                    <option value="180" ${period == '180' ? 'selected' : ''}>Last 6 Months</option>
+                                    <option value="365" ${period == '365' ? 'selected' : ''}>Last Year</option>
+                                    <option value="custom" ${period == 'custom' ? 'selected' : ''}>Custom Range</option>
+                                </select>
+                                <input type="date" class="form-control" id="startDate" name="startDate" value="${startDate}" style="${period == 'custom' ? '' : 'display: none;'}"/>
+                                <input type="date" class="form-control" id="endDate" name="endDate" value="${endDate}" style="${period == 'custom' ? '' : 'display: none;'}"/>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
 
                 <!-- Error Message -->
                 <c:if test="${not empty errorMsg}">
@@ -325,17 +523,29 @@
                     </div>
                 </c:if>
 
+                <!-- No Transactions Message -->
+                <c:if test="${empty inventoryList && not empty period}">
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No transactions found for the selected period.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </c:if>
+
                 <!-- Table -->
                 <div class="table-container mb-4">
                     <table class="table" id="inventoryTable">
                         <thead>
                             <tr>
                                 <th style="width: 40px">#</th>
+                                <th style="width: 80px">Image</th>
                                 <th>Material</th>
                                 <th>Category</th>
                                 <th>Unit</th>
                                 <th>Available</th>
                                 <th>Not Available</th>
+                                <th>Import</th>
+                                <th>Export</th>
                                 <th style="width: 100px">Actions</th>
                             </tr>
                         </thead>
@@ -343,20 +553,32 @@
                             <c:choose>
                                 <c:when test="${not empty inventoryList}">
                                     <c:forEach var="item" items="${inventoryList}" varStatus="status">
-                                        <tr data-material-id="${item.materialId}" data-subunit-id="${item.subUnitId}" data-category-id="${item.categoryId}">
+                                        <tr data-material-id="${item.materialId}" data-unit-id="${item.unitId}">
                                             <td class="row-number"><strong>${status.index + 1}</strong></td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${not empty item.image}">
+                                                        <img src="${item.image}" alt="${item.materialName}" class="material-image" />
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <img src="img/default-material.png" alt="No Image" class="material-image" />
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
                                             <td><c:out value="${item.materialName}"/></td>
                                             <td><c:out value="${item.categoryName}"/></td>
-                                            <td><c:out value="${item.subUnitName}"/></td>
+                                            <td><c:out value="${item.unitName}"/></td>
                                             <td><fmt:formatNumber value="${item.availableQty}" pattern="#,##0.00"/></td>
                                             <td><fmt:formatNumber value="${item.notAvailableQty}" pattern="#,##0.00"/></td>
+                                            <td><fmt:formatNumber value="${item.importQty}" pattern="#,##0.00"/></td>
+                                            <td><fmt:formatNumber value="${item.exportQty}" pattern="#,##0.00"/></td>
                                             <td>
                                                 <div class="action-buttons">
                                                     <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailModal"
-                                                            onclick="viewDetails(${item.materialId}, ${item.subUnitId})">
+                                                            onclick="viewDetails(${item.materialId}, ${item.unitId})">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                    <a href="inventoryhistory?materialId=${item.materialId}&subUnitId=${item.subUnitId}" class="btn btn-warning btn-sm">
+                                                    <a href="inventoryhistory?materialId=${item.materialId}&unitId=${item.unitId}" class="btn btn-warning btn-sm">
                                                         <i class="fas fa-history"></i>
                                                     </a>
                                                 </div>
@@ -366,7 +588,10 @@
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="7" class="no-data">No inventory items found</td>
+                                        <td colspan="10" class="no-data">
+                                            <i class="fas fa-exclamation-circle no-data-icon"></i><br>
+                                            No inventory items found
+                                        </td>
                                     </tr>
                                 </c:otherwise>
                             </c:choose>
@@ -390,6 +615,12 @@
                             </div>
                             <div class="modal-body">
                                 <div class="detail-item">
+                                    <strong>Image:</strong>
+                                    <span>
+                                        <img src="img/default-material.png" alt="No Image" class="material-image" id="modal-image"/>
+                                    </span>
+                                </div>
+                                <div class="detail-item">
                                     <strong>Material:</strong>
                                     <span id="modal-material-name"></span>
                                 </div>
@@ -399,7 +630,7 @@
                                 </div>
                                 <div class="detail-item">
                                     <strong>Unit:</strong>
-                                    <span id="modal-subunit-name"></span>
+                                    <span id="modal-unit-name"></span>
                                 </div>
                                 <div class="detail-item">
                                     <strong>Available Qty:</strong>
@@ -431,61 +662,152 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            let pageSize = 5;
-            let currentPage = 1;
-            let allRows = [];
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let pageSize = 5;
+        let currentPage = 1;
+        let allRows = [];
 
-            window.addEventListener("DOMContentLoaded", function () {
-                allRows = Array.from(document.querySelectorAll("#inventoryTable tbody tr:not(.no-data)"));
-                updatePagination();
-                updateTable();
-                console.log("Inventory table loaded with " + allRows.length + " rows");
-            });
+        window.addEventListener("DOMContentLoaded", function () {
+            allRows = Array.from(document.querySelectorAll("#inventoryTable tbody tr:not(.no-data)"));
+            updatePagination();
+            updateTable();
+            console.log("Inventory table loaded with " + allRows.length + " rows");
+        });
 
-            function updateTable() {
-                if (allRows.length === 0) {
-                    console.log("No rows to display");
-                    return;
-                }
-
-                allRows.forEach((row) => {
-                    row.style.display = "none";
-                });
-
-                const start = (currentPage - 1) * pageSize;
-                const end = Math.min(start + pageSize, allRows.length);
-                const rowsToShow = allRows.slice(start, end);
-
-                rowsToShow.forEach((row, index) => {
-                    row.style.display = "";
-                    const rowNumberCell = row.querySelector(".row-number strong");
-                    rowNumberCell.textContent = start + index + 1;
-                });
-
-                console.log(`Displaying rows ${start + 1} to ${end} of ${allRows.length}`);
+        function updateTable() {
+            if (allRows.length === 0) {
+                console.log("No rows to display");
+                return;
             }
 
-            function updatePagination() {
-                const totalPages = Math.ceil(allRows.length / pageSize);
-                const pagination = document.getElementById("pagination");
-                pagination.innerHTML = "";
+            allRows.forEach((row) => {
+                row.style.display = "none";
+            });
 
-                if (totalPages <= 1) {
-                    console.log("Only one page, hiding pagination");
-                    return;
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, allRows.length);
+            const rowsToShow = allRows.slice(start, end);
+
+            rowsToShow.forEach((row, index) => {
+                row.style.display = "";
+                const rowNumberCell = row.querySelector(".row-number strong");
+                rowNumberCell.textContent = start + index + 1;
+            });
+
+            console.log(`Displaying rows ${start + 1} to ${end} of ${allRows.length}`);
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(allRows.length / pageSize);
+            const pagination = document.getElementById("pagination");
+            pagination.innerHTML = "";
+
+            if (totalPages <= 1) {
+                console.log("Only one page, hiding pagination");
+                return;
+            }
+
+            console.log(`Rendering pagination: currentPage=${currentPage}, totalPages=${totalPages}`);
+
+            if (currentPage > 1) {
+                const first = document.createElement("a");
+                first.href = "#";
+                first.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+                first.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    currentPage = 1;
+                    updatePagination();
+                    updateTable();
+                });
+                pagination.appendChild(first);
+
+                const prev = document.createElement("a");
+                prev.href = "#";
+                prev.innerHTML = '<i class="fas fa-angle-left"></i>';
+                prev.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    currentPage--;
+                    updatePagination();
+                    updateTable();
+                });
+                pagination.appendChild(prev);
+            } else {
+                const disabledFirst = document.createElement("span");
+                disabledFirst.className = "disabled";
+                disabledFirst.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+                pagination.appendChild(disabledFirst);
+
+                const disabledPrev = document.createElement("span");
+                disabledPrev.className = "disabled";
+                disabledPrev.innerHTML = '<i class="fas fa-angle-left"></i>';
+                pagination.appendChild(disabledPrev);
+            }
+
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPage) {
+                        const current = document.createElement("span");
+                        current.className = "current";
+                        current.textContent = i;
+                        pagination.appendChild(current);
+                    } else {
+                        const pageLink = document.createElement("a");
+                        pageLink.href = "#";
+                        pageLink.textContent = i;
+                        pageLink.addEventListener("click", (event) => {
+                            event.preventDefault();
+                            currentPage = i;
+                            updatePagination();
+                            updateTable();
+                        });
+                        pagination.appendChild(pageLink);
+                    }
                 }
+            } else {
+                if (currentPage <= 4) {
+                    for (let i = 1; i <= 5; i++) {
+                        if (i === currentPage) {
+                            const current = document.createElement("span");
+                            current.className = "current";
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement("a");
+                            pageLink.href = "#";
+                            pageLink.textContent = i;
+                            pageLink.addEventListener("click", (event) => {
+                                event.preventDefault();
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+                    const dots = document.createElement("span");
+                    dots.style.padding = "8px 4px";
+                    dots.textContent = "...";
+                    pagination.appendChild(dots);
 
-                console.log(`Rendering pagination: currentPage=${currentPage}, totalPages=${totalPages}`);
-
-                if (currentPage > 1) {
+                    const last = document.createElement("a");
+                    last.href = "#";
+                    last.textContent = totalPages;
+                    last.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        currentPage = totalPages;
+                        updatePagination();
+                        updateTable();
+                    });
+                    pagination.appendChild(last);
+                } else if (currentPage >= totalPages - 3) {
                     const first = document.createElement("a");
                     first.href = "#";
-                    first.innerHTML = '<i class="fas fa-angle-double-left"></i>';
+                    first.textContent = "1";
                     first.addEventListener("click", (event) => {
                         event.preventDefault();
                         currentPage = 1;
@@ -494,39 +816,20 @@
                     });
                     pagination.appendChild(first);
 
-                    const prev = document.createElement("a");
-                    prev.href = "#";
-                    prev.innerHTML = '<i class="fas fa-angle-left"></i>';
-                    prev.addEventListener("click", (event) => {
-                        event.preventDefault();
-                        currentPage--;
-                        updatePagination();
-                        updateTable();
-                    });
-                    pagination.appendChild(prev);
-                } else {
-                    const disabledFirst = document.createElement("span");
-                    disabledFirst.className = "text-muted me-2";
-                    disabledFirst.innerHTML = '<i class="fas fa-angle-double-left"></i>';
-                    pagination.appendChild(disabledFirst);
+                    const dots = document.createElement("span");
+                    dots.style.padding = "8px 4px";
+                    dots.textContent = "...";
+                    pagination.appendChild(dots);
 
-                    const disabledPrev = document.createElement("span");
-                    disabledPrev.className = "text-muted me-2";
-                    disabledPrev.innerHTML = '<i class="fas fa-angle-left"></i>';
-                    pagination.appendChild(disabledPrev);
-                }
-
-                if (totalPages <= 7) {
-                    for (let i = 1; i <= totalPages; i++) {
+                    for (let i = totalPages - 4; i <= totalPages; i++) {
                         if (i === currentPage) {
                             const current = document.createElement("span");
-                            current.className = "px-2 mx-1 bg-primary text-white rounded current";
+                            current.className = "current";
                             current.textContent = i;
                             pagination.appendChild(current);
                         } else {
                             const pageLink = document.createElement("a");
                             pageLink.href = "#";
-                            pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
                             pageLink.textContent = i;
                             pageLink.addEventListener("click", (event) => {
                                 event.preventDefault();
@@ -538,230 +841,187 @@
                         }
                     }
                 } else {
-                    if (currentPage <= 4) {
-                        for (let i = 1; i <= 5; i++) {
-                            if (i === currentPage) {
-                                const current = document.createElement("span");
-                                current.className = "px-2 mx-1 bg-primary text-white rounded current";
-                                current.textContent = i;
-                                pagination.appendChild(current);
-                            } else {
-                                const pageLink = document.createElement("a");
-                                pageLink.href = "#";
-                                pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
-                                pageLink.textContent = i;
-                                pageLink.addEventListener("click", (event) => {
-                                    event.preventDefault();
-                                    currentPage = i;
-                                    updatePagination();
-                                    updateTable();
-                                });
-                                pagination.appendChild(pageLink);
-                            }
-                        }
-                        const dots = document.createElement("span");
-                        dots.className = "px-2 mx-1 text-muted";
-                        dots.textContent = "...";
-                        pagination.appendChild(dots);
-
-                        const last = document.createElement("a");
-                        last.href = "#";
-                        last.className = "px-2 mx-1 text-decoration-none text-dark";
-                        last.textContent = totalPages;
-                        last.addEventListener("click", (event) => {
-                            event.preventDefault();
-                            currentPage = totalPages;
-                            updatePagination();
-                            updateTable();
-                        });
-                        pagination.appendChild(last);
-                    } else if (currentPage >= totalPages - 3) {
-                        const first = document.createElement("a");
-                        first.href = "#";
-                        first.className = "px-2 mx-1 text-decoration-none text-dark";
-                        first.textContent = "1";
-                        first.addEventListener("click", (event) => {
-                            event.preventDefault();
-                            currentPage = 1;
-                            updatePagination();
-                            updateTable();
-                        });
-                        pagination.appendChild(first);
-
-                        const dots = document.createElement("span");
-                        dots.className = "px-2 mx-1 text-muted";
-                        dots.textContent = "...";
-                        pagination.appendChild(dots);
-
-                        for (let i = totalPages - 4; i <= totalPages; i++) {
-                            if (i === currentPage) {
-                                const current = document.createElement("span");
-                                current.className = "px-2 mx-1 bg-primary text-white rounded current";
-                                current.textContent = i;
-                                pagination.appendChild(current);
-                            } else {
-                                const pageLink = document.createElement("a");
-                                pageLink.href = "#";
-                                pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
-                                pageLink.textContent = i;
-                                pageLink.addEventListener("click", (event) => {
-                                    event.preventDefault();
-                                    currentPage = i;
-                                    updatePagination();
-                                    updateTable();
-                                });
-                                pagination.appendChild(pageLink);
-                            }
-                        }
-                    } else {
-                        const first = document.createElement("a");
-                        first.href = "#";
-                        first.className = "px-2 mx-1 text-decoration-none text-dark";
-                        first.textContent = "1";
-                        first.addEventListener("click", (event) => {
-                            event.preventDefault();
-                            currentPage = 1;
-                            updatePagination();
-                            updateTable();
-                        });
-                        pagination.appendChild(first);
-
-                        const dots1 = document.createElement("span");
-                        dots1.className = "px-2 mx-1 text-muted";
-                        dots1.textContent = "...";
-                        pagination.appendChild(dots1);
-
-                        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-                            if (i === currentPage) {
-                                const current = document.createElement("span");
-                                current.className = "px-2 mx-1 bg-primary text-white rounded current";
-                                current.textContent = i;
-                                pagination.appendChild(current);
-                            } else {
-                                const pageLink = document.createElement("a");
-                                pageLink.href = "#";
-                                pageLink.className = "px-2 mx-1 text-decoration-none text-dark";
-                                pageLink.textContent = i;
-                                pageLink.addEventListener("click", (event) => {
-                                    event.preventDefault();
-                                    currentPage = i;
-                                    updatePagination();
-                                    updateTable();
-                                });
-                                pagination.appendChild(pageLink);
-                            }
-                        }
-
-                        const dots2 = document.createElement("span");
-                        dots2.className = "px-2 mx-1 text-muted";
-                        dots2.textContent = "...";
-                        pagination.appendChild(dots2);
-
-                        const last = document.createElement("a");
-                        last.href = "#";
-                        last.className = "px-2 mx-1 text-decoration-none text-dark";
-                        last.textContent = totalPages;
-                        last.addEventListener("click", (event) => {
-                            event.preventDefault();
-                            currentPage = totalPages;
-                            updatePagination();
-                            updateTable();
-                        });
-                        pagination.appendChild(last);
-                    }
-                }
-
-                if (currentPage < totalPages) {
-                    const next = document.createElement("a");
-                    next.href = "#";
-                    next.innerHTML = '<i class="fas fa-angle-right"></i>';
-                    next.className = "ms-2 text-decoration-none text-dark";
-                    next.addEventListener("click", (event) => {
+                    const first = document.createElement("a");
+                    first.href = "#";
+                    first.textContent = "1";
+                    first.addEventListener("click", (event) => {
                         event.preventDefault();
-                        currentPage++;
+                        currentPage = 1;
                         updatePagination();
                         updateTable();
                     });
-                    pagination.appendChild(next);
+                    pagination.appendChild(first);
 
-                    const lastBtn = document.createElement("a");
-                    lastBtn.href = "#";
-                    lastBtn.innerHTML = '<i class="fas fa-angle-double-right"></i>';
-                    lastBtn.className = "ms-2 text-decoration-none text-dark";
-                    lastBtn.addEventListener("click", (event) => {
+                    const dots1 = document.createElement("span");
+                    dots1.style.padding = "8px 4px";
+                    dots1.textContent = "...";
+                    pagination.appendChild(dots1);
+
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        if (i === currentPage) {
+                            const current = document.createElement("span");
+                            current.className = "current";
+                            current.textContent = i;
+                            pagination.appendChild(current);
+                        } else {
+                            const pageLink = document.createElement("a");
+                            pageLink.href = "#";
+                            pageLink.textContent = i;
+                            pageLink.addEventListener("click", (event) => {
+                                event.preventDefault();
+                                currentPage = i;
+                                updatePagination();
+                                updateTable();
+                            });
+                            pagination.appendChild(pageLink);
+                        }
+                    }
+
+                    const dots2 = document.createElement("span");
+                    dots2.style.padding = "8px 4px";
+                    dots2.textContent = "...";
+                    pagination.appendChild(dots2);
+
+                    const last = document.createElement("a");
+                    last.href = "#";
+                    last.textContent = totalPages;
+                    last.addEventListener("click", (event) => {
                         event.preventDefault();
                         currentPage = totalPages;
                         updatePagination();
                         updateTable();
                     });
-                    pagination.appendChild(lastBtn);
-                } else {
-                    const disabledNext = document.createElement("span");
-                    disabledNext.className = "ms-2 text-muted";
-                    disabledNext.innerHTML = '<i class="fas fa-angle-right"></i>';
-                    pagination.appendChild(disabledNext);
-
-                    const disabledLast = document.createElement("span");
-                    disabledLast.className = "ms-2 text-muted";
-                    disabledLast.innerHTML = '<i class="fas fa-angle-double-right"></i>';
-                    pagination.appendChild(disabledLast);
+                    pagination.appendChild(last);
                 }
             }
 
-            function viewDetails(materialId, subUnitId) {
-                console.log(`viewDetails - Fetching data for materialId=${materialId}, subUnitId=${subUnitId}`);
-                $.ajax({
-                    url: '${pageContext.request.contextPath}/inventory',
-                    method: 'GET',
-                    data: {
-                        action: 'getLatestDetails',
-                        materialId: materialId,
-                        subUnitId: subUnitId
-                    },
-                    success: function (response) {
-                        console.log("viewDetails - AJAX success, response:", response);
-                        const modalBody = document.querySelector(".modal-body");
-                        const existingAlert = modalBody.querySelector(".alert");
-                        if (existingAlert) existingAlert.remove();
-
-                        if (response && (response.materialId || response.materialName)) {
-                            document.getElementById("modal-material-name").textContent = response.materialName || 'N/A';
-                            document.getElementById("modal-category-name").textContent = response.categoryName || 'N/A';
-                            document.getElementById("modal-subunit-name").textContent = response.subUnitName || 'N/A';
-                            document.getElementById("modal-available-qty").textContent = response.availableQty ? parseFloat(response.availableQty).toFixed(2) : '0.00';
-                            document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? parseFloat(response.notAvailableQty).toFixed(2) : '0.00';
-                            document.getElementById("modal-import-qty").textContent = response.importQty ? parseFloat(response.importQty).toFixed(2) : '0.00';
-                            document.getElementById("modal-export-qty").textContent = response.exportQty ? parseFloat(response.exportQty).toFixed(2) : '0.00';
-                            document.getElementById("modal-inventory-date").textContent = response.inventoryDate ? 
-                                new Date(response.inventoryDate).toLocaleDateString('en-GB', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric'
-                                }) : 'N/A';
-                        } else {
-                            console.warn("viewDetails - No valid data received");
-                            modalBody.insertAdjacentHTML('afterbegin', 
-                                '<div class="alert alert-warning">No recent inventory data found.</div>');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("viewDetails - AJAX error:", status, error, xhr.responseText);
-                        const modalBody = document.querySelector(".modal-body");
-                        const existingAlert = modalBody.querySelector(".alert");
-                        if (existingAlert) existingAlert.remove();
-                        modalBody.insertAdjacentHTML('afterbegin', 
-                            '<div class="alert alert-danger">Error fetching inventory details: ' + error + '</div>');
-                        document.getElementById("modal-material-name").textContent = 'N/A';
-                        document.getElementById("modal-category-name").textContent = 'N/A';
-                        document.getElementById("modal-subunit-name").textContent = 'N/A';
-                        document.getElementById("modal-available-qty").textContent = '0.00';
-                        document.getElementById("modal-not-available-qty").textContent = '0.00';
-                        document.getElementById("modal-import-qty").textContent = '0.00';
-                        document.getElementById("modal-export-qty").textContent = '0.00';
-                        document.getElementById("modal-inventory-date").textContent = 'N/A';
-                    }
+            if (currentPage < totalPages) {
+                const next = document.createElement("a");
+                next.href = "#";
+                next.innerHTML = '<i class="fas fa-angle-right"></i>';
+                next.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    currentPage++;
+                    updatePagination();
+                    updateTable();
                 });
+                pagination.appendChild(next);
+
+                const lastBtn = document.createElement("a");
+                lastBtn.href = "#";
+                lastBtn.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+                lastBtn.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    currentPage = totalPages;
+                    updatePagination();
+                    updateTable();
+                });
+                pagination.appendChild(lastBtn);
+            } else {
+                const disabledNext = document.createElement("span");
+                disabledNext.className = "disabled";
+                disabledNext.innerHTML = '<i class="fas fa-angle-right"></i>';
+                pagination.appendChild(disabledNext);
+
+                const disabledLast = document.createElement("span");
+                disabledLast.className = "disabled";
+                disabledLast.innerHTML = '<i class="fas fa-angle-double-right"></i>';
+                pagination.appendChild(disabledLast);
             }
-        </script>
-    </body>
+        }
+
+        function handlePeriodChange() {
+            const period = document.getElementById('periodFilter').value;
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            if (period === 'custom') {
+                startDateInput.style.display = 'block';
+                endDateInput.style.display = 'block';
+            } else {
+                startDateInput.style.display = 'none';
+                endDateInput.style.display = 'none';
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('categoryFilter').value = '0';
+            document.getElementById('qualityFilter').value = '0';
+            document.getElementById('sortByFilter').value = 'available_qty DESC';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('periodFilter').value = 'all';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('filterForm').submit();
+        }
+
+        function viewDetails(materialId, unitId) {
+            console.log(`viewDetails - Fetching data for materialId=${materialId}, unitId=${unitId}`);
+            $.ajax({
+                url: '${pageContext.request.contextPath}/inventory',
+                method: 'GET',
+                data: {
+                    action: 'getLatestDetails',
+                    materialId: materialId,
+                    unitId: unitId,
+                    period: '${period}',
+                    startDate: '${startDate}',
+                    endDate: '${endDate}'
+                },
+                success: function (response) {
+                    console.log("viewDetails - AJAX success, response:", response);
+                    const modalBody = document.querySelector(".modal-body");
+                    const existingAlert = modalBody.querySelector(".alert");
+                    if (existingAlert) existingAlert.remove();
+
+                    if (response && (response.materialId || response.materialName)) {
+                        const imageElement = modalBody.querySelector("#modal-image");
+                        if (response.image) {
+                            imageElement.src = response.image;
+                            imageElement.alt = response.materialName || 'Material Image';
+                        } else {
+                            imageElement.src = 'img/default-material.png';
+                            imageElement.alt = 'No Image';
+                        }
+                        document.getElementById("modal-material-name").textContent = response.materialName || 'N/A';
+                        document.getElementById("modal-category-name").textContent = response.categoryName || 'N/A';
+                        document.getElementById("modal-unit-name").textContent = response.unitName || 'N/A';
+                        document.getElementById("modal-available-qty").textContent = response.availableQty ? parseFloat(response.availableQty).toFixed(2) : '0.00';
+                        document.getElementById("modal-not-available-qty").textContent = response.notAvailableQty ? parseFloat(response.notAvailableQty).toFixed(2) : '0.00';
+                        document.getElementById("modal-import-qty").textContent = response.importQty ? parseFloat(response.importQty).toFixed(2) : '0.00';
+                        document.getElementById("modal-export-qty").textContent = response.exportQty ? parseFloat(response.exportQty).toFixed(2) : '0.00';
+                        document.getElementById("modal-inventory-date").textContent = response.inventoryDate ?
+                            new Date(response.inventoryDate).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                            }) : 'N/A';
+                    } else {
+                        console.warn("viewDetails - No valid data received");
+                        modalBody.insertAdjacentHTML('afterbegin',
+                            '<div class="alert alert-warning">No recent inventory data found.</div>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("viewDetails - AJAX error:", status, error, xhr.responseText);
+                    const modalBody = document.querySelector(".modal-body");
+                    const existingAlert = modalBody.querySelector(".alert");
+                    if (existingAlert) existingAlert.remove();
+                    modalBody.insertAdjacentHTML('afterbegin',
+                        '<div class="alert alert-danger">Error fetching inventory details: ' + error + '</div>');
+                    const imageElement = modalBody.querySelector("#modal-image");
+                    imageElement.src = 'img/default-material.png';
+                    imageElement.alt = 'No Image';
+                    document.getElementById("modal-material-name").textContent = 'N/A';
+                    document.getElementById("modal-category-name").textContent = 'N/A';
+                    document.getElementById("modal-unit-name").textContent = 'N/A';
+                    document.getElementById("modal-available-qty").textContent = '0.00';
+                    document.getElementById("modal-not-available-qty").textContent = '0.00';
+                    document.getElementById("modal-import-qty").textContent = '0.00';
+                    document.getElementById("modal-export-qty").textContent = '0.00';
+                    document.getElementById("modal-inventory-date").textContent = 'N/A';
+                }
+            });
+        }
+    </script>
+</body>
 </html>

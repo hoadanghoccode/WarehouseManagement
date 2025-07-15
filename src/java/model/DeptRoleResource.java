@@ -20,12 +20,12 @@ public class DeptRoleResource {
     private Boolean canView;
     private Boolean canUpdate;
     private Boolean canDelete;
+    private Integer userCount;
 
-    public DeptRoleResource(Integer departmentId, String departmentName, String description,
-                            Integer roleId, String roleName,
-                            Integer resourceId, String resourceName,
-                            Boolean canAdd, Boolean canView,
-                            Boolean canUpdate, Boolean canDelete) {
+    public DeptRoleResource() {
+    }
+
+    public DeptRoleResource(Integer departmentId, String description, String departmentName, Integer roleId, String roleName, Integer resourceId, String resourceName, Boolean canAdd, Boolean canView, Boolean canUpdate, Boolean canDelete, Integer userCount) {
         this.departmentId = departmentId;
         this.description = description;
         this.departmentName = departmentName;
@@ -37,6 +37,7 @@ public class DeptRoleResource {
         this.canView = canView;
         this.canUpdate = canUpdate;
         this.canDelete = canDelete;
+        this.userCount = userCount;
     }
 
     public Integer getDepartmentId() {
@@ -127,5 +128,13 @@ public class DeptRoleResource {
         this.canDelete = canDelete;
     }
 
-    
+    public Integer getUserCount() {
+        return userCount;
+    }
+
+    public void setUserCount(Integer userCount) {
+        this.userCount = userCount;
+    }
+
+   
 }

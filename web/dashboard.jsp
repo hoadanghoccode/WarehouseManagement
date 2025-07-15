@@ -222,8 +222,8 @@
                                                             </div>-->
 
                             <!-- Charts and Tables Row -->
-                            <div
-                                <!--Quick Actions-->
+<!--                            <div
+                                Quick Actions
                                 <div class="card mt-4">
                                     <div class="card-header">
                                         <h5 class="mb-0">Quick Actions</h5>
@@ -243,7 +243,7 @@
                                     </div>
 
                                 </div>
-                            </div>
+                            </div>-->
 
                             <div class="container mt-4">
                                 <h2 class="mb-3">📊 Thống kê số lượng vật tư theo tháng</h2>

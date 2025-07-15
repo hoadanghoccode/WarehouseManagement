@@ -373,6 +373,19 @@
             border-top: 2px solid #10b981;
             color: #1f2937;
         }
+        .custom-total-table .note-cell {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .custom-total-table .note-cell:hover {
+            overflow: visible;
+            white-space: normal;
+            background: #f1f5f9;
+            z-index: 100;
+            position: relative;
+        }
         .period-info-custom {
             background: linear-gradient(135deg, #d1fae5, #a7f3d0);
             color: #065f46;
@@ -413,17 +426,17 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </c:if>
-            <!-- Check for missing materialId or subUnitId -->
-            <c:if test="${empty materialId or empty subUnitId}">
+            <!-- Check for missing materialId or unitId -->
+            <c:if test="${empty materialId or empty unitId}">
                 <div class="alert alert-warning alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    Please select a material and subunit to view inventory history.
+                    Please select a material and unit to view inventory history.
                     <a href="/WarehouseManagement/inventory" class="btn btn-primary btn-sm ms-2">Select Material</a>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </c:if>
             <!-- Material Information Card -->
-            <c:if test="${not empty materialId and not empty subUnitId}">
+            <c:if test="${not empty materialId and not empty unitId}">
                 <c:choose>
                     <c:when test="${not empty materialInfo}">
                         <div class="material-info-card">
@@ -434,7 +447,7 @@
                                     <span class="detail-value"><c:out value="${materialInfo.categoryName}"/></span>
                                 </div>
                                 <div class="detail-item">
-                                    <span class="detail-label">Unit</span>
+                                    <span class="detail-label">Unit of Measure</span>
                                     <span class="detail-value"><c:out value="${materialInfo.subUnitName}"/></span>
                                 </div>
                                 <div class="detail-item">
@@ -543,7 +556,7 @@
                             </div>
                         </div>
                         <input type="hidden" name="materialId" value="${materialId}">
-                        <input type="hidden" name="subUnitId" value="${subUnitId}">
+                        <input type="hidden" name="unitId" value="${unitId}">
                     </form>
                 </div>
                 <!-- Info Alert -->
@@ -623,6 +636,7 @@
                                 <th>Not Available</th>
                                 <th>Import</th>
                                 <th>Export</th>
+                                <th>Note</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
@@ -649,6 +663,9 @@
                                             <td class="quantity-cell">
                                                 <fmt:formatNumber value="${item.exportQty}" pattern="#,##0.00"/>
                                             </td>
+                                            <td class="note-cell">
+                                                <c:out value="${item.note}"/>
+                                            </td>
                                         </tr>
                                     </c:forEach>
                                 </c:when>
@@ -669,7 +686,7 @@
                 <c:if test="${totalPages > 1}">
                     <div class="pagination" id="pagination">
                         <c:if test="${currentPage > 1}">
-                            <a href="/WarehouseManagement/inventoryhistory?materialId=${materialId}&subUnitId=${subUnitId}&dateRange=${dateRange}&startDate=${startDate}&endDate=${endDate}&transactionType=${transactionType}&sortBy=${sortBy}&page=${currentPage - 1}&totalPeriod=${totalPeriod}&totalStartDate=${totalStartDate}&totalEndDate=${totalEndDate}">« Prev</a>
+                            <a href="/WarehouseManagement/inventoryhistory?materialId=${materialId}&unitId=${unitId}&dateRange=${dateRange}&startDate=${startDate}&endDate=${endDate}&transactionType=${transactionType}&sortBy=${sortBy}&page=${currentPage - 1}&totalPeriod=${totalPeriod}&totalStartDate=${totalStartDate}&totalEndDate=${totalEndDate}">« Prev</a>
                         </c:if>
                         <c:forEach begin="1" end="${totalPages}" var="i">
                             <c:choose>
@@ -677,12 +694,12 @@
                                     <span class="current">${i}</span>
                                 </c:when>
                                 <c:otherwise>
-                                    <a href="/WarehouseManagement/inventoryhistory?materialId=${materialId}&subUnitId=${subUnitId}&dateRange=${dateRange}&startDate=${startDate}&endDate=${endDate}&transactionType=${transactionType}&sortBy=${sortBy}&page=${i}&totalPeriod=${totalPeriod}&totalStartDate=${totalStartDate}&totalEndDate=${totalEndDate}">${i}</a>
+                                    <a href="/WarehouseManagement/inventoryhistory?materialId=${materialId}&unitId=${unitId}&dateRange=${dateRange}&startDate=${startDate}&endDate=${endDate}&transactionType=${transactionType}&sortBy=${sortBy}&page=${i}&totalPeriod=${totalPeriod}&totalStartDate=${totalStartDate}&totalEndDate=${totalEndDate}">${i}</a>
                                 </c:otherwise>
                             </c:choose>
                         </c:forEach>
                         <c:if test="${currentPage < totalPages}">
-                            <a href="/WarehouseManagement/inventoryhistory?materialId=${materialId}&subUnitId=${subUnitId}&dateRange=${dateRange}&startDate=${startDate}&endDate=${endDate}&transactionType=${transactionType}&sortBy=${sortBy}&page=${currentPage + 1}&totalPeriod=${totalPeriod}&totalStartDate=${totalStartDate}&totalEndDate=${totalEndDate}">Next »</a>
+                            <a href="/WarehouseManagement/inventoryhistory?materialId=${materialId}&unitId=${unitId}&dateRange=${dateRange}&startDate=${startDate}&endDate=${endDate}&transactionType=${transactionType}&sortBy=${sortBy}&page=${currentPage + 1}&totalPeriod=${totalPeriod}&totalStartDate=${totalStartDate}&totalEndDate=${totalEndDate}">Next »</a>
                         </c:if>
                     </div>
                 </c:if>
