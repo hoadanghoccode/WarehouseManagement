@@ -113,6 +113,7 @@
                             <th>Read</th>
                             <th>Update</th>
                             <th>Delete</th>
+                            <th>User Count</th> <!-- Thêm cột này -->
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -286,8 +287,6 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-
-
         <script>
                                         // Mảng chứa các "entry" để render vào bảng
                                         // Mỗi entry tương ứng 1 department + 1 role + danh sách resources
@@ -301,20 +300,7 @@
                                                     return response.json();
                                                 })
                                                 .then(data => {
-                                                    // data có dạng mảng các object:
-                                                    // [
-                                                    //   {
-                                                    //     departmentId: 1,
-                                                    //     description: "...",
-                                                    //     departmentName: "Phòng Kế Toán",
-                                                    //     role: {
-                                                    //       roleId: 2,
-                                                    //       role: "Staff",
-                                                    //       resources: [ {resourceId:1,resourceName:"Product",canAdd:true,...}, … ]
-                                                    //     }
-                                                    //   },
-                                                    //   ...
-                                                    // ]
+                                                   
 
                                                     // Chuyển sang entries với cùng cấu trúc cho render
                                                     entries = data.map(dept => {
@@ -326,7 +312,8 @@
                                                                 description: dept.description,
                                                                 roleId: null,
                                                                 roleName: null,
-                                                                permissions: [] // rỗng
+                                                                permissions: [], // rỗng
+                                                                userCount: dept.userCount // Thêm userCount
                                                             };
                                                         }
                                                         // Ngược lại role không null
@@ -345,7 +332,8 @@
                                                                             canUpdate: res.canUpdate,
                                                                             canDelete: res.canDelete
                                                                         }))
-                                                                    : []
+                                                                    : [],
+                                                            userCount: dept.userCount // Thêm userCount
                                                         };
                                                     });
 
@@ -379,6 +367,11 @@
                                                     tdNoRole.colSpan = 5; // Giảm colspan xuống 4 để dành chỗ cho cột Actions
                                                     tdNoRole.className = 'text-center fst-italic text-muted';
                                                     tr.appendChild(tdNoRole);
+
+                                                    // Thêm cột User Count
+                                                    const tdUserCount = document.createElement('td');
+                                                    tdUserCount.textContent = entry.userCount ?? 0;
+                                                    tr.appendChild(tdUserCount);
 
                                                     // Thêm cột Actions với các nút chức năng
                                                     const tdAction = document.createElement('td');
@@ -486,8 +479,14 @@
                                                         tdDelete.appendChild(cbDelete);
                                                         tr.appendChild(tdDelete);
 
-                                                        // Chỉ dòng đầu tiên (j === 0) mới hiển thị cột Actions
+                                                        // Chỉ dòng đầu tiên (j === 0) mới hiển thị cột User Count và Actions
                                                         if (j === 0) {
+                                                            // Thêm cột User Count
+                                                            const tdUserCount = document.createElement('td');
+                                                            tdUserCount.textContent = entry.userCount ?? 0;
+                                                            tdUserCount.rowSpan = entry.permissions.length;
+                                                            tr.appendChild(tdUserCount);
+
                                                             const tdBtn = document.createElement('td');
                                                             tdBtn.rowSpan = entry.permissions.length;
 
@@ -761,7 +760,8 @@
                                                         description: dept.description,
                                                         roleId: null,
                                                         roleName: null,
-                                                        permissions: []
+                                                        permissions: [],
+                                                        userCount: dept.userCount // Thêm userCount
                                                     };
                                                 }
                                                 return {
@@ -779,7 +779,8 @@
                                                                     canUpdate: res.canUpdate,
                                                                     canDelete: res.canDelete
                                                                 }))
-                                                            : []
+                                                            : [],
+                                                    userCount: dept.userCount // Thêm userCount
                                                 };
                                             });
 
