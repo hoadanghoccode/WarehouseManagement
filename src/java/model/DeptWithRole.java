@@ -13,16 +13,20 @@ public class DeptWithRole {
     private String description;
     private String departmentName;
     private RoleData role; // có thể null nếu department chưa gán role
+    private Integer userCount;
 
     public DeptWithRole() {
     }
 
-    public DeptWithRole(Integer departmentId, String description, String departmentName, RoleData role) {
+    public DeptWithRole(Integer departmentId, String description, String departmentName, RoleData role, Integer userCount) {
         this.departmentId = departmentId;
         this.description = description;
         this.departmentName = departmentName;
         this.role = role;
+        this.userCount = userCount;
     }
+    
+    
 
     public Integer getDepartmentId() {
         return departmentId;
@@ -56,5 +60,13 @@ public class DeptWithRole {
         this.role = role;
     }
 
-    
+    public Integer getUserCount() {
+        return userCount;
+    }
+
+    public void setUserCount(Integer userCount) {
+        this.userCount = userCount;
+    }
+
+   
 }

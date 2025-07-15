@@ -73,14 +73,14 @@
                             <input type="text" name="search" value="${search}"
                                    placeholder="Search resources..." class="search-input"/>
                         </form>
-                        <c:if test="${perms['Permission_ADD']}">
+                        <!-- <c:if test="${perms['Permission_ADD']}">
                             <button id="addPermissionBtn"
                                     class="btn btn-success"
                                     data-bs-toggle="modal"
                                     data-bs-target="#addPermissionModal">
                                 Add Permission
                             </button>
-                        </c:if>
+                        </c:if> -->
 
                     </div>
                 </div>
@@ -180,7 +180,7 @@
                                         <th>#</th>
                                         <th>Name</th>
                                         <th>Description</th>
-                                        <th>Action</th>
+                                        <!-- Đã bỏ cột Action -->
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -189,17 +189,7 @@
                                             <td><strong>${(page-1)*pageSize + st.index + 1}</strong></td>
                                             <td>${res.name}</td>
                                             <td>${res.description}</td>
-                                            <td class="action-buttons">
-
-                                                <form class="delete-resource-form" style="display:inline;">
-                                                    <input type="hidden" name="resourceId" value="${res.resourceId}"/>
-                                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-
-
-                                            </td>
+                                            <!-- Đã bỏ cột Action -->
                                         </tr>
                                     </c:forEach>
 

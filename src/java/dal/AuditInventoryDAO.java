@@ -39,15 +39,19 @@ public class AuditInventoryDAO {
     // Lấy danh sách vật tư kiểm kê tồn kho (theo thiết kế query của bạn)
     public List<InventoryItem> getInventoryForAudit() throws SQLException {
         List<InventoryItem> result = new ArrayList<>();
-        String sql = "SELECT m.Material_id, m.Name AS Material_name, m.Image as Material_image, su.Name AS Unit_name, "
-                + "SUM(CASE WHEN q.Quality_name = 'available' THEN md.Quantity ELSE 0 END) AS Available_qty, "
-                + "SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE 0 END) AS NotAvailable_qty "
-                + "FROM Materials m "
-                + "JOIN Material_detail md ON md.Material_id = m.Material_id "
-                + "JOIN SubUnits su ON su.SubUnit_id = md.SubUnit_id "
-                + "JOIN Quality q ON q.Quality_id = md.Quality_id "
-                + "GROUP BY m.Material_id, m.Name, m.Image, su.Name "
-                + "ORDER BY m.Material_id, su.Name";
+        String sql = "SELECT \n"
+                + "    m.Material_id, \n"
+                + "    m.Name AS Material_name, \n"
+                + "    m.Image AS Material_image, \n"
+                + "    u.Name AS Unit_name,\n"
+                + "    SUM(CASE WHEN q.Quality_name = 'available' THEN md.Quantity ELSE 0 END) AS Available_qty,\n"
+                + "    SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE 0 END) AS NotAvailable_qty\n"
+                + "FROM Materials m\n"
+                + "JOIN Material_detail md ON md.Material_id = m.Material_id\n"
+                + "JOIN units u ON m.Unit_id = u.Unit_id\n"
+                + "JOIN quality q ON q.Quality_id = md.Quality_id\n"
+                + "GROUP BY m.Material_id, m.Name, m.Image, u.Name\n"
+                + "ORDER BY m.Material_id, u.Name;";
         try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 InventoryItem item = new InventoryItem();
@@ -314,7 +318,7 @@ public class AuditInventoryDAO {
     public List<InventoryAuditDetail> getDetailsByAuditId(int auditId) throws SQLException {
         List<InventoryAuditDetail> list = new ArrayList<>();
         String sql = "SELECT iad.*, "
-                + "md.Material_id, md.SubUnit_id, md.Quality_id "
+                + "md.Material_id, md.Quality_id "
                 + "FROM InventoryAuditDetail iad "
                 + "JOIN Material_detail md ON iad.Material_detail_id = md.Material_detail_id "
                 + "WHERE iad.Inventory_audit_id = ?";
@@ -332,7 +336,7 @@ public class AuditInventoryDAO {
                     detail.setReason(rs.getString("Reason"));
                     // Các trường bổ sung:
                     detail.setMaterialId(rs.getInt("Material_id"));
-                    detail.setSubUnitId(rs.getInt("SubUnit_id"));
+                    // ĐÃ BỎ SubUnit_id
                     detail.setQualityId(rs.getInt("Quality_id"));
                     list.add(detail);
                 }
@@ -350,6 +354,7 @@ public class AuditInventoryDAO {
         // 2. Lấy warehouse id duy nhất
         int warehouseId = getFirstWarehouseId(); // Viết hàm này như hướng dẫn trước, hoặc gán cứng 1 nếu luôn là 1 kho.
 
+        System.out.println("Creating adjustment orders for inventory audit ID: " + warehouseId);
         // 3. Chuẩn bị order nhập và order xuất (auto approve luôn)
         Order importOrder = null;
         Order exportOrder = null;
@@ -370,7 +375,6 @@ public class AuditInventoryDAO {
                 }
                 OrderDetail od = new OrderDetail();
                 od.setMaterialId(d.getMaterialId()); // Cần có getMaterialId trong model InventoryAuditDetail
-                od.setSubUnitId(d.getSubUnitId());   // Nên sửa model có subUnitId/qualityId nếu chưa có
                 od.setQuantity((int) difference);
                 od.setQualityId(d.getQualityId());
                 importDetails.add(od);
@@ -386,7 +390,6 @@ public class AuditInventoryDAO {
                 }
                 OrderDetail od = new OrderDetail();
                 od.setMaterialId(d.getMaterialId());
-                od.setSubUnitId(d.getSubUnitId());
                 od.setQuantity((int) Math.abs(difference));
                 od.setQualityId(d.getQualityId());
                 exportDetails.add(od);
