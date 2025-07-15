@@ -645,6 +645,7 @@
                             html += '<th style="width: 60px;">ID</th>';
                             html += '<th style="width: 70px;">Image</th>';
                             html += '<th>Name</th>';
+                            html += '<th>Unit</th>';
                             html += '<th style="width: 110px;">Available (System)</th>';
                             html += '<th style="width: 90px;">Available (Actual)</th>';
                             html += '<th style="width: 110px;">Not Available (System)</th>';
@@ -661,6 +662,7 @@
                                 }
                                 html += '</td>';
                                 html += '<td>' + item.materialName + '</td>';
+                                html += '<td>' + (item.unitName || '') + '</td>';
                                 html += '<td><span class="sys-qty-available">' + item.availableQty + '</span></td>';
                                 html += '<td>';
                                 html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-available-input" style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;" placeholder="Actual" data-sysqty="' + item.availableQty + '" name="actualAvailable_' + item.materialId + '">';
@@ -674,6 +676,7 @@
                                 html += '</td>';
                                 html += '</tr>';
                             });
+
                             html += '</tbody></table></form>';
                             $('#auditModalBody').html(html);
                         },
