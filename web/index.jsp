@@ -135,7 +135,6 @@
                         Discover the power of efficient inventory control with our Warehouse Management System. 
                         Streamline your operations, track inventory in real-time, and optimize your workflow with ease.
                     </p>
-                    <a href="dashboard.jsp" class="btn-explore">Explore Dashboard</a>
                 </div>
             </div>
         </div>
