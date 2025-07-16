@@ -29,7 +29,7 @@
         <!-- Required meta tags -->
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <title>Directory</title>
+        <title>Admin Dashboard</title>
 
         <link rel="icon" href="img/logo.png" type="image/png">
         <!-- Bootstrap CSS -->
@@ -246,7 +246,7 @@
                             </div>-->
 
                             <div class="container mt-4">
-                                <h2 class="mb-3">📊 Thống kê số lượng vật tư theo tháng</h2>
+                                <h3 class="mb-3">📊 Statics of material quantity by month</h3>
 
 
                                 <!-- Low Stock Items -->
@@ -263,18 +263,18 @@
                                 <!-- Dropdown chọn vật tư và năm -->
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label>Chọn vật tư:</label>
+                                        <label>Choose material:</label>
                                         <select id="materialSelectBar" class="form-select">
-                                            <option value="" disabled selected>-- Chọn vật tư --</option>
+                                            <option value="" disabled selected>-- Choose Material --</option>
                                             <c:forEach var="m" items="${materials}">
                                                 <option value="${m.materialId}">${m.name}</option>
                                             </c:forEach>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label>Chọn năm:</label>
+                                        <label>Choose year:</label>
                                         <select id="yearSelect" class="form-select">
-                                            <option value="" disabled selected>-- Chọn năm --</option>
+                                            <option value="" disabled selected>-- Choose Year --</option>
                                             <% int currentYear = Year.now().getValue(); for (int y = currentYear; y >= 2020; y--) { %>
                                             <option value="<%= y %>"><%= y %></option>
                                             <% } %>
@@ -287,7 +287,7 @@
 
                                 <hr class="my-5" />
 
-                                <h5>🍩 Tình trạng sử dụng vật tư</h5>
+                                <h3>Material Usage Status</h3>
                                 <select id="materialSelectPie" class="form-select mb-3">
                                     <c:forEach var="m" items="${materials}" varStatus="loop">
                                         <option value="${m.materialId}" ${loop.index == 0 ? "selected" : ""}>
@@ -337,7 +337,7 @@
                                                 </div>
                                             </c:if>
                                             <c:if test="${empty latestTransaction}">
-                                                <div class="p-3 text-muted">Không có giao dịch nào gần đây.</div>
+                                                <div class="p-3 text-muted">TThere is no transaction new today.</div>
                                             </c:if>
                                         </div>
                                     </div>
@@ -375,7 +375,7 @@
                                                 </div>
                                             </c:if>
                                             <c:if test="${empty todayMaterials}">
-                                                <div class="p-3 text-muted">Không có vật tư mới trong ngày hôm nay.</div>
+                                                <div class="p-3 text-muted">There is no new material today.</div>
                                             </c:if>
                                         </div>
                                     </div>
@@ -444,9 +444,9 @@
                                         data: {
                                             labels,
                                             datasets: [
-                                                {label: 'Nhập', data: importData, backgroundColor: 'rgba(75,192,192,0.7)'},
-                                                {label: 'Xuất', data: exportData, backgroundColor: 'rgba(255,99,132,0.7)'},
-                                                {label: 'Tồn', data: stockData, backgroundColor: 'rgba(255,206,86,0.7)'}
+                                                {label: 'Import', data: importData, backgroundColor: 'rgba(75,192,192,0.7)'},
+                                                {label: 'Export', data: exportData, backgroundColor: 'rgba(255,99,132,0.7)'},
+                                                {label: 'Inventory', data: stockData, backgroundColor: 'rgba(255,206,86,0.7)'}
                                             ]
                                         },
                                         options: {
@@ -462,7 +462,7 @@
                                                     beginAtZero: true,
                                                     title: {
                                                         display: true,
-                                                        text: "Số lượng vật tư"
+                                                        text: "Quantity"
                                                     },
                                                     ticks: {
                                                         callback: function (value) {
@@ -507,7 +507,7 @@
                                         data: {
                                             labels: Object.keys(data),
                                             datasets: [{
-                                                    label: 'Tình trạng',
+                                                    label: 'Status',
                                                     data: Object.values(data),
                                                     backgroundColor: ['#36A2EB', '#FF6384']
                                                 }]
