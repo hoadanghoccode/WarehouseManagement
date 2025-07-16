@@ -239,24 +239,23 @@
                                                     <tr>
                                                         <th>Date</th>
                                                         <th>Exported Quantity</th>
-
+                                                        <th>Exported By</th>
                                                         <th>Status</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <c:forEach var="transaction" items="${detail.transactions}">
-    <c:if test="${transaction.exported}">
-        <tr>
-            <td><fmt:formatDate value="${transaction.createdAt}" pattern="dd/MM/yyyy"/></td>
-            <td><fmt:formatNumber value="${transaction.exportedQuantity}" pattern="#,##0.00"/></td>
-
-            <td>
-                <span class="badge bg-success">Exported</span>
-            </td>
-        </tr>
-    </c:if>
-</c:forEach>
-
+                                                        <c:if test="${transaction.exported}">
+                                                            <tr>
+                                                                <td><fmt:formatDate value="${transaction.createdAt}" pattern="dd/MM/yyyy"/></td>
+                                                                <td><fmt:formatNumber value="${transaction.exportedQuantity}" pattern="#,##0.00"/></td>
+                                                                <td>${transaction.userDoExportName != null ? transaction.userDoExportName : 'N/A'}</td>
+                                                                <td>
+                                                                    <span class="badge bg-success">Exported</span>
+                                                                </td>
+                                                            </tr>
+                                                        </c:if>
+                                                    </c:forEach>
                                                 </tbody>
                                             </table>
                                         </td>
@@ -285,8 +284,6 @@
                         <p>No details available for export.</p>
                     </div>
                 </c:if>
-
-               
             </form>
         </div>
     </c:if>
