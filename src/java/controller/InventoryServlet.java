@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import com.google.gson.Gson;
 import java.math.BigDecimal;
@@ -61,27 +63,57 @@ public class InventoryServlet extends HttpServlet {
         int qualityId = parseIntParameter(request.getParameter("qualityId"), 0);
         String searchTerm = request.getParameter("searchTerm");
         String sortBy = request.getParameter("sortBy");
+        String period = request.getParameter("period") != null ? request.getParameter("period") : "all";
+        String startDate = request.getParameter("startDate");
+        String endDate = request.getParameter("endDate");
 
         System.out.println("InventoryServlet - Parameters: categoryId=" + categoryId +
                 ", qualityId=" + qualityId +
                 ", searchTerm=" + (searchTerm != null ? searchTerm : "null") +
-                ", sortBy=" + (sortBy != null ? sortBy : "null"));
+                ", sortBy=" + (sortBy != null ? sortBy : "null") +
+                ", period=" + period +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate);
 
-        List<MaterialInventory> inventoryList = inventoryDAO.getInventory(categoryId, qualityId, searchTerm, sortBy);
+        // Validate and process date range
+        LocalDate endDateObj = LocalDate.now();
+        LocalDate startDateObj = null;
+        if ("custom".equals(period) && startDate != null && endDate != null) {
+            try {
+                startDateObj = LocalDate.parse(startDate);
+                endDateObj = LocalDate.parse(endDate);
+                if (startDateObj.isAfter(endDateObj)) {
+                    request.setAttribute("errorMsg", "Start date cannot be after end date.");
+                    request.getRequestDispatcher("/inventory.jsp").forward(request, response);
+                    return;
+                }
+            } catch (DateTimeParseException e) {
+                request.setAttribute("errorMsg", "Invalid date format for custom range.");
+                request.getRequestDispatcher("/inventory.jsp").forward(request, response);
+                return;
+            }
+        } else if (!"all".equals(period)) {
+            int days = switch (period) {
+                case "7" -> 7;
+                case "30" -> 30;
+                case "180" -> 180;
+                case "365" -> 365;
+                default -> 7;
+            };
+            startDateObj = endDateObj.minusDays(days);
+        }
+
+        List<MaterialInventory> inventoryList = inventoryDAO.getInventory(
+                categoryId, qualityId, searchTerm, sortBy,
+                startDateObj != null ? startDateObj.toString() : null,
+                endDateObj != null ? endDateObj.toString() : null
+        );
         List<Category> categoryList = inventoryDAO.getActiveCategories();
         List<Quality> qualityList = inventoryDAO.getActiveQualities();
 
         System.out.println("InventoryServlet - inventoryList size: " + inventoryList.size());
         System.out.println("InventoryServlet - categoryList size: " + categoryList.size());
         System.out.println("InventoryServlet - qualityList size: " + qualityList.size());
-
-        request.setAttribute("inventoryList", inventoryList);
-        request.setAttribute("categoryList", categoryList);
-        request.setAttribute("qualityList", qualityList);
-        request.setAttribute("categoryId", categoryId);
-        request.setAttribute("qualityId", qualityId);
-        request.setAttribute("searchTerm", searchTerm != null ? searchTerm : "");
-        request.setAttribute("sortBy", sortBy != null ? sortBy : "available_qty DESC");
 
         // Calculate summary for stats
         BigDecimal totalAvailableQty = inventoryList.stream()
@@ -92,7 +124,33 @@ public class InventoryServlet extends HttpServlet {
                 .map(MaterialInventory::getNotAvailableQty)
                 .filter(qty -> qty != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        request.setAttribute("summary", new MaterialInventory(totalAvailableQty, totalNotAvailableQty));
+        BigDecimal totalImport = inventoryList.stream()
+                .map(MaterialInventory::getImportQty)
+                .filter(qty -> qty != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExport = inventoryList.stream()
+                .map(MaterialInventory::getExportQty)
+                .filter(qty -> qty != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        MaterialInventory summary = new MaterialInventory(totalAvailableQty, totalNotAvailableQty);
+        summary.setImportQty(totalImport);
+        summary.setExportQty(totalExport);
+        summary.setTotalImport(totalImport); 
+        summary.setTotalExport(totalExport); 
+
+
+        request.setAttribute("inventoryList", inventoryList);
+        request.setAttribute("categoryList", categoryList);
+        request.setAttribute("qualityList", qualityList);
+        request.setAttribute("categoryId", categoryId);
+        request.setAttribute("qualityId", qualityId);
+        request.setAttribute("searchTerm", searchTerm != null ? searchTerm : "");
+        request.setAttribute("sortBy", sortBy != null ? sortBy : "available_qty DESC");
+        request.setAttribute("period", period);
+        request.setAttribute("startDate", startDate);
+        request.setAttribute("endDate", endDate);
+        request.setAttribute("summary", summary);
 
         System.out.println("InventoryServlet - Forwarding to inventory.jsp");
         request.getRequestDispatcher("/inventory.jsp").forward(request, response);
@@ -102,11 +160,59 @@ public class InventoryServlet extends HttpServlet {
             throws IOException {
         int materialId = parseIntParameter(request.getParameter("materialId"), 0);
         int unitId = parseIntParameter(request.getParameter("unitId"), 0);
+        String period = request.getParameter("period") != null ? request.getParameter("period") : "all";
+        String startDate = request.getParameter("startDate");
+        String endDate = request.getParameter("endDate");
 
         System.out.println("InventoryServlet - Fetching details for materialId=" + materialId +
-                ", unitId=" + unitId);
+                ", unitId=" + unitId +
+                ", period=" + period +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate);
 
-        MaterialInventory inventory = inventoryDAO.getLatestInventoryDetails(materialId, unitId);
+        // Validate and process date range for details
+        LocalDate endDateObj = LocalDate.now();
+        LocalDate startDateObj = null;
+        if ("custom".equals(period) && startDate != null && endDate != null) {
+            try {
+                startDateObj = LocalDate.parse(startDate);
+                endDateObj = LocalDate.parse(endDate);
+                if (startDateObj.isAfter(endDateObj)) {
+                    response.setContentType("application/json");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    PrintWriter out = response.getWriter();
+                    MaterialInventory errorResponse = new MaterialInventory();
+                    errorResponse.setNote("Start date cannot be after end date.");
+                    out.print(gson.toJson(errorResponse));
+                    out.flush();
+                    return;
+                }
+            } catch (DateTimeParseException e) {
+                response.setContentType("application/json");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                PrintWriter out = response.getWriter();
+                MaterialInventory errorResponse = new MaterialInventory();
+                errorResponse.setNote("Invalid date format for custom range.");
+                out.print(gson.toJson(errorResponse));
+                out.flush();
+                return;
+            }
+        } else if (!"all".equals(period)) {
+            int days = switch (period) {
+                case "7" -> 7;
+                case "30" -> 30;
+                case "180" -> 180;
+                case "365" -> 365;
+                default -> 7;
+            };
+            startDateObj = endDateObj.minusDays(days);
+        }
+
+        MaterialInventory inventory = inventoryDAO.getLatestInventoryDetails(
+                materialId, unitId,
+                startDateObj != null ? startDateObj.toString() : null,
+                endDateObj != null ? endDateObj.toString() : null
+        );
         if (inventory == null) {
             System.out.println("InventoryServlet - No data found for materialId=" + materialId + ", unitId=" + unitId);
         }

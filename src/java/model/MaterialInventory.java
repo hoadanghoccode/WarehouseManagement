@@ -16,6 +16,8 @@ public class MaterialInventory {
     private BigDecimal notAvailableQty;
     private BigDecimal importQty;
     private BigDecimal exportQty;
+    private BigDecimal totalImport;
+    private BigDecimal totalExport;
     private Date inventoryDate;
     private String note;
 
@@ -26,12 +28,14 @@ public class MaterialInventory {
     public MaterialInventory(BigDecimal availableQty, BigDecimal notAvailableQty) {
         this.availableQty = availableQty;
         this.notAvailableQty = notAvailableQty;
+        this.totalImport = BigDecimal.ZERO;
+        this.totalExport = BigDecimal.ZERO;
     }
 
     public MaterialInventory(int materialId, int categoryId, int unitId, String materialName,
                              String categoryName, String unitName, String image, BigDecimal availableQty,
-                             BigDecimal notAvailableQty, BigDecimal importQty, BigDecimal exportQty, Date inventoryDate,
-                             String note) {
+                             BigDecimal notAvailableQty, BigDecimal importQty, BigDecimal exportQty,
+                             BigDecimal totalImport, BigDecimal totalExport, Date inventoryDate, String note) {
         this.materialId = materialId;
         this.categoryId = categoryId;
         this.unitId = unitId;
@@ -43,6 +47,8 @@ public class MaterialInventory {
         this.notAvailableQty = notAvailableQty;
         this.importQty = importQty;
         this.exportQty = exportQty;
+        this.totalImport = totalImport;
+        this.totalExport = totalExport;
         this.inventoryDate = inventoryDate;
         this.note = note;
     }
@@ -136,6 +142,22 @@ public class MaterialInventory {
         this.exportQty = exportQty;
     }
 
+    public BigDecimal getTotalImport() {
+        return totalImport != null ? totalImport : BigDecimal.ZERO;
+    }
+
+    public void setTotalImport(BigDecimal totalImport) {
+        this.totalImport = totalImport;
+    }
+
+    public BigDecimal getTotalExport() {
+        return totalExport != null ? totalExport : BigDecimal.ZERO;
+    }
+
+    public void setTotalExport(BigDecimal totalExport) {
+        this.totalExport = totalExport;
+    }
+
     public Date getInventoryDate() {
         return inventoryDate;
     }
@@ -166,6 +188,8 @@ public class MaterialInventory {
                 ", notAvailableQty=" + notAvailableQty +
                 ", importQty=" + importQty +
                 ", exportQty=" + exportQty +
+                ", totalImport=" + totalImport +
+                ", totalExport=" + totalExport +
                 ", inventoryDate=" + inventoryDate +
                 ", note='" + note + '\'' +
                 '}';

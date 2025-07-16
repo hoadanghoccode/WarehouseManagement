@@ -108,7 +108,6 @@
             </table>
 
             <c:if test="${not empty order}">
-                <h6 class="mt-4 mb-3">Order Details</h6>
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered">
                         <thead class="table-light">
@@ -154,6 +153,87 @@
                         </tbody>
                     </table>
                 </div>
+                <c:if test="${not empty exportNote.details}">
+    <h6 class="mt-4 mb-3">Export Note Details</h6>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Material</th>
+                    <th>Unit</th>
+                    <th>Quantity</th>
+                    <th>Exported</th>
+                    <th>Available Qty</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach var="detail" items="${exportNote.details}" varStatus="loop">
+                    <tr>
+                        <td>${loop.index + 1}</td>
+                        <td>${detail.materialName}</td>
+                        <td>${detail.unitName}</td>
+                        <td><fmt:formatNumber value="${detail.quantity}" pattern="#,##0.00"/></td>
+
+                        <c:set var="totalExported" value="0"/>
+                        <c:forEach var="tx" items="${detail.transactions}">
+                            <c:if test="${tx.exported}">
+                                <c:set var="totalExported" value="${totalExported + tx.exportedQuantity}"/>
+                            </c:if>
+                        </c:forEach>
+
+                        <td><fmt:formatNumber value="${totalExported}" pattern="#,##0.00"/></td>
+                        <td><fmt:formatNumber value="${detail.availableQuantity}" pattern="#,##0.00"/></td>
+                        <td>
+                            <span class="badge ${detail.exported ? 'bg-success' : 'bg-danger'}">
+                                ${detail.exported ? 'Exported' : 'Pending'}
+                            </span>
+                        </td>
+                    </tr>
+
+                    <!-- Hiển thị bảng con nếu có transaction exported -->
+                    <c:set var="hasExportedTx" value="false"/>
+                    <c:forEach var="tx" items="${detail.transactions}">
+                        <c:if test="${tx.exported}">
+                            <c:set var="hasExportedTx" value="true"/>
+                        </c:if>
+                    </c:forEach>
+
+                    <c:if test="${hasExportedTx}">
+                        <tr>
+                            <td colspan="7">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Export Date</th>
+                                            <th>Exported Quantity</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach var="tx" items="${detail.transactions}">
+                                            <c:if test="${tx.exported}">
+                                                <tr>
+                                                    <td><fmt:formatDate value="${tx.createdAt}" pattern="dd/MM/yyyy"/></td>
+                                                    <td><fmt:formatNumber value="${tx.exportedQuantity}" pattern="#,##0.00"/></td>
+                                                    <td>
+                                                        <span class="badge bg-success">Exported</span>
+                                                    </td>
+                                                </tr>
+                                            </c:if>
+                                        </c:forEach>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </c:if>
+                </c:forEach>
+            </tbody>
+        </table>
+    </div>
+</c:if>
+
             </c:if>
 
             
