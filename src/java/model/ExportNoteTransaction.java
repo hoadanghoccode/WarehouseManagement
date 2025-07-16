@@ -18,6 +18,8 @@ public class ExportNoteTransaction {
     private String qualityName;
     private double availableQuantity;
     private Timestamp createdAt;
+    private Integer userDoExportId; 
+    private String userDoExportName; 
 
     // Getters and Setters
     public int getExportNoteTransactionId() {
@@ -138,5 +140,21 @@ public class ExportNoteTransaction {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Integer getUserDoExportId() {
+        return userDoExportId;
+    }
+
+    public void setUserDoExportId(Integer userDoExportId) {
+        this.userDoExportId = userDoExportId;
+    }
+
+    public String getUserDoExportName() {
+        return userDoExportName;
+    }
+
+    public void setUserDoExportName(String userDoExportName) {
+        this.userDoExportName = userDoExportName;
     }
 }
