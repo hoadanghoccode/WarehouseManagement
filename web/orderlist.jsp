@@ -156,7 +156,10 @@
                     </select>
                     <button type="submit" class="btn btn-primary">Apply</button>
                     <!--<a href="backorder" class="btn btn-primary">Back Order</a>-->
-                    <a href="createorder" class="btn btn-primary">Create</a>
+                    <c:if test="${users.roleId != 2}">
+                        <a href="createorder" class="btn btn-primary">Create</a>
+
+                    </c:if>
                 </div>
             </form>
 

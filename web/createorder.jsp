@@ -68,7 +68,6 @@
                                     <option value="">Select Order Type</option>
                                     <option value="import">Import</option>
                                     <option value="export">Export</option>
-                                    <option value="exportToRepair">Repair</option>
                                     <!--Xử lý purchase của b Giang-->
                                     <option value="purchase">Purchase</option>
                                 </select>

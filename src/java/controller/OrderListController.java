@@ -135,6 +135,7 @@ public class OrderListController extends HttpServlet {
         request.setAttribute("type", type);
         request.setAttribute("status", status);
         request.setAttribute("sort", sort);
+        request.setAttribute("users", user);
 
         request.getRequestDispatcher("orderlist.jsp").forward(request, response);
 
