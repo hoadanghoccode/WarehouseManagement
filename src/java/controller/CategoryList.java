@@ -15,7 +15,7 @@ import model.Material;
 
 public class CategoryList extends HttpServlet {
 
-    private static final int DEFAULT_PAGE_SIZE = 2; // Tăng số lượng hiển thị hợp lý
+    private static final int DEFAULT_PAGE_SIZE = 4; // Tăng số lượng hiển thị hợp lý
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
