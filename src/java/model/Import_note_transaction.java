@@ -14,6 +14,7 @@ public class Import_note_transaction {
     private int importNoteTransactionId;
     private int importNoteDetailId;
     private int materialId;
+    private int userDoImportId; 
     private double quantity;
     private int qualityId;
     private boolean imported;
@@ -22,10 +23,12 @@ public class Import_note_transaction {
     // Constructors
     public Import_note_transaction() {}
 
-    public Import_note_transaction(int importNoteTransactionId, int importNoteDetailId, int materialId, double quantity, int qualityId, boolean imported, Date createdAt) {
+    public Import_note_transaction(int importNoteTransactionId, int importNoteDetailId, int materialId, 
+                                  int userDoImportId, double quantity, int qualityId, boolean imported, Date createdAt) {
         this.importNoteTransactionId = importNoteTransactionId;
         this.importNoteDetailId = importNoteDetailId;
         this.materialId = materialId;
+        this.userDoImportId = userDoImportId; 
         this.quantity = quantity;
         this.qualityId = qualityId;
         this.imported = imported;
@@ -39,6 +42,8 @@ public class Import_note_transaction {
     public void setImportNoteDetailId(int importNoteDetailId) { this.importNoteDetailId = importNoteDetailId; }
     public int getMaterialId() { return materialId; }
     public void setMaterialId(int materialId) { this.materialId = materialId; }
+    public int getUserDoImportId() { return userDoImportId; }
+    public void setUserDoImportId(int userDoImportId) { this.userDoImportId = userDoImportId; }
     public double getQuantity() { return quantity; }
     public void setQuantity(double quantity) { this.quantity = quantity; }
     public int getQualityId() { return qualityId; }

@@ -82,7 +82,7 @@
     <table class="table material-detail-table">
       <thead>
         <tr>
-          <th>Detail ID</th>
+          <th>ID</th>
           <th>Quality</th>
           <th>Quantity</th>
           <th>Last Updated</th>
@@ -91,11 +91,12 @@
       <tbody>
         <%
           if (details != null && !details.isEmpty()) {
+            int index = 1; 
             for (MaterialDetail md : details) {
               Quality qu = qDao.getQualityById(md.getQualityId());
         %>
         <tr>
-          <td><%= md.getMaterialDetailId() %></td>
+          <td><%= index ++ %></td>
           <td>
             <% if (qu != null && "available".equalsIgnoreCase(qu.getQualityName())) { %>
               <span class="badge bg-success">available</span>

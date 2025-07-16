@@ -234,8 +234,8 @@
                             <tbody>
                                 <c:forEach var="material" items="${materials}" varStatus="status">
                                     <tr>
-                                        <!--<td><strong>${status.index + 1 + (page - 1) * 5}</strong></td>-->
-                                        <td>${material.materialId}</td>
+                                        <td><strong>${status.index + 1 + (page - 1) * 5}</strong></td>
+                                        <!--<td>${material.materialId}</td>-->
                                         <td>
                                             <c:if test="${not empty material.image}">
                                                 <img src="${material.image}" alt="Material Image" style="max-height: 50px; max-width: 50px;">
