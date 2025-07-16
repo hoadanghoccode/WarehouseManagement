@@ -137,11 +137,16 @@
                                     <td>${orderDetail.unitName}</td>
                                     <td><fmt:formatNumber value="${orderDetail.quantity}" pattern="#,##0"/></td>
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${orderDetail.qualityId > 0}">Available</c:when>
-                                            <c:otherwise>N/A</c:otherwise>
-                                        </c:choose>
-                                    </td>
+                                    <c:choose>
+                                        <c:when test="${orderDetail.qualityId > 0}">
+                                            <c:set var="qualityName" value="${orderDetail.qualityId == 1 ? 'Available' : 'Not Available'}" />
+                                            ${qualityName}
+                                        </c:when>
+                                        <c:otherwise>
+                                            N/A
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
                                 </tr>
                             </c:forEach>
                             <c:if test="${empty order.orderDetails}">
