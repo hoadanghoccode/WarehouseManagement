@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.Import_note_detail;
+import model.Users;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,16 +20,24 @@ public class ImportNoteToInventoryController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        HttpSession session = request.getSession();
+        Users currentUser = (Users) session.getAttribute("USER");
+        if (currentUser == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
         int importNoteId = Integer.parseInt(request.getParameter("importNoteId"));
         String[] detailIds = request.getParameterValues("detailIds");
-        String[] quantities = request.getParameterValues("quantities"); 
+        String[] quantities = request.getParameterValues("quantities");
 
         List<Integer> detailIdList = new ArrayList<>();
         List<Double> quantityList = new ArrayList<>();
         if (detailIds != null) {
             for (int i = 0; i < detailIds.length; i++) {
                 detailIdList.add(Integer.parseInt(detailIds[i]));
-                quantityList.add(Double.parseDouble(quantities[i])); 
+                quantityList.add(Double.parseDouble(quantities[i]));
             }
         }
 
@@ -80,7 +89,7 @@ public class ImportNoteToInventoryController extends HttpServlet {
 
                 dao.updateInventoryMaterialDaily(mId, qId, quantityToAdd);
                 dao.insertMaterialTransactionHistory(mdId, detailId, "Imported from import note detail");
-                dao.insertImportNoteTransaction(detailId, mId, qId, quantityToAdd);
+                dao.insertImportNoteTransaction(detailId, mId, qId, quantityToAdd, currentUser.getUserId()); 
 
                 if (totalTransactionQuantity + quantityToAdd >= originalQuantity) {
                     dao.markDetailImported(detailId);

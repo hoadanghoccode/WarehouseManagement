@@ -60,11 +60,11 @@
                     <div class="card">
                         <div class="card-header">Purchase Order Information</div>
                         <div class="card-body">
-                            <div class="info-row">
+                            <div class="info-row" style="display: none;">
                                 <span class="info-label">Purchase Order ID</span>
                                 <span class="info-value">${purchaseOrder.purchaseOrderId}</span>
                             </div>
-                            <div class="info-row">
+                            <div class="info-row" style="display: none;">
                                 <span class="info-label">Order ID</span>
                                 <span class="info-value">${purchaseOrder.orderId}</span>
                             </div>
@@ -77,8 +77,8 @@
                                 </span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">User ID</span>
-                                <span class="info-value">${purchaseOrder.userId}</span>
+                                <span class="info-label">User</span>
+                                <span class="info-value">${purchaseOrder.fullName != null ? purchaseOrder.fullName : 'N/A'}</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Created At</span>
@@ -120,7 +120,7 @@
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Purchase Order Detail ID</th>
+                                            <th style="display: none;">Purchase Order Detail ID</th>
                                             <th>Material Name</th>
                                             <th>Quality Name</th>
                                             <th>Quantity</th>
@@ -134,7 +134,7 @@
                                         <c:forEach var="detail" items="${purchaseOrder.purchaseOrderDetails}" varStatus="status">
                                             <tr>
                                                 <td>${status.index + 1}</td>
-                                                <td>${detail.purchaseOrderDetailId}</td>
+                                                <td style="display: none;">${detail.purchaseOrderDetailId}</td>
                                                 <td>${detail.materialName != null ? detail.materialName : 'N/A'}</td>
                                                 <td>${detail.qualityName != null ? detail.qualityName : 'N/A'}</td>
                                                 <td>${detail.quantity}</td>
@@ -220,3 +220,4 @@
         </div>
     </body>
 </html>
+
