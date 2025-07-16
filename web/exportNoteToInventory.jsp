@@ -11,34 +11,28 @@
 <%
     String errorMessage = null;
     String exportNoteIdParam = request.getParameter("exportNoteId");
+    java.util.logging.Logger logger = java.util.logging.Logger.getLogger("exportNoteToInventory.jsp");
     ExportNoteDAO dao = new ExportNoteDAO();
     try {
         if (exportNoteIdParam == null || exportNoteIdParam.isEmpty()) {
             errorMessage = "Invalid or missing Export Note ID.";
+            logger.warning("Invalid or missing exportNoteId parameter");
         } else {
             int exportNoteId = Integer.parseInt(exportNoteIdParam);
-            // Fetch Export Note
             model.ExportNote exportNote = dao.getAllExportNotes(null, null, null, 1).stream()
                 .filter(note -> note.getExportNoteId() == exportNoteId)
                 .findFirst()
                 .orElse(null);
             if (exportNote == null) {
                 errorMessage = "Export Note not found.";
+                logger.warning("Export Note not found for ID: " + exportNoteId);
             } else {
-                // Fetch Export Note Details and Transactions
                 List<ExportNoteDetail> details = dao.getExportNoteDetailsByNoteId(exportNoteId);
-                List<ExportNoteTransaction> transactions = dao.getAllExportTransactions(exportNoteId);
                 for (ExportNoteDetail detail : details) {
                     int materialDetailId = dao.getMaterialDetailId(detail.getMaterialId(), detail.getQualityId());
                     double availableQty = dao.getAvailableQuantity(materialDetailId);
                     detail.setAvailableQuantity(availableQty);
-                    for (ExportNoteTransaction transaction : transactions) {
-                        if (transaction.getExportNoteDetailId() == detail.getExportNoteDetailId() && !transaction.isExported()) {
-                            detail.setTransaction(transaction);
-                        }
-                    }
                 }
-                // Fetch related Order
                 Order order = dao.getOrderByExportNoteId(exportNoteId);
                 if (order != null) {
                     List<OrderDetail> orderDetails = dao.getOrderDetailsByOrderId(order.getOrderId());
@@ -47,18 +41,17 @@
                 request.setAttribute("details", details);
                 request.setAttribute("exportNoteId", exportNoteId);
                 request.setAttribute("order", order);
-                request.setAttribute("transactions", transactions);
             }
         }
     } catch (NumberFormatException e) {
         errorMessage = "Invalid Export Note ID format: " + e.getMessage();
-        java.util.logging.Logger.getLogger("exportNoteToInventory.jsp").severe("NumberFormatException: " + e.getMessage());
+        logger.severe("NumberFormatException: " + e.getMessage());
     } catch (SQLException e) {
         errorMessage = "Database error: " + e.getMessage();
-        java.util.logging.Logger.getLogger("exportNoteToInventory.jsp").severe("SQLException: " + e.getMessage());
+        logger.severe("SQLException: " + e.getMessage());
     } catch (Exception e) {
         errorMessage = "Unexpected error retrieving Export Note: " + e.getMessage();
-        java.util.logging.Logger.getLogger("exportNoteToInventory.jsp").severe("Unexpected error: " + e.getMessage());
+        logger.severe("Unexpected error: " + e.getMessage());
     }
     request.setAttribute("errorMessage", errorMessage);
 %>
@@ -172,29 +165,35 @@
                                 <th>Unit Name</th>
                                 <th>Requested Quantity</th>
                                 <th>Exported Quantity</th>
+                                <th>Remaining Quantity</th>
                                 <th>Available Quantity</th>
                                 <th style="min-width: 120px;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             <c:forEach var="detail" items="${details}" varStatus="loop">
-                                <c:set var="requestedQty" value="${detail.transaction != null && !detail.transaction.isExported() ? detail.transaction.remainingQuantity : detail.quantity}" />
-                                <c:set var="exportedQty" value="${detail.transaction != null ? detail.transaction.exportedQuantity : 0}" />
-                                <tr class="${detail.availableQuantity < requestedQty ? 'table-warning' : ''}">
+                                <c:set var="totalExported" value="0"/>
+                                <c:forEach var="transaction" items="${detail.transactions}">
+                                    <c:set var="totalExported" value="${totalExported + transaction.exportedQuantity}"/>
+                                </c:forEach>
+                                <c:set var="remainingQty" value="${detail.quantity - totalExported}"/>
+                                <tr class="${detail.availableQuantity < remainingQty && !detail.exported ? 'table-warning' : ''}">
                                     <td>
-                                        <c:if test="${not detail.exported && requestedQty > 0}">
+                                        <c:if test="${not detail.exported && remainingQty > 0}">
                                             <input type="checkbox" class="checkbox-item"
                                                    name="detailIds"
                                                    value="${detail.exportNoteDetailId}"
                                                    data-material-id="${detail.materialId}"
                                                    data-unit-id="${detail.unitId}"
                                                    data-quality-id="${detail.qualityId}"
-                                                   data-requested-quantity="${requestedQty}"
+                                                   data-requested-quantity="${remainingQty}"
                                                    data-available-quantity="${detail.availableQuantity}"
-                                                   <c:if test="${detail.transaction != null && !detail.transaction.isExported()}">
-                                                       data-transaction-id="${detail.transaction.exportNoteTransactionId}"
-                                                   </c:if>
-                                                   data-status="${detail.availableQuantity >= requestedQty ? 'Available' : 'Low Stock'}">
+                                                   <c:forEach var="transaction" items="${detail.transactions}">
+                                                       <c:if test="${not transaction.exported}">
+                                                           data-transaction-id="${transaction.exportNoteTransactionId}"
+                                                       </c:if>
+                                                   </c:forEach>
+                                                   data-status="${detail.availableQuantity >= remainingQty ? 'Available' : 'Low Stock'}">
                                         </c:if>
                                     </td>
                                     <td>
@@ -209,20 +208,21 @@
                                     </td>
                                     <td>${detail.materialName}</td>
                                     <td>${detail.unitName}</td>
-                                    <td><fmt:formatNumber value="${requestedQty}" pattern="#,##0.00" /></td>
-                                    <td><fmt:formatNumber value="${exportedQty}" pattern="#,##0.00" /></td>
+                                    <td><fmt:formatNumber value="${detail.quantity}" pattern="#,##0.00" /></td>
+                                    <td><fmt:formatNumber value="${totalExported}" pattern="#,##0.00" /></td>
+                                    <td><fmt:formatNumber value="${remainingQty}" pattern="#,##0.00" /></td>
                                     <td>
                                         <fmt:formatNumber value="${detail.availableQuantity}" pattern="#,##0.00" />
-                                        <c:if test="${detail.availableQuantity < requestedQty}">
+                                        <c:if test="${detail.availableQuantity < remainingQty && !detail.exported}">
                                             <br><small class="text-warning">Only ${detail.availableQuantity} units available for export</small>
                                         </c:if>
                                     </td>
                                     <td>
                                         <c:choose>
-                                            <c:when test="${detail.transaction != null && detail.transaction.isExported()}">
-                                                <span class="badge bg-success">Exported at<br><fmt:formatDate value="${detail.transaction.createdAt}" pattern="dd/MM/yyyy" /></span>
+                                            <c:when test="${detail.exported}">
+                                                <span class="badge bg-success">Exported</span>
                                             </c:when>
-                                            <c:when test="${detail.availableQuantity >= requestedQty}">
+                                            <c:when test="${detail.availableQuantity >= remainingQty}">
                                                 <span class="badge bg-success">Available</span>
                                             </c:when>
                                             <c:otherwise>
@@ -231,6 +231,42 @@
                                         </c:choose>
                                     </td>
                                 </tr>
+                                <c:if test="${not empty detail.transactions}">
+                                    <tr>
+                                        <td colspan="9">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Exported Quantity</th>
+
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <c:forEach var="transaction" items="${detail.transactions}">
+    <c:if test="${transaction.exported}">
+        <tr>
+            <td><fmt:formatDate value="${transaction.createdAt}" pattern="dd/MM/yyyy"/></td>
+            <td><fmt:formatNumber value="${transaction.exportedQuantity}" pattern="#,##0.00"/></td>
+
+            <td>
+                <span class="badge bg-success">Exported</span>
+            </td>
+        </tr>
+    </c:if>
+</c:forEach>
+
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </c:if>
+                                <c:if test="${empty detail.transactions}">
+                                    <tr>
+                                        <td colspan="9" class="text-muted">No export history</td>
+                                    </tr>
+                                </c:if>
                             </c:forEach>
                         </tbody>
                     </table>
@@ -249,6 +285,8 @@
                         <p>No details available for export.</p>
                     </div>
                 </c:if>
+
+               
             </form>
         </div>
     </c:if>
@@ -257,7 +295,6 @@
         $(document).ready(function() {
             console.log("Export note inventory content loaded");
 
-            // Checkbox handling
             $('#checkboxAll').on('click', function() {
                 console.log("Checkbox all clicked:", this.checked);
                 $('.checkbox-item').prop('checked', this.checked);
@@ -277,7 +314,6 @@
                 $('#exportButton').prop('disabled', $('.checkbox-item:checked').length === 0);
             }
 
-            // Initialize export button state
             toggleExportButton();
         });
     </script>

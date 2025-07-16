@@ -90,14 +90,15 @@ public class DepartmentController extends HttpServlet {
                     Integer deptId = row.getDepartmentId();
                     String deptName = row.getDepartmentName();
                     String description = row.getDescription();
-                    Integer roleId = row.getRoleId();      // có thể null
-                    String roleName = row.getRoleName();    // có thể null
-                    Integer resourceId = row.getResourceId();  // có thể null
-                    String resourceName = row.getResourceName();// có thể null
-                    Boolean canAdd = row.getCanAdd();      // có thể null
+                    Integer roleId = row.getRoleId();
+                    String roleName = row.getRoleName();
+                    Integer resourceId = row.getResourceId();
+                    String resourceName = row.getResourceName();
+                    Boolean canAdd = row.getCanAdd();
                     Boolean canView = row.getCanView();
                     Boolean canUpdate = row.getCanUpdate();
                     Boolean canDelete = row.getCanDelete();
+                    Integer userCount = row.getUserCount();   // LẤY GIÁ TRỊ Ở ĐÂY
 
                     // Nếu đây là department đầu tiên gặp phải, tạo DeptWithRole ban đầu
                     if (!map.containsKey(deptId)) {
@@ -106,24 +107,19 @@ public class DepartmentController extends HttpServlet {
                             initialRole = new RoleData(roleId, roleName);
                             // resources vẫn rỗng, sẽ thêm vào ở bước sau
                         }
-                        DeptWithRole dwr = new DeptWithRole(deptId, description, deptName, initialRole);
+                        DeptWithRole dwr = new DeptWithRole(deptId, description, deptName, initialRole, userCount); // THÊM userCount
                         map.put(deptId, dwr);
                     }
 
                     // Lấy DeptWithRole hiện tại
                     DeptWithRole current = map.get(deptId);
 
-                    // Nếu department này có role (roleId != null), tiếp tục thêm resource
                     if (roleId != null) {
                         RoleData rd = current.getRole();
-                        // Nếu trước đó chưa khởi tạo RoleData (do resourceId == null ở dòng đầu),
-                        // thì tạo mới ở đây
                         if (rd == null) {
                             rd = new RoleData(roleId, roleName);
-                            current = new DeptWithRole(deptId, description, deptName, rd);
-                            map.put(deptId, current);
+                            current.setRole(rd);
                         }
-                        // Nếu resourceId != null, tạo ResourcePerm và add vào rd.resources
                         if (resourceId != null) {
                             ResourcePerm rp = new ResourcePerm(
                                     resourceId,
@@ -136,7 +132,6 @@ public class DepartmentController extends HttpServlet {
                             rd.getResources().add(rp);
                         }
                     }
-                    // Nếu roleId == null: department chưa gán role, current.getRole() vẫn null
                 }
 
                 // Bước 3: Chuyển LinkedHashMap.values() thành List<DeptWithRole>
@@ -194,7 +189,7 @@ public class DepartmentController extends HttpServlet {
 
         try {
             int roleId = Integer.parseInt(roleIdStr);
-            
+
             // Kiểm tra xem tên department đã tồn tại chưa
             if (dao.isDepartmentNameExists(deptName)) {
                 result.put("success", false);
@@ -202,7 +197,7 @@ public class DepartmentController extends HttpServlet {
                 resp.getWriter().write(gson.toJson(result));
                 return;
             }
-            
+
             // Tạo object Department (giả sử bạn có 1 class model Department)
             Department dept = new Department();
             dept.setName(deptName);

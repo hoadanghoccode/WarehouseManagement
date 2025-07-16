@@ -1,5 +1,7 @@
 package model;
 
+import java.util.List;
+
 public class ExportNoteDetail {
     private int exportNoteDetailId;
     private int exportNoteId;
@@ -13,8 +15,9 @@ public class ExportNoteDetail {
     private String qualityName;
     private double availableQuantity;
     private String materialImage;
-    private ExportNoteTransaction transaction;
+    private List<ExportNoteTransaction> transactions;
 
+    // Getters and Setters
     public int getExportNoteDetailId() {
         return exportNoteDetailId;
     }
@@ -111,11 +114,11 @@ public class ExportNoteDetail {
         this.materialImage = materialImage;
     }
 
-    public ExportNoteTransaction getTransaction() {
-        return transaction;
+    public List<ExportNoteTransaction> getTransactions() {
+        return transactions;
     }
 
-    public void setTransaction(ExportNoteTransaction transaction) {
-        this.transaction = transaction;
+    public void setTransactions(List<ExportNoteTransaction> transactions) {
+        this.transactions = transactions;
     }
 }

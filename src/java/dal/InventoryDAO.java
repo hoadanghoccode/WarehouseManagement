@@ -12,10 +12,10 @@ import java.util.List;
 
 public class InventoryDAO extends DBContext {
 
-    public List<MaterialInventory> getInventory(int categoryId, int qualityId, String searchTerm, String sortBy) {
+    public List<MaterialInventory> getInventory(int categoryId, int qualityId, String searchTerm, String sortBy, String startDate, String endDate) {
         List<MaterialInventory> inventoryList = new ArrayList<>();
-        String sql = buildInventoryQuery(categoryId, qualityId, searchTerm, sortBy);
-        List<Object> params = buildInventoryParameters(categoryId, qualityId, searchTerm);
+        String sql = buildInventoryQuery(categoryId, qualityId, searchTerm, sortBy, startDate, endDate);
+        List<Object> params = buildInventoryParameters(categoryId, qualityId, searchTerm, startDate, endDate);
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             setParameters(stmt, params);
@@ -31,6 +31,8 @@ public class InventoryDAO extends DBContext {
                     inventory.setImage(rs.getString("image"));
                     inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
                     inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
+                    inventory.setImportQty(rs.getBigDecimal("total_import") != null ? rs.getBigDecimal("total_import") : BigDecimal.ZERO);
+                    inventory.setExportQty(rs.getBigDecimal("total_export") != null ? rs.getBigDecimal("total_export") : BigDecimal.ZERO);
                     inventory.setInventoryDate(rs.getDate("last_updated"));
                     inventory.setNote(rs.getString("note"));
                     inventoryList.add(inventory);
@@ -43,18 +45,56 @@ public class InventoryDAO extends DBContext {
         return inventoryList;
     }
 
-    private String buildInventoryQuery(int categoryId, int qualityId, String searchTerm, String sortBy) {
+    private String buildInventoryQuery(int categoryId, int qualityId, String searchTerm, String sortBy, String startDate, String endDate) {
         StringBuilder sql = new StringBuilder(
             "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.Unit_id AS unit_id, " +
             "m.Name AS material_name, c.Name AS category_name, u.Name AS unit_name, m.Image AS image, " +
-            "SUM(CASE WHEN q.Quality_name = 'available' THEN md.Quantity ELSE 0 END) AS available_qty, " +
-            "SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE 0 END) AS not_available_qty, " +
-            "MAX(md.Last_updated) AS last_updated, NULL AS note " +
+            "(SELECT COALESCE(SUM(imd.Ending_qty), 0) " +
+            " FROM InventoryMaterialDaily imd " +
+            " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+            " JOIN Quality q ON md2.Quality_id = q.Quality_id " +
+            " WHERE md2.Material_id = m.Material_id AND q.Quality_name = 'available' " +
+            " AND imd.Inventory_Material_date = (SELECT MAX(imd2.Inventory_Material_date) " +
+            "   FROM InventoryMaterialDaily imd2 " +
+            "   JOIN Material_detail md3 ON imd2.Material_detail_id = md3.Material_detail_id " +
+            "   WHERE md3.Material_id = m.Material_id " +
+            (startDate != null && !startDate.isEmpty() ? " AND imd2.Inventory_Material_date >= ? " : "") +
+            (endDate != null && !endDate.isEmpty() ? " AND imd2.Inventory_Material_date <= ? " : "") +
+            ")) AS available_qty, " +
+            "(SELECT COALESCE(SUM(imd.Ending_qty), 0) " +
+            " FROM InventoryMaterialDaily imd " +
+            " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+            " JOIN Quality q ON md2.Quality_id = q.Quality_id " +
+            " WHERE md2.Material_id = m.Material_id AND q.Quality_name = 'notAvailable' " +
+            " AND imd.Inventory_Material_date = (SELECT MAX(imd2.Inventory_Material_date) " +
+            "   FROM InventoryMaterialDaily imd2 " +
+            "   JOIN Material_detail md3 ON imd2.Material_detail_id = md3.Material_detail_id " +
+            "   WHERE md3.Material_id = m.Material_id " +
+            (startDate != null && !startDate.isEmpty() ? " AND imd2.Inventory_Material_date >= ? " : "") +
+            (endDate != null && !endDate.isEmpty() ? " AND imd2.Inventory_Material_date <= ? " : "") +
+            ")) AS not_available_qty, " +
+            "(SELECT COALESCE(SUM(imd.Import_qty), 0) " +
+            " FROM InventoryMaterialDaily imd " +
+            " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+            " WHERE md2.Material_id = m.Material_id " +
+            (startDate != null && !startDate.isEmpty() ? " AND imd.Inventory_Material_date >= ? " : "") +
+            (endDate != null && !endDate.isEmpty() ? " AND imd.Inventory_Material_date <= ? " : "") +
+            ") AS total_import, " +
+            "(SELECT COALESCE(SUM(imd.Export_qty), 0) " +
+            " FROM InventoryMaterialDaily imd " +
+            " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+            " WHERE md2.Material_id = m.Material_id " +
+            (startDate != null && !startDate.isEmpty() ? " AND imd.Inventory_Material_date >= ? " : "") +
+            (endDate != null && !endDate.isEmpty() ? " AND imd.Inventory_Material_date <= ? " : "") +
+            ") AS total_export, " +
+            "MAX(imd_last.Inventory_Material_date) AS last_updated, " +
+            "NULL AS note " +
             "FROM Materials m " +
             "JOIN Material_detail md ON m.Material_id = md.Material_id " +
             "JOIN Units u ON m.Unit_id = u.Unit_id " +
             "JOIN Category c ON m.Category_id = c.Category_id " +
             "JOIN Quality q ON md.Quality_id = q.Quality_id " +
+            "LEFT JOIN InventoryMaterialDaily imd_last ON md.Material_detail_id = imd_last.Material_detail_id " +
             "WHERE m.Status = 'active' AND u.Status = 'active' AND c.Status = 'active' "
         );
 
@@ -71,16 +111,33 @@ public class InventoryDAO extends DBContext {
         sql.append(" GROUP BY m.Material_id, m.Category_id, m.Unit_id, m.Name, c.Name, u.Name, m.Image ");
 
         String safeSortBy = "available_qty DESC";
-        if (sortBy != null && sortBy.matches("^(material_id|material_name|available_qty|not_available_qty) (ASC|DESC)$")) {
-            safeSortBy = sortBy.replace("material_name", "m.Name").replace("available_qty", "available_qty").replace("not_available_qty", "not_available_qty");
+        if (sortBy != null && sortBy.matches("^(material_id|material_name|available_qty|not_available_qty|import_qty|export_qty) (ASC|DESC)$")) {
+            safeSortBy = sortBy.replace("material_name", "m.Name")
+                              .replace("available_qty", "available_qty")
+                              .replace("not_available_qty", "not_available_qty")
+                              .replace("import_qty", "total_import")
+                              .replace("export_qty", "total_export");
         }
         sql.append(" ORDER BY ").append(safeSortBy);
 
         return sql.toString();
     }
 
-    private List<Object> buildInventoryParameters(int categoryId, int qualityId, String searchTerm) {
+    private List<Object> buildInventoryParameters(int categoryId, int qualityId, String searchTerm, String startDate, String endDate) {
         List<Object> params = new ArrayList<>();
+        // Parameters for available_qty subquery
+        if (startDate != null && !startDate.isEmpty()) params.add(startDate);
+        if (endDate != null && !endDate.isEmpty()) params.add(endDate);
+        // Parameters for not_available_qty subquery
+        if (startDate != null && !startDate.isEmpty()) params.add(startDate);
+        if (endDate != null && !endDate.isEmpty()) params.add(endDate);
+        // Parameters for total_import subquery
+        if (startDate != null && !startDate.isEmpty()) params.add(startDate);
+        if (endDate != null && !endDate.isEmpty()) params.add(endDate);
+        // Parameters for total_export subquery
+        if (startDate != null && !startDate.isEmpty()) params.add(startDate);
+        if (endDate != null && !endDate.isEmpty()) params.add(endDate);
+        // Main query parameters
         if (categoryId > 0) {
             params.add(categoryId);
         }
@@ -105,35 +162,85 @@ public class InventoryDAO extends DBContext {
         }
     }
 
-    public MaterialInventory getLatestInventoryDetails(int materialId, int unitId) {
+    public MaterialInventory getLatestInventoryDetails(int materialId, int unitId, String startDate, String endDate) {
         MaterialInventory inventory = null;
         String sql = "SELECT m.Material_id AS material_id, m.Category_id AS category_id, m.Unit_id AS unit_id, " +
                      "m.Name AS material_name, c.Name AS category_name, u.Name AS unit_name, m.Image AS image, " +
-                     "imd.Ending_qty AS available_qty, " +
-                     "(SELECT COALESCE(SUM(md2.Quantity), 0) FROM Material_detail md2 " +
-                     "JOIN Quality q ON md2.Quality_id = q.Quality_id " +
-                     "WHERE md2.Material_id = m.Material_id AND q.Quality_name = 'notAvailable') AS not_available_qty, " +
-                     "imd.Import_qty AS import_qty, imd.Export_qty AS export_qty, " +
-                     "imd.Inventory_Material_date AS inventory_date, imd.Note AS note " +
-                     "FROM InventoryMaterialDaily imd " +
-                     "JOIN Material_detail md ON imd.Material_detail_id = md.Material_detail_id " +
-                     "JOIN Materials m ON md.Material_id = m.Material_id " +
+                     "(SELECT COALESCE(SUM(imd.Ending_qty), 0) " +
+                     " FROM InventoryMaterialDaily imd " +
+                     " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+                     " JOIN Quality q ON md2.Quality_id = q.Quality_id " +
+                     " WHERE md2.Material_id = m.Material_id AND q.Quality_name = 'available' " +
+                     " AND imd.Inventory_Material_date = (SELECT MAX(imd2.Inventory_Material_date) " +
+                     "   FROM InventoryMaterialDaily imd2 " +
+                     "   JOIN Material_detail md3 ON imd2.Material_detail_id = md3.Material_detail_id " +
+                     "   WHERE md3.Material_id = m.Material_id " +
+                     (startDate != null && !startDate.isEmpty() ? " AND imd2.Inventory_Material_date >= ? " : "") +
+                     (endDate != null && !endDate.isEmpty() ? " AND imd2.Inventory_Material_date <= ? " : "") +
+                     ")) AS available_qty, " +
+                     "(SELECT COALESCE(SUM(imd.Ending_qty), 0) " +
+                     " FROM InventoryMaterialDaily imd " +
+                     " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+                     " JOIN Quality q ON md2.Quality_id = q.Quality_id " +
+                     " WHERE md2.Material_id = m.Material_id AND q.Quality_name = 'notAvailable' " +
+                     " AND imd.Inventory_Material_date = (SELECT MAX(imd2.Inventory_Material_date) " +
+                     "   FROM InventoryMaterialDaily imd2 " +
+                     "   JOIN Material_detail md3 ON imd2.Material_detail_id = md3.Material_detail_id " +
+                     "   WHERE md3.Material_id = m.Material_id " +
+                     (startDate != null && !startDate.isEmpty() ? " AND imd2.Inventory_Material_date >= ? " : "") +
+                     (endDate != null && !endDate.isEmpty() ? " AND imd2.Inventory_Material_date <= ? " : "") +
+                     ")) AS not_available_qty, " +
+                     "(SELECT COALESCE(SUM(imd.Import_qty), 0) " +
+                     " FROM InventoryMaterialDaily imd " +
+                     " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+                     " WHERE md2.Material_id = m.Material_id " +
+                     (startDate != null && !startDate.isEmpty() ? " AND imd.Inventory_Material_date >= ? " : "") +
+                     (endDate != null && !endDate.isEmpty() ? " AND imd.Inventory_Material_date <= ? " : "") +
+                     ") AS total_import, " +
+                     "(SELECT COALESCE(SUM(imd.Export_qty), 0) " +
+                     " FROM InventoryMaterialDaily imd " +
+                     " JOIN Material_detail md2 ON imd.Material_detail_id = md2.Material_detail_id " +
+                     " WHERE md2.Material_id = m.Material_id " +
+                     (startDate != null && !startDate.isEmpty() ? " AND imd.Inventory_Material_date >= ? " : "") +
+                     (endDate != null && !endDate.isEmpty() ? " AND imd.Inventory_Material_date <= ? " : "") +
+                     ") AS total_export, " +
+                     "MAX(imd.Inventory_Material_date) AS inventory_date, " +
+                     "imd.Note AS note " +
+                     "FROM Materials m " +
+                     "JOIN Material_detail md ON m.Material_id = md.Material_id " +
                      "JOIN Units u ON m.Unit_id = u.Unit_id " +
                      "JOIN Category c ON m.Category_id = c.Category_id " +
+                     "LEFT JOIN InventoryMaterialDaily imd ON md.Material_detail_id = imd.Material_detail_id " +
+                     "AND imd.Inventory_Material_date = (SELECT MAX(imd2.Inventory_Material_date) " +
+                     " FROM InventoryMaterialDaily imd2 " +
+                     " JOIN Material_detail md2 ON imd2.Material_detail_id = md2.Material_detail_id " +
+                     " WHERE md2.Material_id = m.Material_id " +
+                     (startDate != null && !startDate.isEmpty() ? " AND imd2.Inventory_Material_date >= ? " : "") +
+                     (endDate != null && !endDate.isEmpty() ? " AND imd2.Inventory_Material_date <= ? " : "") +
+                     ") " +
                      "WHERE m.Material_id = ? AND m.Unit_id = ? " +
-                     "AND imd.Inventory_Material_date = (" +
-                     "    SELECT MAX(Inventory_Material_date) " +
-                     "    FROM InventoryMaterialDaily imd2 " +
-                     "    JOIN Material_detail md2 ON imd2.Material_detail_id = md2.Material_detail_id " +
-                     "    JOIN Materials m2 ON md2.Material_id = m2.Material_id " +
-                     "    WHERE m2.Material_id = ? AND m2.Unit_id = ?" +
-                     ")";
+                     "GROUP BY m.Material_id, m.Category_id, m.Unit_id, m.Name, c.Name, u.Name, m.Image, imd.Note";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, materialId);
-            stmt.setInt(2, unitId);
-            stmt.setInt(3, materialId);
-            stmt.setInt(4, unitId);
+            int paramIndex = 1;
+            // Parameters for available_qty subquery
+            if (startDate != null && !startDate.isEmpty()) stmt.setString(paramIndex++, startDate);
+            if (endDate != null && !endDate.isEmpty()) stmt.setString(paramIndex++, endDate);
+            // Parameters for not_available_qty subquery
+            if (startDate != null && !startDate.isEmpty()) stmt.setString(paramIndex++, startDate);
+            if (endDate != null && !endDate.isEmpty()) stmt.setString(paramIndex++, endDate);
+            // Parameters for total_import subquery
+            if (startDate != null && !startDate.isEmpty()) stmt.setString(paramIndex++, startDate);
+            if (endDate != null && !endDate.isEmpty()) stmt.setString(paramIndex++, endDate);
+            // Parameters for total_export subquery
+            if (startDate != null && !startDate.isEmpty()) stmt.setString(paramIndex++, startDate);
+            if (endDate != null && !endDate.isEmpty()) stmt.setString(paramIndex++, endDate);
+            // Parameters for the last_updated subquery
+            if (startDate != null && !startDate.isEmpty()) stmt.setString(paramIndex++, startDate);
+            if (endDate != null && !endDate.isEmpty()) stmt.setString(paramIndex++, endDate);
+            // Main query parameters
+            stmt.setInt(paramIndex++, materialId);
+            stmt.setInt(paramIndex++, unitId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     inventory = new MaterialInventory();
@@ -146,8 +253,8 @@ public class InventoryDAO extends DBContext {
                     inventory.setImage(rs.getString("image"));
                     inventory.setAvailableQty(rs.getBigDecimal("available_qty") != null ? rs.getBigDecimal("available_qty") : BigDecimal.ZERO);
                     inventory.setNotAvailableQty(rs.getBigDecimal("not_available_qty") != null ? rs.getBigDecimal("not_available_qty") : BigDecimal.ZERO);
-                    inventory.setImportQty(rs.getBigDecimal("import_qty") != null ? rs.getBigDecimal("import_qty") : BigDecimal.ZERO);
-                    inventory.setExportQty(rs.getBigDecimal("export_qty") != null ? rs.getBigDecimal("export_qty") : BigDecimal.ZERO);
+                    inventory.setImportQty(rs.getBigDecimal("total_import") != null ? rs.getBigDecimal("total_import") : BigDecimal.ZERO);
+                    inventory.setExportQty(rs.getBigDecimal("total_export") != null ? rs.getBigDecimal("total_export") : BigDecimal.ZERO);
                     inventory.setInventoryDate(rs.getDate("inventory_date"));
                     inventory.setNote(rs.getString("note") != null ? rs.getString("note") : "No recent transactions");
                 }

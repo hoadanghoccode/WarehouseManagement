@@ -38,7 +38,8 @@ public class DepartmentDAO extends DBContext {
                 + "    rr.can_add, \n"
                 + "    rr.can_view, \n"
                 + "    rr.can_update, \n"
-                + "    rr.can_delete\n"
+                + "    rr.can_delete,\n"
+                + "    IFNULL(u.user_count, 0) AS user_count\n"
                 + "FROM \n"
                 + "    Department d\n"
                 + "LEFT JOIN \n"
@@ -46,7 +47,12 @@ public class DepartmentDAO extends DBContext {
                 + "LEFT JOIN \n"
                 + "    Resource_role rr ON r.role_id = rr.role_id\n"
                 + "LEFT JOIN \n"
-                + "    Resource res ON rr.resource_id = res.resource_id";
+                + "    Resource res ON rr.resource_id = res.resource_id\n"
+                + "LEFT JOIN (\n"
+                + "    SELECT dhu.department_id, COUNT(*) AS user_count\n"
+                + "    FROM Department_has_User dhu\n"
+                + "    GROUP BY dhu.department_id\n"
+                + ") u ON d.department_id = u.department_id";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             try (ResultSet rs = ps.executeQuery()) {
@@ -58,12 +64,12 @@ public class DepartmentDAO extends DBContext {
                     Integer roleId = rs.getObject("role_id") != null
                             ? rs.getInt("role_id")
                             : null;
-                    String roleName = rs.getString("role_name"); // có thể null
+                    String roleName = rs.getString("role_name");
 
                     Integer resourceId = rs.getObject("resource_id") != null
                             ? rs.getInt("resource_id")
                             : null;
-                    String resourceName = rs.getString("resource_name"); // có thể null
+                    String resourceName = rs.getString("resource_name");
 
                     Boolean canAdd = rs.getObject("can_add") != null
                             ? rs.getBoolean("can_add")
@@ -78,10 +84,14 @@ public class DepartmentDAO extends DBContext {
                             ? rs.getBoolean("can_delete")
                             : null;
 
+                    Integer userCount = rs.getObject("user_count") != null
+                            ? rs.getInt("user_count")
+                            : 0;
+
                     DeptRoleResource row = new DeptRoleResource(
                             departmentId,
-                            departmentName,
-                            description,
+                            description,      // Đúng thứ tự: description trước
+                            departmentName,   // Đúng thứ tự: departmentName sau
                             roleId,
                             roleName,
                             resourceId,
@@ -89,13 +99,13 @@ public class DepartmentDAO extends DBContext {
                             canAdd,
                             canView,
                             canUpdate,
-                            canDelete
+                            canDelete,
+                            userCount // Thêm dòng này
                     );
                     result.add(row);
                 }
             }
         }
-
         return result;
     }
 

@@ -170,7 +170,9 @@
     </servlet>
     <servlet>
         <servlet-name>RejectAuditController</servlet-name>
-        <servlet-class>controller.RejectAuditController</servlet-class>
+        <servlet-class>controller.RejectAuditController</servlet-class>       
+    </servlet>
+    <servlet>
         <servlet-name>MaterialMonthlyStatsController</servlet-name>
         <servlet-class>controller.MaterialMonthlyStatsController</servlet-class>
     </servlet>
@@ -342,12 +344,12 @@
         <url-pattern>/notification</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-
         <servlet-name>RejectAuditController</servlet-name>
         <url-pattern>/rejectaudit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>MaterialMonthlyStatsController</servlet-name>
         <url-pattern>/material-monthly-chart</url-pattern>
-
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

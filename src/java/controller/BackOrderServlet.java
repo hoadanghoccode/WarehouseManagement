@@ -165,7 +165,7 @@ public class BackOrderServlet extends HttpServlet {
                 OrderDetail orderDetail = new OrderDetail();
                 orderDetail.setMaterialId(backOrder.getMaterialId());
                 orderDetail.setQualityId(1);
-                orderDetail.setSubUnitId(backOrder.getSubUnitId());
+//                orderDetail.setSubUnitId(backOrder.getSubUnitId());
                 orderDetail.setQuantity((int) remainingQty);
                 orderDetails.add(orderDetail);
                 newOrder.setOrderDetails(orderDetails);

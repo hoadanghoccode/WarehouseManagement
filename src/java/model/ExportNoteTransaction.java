@@ -19,6 +19,7 @@ public class ExportNoteTransaction {
     private double availableQuantity;
     private Timestamp createdAt;
 
+    // Getters and Setters
     public int getExportNoteTransactionId() {
         return exportNoteTransactionId;
     }
