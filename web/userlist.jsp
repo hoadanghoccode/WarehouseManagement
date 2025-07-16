@@ -55,6 +55,19 @@
         <link rel="stylesheet" href="css/style1.css" />
         <link rel="stylesheet" href="css/colors/default.css" id="colorSkinCSS">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/userList.css?v=1" />
+        <style>
+            .sort-button {
+                padding: 8px 12px;
+                font-size: 14px;
+                line-height: 1;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .sort-button i {
+                font-size: 16px;
+            }
+        </style>
     </head>
     <body>
         <div class="main-layout">
@@ -96,6 +109,11 @@
                                 <option value="true" ${selectedStatus == 'true' ? 'selected' : ''}>Active</option>
                                 <option value="false" ${selectedStatus == 'false' ? 'selected' : ''}>Inactive</option>
                             </select>
+                            <input type="hidden" name="sort" id="sortInput" value="${fn:escapeXml(sort)}">
+                            <button type="button" class="btn btn-outline-secondary sort-button" onclick="toggleSort()">
+                                <i class="fas ${sort == 'name_desc' ? 'fa-sort-alpha-down-alt' : 'fa-sort-alpha-down'}"></i>
+                                Sort by Name
+                            </button>
                             <button type="submit" class="btn btn-primary">Filter</button>
                         </form>
                     </div>
@@ -167,10 +185,10 @@
                         <div class="pagination">
                             <c:choose>
                                 <c:when test="${currentPage > 1}">
-                                    <a href="${pageContext.request.contextPath}/userlist?page=1&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}" title="First page">
+                                    <a href="${pageContext.request.contextPath}/userlist?page=1&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}" title="First page">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}" title="Previous page">
+                                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage - 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}" title="Previous page">
                                         <i class="fas fa-angle-left"></i>
                                     </a>
                                 </c:when>
@@ -191,7 +209,7 @@
                                                 <span class="current">${i}</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">${i}</a>
+                                                <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">${i}</a>
                                             </c:otherwise>
                                         </c:choose>
                                     </c:forEach>
@@ -205,17 +223,17 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">${i}</a>
+                                                        <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                             <c:if test="${totalPages > 6}">
                                                 <span style="padding: 8px 4px;">...</span>
-                                                <a href="${pageContext.request.contextPath}/userlist?page=${totalPages}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">${totalPages}</a>
+                                                <a href="${pageContext.request.contextPath}/userlist?page=${totalPages}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">${totalPages}</a>
                                             </c:if>
                                         </c:when>
                                         <c:when test="${currentPage >= totalPages - 3}">
-                                            <a href="${pageContext.request.contextPath}/userlist?page=1&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">1</a>
+                                            <a href="${pageContext.request.contextPath}/userlist?page=1&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">1</a>
                                             <c:if test="${totalPages > 6}">
                                                 <span style="padding: 8px 4px;">...</span>
                                             </c:if>
@@ -225,13 +243,13 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">${i}</a>
+                                                        <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="${pageContext.request.contextPath}/userlist?page=1&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">1</a>
+                                            <a href="${pageContext.request.contextPath}/userlist?page=1&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">1</a>
                                             <span style="padding: 8px 4px;">...</span>
                                             <c:forEach begin="${currentPage - 2}" end="${currentPage + 2}" var="i">
                                                 <c:choose>
@@ -239,22 +257,22 @@
                                                         <span class="current">${i}</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">${i}</a>
+                                                        <a href="${pageContext.request.contextPath}/userlist?page=${i}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">${i}</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </c:forEach>
                                             <span style="padding: 8px 4px;">...</span>
-                                            <a href="${pageContext.request.contextPath}/userlist?page=${totalPages}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}">${totalPages}</a>
+                                            <a href="${pageContext.request.contextPath}/userlist?page=${totalPages}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}">${totalPages}</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </c:otherwise>
                             </c:choose>
                             <c:choose>
                                 <c:when test="${currentPage < totalPages}">
-                                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}" title="Next page">
+                                    <a href="${pageContext.request.contextPath}/userlist?page=${currentPage + 1}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}" title="Next page">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/userlist?page=${totalPages}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}" title="Last page">
+                                    <a href="${pageContext.request.contextPath}/userlist?page=${totalPages}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&roleId=${selectedRoleId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}" title="Last page">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
                                 </c:when>
@@ -452,6 +470,13 @@
                 updateDepartmentOptions();
                 roleSelect.addEventListener("change", updateDepartmentOptions);
             }
+            function toggleSort() {
+                const sortInput = document.getElementById('sortInput');
+                const currentSort = sortInput.value;
+                const newSort = currentSort === 'name_desc' ? 'name_asc' : 'name_desc';
+                sortInput.value = newSort;
+                document.getElementById('filterForm').submit();
+            }
             window.onclick = function (event) {
                 var createModal = document.getElementById("createUserModal");
                 var detailModal = document.getElementById("userDetailModal");
@@ -459,7 +484,7 @@
                 if (event.target == detailModal) detailModal.style.display = "none";
             }
             function dismissNotification() {
-                window.location.href = "${pageContext.request.contextPath}/userlist?page=${currentPage}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&status=${selectedStatus}";
+                window.location.href = "${pageContext.request.contextPath}/userlist?page=${currentPage}&search=${fn:escapeXml(search)}&departmentId=${selectedDepartmentId}&status=${selectedStatus}&sort=${fn:escapeXml(sort)}";
             }
         </script>
         <script>

@@ -318,7 +318,7 @@ public class AuditInventoryDAO {
     public List<InventoryAuditDetail> getDetailsByAuditId(int auditId) throws SQLException {
         List<InventoryAuditDetail> list = new ArrayList<>();
         String sql = "SELECT iad.*, "
-                + "md.Material_id, md.SubUnit_id, md.Quality_id "
+                + "md.Material_id, md.Quality_id "
                 + "FROM InventoryAuditDetail iad "
                 + "JOIN Material_detail md ON iad.Material_detail_id = md.Material_detail_id "
                 + "WHERE iad.Inventory_audit_id = ?";
@@ -336,7 +336,7 @@ public class AuditInventoryDAO {
                     detail.setReason(rs.getString("Reason"));
                     // Các trường bổ sung:
                     detail.setMaterialId(rs.getInt("Material_id"));
-                    detail.setSubUnitId(rs.getInt("SubUnit_id"));
+                    // ĐÃ BỎ SubUnit_id
                     detail.setQualityId(rs.getInt("Quality_id"));
                     list.add(detail);
                 }
@@ -354,6 +354,7 @@ public class AuditInventoryDAO {
         // 2. Lấy warehouse id duy nhất
         int warehouseId = getFirstWarehouseId(); // Viết hàm này như hướng dẫn trước, hoặc gán cứng 1 nếu luôn là 1 kho.
 
+        System.out.println("Creating adjustment orders for inventory audit ID: " + warehouseId);
         // 3. Chuẩn bị order nhập và order xuất (auto approve luôn)
         Order importOrder = null;
         Order exportOrder = null;

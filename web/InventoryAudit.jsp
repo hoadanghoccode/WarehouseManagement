@@ -527,7 +527,7 @@
                             showAlert(true, 'Rejected successfully!');
                             $('#auditDetailModal').modal('hide');
                             $('#confirmRejectModal').modal('hide');
-                            setTimeout(() => location.reload(), 1000);
+//                            setTimeout(() => location.reload(), 1000);
                         },
                         error: function () {
                             showAlert(false, 'Reject failed!');

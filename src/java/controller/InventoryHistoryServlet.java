@@ -22,24 +22,24 @@ public class InventoryHistoryServlet extends HttpServlet {
         try {
             // Log raw parameters for debugging
             System.out.println("Raw materialId: " + request.getParameter("materialId"));
-            System.out.println("Raw subUnitId: " + request.getParameter("subUnitId"));
+            System.out.println("Raw unitId: " + request.getParameter("unitId"));
 
-            // Validate materialId and subUnitId parameters
+            // Validate materialId and unitId parameters
             String materialIdParam = request.getParameter("materialId");
-            String subUnitIdParam = request.getParameter("subUnitId");
+            String unitIdParam = request.getParameter("unitId");
             if (materialIdParam == null || materialIdParam.trim().isEmpty() || 
-                subUnitIdParam == null || subUnitIdParam.trim().isEmpty()) {
-                request.setAttribute("errorMsg", "Material ID and Subunit ID are required.");
+                unitIdParam == null || unitIdParam.trim().isEmpty()) {
+                request.setAttribute("errorMsg", "Material ID and Unit ID are required.");
                 request.getRequestDispatcher("/inventoryhistory.jsp").forward(request, response);
                 return;
             }
 
-            int materialId, subUnitId;
+            int materialId, unitId;
             try {
                 materialId = Integer.parseInt(materialIdParam);
-                subUnitId = Integer.parseInt(subUnitIdParam);
+                unitId = Integer.parseInt(unitIdParam);
             } catch (NumberFormatException e) {
-                request.setAttribute("errorMsg", "Invalid material ID or subunit ID format.");
+                request.setAttribute("errorMsg", "Invalid material ID or unit ID format.");
                 request.getRequestDispatcher("/inventoryhistory.jsp").forward(request, response);
                 return;
             }
@@ -47,14 +47,14 @@ public class InventoryHistoryServlet extends HttpServlet {
             // Initialize DAO
             InventoryHistoryDAO dao = new InventoryHistoryDAO();
 
-            // Verify materialId and subUnitId exist in database
+            // Verify materialId and unitId exist in database
             if (!dao.isMaterialExists(materialId)) {
                 request.setAttribute("errorMsg", "Material ID " + materialId + " does not exist.");
                 request.getRequestDispatcher("/inventoryhistory.jsp").forward(request, response);
                 return;
             }
-            if (!dao.isSubUnitExists(subUnitId)) {
-                request.setAttribute("errorMsg", "Subunit ID " + subUnitId + " does not exist.");
+            if (!dao.isUnitExists(unitId)) {
+                request.setAttribute("errorMsg", "Unit ID " + unitId + " does not exist.");
                 request.getRequestDispatcher("/inventoryhistory.jsp").forward(request, response);
                 return;
             }
@@ -77,7 +77,7 @@ public class InventoryHistoryServlet extends HttpServlet {
             }
 
             // Log parameters
-            System.out.println("Parameters: materialId=" + materialId + ", subUnitId=" + subUnitId + 
+            System.out.println("Parameters: materialId=" + materialId + ", unitId=" + unitId + 
                               ", dateRange=" + dateRange + ", startDate=" + startDate + 
                               ", endDate=" + endDate + ", transactionType=" + transactionType + 
                               ", sortBy=" + sortBy + ", page=" + page +
@@ -146,8 +146,8 @@ public class InventoryHistoryServlet extends HttpServlet {
             }
 
             // Fetch total historical import/export quantities from InventoryMaterialDaily table
-            double dailyImportQty = dao.getTotalHistoricalImportQty(materialId, subUnitId);
-            double dailyExportQty = dao.getTotalHistoricalExportQty(materialId, subUnitId);
+            double dailyImportQty = dao.getTotalHistoricalImportQty(materialId, unitId);
+            double dailyExportQty = dao.getTotalHistoricalExportQty(materialId, unitId);
 
             // Log total historical quantities
             System.out.println("Total Historical Import from InventoryMaterialDaily: " + dailyImportQty + 
@@ -155,13 +155,13 @@ public class InventoryHistoryServlet extends HttpServlet {
 
             // Fetch history list with pagination
             List<InventoryHistory> historyList = dao.getFilteredInventoryHistories(
-                materialId, subUnitId, 
+                materialId, unitId, 
                 startDateObj != null ? startDateObj.toString() : null, 
                 endDateObj != null ? endDateObj.toString() : null, 
                 transactionType, sortBy, page, PAGE_SIZE
             );
             int totalRecords = dao.getTotalRecords(
-                materialId, subUnitId, 
+                materialId, unitId, 
                 startDateObj != null ? startDateObj.toString() : null, 
                 endDateObj != null ? endDateObj.toString() : null, 
                 transactionType
@@ -170,14 +170,14 @@ public class InventoryHistoryServlet extends HttpServlet {
 
             // Fetch custom total import/export and latest quantities
             Map<String, Double> customTotals = dao.getTotalImportExportByPeriod(
-                materialId, subUnitId, totalPeriod, 
+                materialId, unitId, totalPeriod, 
                 totalStartDateObj != null ? totalStartDateObj.toString() : null, 
                 totalEndDateObj != null ? totalEndDateObj.toString() : null
             );
             double customTotalImport = customTotals.get("totalImport");
             double customTotalExport = customTotals.get("totalExport");
             InventoryHistory latestHistory = dao.getLatestHistoryByDate(
-                materialId, subUnitId, 
+                materialId, unitId, 
                 totalStartDateObj != null ? totalStartDateObj.toString() : null, 
                 totalEndDateObj != null ? totalEndDateObj.toString() : null
             );
@@ -199,7 +199,7 @@ public class InventoryHistoryServlet extends HttpServlet {
             request.setAttribute("currentPage", page);
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("materialId", materialId);
-            request.setAttribute("subUnitId", subUnitId);
+            request.setAttribute("unitId", unitId);
             request.setAttribute("totalPeriod", totalPeriod);
             request.setAttribute("totalStartDate", totalStartDateObj != null ? totalStartDateObj.toString() : null);
             request.setAttribute("totalEndDate", totalEndDateObj != null ? totalEndDateObj.toString() : null);

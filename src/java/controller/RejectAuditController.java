@@ -70,7 +70,7 @@ public class RejectAuditController extends HttpServlet {
         String rawId = request.getParameter("auditId");
         String rejectNote = request.getParameter("rejectNote"); // Lý do reject (optional)
         String message;
-
+        
         try {
             int auditId = Integer.parseInt(rawId);
 

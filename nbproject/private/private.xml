@@ -2,26 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/ApproveAuditController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/model/DeptRoleResource.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/WEB-INF/web.xml</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/DashboardController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/AuditInventoryDAO.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/UserDAO.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/InventoryAudit.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/model/Role.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/DepartmentController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/supplier.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/RejectAuditController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/filter/AuthFilter.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/DepartmentDAO.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/model/DeptWithRole.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/controller/SupplierController.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/sidebar.jsp</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/src/java/dal/SupplierDAO.java</file>
-            <file>file:/D:/semester8/SWP391/WarehouseManagement/web/department.jsp</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>
