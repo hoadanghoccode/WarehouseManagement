@@ -13,10 +13,13 @@
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/dashboard.jsp</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/orderlist.jsp</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/changepassword.jsp</file>
-            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/CategoryList.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/AuditListController.java</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/web/sidebar.jsp</file>
             <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/filter/AuthFilter.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/controller/OrderListController.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/src/java/model/Users.java</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/web/editorder.jsp</file>
+            <file>file:/D:/Study/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
         </group>
     </open-files>
 </project-private>
