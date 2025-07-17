@@ -219,7 +219,7 @@ public class OrderDetailController extends HttpServlet {
                     success = orderDAO.approveOrderAndCreateImportNote(orderId, order.getUserId());
                     if (success) {
                         session.setAttribute("successMessage", "Import order approved successfully!");
-                        response.sendRedirect("categorylist");
+                        response.sendRedirect("orderlist");
                         return;
                     } else {
                         message = "Failed to approve import order. Please try again.";
