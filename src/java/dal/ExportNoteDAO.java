@@ -177,7 +177,7 @@ public class ExportNoteDAO extends DBContext {
                     order.setWarehouseId(rs.getInt("Warehouse_id"));
                     order.setUserId(rs.getInt("User_id"));
                     order.setUserName(rs.getString("User_name"));
-                    order.setCreatedAt(rs.getTimestamp("Created_at"));
+                    order.setCreatedAt(rs.getDate("Created_at"));
                     order.setType(rs.getString("Type"));
                     order.setSupplier(rs.getObject("Supplier_id", Integer.class) != null ? rs.getInt("Supplier_id") : 0);
                     order.setSupplierName(rs.getString("Supplier_name"));
@@ -259,7 +259,7 @@ public class ExportNoteDAO extends DBContext {
                     transaction.setQualityId(rs.getInt("Quality_id"));
                     transaction.setQualityName(rs.getString("Quality_name"));
                     transaction.setAvailableQuantity(rs.getDouble("Available_quantity"));
-                    transaction.setCreatedAt(rs.getTimestamp("Created_at"));
+                    transaction.setCreatedAt(rs.getDate("Created_at"));
                     transaction.setUserDoExportId(rs.getObject("User_doExport_id", Integer.class));
                     transaction.setUserDoExportName(rs.getString("User_doExport_name"));
                     transactions.add(transaction);
@@ -309,7 +309,7 @@ public class ExportNoteDAO extends DBContext {
                     transaction.setQualityId(rs.getInt("Quality_id"));
                     transaction.setQualityName(rs.getString("Quality_name"));
                     transaction.setAvailableQuantity(rs.getDouble("Available_quantity"));
-                    transaction.setCreatedAt(rs.getTimestamp("Created_at"));
+                    transaction.setCreatedAt(rs.getDate("Created_at"));
                     transaction.setUserDoExportId(rs.getObject("User_doExport_id", Integer.class));
                     transaction.setUserDoExportName(rs.getString("User_doExport_name"));
                     transactions.add(transaction);
@@ -515,7 +515,7 @@ public class ExportNoteDAO extends DBContext {
                     tx.setExportedQuantity(rs.getDouble("Exported_quantity"));
                     tx.setRemainingQuantity(rs.getDouble("Remaining_quantity"));
                     tx.setExported(rs.getBoolean("Exported"));
-                    tx.setCreatedAt(rs.getTimestamp("Created_at"));
+                    tx.setCreatedAt(rs.getDate("Created_at"));
                     tx.setUserDoExportId(rs.getObject("User_doExport_id", Integer.class));
                     tx.setUserDoExportName(rs.getString("User_doExport_name"));
                     return tx;

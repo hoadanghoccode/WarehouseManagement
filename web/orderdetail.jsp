@@ -87,7 +87,7 @@
                                     <div class="order-date">
                                         <c:choose>
                                             <c:when test="${order.createdAt != null}">
-                                                <fmt:formatDate value="${order.createdAt}" pattern="MMMM d, yyyy 'at' h:mm a"/>
+                                                <fmt:formatDate value="${order.createdAt}" pattern="MMMM d, yyyy"/>
                                             </c:when>
                                             <c:otherwise>
                                                 Order Date: N/A

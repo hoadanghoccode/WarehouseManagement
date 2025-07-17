@@ -1,6 +1,6 @@
 package model;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 
 public class ExportNoteTransaction {
     private int exportNoteTransactionId;
@@ -17,7 +17,7 @@ public class ExportNoteTransaction {
     private int qualityId;
     private String qualityName;
     private double availableQuantity;
-    private Timestamp createdAt;
+    private Date createdAt;
     private Integer userDoExportId; 
     private String userDoExportName; 
 
@@ -134,11 +134,11 @@ public class ExportNoteTransaction {
         this.availableQuantity = availableQuantity;
     }
 
-    public Timestamp getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
