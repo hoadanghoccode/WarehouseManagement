@@ -4,7 +4,7 @@
  */
 package model;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 import java.util.List;
 
 /**
@@ -16,7 +16,7 @@ public class Order {
     private int orderId;
     private int warehouseId;
     private int userId;
-    private Timestamp createdAt;
+    private Date createdAt;
     private String type; 
     private int supplier;
     private String status;
@@ -27,7 +27,7 @@ public class Order {
 
    
 
-    public Order(int orderId, int warehouseId, int userId, Timestamp createdAt, String type, int supplier, String status, String note, List<OrderDetail> orderDetails, String userName, String supplierName) {
+    public Order(int orderId, int warehouseId, int userId, Date createdAt, String type, int supplier, String status, String note, List<OrderDetail> orderDetails, String userName, String supplierName) {
         this.orderId = orderId;
         this.warehouseId = warehouseId;
         this.userId = userId;
@@ -44,7 +44,7 @@ public class Order {
     public Order() {
     }
 
-    public Order(int orderId, int warehouseId, int userId, Timestamp createdAt, String type, int supplier, String status, String note, List<OrderDetail> orderDetails) {
+    public Order(int orderId, int warehouseId, int userId, Date createdAt, String type, int supplier, String status, String note, List<OrderDetail> orderDetails) {
         this.orderId = orderId;
         this.warehouseId = warehouseId;
         this.userId = userId;
@@ -85,11 +85,11 @@ public class Order {
 
   
 
-    public Timestamp getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
