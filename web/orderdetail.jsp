@@ -212,13 +212,13 @@
                                         <div class="card" style="margin-bottom: 24px;">
                                             <div class="card-header">
                                                 <h3 class="card-title">
-                                                    <i class="fas fa-user-shield"></i> Admin Actions
+                                                    <i class="fas fa-user-shield"></i> Director Actions
                                                 </h3>
                                             </div>
                                             <div class="card-body">
                                                 <div style="margin-bottom: 20px;">
                                                     <label for="adminNote" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">
-                                                        <i class="fas fa-sticky-note"></i> Admin Note (Optional)
+                                                        <i class="fas fa-sticky-note"></i> Director Note (Optional)
                                                     </label>
                                                     <textarea 
                                                         name="adminNote" 
