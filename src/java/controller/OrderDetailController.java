@@ -96,6 +96,20 @@ public class OrderDetailController extends HttpServlet {
                 return;
             }
 
+            // Check for success message from session
+            String successMessage = (String) session.getAttribute("successMessage");
+            if (successMessage != null) {
+                request.setAttribute("successMessage", successMessage);
+                session.removeAttribute("successMessage"); // Remove after displaying
+            }
+
+            // Check for error message from session
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            if (errorMessage != null) {
+                request.setAttribute("errorMessage", errorMessage);
+                session.removeAttribute("errorMessage"); // Remove after displaying
+            }
+
             // Business Logic: Lấy thông tin order từ database
             Order order = orderDAO.getOrderById(orderId);
 
