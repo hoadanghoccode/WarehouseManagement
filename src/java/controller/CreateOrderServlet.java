@@ -176,14 +176,18 @@ public class CreateOrderServlet extends HttpServlet {
             boolean success = dao.createOrder(order);
 
             if (success) {
-                response.sendRedirect("orderlist?success=true");
+                session.setAttribute("successMessage", "Order created successfully!");
+                response.sendRedirect("orderlist");
+                return;
             } else {
                 returnWithError(request, response, "Failed to create order due to database issue");
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            returnWithError(request, response, "Error: " + e.getMessage());
+            HttpSession session = request.getSession(false);
+            session.setAttribute("errorMessage", "Failed to create order: " + e.getMessage());
+            response.sendRedirect("orderlist");
+            return;
         }
     }
 
