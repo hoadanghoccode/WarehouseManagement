@@ -135,7 +135,7 @@
                                     </td>
                                     <td>${orderDetail.materialName}</td>
                                     <td>${orderDetail.unitName}</td>
-                                    <td><fmt:formatNumber value="${orderDetail.quantity}" pattern="#,##0"/></td>
+                                    <td><fmt:formatNumber value="${orderDetail.quantity}" pattern="###"/></td>
                                     <td>
                                     <c:choose>
                                         <c:when test="${orderDetail.qualityId > 0}">
@@ -178,15 +178,15 @@
                                         <td>${loop.index + 1}</td>
                                         <td>${detail.materialName}</td>
                                         <td>${detail.unitName}</td>
-                                        <td><fmt:formatNumber value="${detail.quantity}" pattern="#,##0.00"/></td>
+                                        <td><fmt:formatNumber value="${detail.quantity}" pattern="###"/></td>
                                         <c:set var="totalExported" value="0"/>
                                         <c:forEach var="tx" items="${detail.transactions}">
                                             <c:if test="${tx.exported}">
                                                 <c:set var="totalExported" value="${totalExported + tx.exportedQuantity}"/>
                                             </c:if>
                                         </c:forEach>
-                                        <td><fmt:formatNumber value="${totalExported}" pattern="#,##0.00"/></td>
-                                        <td><fmt:formatNumber value="${detail.availableQuantity}" pattern="#,##0.00"/></td>
+                                        <td><fmt:formatNumber value="${totalExported}" pattern="###"/></td>
+                                        <td><fmt:formatNumber value="${detail.availableQuantity}" pattern="###"/></td>
                                         <td>
                                             <span class="badge ${detail.exported ? 'bg-success' : 'bg-danger'}">
                                                 ${detail.exported ? 'Exported' : 'Pending'}
@@ -216,7 +216,7 @@
                                                             <c:if test="${tx.exported}">
                                                                 <tr>
                                                                     <td><fmt:formatDate value="${tx.createdAt}" pattern="dd/MM/yyyy"/></td>
-                                                                    <td><fmt:formatNumber value="${tx.exportedQuantity}" pattern="#,##0.00"/></td>
+                                                                    <td><fmt:formatNumber value="${tx.exportedQuantity}" pattern="###"/></td>
                                                                     <td>${tx.userDoExportName != null ? tx.userDoExportName : 'N/A'}</td>
                                                                     <td>
                                                                         <span class="badge bg-success">Exported</span>
