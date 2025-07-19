@@ -479,7 +479,6 @@
                         <thead>
                             <tr>
                                 <th class="col-md-1">#</th>
-                                <th class="col-md-2">Order ID</th>
                                 <th class="col-md-2">User Name</th>
                                 <th class="col-md-2">Warehouse</th>
                                 <th class="col-md-2">Created At</th>
@@ -491,7 +490,6 @@
                             <c:forEach var="exportNote" items="${exportNotes}" varStatus="loop">
                                 <tr>
                                     <td><strong>${(page-1)*5 + loop.index + 1}</strong></td>
-                                    <td>${exportNote.orderId}</td>
                                     <td>${exportNote.userName != null ? exportNote.userName : 'N/A'}</td>
                                     <td>${exportNote.warehouseName != null ? exportNote.warehouseName : 'N/A'}</td>
                                     <td><fmt:formatDate value="${exportNote.createdAt}" pattern="dd/MM/yyyy" /></td>
