@@ -19,10 +19,16 @@ import jakarta.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+
 import model.InventoryItem;
 import java.util.List;
+import java.util.Map;
+
+import model.Category;
 import model.InventoryAuditDetail;
 import model.Users;
+import dal.CategoryDAO;
 
 /**
  *
@@ -37,17 +43,43 @@ public class InventoryAuditController extends HttpServlet {
         AuditInventoryDAO dao = new AuditInventoryDAO();
         String action = request.getParameter("action");
         try {
-            if ("listMaterial".equals(action)) {
-                
-                // Trả về JSON list vật tư cho modal Add Audit
-                List<InventoryItem> items = dao.getInventoryForAudit();
+            if (action != null && action.equals("listMaterial")) {
+                // Lấy thêm categoryId nếu có
+                String categoryIdStr = request.getParameter("categoryId");
+                List<InventoryItem> items;
+                if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+                    try {
+                        int categoryId = Integer.parseInt(categoryIdStr);
+                        items = dao.getInventoryForAudit(categoryId);
+                    } catch (NumberFormatException e) {
+                        items = dao.getInventoryForAudit(); // fallback nếu lỗi
+                    }
+                } else {
+                    items = dao.getInventoryForAudit();
+                }
+            
+                // Lấy luôn parent category kèm sub active
+                CategoryDAO cateDao = new CategoryDAO();
+                List<Category> parentCategories = cateDao.getAllParentCategoryWithActiveSubs("active");
+            
+                // Gộp response
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 Gson gson = new Gson();
-                response.getWriter().write(gson.toJson(items));
+            
+                // Gói 2 danh sách vào map để trả về JSON chung
+                Map<String, Object> respData = new HashMap<>();
+                respData.put("items", items);
+                respData.put("parentCategories", parentCategories);
+            
+                response.getWriter().write(gson.toJson(respData));
+                return;
             } else {
-                // Default: forward tới JSP nếu vào thẳng đường dẫn (ít dùng)
+                // Forward tới JSP (truyền parentCategories cho modal)
                 List<InventoryItem> items = dao.getInventoryForAudit();
+                CategoryDAO cateDao = new CategoryDAO();
+                request.setAttribute("parentCategories", cateDao.getAllParentCategoryWithActiveSubs("active"));
+                System.out.println("data hahaha" + cateDao.getAllParentCategoryWithActiveSubs("active"));
                 request.setAttribute("inventoryList", items);
                 request.getRequestDispatcher("inventoryaudit.jsp").forward(request, response);
             }

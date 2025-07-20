@@ -93,34 +93,139 @@
             <div class="container mt-4">
                 <!-- Bootstrap Alert Container -->
                 <div class="bootstrap-alert-container" id="alertContainer"></div>
-                <c:if test="${perms['Department_ADD']}"> 
-                    <div class="row mb-3">                
-                        <div class="col d-flex justify-content-end">
+                <div class="row mb-3">
+                    <div class="col">
+                        <form class="d-flex" method="get" action="department">
+                            <input type="text" class="form-control me-2" name="search" placeholder="Search department..." value="${search}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    <div class="col d-flex justify-content-end">
+                        <c:if test="${perms['Department_ADD']}">
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#departmentModal">
                                 Add Department
                             </button>
-                        </div>
+                        </c:if>
                     </div>
-                </c:if>
-
+                </div>
                 <table class="table table-bordered">
                     <thead class="table-header">
                         <tr>
+                            <th>#</th>
                             <th>Department Name</th>
                             <th>Role Name</th>
-                            <th>Permission</th>
-                            <th>Create</th>
-                            <th>Read</th>
-                            <th>Update</th>
-                            <th>Delete</th>
-                            <th>User Count</th> <!-- Thêm cột này -->
+                            <th>User Count</th>
+                            <th>Description</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="roleTableBody">
-                        <!-- Nơi JavaScript sẽ render dữ liệu -->
+                    <tbody>
+                        <c:forEach var="dept" items="${departmentList}" varStatus="st">
+                            <tr>
+                                <td><strong>${(page-1)*pageSize + st.index + 1}</strong></td>
+                                <td>${dept.departmentName}</td>
+                                <td>${empty dept.roleName ? 'No Role Assigned' : dept.roleName}</td>
+                                <td>${empty dept.userCount ? 0 : dept.userCount}</td>
+                                <td>${dept.description}</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm me-2 view-btn" data-dept-id="${dept.departmentId}" data-bs-toggle="modal" data-bs-target="#viewDepartmentModal"><i class="fas fa-eye text-white"></i></button>
+                                    <button class="btn btn-danger btn-sm delete-btn" data-dept-id="${dept.departmentId}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </c:forEach>
                     </tbody>
                 </table>
+                <!-- Stats info like supplier -->
+                <div class="stats-info mb-2">
+                    <i class="fas fa-info-circle"></i>
+                    <c:choose>
+                        <c:when test="${not empty search}">
+                            Found <strong>${totalDepartments}</strong> for "<strong>${search}</strong>"
+                        </c:when>
+                        <c:otherwise>
+                            Showing <strong>${departmentList.size()}</strong> / <strong>${totalDepartments}</strong> departments
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+                <!-- Pagination (Bootstrap style with arrow icons like supplier) -->
+                <c:if test="${numPages > 1}">
+                    <style>
+                        .pagination .page-item.active .page-link {
+                            background-color: #3f2179 !important;
+                            border-color: #3f2179 !important;
+                            color: #fff !important;
+                        }
+                        .pagination .page-link {
+                            color: #3f2179;
+                            border-radius: 6px !important;
+                            border: 1px solid #e5e5e5;
+                            margin: 0 2px;
+                        }
+                        .pagination .page-item .page-link:hover {
+                            background-color: #ede7f6;
+                            color: #3f2179;
+                        }
+                        .pagination .page-item.disabled .page-link {
+                            color: #ccc;
+                            background: #f8f9fa;
+                            border-color: #e5e5e5;
+                        }
+                    </style>
+                    <div class="d-flex justify-content-center">
+                        <ul class="pagination">
+                            <c:url var="firstUrl" value="/department">
+                                <c:param name="page" value="1"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <c:url var="prevUrl" value="/department">
+                                <c:param name="page" value="${page-1}"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <li class="page-item${page == 1 ? ' disabled' : ''}">
+                                <a class="page-link" href="${firstUrl}" tabindex="-1">&laquo;</a>
+                            </li>
+                            <li class="page-item${page == 1 ? ' disabled' : ''}">
+                                <a class="page-link" href="${prevUrl}" tabindex="-1">&lsaquo;</a>
+                            </li>
+                            <c:forEach begin="1" end="${numPages}" var="i">
+                                <c:url var="pageUrl" value="/department">
+                                    <c:param name="page" value="${i}"/>
+                                    <c:if test="${not empty search}">
+                                        <c:param name="search" value="${search}"/>
+                                    </c:if>
+                                </c:url>
+                                <li class="page-item${i == page ? ' active' : ''}">
+                                    <a class="page-link" href="${pageUrl}">${i}</a>
+                                </li>
+                            </c:forEach>
+                            <c:url var="nextUrl" value="/department">
+                                <c:param name="page" value="${page+1}"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <c:url var="lastUrl" value="/department">
+                                <c:param name="page" value="${numPages}"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <li class="page-item${page == numPages ? ' disabled' : ''}">
+                                <a class="page-link" href="${nextUrl}">&rsaquo;</a>
+                            </li>
+                            <li class="page-item${page == numPages ? ' disabled' : ''}">
+                                <a class="page-link" href="${lastUrl}">&raquo;</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="page-info text-center mt-2">
+                        Page ${page} of ${numPages} (${totalDepartments} total)
+                    </div>
+                </c:if>
             </div>
 
             <!-- Modal Xác nhận Xoá -->
@@ -433,51 +538,6 @@
                                                             tdRole.rowSpan = entry.permissions.length;
                                                             tr.appendChild(tdRole);
                                                         }
-
-                                                        // Cột Permission (tên resource)
-                                                        const tdPermName = document.createElement('td');
-                                                        tdPermName.textContent = perm.resourceName || '';
-                                                        tr.appendChild(tdPermName);
-
-                                                        // Cột Create (canAdd)
-                                                        const tdAdd = document.createElement('td');
-                                                        const cbAdd = document.createElement('input');
-                                                        cbAdd.type = 'checkbox';
-                                                        cbAdd.className = 'form-check-input';
-                                                        cbAdd.disabled = true;     // chỉ hiển thị, không cho sửa trực tiếp ở đây
-                                                        cbAdd.checked = perm.canAdd || false;
-                                                        tdAdd.appendChild(cbAdd);
-                                                        tr.appendChild(tdAdd);
-
-                                                        // Cột Read (canView)
-                                                        const tdView = document.createElement('td');
-                                                        const cbView = document.createElement('input');
-                                                        cbView.type = 'checkbox';
-                                                        cbView.className = 'form-check-input';
-                                                        cbView.disabled = true;
-                                                        cbView.checked = perm.canView || false;
-                                                        tdView.appendChild(cbView);
-                                                        tr.appendChild(tdView);
-
-                                                        // Cột Update (canUpdate)
-                                                        const tdUpdate = document.createElement('td');
-                                                        const cbUpdate = document.createElement('input');
-                                                        cbUpdate.type = 'checkbox';
-                                                        cbUpdate.className = 'form-check-input';
-                                                        cbUpdate.disabled = true;
-                                                        cbUpdate.checked = perm.canUpdate || false;
-                                                        tdUpdate.appendChild(cbUpdate);
-                                                        tr.appendChild(tdUpdate);
-
-                                                        // Cột Delete (canDelete)
-                                                        const tdDelete = document.createElement('td');
-                                                        const cbDelete = document.createElement('input');
-                                                        cbDelete.type = 'checkbox';
-                                                        cbDelete.className = 'form-check-input';
-                                                        cbDelete.disabled = true;
-                                                        cbDelete.checked = perm.canDelete || false;
-                                                        tdDelete.appendChild(cbDelete);
-                                                        tr.appendChild(tdDelete);
 
                                                         // Chỉ dòng đầu tiên (j === 0) mới hiển thị cột User Count và Actions
                                                         if (j === 0) {

@@ -382,14 +382,13 @@
                         .then(payload => {
                             // giả định server trả { status: 'ok' } hoặc tương tự
                             if (payload.status === 'ok') {
-                                console.log('Cập nhật thành công!', 'success');
+                                showAlert(true, 'Cập nhật quyền thành công!');
                             } else {
-                                console.log('Cập nhật thất bại: ' + (payload.message || ''), 'danger');
+                                showAlert(false, 'Cập nhật thất bại: ' + (payload.message || ''));
                             }
                         })
                         .catch(err => {
-
-                            console.log('Có lỗi khi cập nhật.', 'danger');
+                            showAlert(false, 'Có lỗi khi cập nhật.');
                         });
             });
 
@@ -514,6 +513,65 @@
                 });
 
             });
+        </script>
+         <script>
+            /**
+             * Hàm showAlert(status, message):
+             *   - status = true  → alert màu xanh (alert-success)
+             *   - status = false → alert màu đỏ  (alert-danger)
+             * alert sẽ nằm cố định bên phải, tự đóng sau 4s
+             */
+            function showAlert(status, message) {
+                console.log('showAlert called', status, message); // Debug log
+                // Remove old alert if exists
+                const existingAlert = document.querySelector('.custom-alert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+                // Create new alert
+                const alertDiv = document.createElement('div');
+                // alertDiv.className = `alert alert-${status ? 'success' : 'danger'} alert-dismissible fade show custom-alert`;
+                alertDiv.className = `alert alert-success alert-dismissible fade show custom-alert`;
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    min-width: 300px;
+                    z-index: 9999;
+                    padding: 1rem;
+                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                    border-radius: 0.375rem;
+                `;
+                // Add icon
+                const icon = document.createElement('i');
+                icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+                alertDiv.appendChild(icon);
+                // Add message
+                const messageText = document.createTextNode(message);
+                alertDiv.appendChild(messageText);
+                // Add close button
+                const closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.className = 'btn-close';
+                closeBtn.setAttribute('data-bs-dismiss', 'alert');
+                closeBtn.setAttribute('aria-label', 'Close');
+                closeBtn.onclick = () => alertDiv.remove();
+                alertDiv.appendChild(closeBtn);
+                // Append to body
+                document.body.appendChild(alertDiv);
+                // Animate in
+                setTimeout(() => {
+                    alertDiv.style.opacity = '1';
+                }, 100);
+                // Auto-dismiss after 4s
+                setTimeout(() => {
+                    if (alertDiv && document.body.contains(alertDiv)) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => alertDiv.remove(), 150);
+                    }
+                }, 4000);
+            }
         </script>
 
 

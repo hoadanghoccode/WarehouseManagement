@@ -355,7 +355,10 @@
                                     <span class="field-error" id="error-status"></span>
                                 </div>
                                 <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">Create User</button>
+                                    <button type="submit" class="btn btn-primary" id="createUserBtn">
+                                        <span id="createUserBtnText">Create User</span>
+                                        <span id="createUserBtnSpinner" class="spinner-border spinner-border-sm" style="display:none;vertical-align:middle;" role="status" aria-hidden="true"></span>
+                                    </button>
                                     <button type="button" onclick="closeModal('createUserModal')">Cancel</button>
                                 </div>
                             </form>
@@ -488,36 +491,51 @@
             }
         </script>
         <script>
-            $(document).ready(function () {
-                $('#createUserForm').on('submit', function (e) {
+            document.addEventListener('DOMContentLoaded', function() {
+                const createUserForm = document.getElementById('createUserForm');
+                const createUserBtn = document.getElementById('createUserBtn');
+                const createUserBtnText = document.getElementById('createUserBtnText');
+                const createUserBtnSpinner = document.getElementById('createUserBtnSpinner');
+
+                createUserForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const $form = $(this);
-                    const $alert = $('#createUserAlert');
-                    $alert.hide().removeClass('error-message success-message').text('');
-                    $('.field-error').text('');
-                    $.ajax({
-                        url: '${pageContext.request.contextPath}/createuser',
+                    // Show loading spinner
+                    createUserBtn.disabled = true;
+                    createUserBtnSpinner.style.display = 'inline-block';
+                    createUserBtnText.textContent = 'Creating...';
+
+                    // Simulate AJAX call (replace with your real AJAX/fetch logic)
+                    // Example:
+                    fetch('${pageContext.request.contextPath}/createuser', {
                         method: 'POST',
-                        data: $form.serialize(),
-                        success: function (res) {
-                            $alert.addClass('success-message').text(res.message || "Tạo user thành công!").fadeIn();
+                        body: new FormData(createUserForm)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide spinner, enable button
+                        createUserBtn.disabled = false;
+                        createUserBtnSpinner.style.display = 'none';
+                        createUserBtnText.textContent = 'Create User';
+                        // Handle success/error (show alert, close modal, etc.)
+                        if (data.success) {
+                            $('#createUserAlert').addClass('success-message').text(data.message || "Tạo user thành công!").fadeIn();
                             setTimeout(() => {
                                 closeModal('createUserModal');
                                 location.reload();
                             }, 1000);
-                        },
-                        error: function (xhr) {
-                            try {
-                                const res = JSON.parse(xhr.responseText);
-                                if (res.field && res.error) {
-                                    $('#error-' + res.field).text(res.error);
-                                } else if (res.error) {
-                                    $alert.addClass('error-message').text(res.error).fadeIn();
-                                }
-                            } catch (e) {
-                                $alert.addClass('error-message').text("Có lỗi xảy ra.").fadeIn();
+                        } else {
+                            $('#createUserAlert').addClass('error-message').text(data.error || "Có lỗi xảy ra.").fadeIn();
+                            if (data.field && data.error) {
+                                $('#error-' + data.field).text(data.error);
                             }
                         }
+                    })
+                    .catch(err => {
+                        createUserBtn.disabled = false;
+                        createUserBtnSpinner.style.display = 'none';
+                        createUserBtnText.textContent = 'Create User';
+                        // Handle error (show alert, etc.)
+                        $('#createUserAlert').addClass('error-message').text("Có lỗi xảy ra.").fadeIn();
                     });
                 });
             });
