@@ -135,6 +135,7 @@ public class Import_noteDAO extends DBContext {
                 trans.setImportNoteTransactionId(rs.getInt("Import_note_transaction_id"));
                 trans.setImportNoteDetailId(rs.getInt("Import_note_detail_id"));
                 trans.setMaterialId(rs.getInt("Material_id"));
+                trans.setUserDoImportId(rs.getInt("User_doImport_id")); 
                 trans.setQuantity(rs.getDouble("Quantity"));
                 trans.setQualityId(rs.getInt("Quality_id"));
                 trans.setImported(rs.getBoolean("Imported"));
@@ -352,14 +353,14 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    public void insertImportNoteTransaction(int detailId, int materialId, int qualityId, double quantity) throws SQLException {
-        String sql = "INSERT INTO Import_note_transaction (Import_note_detail_id, Material_id, Quality_id, Quantity, Created_at) " +
-                     "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
+    public void insertImportNoteTransaction(int detailId, int materialId, int qualityId, double quantity, int userDoImportId) throws SQLException {
+        String sql = "INSERT INTO Import_note_transaction (Import_note_detail_id, Material_id, Quality_id, Quantity, User_doImport_id, Created_at) " + "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, detailId);
             ps.setInt(2, materialId);
             ps.setInt(3, qualityId);
             ps.setDouble(4, quantity);
+            ps.setInt(5, userDoImportId); 
             ps.executeUpdate();
         }
     }

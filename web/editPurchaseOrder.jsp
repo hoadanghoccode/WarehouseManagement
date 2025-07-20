@@ -57,11 +57,11 @@
                         <div class="card">
                             <div class="card-header">Purchase Order Information</div>
                             <div class="card-body">
-                                <div class="form-group">
+                                <div class="form-group" style="display: none;">
                                     <label class="form-label">Purchase Order ID</label>
                                     <input type="text" class="form-control" value="${purchaseOrder.purchaseOrderId}" disabled>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group" style="display: none;">
                                     <label class="form-label">Order ID</label>
                                     <input type="text" class="form-control" value="${purchaseOrder.orderId}" disabled>
                                 </div>
@@ -95,9 +95,9 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Purchase Order Detail ID</th>
-                                                <th>Material ID</th>
-                                                <th>Quality ID</th>
+                                                <th style="display: none;">Purchase Order Detail ID</th>
+                                                <th>Material Name</th>
+                                                <th>Quality Name</th>
                                                 <th>Quantity</th>
                                                 <th>Price</th>
                                             </tr>
@@ -109,15 +109,12 @@
                                             <c:forEach var="detail" items="${purchaseOrder.purchaseOrderDetails}" varStatus="status">
                                                 <tr>
                                                     <td>${status.index + 1}</td>
-                                                    <td>
+                                                    <td style="display: none;">
                                                         <input type="hidden" name="detailId" value="${detail.purchaseOrderDetailId}">
                                                         ${detail.purchaseOrderDetailId}
                                                     </td>
-                                                    <td>${detail.materialId}</td>
-                                                    <td>
-                                                        <c:if test="${not empty detail.qualityId}">${detail.qualityId}</c:if>
-                                                        <c:if test="${empty detail.qualityId}">N/A</c:if>
-                                                    </td>
+                                                    <td>${detail.materialName != null ? detail.materialName : 'N/A'}</td>
+                                                    <td>${detail.qualityName != null ? detail.qualityName : 'N/A'}</td>
                                                     <td>${detail.quantity}</td>
                                                     <td>
                                                         <input type="number" class="form-control" name="price" value="${detail.price != null ? detail.price : ''}" step="0.01" required>

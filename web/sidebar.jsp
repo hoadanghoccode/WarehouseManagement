@@ -24,6 +24,7 @@
 %>
 <nav class="sidebar">
     <div class="logo d-flex justify-content-between">
+        <!--<a href="index.jsp"><img src="img/abc.png" alt=""></a>-->
         <a href="index.jsp"><img src="img/logo.png" alt=""></a>
         <div class="sidebar_close_icon d-lg-none">
             <i class="ti-close"></i>

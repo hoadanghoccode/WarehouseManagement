@@ -453,7 +453,7 @@
                                 <div class="detail-item">
                                     <span class="detail-label">Current Available</span>
                                     <span class="detail-value">
-                                        <fmt:formatNumber value="${materialInfo.availableQty}" pattern="#,##0.00"/>
+                                        <fmt:formatNumber value="${materialInfo.availableQty}" pattern="###"/>
                                     </span>
                                 </div>
                             </div>
@@ -468,14 +468,14 @@
                     <div class="stat-card">
                         <div class="stat-icon import"><i class="fas fa-arrow-up"></i></div>
                         <div class="stat-value">
-                            <fmt:formatNumber value="${dailyImportQty}" pattern="#,##0.00"/>
+                            <fmt:formatNumber value="${dailyImportQty}" pattern="###"/>
                         </div>
                         <div class="stat-label">Total Import</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon export"><i class="fas fa-arrow-down"></i></div>
                         <div class="stat-value">
-                            <fmt:formatNumber value="${dailyExportQty}" pattern="#,##0.00"/>
+                            <fmt:formatNumber value="${dailyExportQty}" pattern="###"/>
                         </div>
                         <div class="stat-label">Total Export</div>
                     </div>
@@ -607,19 +607,19 @@
                                     </c:choose>
                                 </td>
                                 <td class="quantity-cell">
-                                    <fmt:formatNumber value="${customLatestAvailable != null ? customLatestAvailable : 0}" pattern="#,##0.00"/>
+                                    <fmt:formatNumber value="${customLatestAvailable != null ? customLatestAvailable : 0}" pattern="###"/>
                                 </td>
                                 <td class="quantity-cell">
-                                    <fmt:formatNumber value="${customLatestNotAvailable != null ? customLatestNotAvailable : 0}" pattern="#,##0.00"/>
+                                    <fmt:formatNumber value="${customLatestNotAvailable != null ? customLatestNotAvailable : 0}" pattern="###"/>
                                 </td>
                                 <td class="quantity-cell" style="color: #10b981;">
-                                    <fmt:formatNumber value="${customTotalImport != null ? customTotalImport : 0}" pattern="#,##0.00"/>
+                                    <fmt:formatNumber value="${customTotalImport != null ? customTotalImport : 0}" pattern="###"/>
                                 </td>
                                 <td class="quantity-cell" style="color: #ef4444;">
-                                    <fmt:formatNumber value="${customTotalExport != null ? customTotalExport : 0}" pattern="#,##0.00"/>
+                                    <fmt:formatNumber value="${customTotalExport != null ? customTotalExport : 0}" pattern="###"/>
                                 </td>
                                 <td class="quantity-cell" style="color: ${(customTotalImport - customTotalExport) >= 0 ? '#10b981' : '#ef4444'};">
-                                    <fmt:formatNumber value="${(customTotalImport != null ? customTotalImport : 0) - (customTotalExport != null ? customTotalExport : 0)}" pattern="#,##0.00"/>
+                                    <fmt:formatNumber value="${(customTotalImport != null ? customTotalImport : 0) - (customTotalExport != null ? customTotalExport : 0)}" pattern="###"/>
                                 </td>
                             </tr>
                         </tbody>
@@ -636,7 +636,6 @@
                                 <th>Not Available</th>
                                 <th>Import</th>
                                 <th>Export</th>
-                                <th>Note</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
@@ -652,20 +651,18 @@
                                                 </div>
                                             </td>
                                             <td class="quantity-cell">
-                                                <fmt:formatNumber value="${item.availableQty}" pattern="#,##0.00"/>
+                                                <fmt:formatNumber value="${item.availableQty}" pattern="###"/>
                                             </td>
                                             <td class="quantity-cell">
-                                                <fmt:formatNumber value="${item.notAvailableQty}" pattern="#,##0.00"/>
+                                                <fmt:formatNumber value="${item.notAvailableQty}" pattern="###"/>
                                             </td>
                                             <td class="quantity-cell">
-                                                <fmt:formatNumber value="${item.importQty}" pattern="#,##0.00"/>
+                                                <fmt:formatNumber value="${item.importQty}" pattern="###"/>
                                             </td>
                                             <td class="quantity-cell">
-                                                <fmt:formatNumber value="${item.exportQty}" pattern="#,##0.00"/>
+                                                <fmt:formatNumber value="${item.exportQty}" pattern="###"/>
                                             </td>
-                                            <td class="note-cell">
-                                                <c:out value="${item.note}"/>
-                                            </td>
+                                           
                                         </tr>
                                     </c:forEach>
                                 </c:when>

@@ -413,6 +413,23 @@
                 width: 95%;
             }
         }
+        
+        .custom-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    z-index: 9999;
+    padding: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 0.375rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.custom-alert.show {
+    opacity: 1;
+}
+
 
         @media (min-width: 769px) {
             .search-container {
@@ -462,7 +479,6 @@
                         <thead>
                             <tr>
                                 <th class="col-md-1">#</th>
-                                <th class="col-md-2">Order ID</th>
                                 <th class="col-md-2">User Name</th>
                                 <th class="col-md-2">Warehouse</th>
                                 <th class="col-md-2">Created At</th>
@@ -474,7 +490,6 @@
                             <c:forEach var="exportNote" items="${exportNotes}" varStatus="loop">
                                 <tr>
                                     <td><strong>${(page-1)*5 + loop.index + 1}</strong></td>
-                                    <td>${exportNote.orderId}</td>
                                     <td>${exportNote.userName != null ? exportNote.userName : 'N/A'}</td>
                                     <td>${exportNote.warehouseName != null ? exportNote.warehouseName : 'N/A'}</td>
                                     <td><fmt:formatDate value="${exportNote.createdAt}" pattern="dd/MM/yyyy" /></td>
@@ -761,10 +776,18 @@
                     },
                     dataType: 'json',
                     success: function (res) {
+                        
+                        // 1. Ẩn modal xác nhận (confirmExportModal)
+    confirmExportModal.hide();
+
+    // 2. Ẩn modal inventory (nếu chưa bị ẩn)
+    inventoryModal.hide();
+    
                         if (res.success === false) {
-                            $('#confirmExportMessage').text(res.message || 'Export failed.');
+                            showAlert(false, 'Export failed.');
                         } else {
-                            $('#confirmExportMessage').text(res.message || 'Export processed successfully.');
+                            
+                            showAlert(true, 'Export processed successfully.');
                             setTimeout(() => {
                                 location.reload();
                             }, 2000);
@@ -785,6 +808,46 @@
                 inventoryModal.hide();
             });
         });
+        
+        function showAlert(status, message) {
+    const existingAlert = document.querySelector('.custom-alert');
+    if (existingAlert) existingAlert.remove();
+
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${status ? 'success' : 'danger'} alert-dismissible fade show custom-alert`;
+    alertDiv.setAttribute('role', 'alert');
+
+    if (status === true) {
+        alertDiv.style.backgroundColor = '#d1e7dd';
+        alertDiv.style.color = '#0f5132';
+        alertDiv.style.border = '1px solid #badbcc';
+    }
+
+    const icon = document.createElement('i');
+    icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+    alertDiv.appendChild(icon);
+
+    const messageText = document.createTextNode(message);
+    alertDiv.appendChild(messageText);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close';
+    closeBtn.setAttribute('data-bs-dismiss', 'alert');
+    closeBtn.setAttribute('aria-label', 'Close');
+    alertDiv.appendChild(closeBtn);
+
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.style.opacity = '1', 100);
+
+    setTimeout(() => {
+        if (alertDiv && document.body.contains(alertDiv)) {
+            alertDiv.classList.remove('show');
+            setTimeout(() => alertDiv.remove(), 150);
+        }
+    }, 4000);
+}
+
     </script>
 </body>
 </html>

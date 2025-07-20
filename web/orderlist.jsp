@@ -108,6 +108,24 @@
             td a.btn {
                 margin-right: 4px;
             }
+
+            /* Custom alert styles */
+            .custom-alert {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                min-width: 300px;
+                z-index: 9999;
+                padding: 1rem;
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                border-radius: 0.375rem;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .custom-alert.show {
+                opacity: 1;
+            }
         </style>
     </head>
     <body>
@@ -156,7 +174,12 @@
                     </select>
                     <button type="submit" class="btn btn-primary">Apply</button>
                     <!--<a href="backorder" class="btn btn-primary">Back Order</a>-->
-                    <a href="createorder" class="btn btn-primary">Create</a>
+
+                    <c:if test="${owner.roleId != 2}">
+                        <a href="createorder" class="btn btn-primary">Create</a>
+                    </c:if>
+
+
                 </div>
             </form>
 
@@ -217,5 +240,72 @@
                     </c:if>
             </div>
 
+        </section>
+
+        <!-- JavaScript for showAlert function -->
+        <script>
+            function showAlert(status, message) {
+                // Xóa alert cũ nếu có
+                const existingAlert = document.querySelector('.custom-alert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+                
+                // Tạo alert mới
+                const alertDiv = document.createElement('div');
+                if (status === true) {
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show custom-alert';
+                } else {
+                    alertDiv.className = 'alert alert-danger alert-dismissible fade show custom-alert';
+                }
+                alertDiv.setAttribute('role', 'alert');
+                
+                // Thêm icon
+                const icon = document.createElement('i');
+                icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+                alertDiv.appendChild(icon);
+                
+                // Thêm message
+                const messageText = document.createTextNode(message);
+                alertDiv.appendChild(messageText);
+                
+                // Thêm nút close
+                const closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.className = 'btn-close';
+                closeBtn.setAttribute('data-bs-dismiss', 'alert');
+                closeBtn.setAttribute('aria-label', 'Close');
+                alertDiv.appendChild(closeBtn);
+                
+                // Thêm vào body
+                document.body.appendChild(alertDiv);
+                
+                // Animation khi hiện alert
+                setTimeout(() => {
+                    alertDiv.style.opacity = '1';
+                }, 100);
+                
+                // Tự động đóng sau 4s
+                setTimeout(() => {
+                    if (alertDiv && document.body.contains(alertDiv)) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => alertDiv.remove(), 150);
+                    }
+                }, 4000);
+            }
+
+            // Auto show alerts based on request attributes
+            document.addEventListener('DOMContentLoaded', function() {
+                // Hiển thị success message nếu có
+                <c:if test="${not empty successMessage}">
+                    showAlert(true, '${successMessage}');
+                </c:if>
+                
+                // Hiển thị error message nếu có
+                <c:if test="${not empty errorMessage}">
+                    showAlert(false, '${errorMessage}');
+                </c:if>
+            });
+        </script>
     </body>
 </html>

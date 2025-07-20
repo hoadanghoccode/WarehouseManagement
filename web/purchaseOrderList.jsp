@@ -177,7 +177,7 @@
                             <thead>
                                 <tr>
                                     <th class="col-md-1">#</th>
-                                    <th class="col-md-2">Order ID</th>
+                                    <th class="col-md-2" style="display: none;">Order ID</th>
                                     <th class="col-md-2">Warehouse</th>
                                     <th class="col-md-2">User Name</th>
                                     <th class="col-md-2">Supplier</th>
@@ -190,7 +190,7 @@
                                 <c:forEach var="po" items="${purchaseOrders}" varStatus="status">
                                     <tr>
                                         <td><strong>${status.index + 1 + (page - 1) * 5}</strong></td>
-                                        <td>${po.orderId}</td>
+                                        <td style="display: none;">${po.orderId}</td>
                                         <td>
                                             <c:forEach var="wh" items="${warehouses}">
                                                 <c:if test="${wh.warehouseId == po.warehouseId}">${wh.name}</c:if>

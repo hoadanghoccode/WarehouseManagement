@@ -58,7 +58,6 @@
                                     <option value="">Select Order Type</option>
                                     <option value="import" ${order.type == 'import' ? 'selected' : ''}>Import</option>
                                     <option value="export" ${order.type == 'export' ? 'selected' : ''}>Export</option>
-                                    <option value="exportToRepair" ${order.type == 'exportToRepair' ? 'selected' : ''}>Repair</option>
                                     <!--Xử lý purchase của b Giang-->
                                     <option value="purchase" ${order.type == 'purchase' ? 'selected' : ''}>Purchase</option>
                                 </select>

@@ -98,7 +98,7 @@ public class UpdateOrderServlet extends HttpServlet {
                 if (material != null) {
                     orderDetail.setMaterialName(material.getName());
                     orderDetail.setMaterialImage(material.getImage());
-                    
+
                     Unit unit = unitDAO.getUnitById(material.getUnitId());
                     if (unit != null) {
                         orderDetail.setUnitName(unit.getName());
@@ -221,7 +221,10 @@ public class UpdateOrderServlet extends HttpServlet {
             boolean success = orderDAO.updateOrder(existingOrder);
 
             if (success) {
-                response.sendRedirect("orderdetail?oid=" + orderId + "&success=Order updated successfully");
+                session.setAttribute("successMessage", "Order updated successfully!");
+                response.sendRedirect("orderlist");
+                return;
+
             } else {
                 returnWithError(request, response, orderId, "Failed to update order due to database issue");
             }
@@ -231,12 +234,12 @@ public class UpdateOrderServlet extends HttpServlet {
             int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty())
                     ? Integer.parseInt(orderIdParam) : -1;
             returnWithError(request, response, orderId, "Invalid number format in form data");
+            
         } catch (Exception e) {
-            e.printStackTrace();
-            String orderIdParam = request.getParameter("orderId");
-            int orderId = (orderIdParam != null && !orderIdParam.trim().isEmpty())
-                    ? Integer.parseInt(orderIdParam) : -1;
-            returnWithError(request, response, orderId, "Error updating order: " + e.getMessage());
+            HttpSession session = request.getSession(false);
+            session.setAttribute("errorMessage", "Failed to update order: " + e.getMessage());
+            response.sendRedirect("orderlist");
+            return;
         }
     }
 
@@ -311,7 +314,7 @@ public class UpdateOrderServlet extends HttpServlet {
                         if (material != null) {
                             orderDetail.setMaterialName(material.getName());
                             orderDetail.setMaterialImage(material.getImage());
-                            
+
                             Unit unit = unitDAO.getUnitById(material.getUnitId());
                             if (unit != null) {
                                 orderDetail.setUnitName(unit.getName());
