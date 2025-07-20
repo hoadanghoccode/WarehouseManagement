@@ -141,7 +141,7 @@ public class OrderDAO extends DBContext {
                 order.setOrderId(rs.getInt("Order_id"));
                 order.setWarehouseId(rs.getInt("Warehouse_id"));
                 order.setUserId(rs.getInt("User_id"));
-                order.setCreatedAt(rs.getTimestamp("Created_at"));
+                order.setCreatedAt(rs.getDate("Created_at"));
                 order.setType(rs.getString("Type"));
 
                 // Handle nullable Supplier_id
@@ -221,7 +221,7 @@ public class OrderDAO extends DBContext {
                 o.setOrderId(rs.getInt("Order_id"));
                 o.setWarehouseId(rs.getInt("Warehouse_id"));
                 o.setUserId(rs.getInt("User_id"));
-                o.setCreatedAt(rs.getTimestamp("Created_at"));
+                o.setCreatedAt(rs.getDate("Created_at"));
                 o.setType(rs.getString("Type"));
                 o.setSupplier(rs.getInt("Supplier_id"));
                 o.setNote(rs.getString("Note"));
@@ -341,7 +341,7 @@ public class OrderDAO extends DBContext {
         order.setOrderId(rs.getInt("Order_id"));
         order.setWarehouseId(rs.getInt("Warehouse_id"));
         order.setUserId(rs.getInt("User_id"));
-        order.setCreatedAt(rs.getTimestamp("Created_at"));
+        order.setCreatedAt(rs.getDate("Created_at"));
         order.setType(rs.getString("Type"));
 
         // Handle nullable Supplier_id
@@ -466,7 +466,7 @@ public class OrderDAO extends DBContext {
                 o.setOrderId(rs.getInt("Order_id"));
                 o.setWarehouseId(rs.getInt("Warehouse_id"));
                 o.setUserId(rs.getInt("User_id"));
-                o.setCreatedAt(rs.getTimestamp("Created_at"));
+                o.setCreatedAt(rs.getDate("Created_at"));
                 o.setType(rs.getString("Type"));
                 o.setSupplier(rs.getInt("Supplier_id"));
                 o.setNote(rs.getString("Note"));

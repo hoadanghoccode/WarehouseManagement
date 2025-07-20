@@ -169,7 +169,7 @@ public class CategoryDAO extends DBContext {
         }
     }
 
-    public void updateCategory(Category category) {
+    public boolean updateCategory(Category category) {
         String query = "UPDATE Category SET Name = ?, Parent_id = ?, Status = ? WHERE Category_id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
@@ -184,9 +184,11 @@ public class CategoryDAO extends DBContext {
             ps.setString(3, category.getStatus());
             ps.setInt(4, category.getCategoryId());
 
-            ps.executeUpdate();
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0; // Trả về true nếu có ít nhất 1 dòng được cập nhật
         } catch (SQLException e) {
             System.out.println("Update category error: " + e.getMessage());
+            return false; // Trả về false nếu có lỗi xảy ra
         }
     }
 
@@ -271,7 +273,6 @@ public class CategoryDAO extends DBContext {
 //                activeOnly.add(c);
 //            }
 //        }
-
         List<Category> result = new ArrayList<>();
         buildHierarchy(null, all, result);
         return result;
@@ -290,9 +291,8 @@ public class CategoryDAO extends DBContext {
             }
         }
     }
-    
+
     //Bạn Giang tạo 2 hàm này để lấy Parent Category với list subCategory status Active của chúng. Đỡ phải sửa code trên bạn Minh <3
-    
     public List<Category> getActiveSubCategoryByParentId(int parentId) {
         List<Category> list = new ArrayList<>();
         String query = "SELECT * FROM Category WHERE Parent_id = ? AND Status = 'active'";
@@ -313,14 +313,14 @@ public class CategoryDAO extends DBContext {
         }
         return list;
     }
-    
+
     public List<Category> getAllParentCategoryWithActiveSubs(String status) {
         List<Category> list = new ArrayList<>();
-        String query = "SELECT c.Category_id AS Parent_id, c.Name AS Parent_Name, c.Status, " +
-                       "COUNT(sc.Category_id) AS SubCateNum " +
-                       "FROM Category c " +
-                       "LEFT JOIN Category sc ON sc.Parent_id = c.Category_id " +
-                       "WHERE c.Parent_id IS NULL";
+        String query = "SELECT c.Category_id AS Parent_id, c.Name AS Parent_Name, c.Status, "
+                + "COUNT(sc.Category_id) AS SubCateNum "
+                + "FROM Category c "
+                + "LEFT JOIN Category sc ON sc.Parent_id = c.Category_id "
+                + "WHERE c.Parent_id IS NULL";
 
         if (status != null && !status.isEmpty()) {
             query += " AND c.Status = ?";
@@ -349,7 +349,6 @@ public class CategoryDAO extends DBContext {
         }
         return list;
     }
-
 
     public static void main(String[] args) {
 

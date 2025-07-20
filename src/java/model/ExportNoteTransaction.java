@@ -1,6 +1,6 @@
 package model;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 
 public class ExportNoteTransaction {
     private int exportNoteTransactionId;
@@ -17,7 +17,9 @@ public class ExportNoteTransaction {
     private int qualityId;
     private String qualityName;
     private double availableQuantity;
-    private Timestamp createdAt;
+    private Date createdAt;
+    private Integer userDoExportId; 
+    private String userDoExportName; 
 
     // Getters and Setters
     public int getExportNoteTransactionId() {
@@ -132,11 +134,27 @@ public class ExportNoteTransaction {
         this.availableQuantity = availableQuantity;
     }
 
-    public Timestamp getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Integer getUserDoExportId() {
+        return userDoExportId;
+    }
+
+    public void setUserDoExportId(Integer userDoExportId) {
+        this.userDoExportId = userDoExportId;
+    }
+
+    public String getUserDoExportName() {
+        return userDoExportName;
+    }
+
+    public void setUserDoExportName(String userDoExportName) {
+        this.userDoExportName = userDoExportName;
     }
 }

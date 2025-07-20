@@ -96,6 +96,20 @@ public class OrderDetailController extends HttpServlet {
                 return;
             }
 
+            // Check for success message from session
+            String successMessage = (String) session.getAttribute("successMessage");
+            if (successMessage != null) {
+                request.setAttribute("successMessage", successMessage);
+                session.removeAttribute("successMessage"); // Remove after displaying
+            }
+
+            // Check for error message from session
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            if (errorMessage != null) {
+                request.setAttribute("errorMessage", errorMessage);
+                session.removeAttribute("errorMessage"); // Remove after displaying
+            }
+
             // Business Logic: Lấy thông tin order từ database
             Order order = orderDAO.getOrderById(orderId);
 
@@ -119,7 +133,7 @@ public class OrderDetailController extends HttpServlet {
             for (OrderDetail od : orderDetailList) {
                 try {
                     if (od.getMaterialId() > 0) {
-                        
+
                         var material = materialDAO.getMaterialIdBy(od.getMaterialId());
                         if (material != null) {
                             od.setMaterialName(material.getName());
@@ -171,7 +185,6 @@ public class OrderDetailController extends HttpServlet {
             int orderId = Integer.parseInt(orderIdParam);
             Order order = orderDAO.getOrderById(orderId);
 
-            // Kiểm tra quyền admin
             HttpSession session = request.getSession(false);
             Users currentUser = (Users) session.getAttribute("USER");
             if (currentUser == null || currentUser.getRoleId() != 2) {
@@ -183,19 +196,17 @@ public class OrderDetailController extends HttpServlet {
             boolean successUpdateNote = false;
             String message = "";
 
-            // Update admin note if provided
             if (adminNote != null && !adminNote.trim().isEmpty()) {
                 String trimmedNote = adminNote.trim();
 
                 if (trimmedNote.length() > 256) {
-                    request.getSession().setAttribute("errorMessage", "Admin note must be less than 256 characters.");
+                    session.setAttribute("errorMessage", "Admin note must be less than 256 characters.");
                     response.sendRedirect("orderdetail?oid=" + orderId);
                     return;
                 }
 
-                // Regex: chỉ cho chữ, số, dấu cách, ., ,, -, _
                 if (!trimmedNote.matches("^[\\w\\s.,-]*$")) {
-                    request.getSession().setAttribute("errorMessage", "Admin note contains invalid characters.");
+                    session.setAttribute("errorMessage", "Admin note contains invalid characters.");
                     response.sendRedirect("orderdetail?oid=" + orderId);
                     return;
                 }
@@ -205,15 +216,15 @@ public class OrderDetailController extends HttpServlet {
 
             if ("approve".equals(action)) {
                 if (order.getType().equalsIgnoreCase("import")) {
-                    // Import order - approve normally
                     success = orderDAO.approveOrderAndCreateImportNote(orderId, order.getUserId());
                     if (success) {
-                        message = "Import order approved successfully!";
+                        session.setAttribute("successMessage", "Import order approved successfully!");
+                        response.sendRedirect("orderlist");
+                        return;
                     } else {
                         message = "Failed to approve import order. Please try again.";
                     }
-                } else if ("export".equals(order.getType()) || "exportToRepair".equals(order.getType())) {
-                    // Export order - approve normally
+                } else if ("export".equals(order.getType())) {
                     success = orderDAO.approveOrderAndCreateExportNote(orderId, order.getUserId());
                     if (success) {
                         message = "Export order approved successfully!";
@@ -221,7 +232,6 @@ public class OrderDetailController extends HttpServlet {
                         message = "Failed to approve export order. Please try again.";
                     }
                 } else if ("purchase".equals(order.getType())) {
-                    // Xử lý purchase của b Giang
                     success = orderDAO.approveOrderAndCreatePurchaseNote(orderId, order.getUserId());
                     if (success) {
                         message = "Purchase order approved successfully!";
@@ -239,20 +249,20 @@ public class OrderDetailController extends HttpServlet {
                 }
             }
 
-            // Set success/error message
             if (success || successUpdateNote) {
-                request.getSession().setAttribute("successMessage", message);
+                session.setAttribute("successMessage", message);
             } else {
-                request.getSession().setAttribute("errorMessage", message.isEmpty() ? "Operation failed. Please try again." : message);
+                session.setAttribute("errorMessage", message.isEmpty() ? "Operation failed. Please try again." : message);
             }
 
-            // Redirect về trang detail để hiển thị kết quả
             response.sendRedirect("orderlist");
+            return;
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating order status", e);
             request.getSession().setAttribute("errorMessage", "An unexpected error occurred while processing the order.");
             response.sendRedirect("orderlist");
+            return;
         }
     }
 

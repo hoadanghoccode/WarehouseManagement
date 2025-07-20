@@ -197,7 +197,7 @@
                         <thead>
                             <tr>
                                 <th class="col-md-1">#</th>
-                                <th class="col-md-2">Order ID</th>
+                                <th class="col-md-2" style="display: none;">Order ID</th>
                                 <th class="col-md-2">User Name</th>
                                 <th class="col-md-2">Warehouse</th>
                                 <th class="col-md-2">Created At</th>
@@ -211,7 +211,7 @@
                                 <c:set var="warehouse" value="${warehouses[loop.index]}" />
                                 <tr>
                                     <td><strong>${(page-1)*5 + loop.index + 1}</strong></td>
-                                    <td>${importNote.orderId}</td>
+                                    <td style="display: none;">${importNote.orderId}</td>
                                     <td>${user != null ? user.fullName : 'N/A'}</td>
                                     <td>${warehouse != null ? warehouse.name : 'N/A'}</td>
                                     <td>${importNote.createdAt}</td>

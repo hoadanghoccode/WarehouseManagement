@@ -357,11 +357,25 @@ public class AuthFilter implements Filter {
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
         
-         //check dashboard
-        if (user != null && uri.startsWith(contextPath + "/dashboard")) {
+        if (user != null && uri.startsWith(contextPath + "/exportnotelist")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
-            Boolean canViewDashboard = (perms != null) ? perms.get("Dashboard_VIEW") : null;
+            Boolean canViewExport = (perms != null) ? perms.get("Export_VIEW") : null;
+
+            if (canViewExport == null || !canViewExport) {
+                session.invalidate();
+                resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+        
+        
+         //check dashboard
+        if (user != null && uri.startsWith(contextPath + "/createorder")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewDashboard = (perms != null) ? perms.get("Order_ADD") : null;
 
             if (canViewDashboard == null || !canViewDashboard) {
                 session.invalidate();

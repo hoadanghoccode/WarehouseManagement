@@ -16,7 +16,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.sql.Timestamp;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -159,7 +160,9 @@ public class CreateOrderServlet extends HttpServlet {
             order.setSupplier(supplierId);
             order.setUserId(userId);
             order.setWarehouseId(1);
-            order.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            LocalDate localDate = LocalDate.now();
+            Date sqlDate = Date.valueOf(localDate);
+            order.setCreatedAt(sqlDate);
 
             // 4. Xử lý gộp các item trùng materialId
             List<OrderDetail> consolidatedDetails = consolidateOrderItems(materialIds, quantities, orderType);
@@ -176,14 +179,18 @@ public class CreateOrderServlet extends HttpServlet {
             boolean success = dao.createOrder(order);
 
             if (success) {
-                response.sendRedirect("orderlist?success=true");
+                session.setAttribute("successMessage", "Order created successfully!");
+                response.sendRedirect("orderlist");
+                return;
             } else {
                 returnWithError(request, response, "Failed to create order due to database issue");
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            returnWithError(request, response, "Error: " + e.getMessage());
+            HttpSession session = request.getSession(false);
+            session.setAttribute("errorMessage", "Failed to create order: " + e.getMessage());
+            response.sendRedirect("orderlist");
+            return;
         }
     }
 

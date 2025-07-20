@@ -78,7 +78,7 @@
                     </tr>
                     <tr>
                         <th scope="row">Created At</th>
-                        <td><fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy HH:mm:ss" /></td>
+                        <td><fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy" /></td>
                     </tr>
                     <tr>
                         <th scope="row">Type</th>
@@ -122,7 +122,7 @@
                                 </td>
                                 <td>${orderDetail.materialName}</td>
                                 <td>${orderDetail.unitName}</td>
-                                <td><fmt:formatNumber value="${orderDetail.quantity}" pattern="#,##0.00" /></td>
+                                <td><fmt:formatNumber value="${orderDetail.quantity}" pattern="###" /></td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${orderDetail.qualityId > 0}">
@@ -208,11 +208,11 @@
                                     </td>
                                     <td>${detail.materialName}</td>
                                     <td>${detail.unitName}</td>
-                                    <td><fmt:formatNumber value="${detail.quantity}" pattern="#,##0.00" /></td>
-                                    <td><fmt:formatNumber value="${totalExported}" pattern="#,##0.00" /></td>
-                                    <td><fmt:formatNumber value="${remainingQty}" pattern="#,##0.00" /></td>
+                                    <td><fmt:formatNumber value="${detail.quantity}" pattern="###" /></td>
+                                    <td><fmt:formatNumber value="${totalExported}" pattern="###" /></td>
+                                    <td><fmt:formatNumber value="${remainingQty}" pattern="###" /></td>
                                     <td>
-                                        <fmt:formatNumber value="${detail.availableQuantity}" pattern="#,##0.00" />
+                                        <fmt:formatNumber value="${detail.availableQuantity}" pattern="###" />
                                         <c:if test="${detail.availableQuantity < remainingQty && !detail.exported}">
                                             <br><small class="text-warning">Only ${detail.availableQuantity} units available for export</small>
                                         </c:if>
@@ -239,24 +239,23 @@
                                                     <tr>
                                                         <th>Date</th>
                                                         <th>Exported Quantity</th>
-
+                                                        <th>Exported By</th>
                                                         <th>Status</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <c:forEach var="transaction" items="${detail.transactions}">
-    <c:if test="${transaction.exported}">
-        <tr>
-            <td><fmt:formatDate value="${transaction.createdAt}" pattern="dd/MM/yyyy"/></td>
-            <td><fmt:formatNumber value="${transaction.exportedQuantity}" pattern="#,##0.00"/></td>
-
-            <td>
-                <span class="badge bg-success">Exported</span>
-            </td>
-        </tr>
-    </c:if>
-</c:forEach>
-
+                                                        <c:if test="${transaction.exported}">
+                                                            <tr>
+                                                                <td><fmt:formatDate value="${transaction.createdAt}" pattern="dd/MM/yyyy"/></td>
+                                                                <td><fmt:formatNumber value="${transaction.exportedQuantity}" pattern="###"/></td>
+                                                                <td>${transaction.userDoExportName != null ? transaction.userDoExportName : 'N/A'}</td>
+                                                                <td>
+                                                                    <span class="badge bg-success">Exported</span>
+                                                                </td>
+                                                            </tr>
+                                                        </c:if>
+                                                    </c:forEach>
                                                 </tbody>
                                             </table>
                                         </td>
@@ -285,8 +284,6 @@
                         <p>No details available for export.</p>
                     </div>
                 </c:if>
-
-               
             </form>
         </div>
     </c:if>

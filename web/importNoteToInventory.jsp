@@ -17,7 +17,8 @@
     Import_note in = inDao.getImportNoteById(importNoteId);
     List<Import_note_detail> details = inDao.getImportNoteDetailsByImportNoteId(importNoteId);
 
-    Users user = (in != null) ? new UserDAO().getUserById(in.getUserId()) : null;
+    UserDAO uDao = new UserDAO();
+    Users user = (in != null) ? uDao.getUserById(in.getUserId()) : null;
     Warehouse warehouse = (in != null) ? new WarehouseDAO().getWarehouseById(in.getWarehouseId()) : null;
 %>
 <%
@@ -67,8 +68,8 @@
 <div class="row image-info">
     <div class="col-md-12 detail-table">
         <% if (in != null) { %>
-        <p><strong>ID:</strong> <%= in.getImportNoteId() %></p>
-        <p><strong>Order ID:</strong> <%= in.getOrderId() %></p>
+        <p style="display: none;"><strong>ID:</strong> <%= in.getImportNoteId() %></p>
+        <p style="display: none;"><strong>Order ID:</strong> <%= in.getOrderId() %></p>
         <p><strong>User Name:</strong> <%= user != null ? user.getFullName() : "N/A" %></p>
         <p><strong>Warehouse Name:</strong> <%= warehouse != null ? warehouse.getName() : "N/A" %></p>
         <p><strong>Created At:</strong> <%= in.getCreatedAt() %></p>
@@ -86,17 +87,19 @@
         <table class="table material-detail-table">
             <thead>
                 <tr>
-                    <th>Detail ID</th>
+                    <th>ID</th> 
+                    <th style="display: none;">Detail ID</th> 
                     <th>Material Image</th>
                     <th>Material Name</th>
                     <th>Quantity</th>
-                    <th>Quality Name</th>
+                    <th>Quality</th>
                     <th>Imported</th>
                     <th>Quantity to Add</th>
                 </tr>
             </thead>
             <tbody>
                 <% if (details != null && !details.isEmpty()) {
+                     int index = 1; 
                      for (Import_note_detail ind : details) {
                        Material material = new MaterialDAO().getMaterialById(ind.getMaterialId());
                        request.setAttribute("material", material);
@@ -106,7 +109,8 @@
                        double remainingQty = ind.getQuantity() - totalTransactionQty;
                 %>
                 <tr data-id="<%= ind.getImportNoteDetailId() %>">
-                    <td><%= ind.getImportNoteDetailId() %></td>
+                    <td><%= index++ %></td> 
+                    <td style="display: none;"><%= ind.getImportNoteDetailId() %></td> 
                     <td>
                         <c:if test="${not empty material.image}">
                             <img src="${material.image}" alt="Material Image" class="material-image">
@@ -131,24 +135,36 @@
                 <tr>
                     <td colspan="7">
                         <table class="table transaction-table">
-                            <thead><tr><th>Transaction ID</th><th>Quantity</th><th>Date</th></tr></thead>
-                            <tbody>
-                                <% for (Import_note_transaction trans : transactions) { %>
+                            <thead>
                                 <tr>
-                                    <td><%= trans.getImportNoteTransactionId() %></td>
+                                    <th>ID</th> 
+                                    <th style="display: none;">Transaction ID</th>
+                                    <th>User Imported</th>
+                                    <th>Quantity</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% int transIndex = 1; %>
+                                <% for (Import_note_transaction trans : transactions) { 
+                                    Users importUser = uDao.getUserById(trans.getUserDoImportId());
+                                %>
+                                <tr>
+                                    <td><%= transIndex++ %></td> 
+                                    <td style="display: none;"><%= trans.getImportNoteTransactionId() %></td> 
+                                    <td><%= importUser != null ? importUser.getFullName() : "N/A" %></td>
                                     <td><%= trans.getQuantity() %></td>
                                     <td><%= trans.getCreatedAt() %></td>
                                 </tr>
                                 <% } %>
-                                <tr><td colspan="3">Total Imported: <%= totalTransactionQty %></td></tr>
+                                <tr><td colspan="4">Total Imported: <%= totalTransactionQty %></td></tr>
                             </tbody>
                         </table>
                     </td>
                 </tr>
                 <% } %>
                 <tr><td colspan="7" class="detail-separator"></td></tr>
-                    <%   }
-           } else { %>
+                <% } } else { %>
                 <tr>
                     <td colspan="7" class="text-center text-muted">
                         No import note details available.
