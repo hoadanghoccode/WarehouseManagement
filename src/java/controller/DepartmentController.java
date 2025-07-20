@@ -73,6 +73,67 @@ public class DepartmentController extends HttpServlet {
             throws ServletException, IOException {
         String path = req.getServletPath();
 
+        // Simple department list with search & pagination (like supplier)
+        if ("/department".equals(path) || "/department.jsp".equals(path)) {
+            String search = req.getParameter("search");
+            int pageSize = 5;
+            int page = 1;
+            try {
+                String p = req.getParameter("page");
+                if (p != null) page = Integer.parseInt(p);
+            } catch (NumberFormatException ignored) {}
+
+            // 1. Get all departments (flat, with role name and user count)
+            List<DeptRoleResource> all = new ArrayList<>();
+            try {
+                all = dao.getAllDepartmentsWithRoles();
+            } catch (SQLException e) {
+                req.setAttribute("error", "Database error: " + e.getMessage());
+            }
+
+            // 2. Filter by search (department name)
+            List<DeptRoleResource> filtered = new ArrayList<>();
+            if (search != null && !search.trim().isEmpty()) {
+                String searchLower = search.trim().toLowerCase();
+                for (DeptRoleResource d : all) {
+                    if (d.getDepartmentName() != null && d.getDepartmentName().toLowerCase().contains(searchLower)) {
+                        filtered.add(d);
+                    }
+                }
+            } else {
+                filtered = all;
+            }
+
+            // 3. Remove duplicates (since getAllDepartmentsWithRoles returns 1 row per resource)
+            Map<Integer, DeptRoleResource> uniqueMap = new LinkedHashMap<>();
+            for (DeptRoleResource d : filtered) {
+                if (!uniqueMap.containsKey(d.getDepartmentId())) {
+                    uniqueMap.put(d.getDepartmentId(), d);
+                }
+            }
+            List<DeptRoleResource> uniqueList = new ArrayList<>(uniqueMap.values());
+
+            // 4. Pagination
+            int size = uniqueList.size();
+            int numPages = (size + pageSize - 1) / pageSize;
+            if (page < 1) page = 1;
+            if (page > numPages && numPages > 0) page = numPages;
+            int start = (page - 1) * pageSize;
+            int end = Math.min(page * pageSize, size);
+            List<DeptRoleResource> pageList = uniqueList.subList(Math.min(start, size), Math.min(end, size));
+
+            // 5. Set attributes for JSP
+            req.setAttribute("departmentList", pageList);
+            req.setAttribute("search", search);
+            req.setAttribute("page", page);
+            req.setAttribute("numPages", numPages);
+            req.setAttribute("pageSize", pageSize);
+            req.setAttribute("totalDepartments", size);
+
+            req.getRequestDispatcher("department.jsp").forward(req, resp);
+            return;
+        }
+
         if ("/department/data".equals(path)) {
             // --- TRẢ JSON CHO TẤT CẢ DEPARTMENT ---
             resp.setContentType("application/json");

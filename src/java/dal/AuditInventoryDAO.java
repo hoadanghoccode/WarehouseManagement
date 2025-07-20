@@ -67,6 +67,41 @@ public class AuditInventoryDAO {
         return result;
     }
 
+    // Lấy danh sách vật tư kiểm kê tồn kho theo categoryId (nếu có)
+    public List<InventoryItem> getInventoryForAudit(int categoryId) throws SQLException {
+        List<InventoryItem> result = new ArrayList<>();
+        String sql = "SELECT "
+                + "    m.Material_id, "
+                + "    m.Name AS Material_name, "
+                + "    m.Image AS Material_image, "
+                + "    u.Name AS Unit_name,"
+                + "    SUM(CASE WHEN q.Quality_name = 'available' THEN md.Quantity ELSE 0 END) AS Available_qty,"
+                + "    SUM(CASE WHEN q.Quality_name = 'notAvailable' THEN md.Quantity ELSE 0 END) AS NotAvailable_qty"
+                + " FROM Materials m"
+                + " JOIN Material_detail md ON md.Material_id = m.Material_id"
+                + " JOIN units u ON m.Unit_id = u.Unit_id"
+                + " JOIN quality q ON q.Quality_id = md.Quality_id"
+                + " WHERE m.Category_id = ?"
+                + " GROUP BY m.Material_id, m.Name, m.Image, u.Name"
+                + " ORDER BY m.Material_id, u.Name;";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, categoryId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    InventoryItem item = new InventoryItem();
+                    item.setMaterialId(rs.getInt("Material_id"));
+                    item.setMaterialName(rs.getString("Material_name"));
+                    item.setMaterialImage(rs.getString("Material_image"));
+                    item.setUnitName(rs.getString("Unit_name"));
+                    item.setAvailableQty(rs.getDouble("Available_qty"));
+                    item.setNotAvailableQty(rs.getDouble("NotAvailable_qty"));
+                    result.add(item);
+                }
+            }
+        }
+        return result;
+    }
+
     public InventoryAudit getAuditById(int auditId) throws SQLException {
         String sql = "SELECT ia.*, u.Full_name AS Created_by_name "
                 + "FROM InventoryAudit ia "
