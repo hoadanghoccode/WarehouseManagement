@@ -34,7 +34,7 @@
     <ul id="sidebar_menu">
         <c:if test="${permissions['Dashboard_VIEW']}">
             <li>
-                <a href="dashboard" aria-expanded="false">
+                <a href="directordashboard" aria-expanded="false">
                     <img src="img/menu-icon/dashboard.svg" alt="">
                     <span>Dashboard</span>
                 </a>

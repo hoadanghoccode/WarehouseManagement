@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import model.Material;
 import model.Users;
 
 public class ExportNoteDAO extends DBContext {
@@ -787,7 +788,7 @@ public class ExportNoteDAO extends DBContext {
         return false;
     }
 
-    public int getTodayExportNoteCount() {
+    public int getExportToday() {
         String sql = "SELECT COUNT(*) FROM Export_note WHERE DATE(Exported_at) = CURDATE() AND Exported = 1";
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
@@ -798,6 +799,58 @@ public class ExportNoteDAO extends DBContext {
         }
         return 0;
     }
+    public int getUniqueUsersExportToday(Date today) {
+    int count = 0;
+    String sql = "SELECT COUNT(DISTINCT User_id) AS total " +
+                 "FROM Export_note " +
+                 "WHERE DATE(Exported_at) = ?";
+
+    try (Connection conn = new DBContext().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setDate(1, new java.sql.Date(today.getTime()));
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            count = rs.getInt("total");
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return count;
+}
+    
+    public List<Material> getTopExportedMaterials(Date from, Date to, int limit) {
+    List<Material> list = new ArrayList<>();
+
+    String sql = "SELECT m.Material_id, m.Name, SUM(end.Quantity) AS TotalExported " +
+                 "FROM Export_note en " +
+                 "JOIN Export_note_detail end ON en.Export_note_id = end.Export_note_id " +
+                 "JOIN Materials m ON m.Material_id = end.Material_id " +
+                 "WHERE en.Exported = TRUE " +
+                 "AND en.Exported_at BETWEEN ? AND ? " +
+                 "GROUP BY m.Material_id, m.Name " +
+                 "ORDER BY TotalExported DESC " +
+                 "LIMIT ?";
+
+    try (Connection conn = new DBContext().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setDate(1, new java.sql.Date(from.getTime()));
+        ps.setDate(2, new java.sql.Date(to.getTime()));
+        ps.setInt(3, limit);
+
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Material m = new Material();
+            m.setMaterialId(rs.getInt("Material_id"));
+            m.setName(rs.getString("Name"));
+            m.setTotalExported(rs.getDouble("TotalExported")); 
+            list.add(m);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
 
     public int getExportNoteCountInDateRange(Date fromDate, Date toDate) {
         String sql = "SELECT COUNT(*) FROM Export_note WHERE DATE(Exported_at) BETWEEN ? AND ?";
