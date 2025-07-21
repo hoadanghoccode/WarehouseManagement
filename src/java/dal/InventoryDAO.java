@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.InventoryAlert;
 
 public class InventoryDAO extends DBContext {
 
@@ -303,4 +304,103 @@ public class InventoryDAO extends DBContext {
         }
         return qualities;
     }
+    
+   public List<InventoryAlert> getInventoryAlertsAdvanced(String keyword, Integer materialIdFilter, Integer qualityIdFilter) {
+    List<InventoryAlert> alerts = new ArrayList<>();
+
+    StringBuilder sql = new StringBuilder("""
+        SELECT 
+            m.Material_id,
+            m.Name AS materialName,
+            u.Name AS unitName,
+            q.Quality_id,
+            q.Quality_name,
+            SUM(md.Quantity) AS totalQuantity,
+            md.Min_qty
+        FROM Material_detail md
+        JOIN Materials m ON md.Material_id = m.Material_id
+        JOIN Units u ON m.Unit_id = u.Unit_id
+        JOIN Quality q ON md.Quality_id = q.Quality_id
+        WHERE 1=1
+    """);
+
+    if (keyword != null && !keyword.isEmpty()) {
+        sql.append(" AND m.Name LIKE ? ");
+        sql.append(" AND u.Name LIKE ? ");
+        sql.append(" AND md.Quantity LIKE ? ");
+    }
+    if (materialIdFilter != null) {
+        sql.append(" AND m.Material_id = ? ");
+    }
+    if (qualityIdFilter != null) {
+        sql.append(" AND q.Quality_id = ? ");
+    }
+
+    sql.append("""
+        GROUP BY m.Material_id, m.Name, u.Name, q.Quality_id, q.Quality_name, md.Min_qty
+        HAVING totalQuantity < md.Min_qty
+        ORDER BY totalQuantity ASC
+    """);
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+        int index = 1;
+        if (keyword != null && !keyword.isEmpty()) {
+            stmt.setString(index++, "%" + keyword + "%");
+        }
+        if (materialIdFilter != null) {
+            stmt.setInt(index++, materialIdFilter);
+        }
+        if (qualityIdFilter != null) {
+            stmt.setInt(index++, qualityIdFilter);
+        }
+
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            InventoryAlert alert = new InventoryAlert();
+            alert.setMaterialId(rs.getInt("Material_id"));
+            alert.setMaterialName(rs.getString("materialName"));
+            alert.setUnitName(rs.getString("unitName"));
+            alert.setQualityId(rs.getInt("Quality_id"));
+            alert.setQualityName(rs.getString("Quality_name"));
+            alert.setQuantity(rs.getDouble("totalQuantity"));
+            alert.setMinQuantity(rs.getDouble("Min_qty"));
+            alert.setStatus("Low");
+            alerts.add(alert);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return alerts;
 }
+    
+     public static void main(String[] args) {
+         InventoryDAO dao = new InventoryDAO();
+
+        // ===== THÔNG SỐ TEST =====
+        String keyword = "Gạch";        // Tên vật tư cần tìm (có thể null hoặc "")
+        Integer materialId = null;      // ID vật tư cụ thể cần lọc (null = tất cả)
+        Integer qualityId = null;       // ID chất lượng cụ thể cần lọc (null = tất cả)
+
+        // ===== GỌI DAO =====
+        List<InventoryAlert> alerts = dao.getInventoryAlertsAdvanced(keyword, materialId, qualityId);
+
+        // ===== HIỂN THỊ KẾT QUẢ =====
+        System.out.println("📌 INVENTORY ALERT LIST (filtered):");
+        if (alerts.isEmpty()) {
+            System.out.println("✅ No low inventory materials found.");
+        } else {
+            for (InventoryAlert alert : alerts) {
+                System.out.println("⚠️ " +
+                        "Material: " + alert.getMaterialName() +
+                        " | Quality: " + alert.getQualityName() +
+                        " | Quantity: " + alert.getQuantity() +
+                        " | Min Qty: " + alert.getMinQuantity() +
+                        " | Unit: " + alert.getUnitName() +
+                        " | Status: " + alert.getStatus());
+            }
+        }
+    }
+     }
+
