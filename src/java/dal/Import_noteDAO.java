@@ -365,7 +365,7 @@ public class Import_noteDAO extends DBContext {
         }
     }
 
-    public int getTodayImportNoteCount() {
+    public int getImportToday() {
         String sql = "SELECT COUNT(*) FROM import_note WHERE DATE(imported_at) = CURDATE() AND imported = 1";
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
@@ -377,6 +377,23 @@ public class Import_noteDAO extends DBContext {
         return 0;
     }
 
+    public int getUniqueUsersImportToday(Date today) {
+    int count = 0;
+    String sql = "SELECT COUNT(DISTINCT User_id) AS total " +
+                 "FROM Import_note " +
+                 "WHERE DATE(Imported_at) = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setDate(1, new java.sql.Date(today.getTime()));
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            count = rs.getInt("total");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return count;
+}
+    
     public int getImportNoteCountInDateRange(Date fromDate, Date toDate) {
         String sql = "SELECT COUNT(*) FROM import_note WHERE DATE(imported_at) BETWEEN ? AND ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {

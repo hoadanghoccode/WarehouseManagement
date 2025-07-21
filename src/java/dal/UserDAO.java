@@ -769,4 +769,25 @@ public class UserDAO extends DBContext {
 
         return list;
     }
+public List<Users> getAllUsers() {
+    List<Users> users = new ArrayList<>();
+    String sql = "SELECT User_id, Full_name, Email, Phone_number FROM Users WHERE Status = 1";
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            Users user = new Users();
+            user.setUserId(rs.getInt("User_id"));
+            user.setFullName(rs.getString("Full_name"));
+            user.setEmail(rs.getString("Email"));
+            user.setPhoneNumber(rs.getString("Phone_number"));
+            users.add(user);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return users;
+}
 }

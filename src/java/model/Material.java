@@ -19,6 +19,8 @@ public class Material {
     private String categoryName;
     private String unitName;
     private int supplierId;
+    private double TotalExported;
+    private Date updatedAt;
     // Constructors
     public Material() {}
 
@@ -57,6 +59,35 @@ public class Material {
         this.unitName = unitName;
     }
 
+    public Material(int materialId, int categoryId, int unitId, String name, String image, Date createAt, String status, String categoryName, String unitName, int supplierId, double TotalExported) {
+        this.materialId = materialId;
+        this.categoryId = categoryId;
+        this.unitId = unitId;
+        this.name = name;
+        this.image = image;
+        this.createAt = createAt;
+        this.status = status;
+        this.categoryName = categoryName;
+        this.unitName = unitName;
+        this.supplierId = supplierId;
+        this.TotalExported = TotalExported;
+    }
+
+    public Material(int materialId, int categoryId, int unitId, String name, String image, Date createAt, String status, String categoryName, String unitName, int supplierId, double TotalExported, Date updatedAt) {
+        this.materialId = materialId;
+        this.categoryId = categoryId;
+        this.unitId = unitId;
+        this.name = name;
+        this.image = image;
+        this.createAt = createAt;
+        this.status = status;
+        this.categoryName = categoryName;
+        this.unitName = unitName;
+        this.supplierId = supplierId;
+        this.TotalExported = TotalExported;
+        this.updatedAt = updatedAt;
+    }
+
    
     
     
@@ -88,6 +119,23 @@ public class Material {
     public void setSupplierId(int supplierId) {
         this.supplierId = supplierId;
     }
+
+    public double getTotalExported() {
+        return TotalExported;
+    }
+
+    public void setTotalExported(double TotalExported) {
+        this.TotalExported = TotalExported;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
 
     @Override
     public String toString() {
