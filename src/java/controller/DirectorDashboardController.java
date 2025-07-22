@@ -24,7 +24,6 @@ import model.InventoryAlert;
 import model.Material;
 import model.MaterialTransactionHistory;
 
-
 /**
  *
  * @author duong
@@ -69,7 +68,7 @@ public class DirectorDashboardController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-    try {
+        try {
             int pageSize = 6;
 
             // === ALERT FILTER ===
@@ -97,6 +96,8 @@ public class DirectorDashboardController extends HttpServlet {
             Integer txnMaterialId = (txnMaterialIdStr != null && !txnMaterialIdStr.isEmpty()) ? Integer.parseInt(txnMaterialIdStr) : null;
             Date txnFromDate = (txnFromDateStr != null && !txnFromDateStr.isEmpty()) ? Date.valueOf(txnFromDateStr) : null;
             Date txnToDate = (txnToDateStr != null && !txnToDateStr.isEmpty()) ? Date.valueOf(txnToDateStr) : null;
+            System.out.println("From: " + txnFromDate);
+            System.out.println("To  : " + txnToDate);
             TransactionHistoryDAO txnDAO = new TransactionHistoryDAO();
             List<MaterialTransactionHistory> txnList = txnDAO.getTransactions(txnFromDate, txnToDate, txnSearch, txnMaterialId, null,
                     (txnPage - 1) * pageSize, pageSize);
@@ -107,7 +108,6 @@ public class DirectorDashboardController extends HttpServlet {
             String newSearch = request.getParameter("newMaterialSearch");
             String newPageStr = request.getParameter("newPage");
             int newPage = (newPageStr != null) ? Integer.parseInt(newPageStr) : 1;
-         
 
             MaterialDAO materialDAO = new MaterialDAO();
             List<Material> allNewMaterials = materialDAO.getNewMaterialsToday(newSearch);
@@ -120,7 +120,7 @@ public class DirectorDashboardController extends HttpServlet {
             String updatedSearch = request.getParameter("updatedMaterialSearch");
             String updatedPageStr = request.getParameter("updatedPage");
             int updatedPage = (updatedPageStr != null) ? Integer.parseInt(updatedPageStr) : 1;
-          
+
             List<Material> allUpdatedMaterials = materialDAO.getUpdatedMaterialsToday(updatedSearch);
             int totalUpdatedPages = (int) Math.ceil((double) allUpdatedMaterials.size() / pageSize);
             int updatedFromIndex = (updatedPage - 1) * pageSize;
@@ -160,23 +160,20 @@ public class DirectorDashboardController extends HttpServlet {
             request.setAttribute("currentNewPage", newPage);
             request.setAttribute("newMaterialSearch", newSearch);
 
-
             request.setAttribute("updatedMaterials", pagedUpdatedMaterials);
             request.setAttribute("totalUpdatedPages", totalUpdatedPages);
             request.setAttribute("currentUpdatedPage", updatedPage);
             request.setAttribute("updatedMaterialSearch", updatedSearch);
-
 
             request.getRequestDispatcher("directordashboard.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
-            
-        }
-    
-}
 
+        }
+
+    }
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -203,4 +200,3 @@ public class DirectorDashboardController extends HttpServlet {
     }// </editor-fold>
 
 }
-

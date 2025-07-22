@@ -159,7 +159,9 @@
                                 <!-- Pie Chart (Left) -->
                                 <div class="col-md-6">
                                     <h4>Material Usage Status</h4>
+                                      <label for="materialId">Material</label>
                                     <select id="materialSelectPie" class="form-select mb-3">
+                                      
                                         <c:forEach var="m" items="${materials}" varStatus="loop">
                                             <option value="${m.materialId}" ${loop.index == 0 ? "selected" : ""}>${m.name}</option>
                                         </c:forEach>
@@ -260,13 +262,13 @@
                                         <!-- From Date -->
                                         <div class="col-md-2">
                                             <label for="txnFromDate">From</label>
-                                            <input type="date" class="form-control" name="txnFromDate" value="${fromDate}">
+                                            <input type="date" class="form-control" name="txnfromDate" value="${txnfromDate}">
                                         </div>
 
                                         <!-- To Date -->
                                         <div class="col-md-2">
                                             <label for="txnToDate">To</label>
-                                            <input type="date" class="form-control" name="txnToDate" value="${toDate}">
+                                            <input type="date" class="form-control" name="txntoDate" value="${txntoDate}">
                                         </div>
 
                                         <!-- Material -->
