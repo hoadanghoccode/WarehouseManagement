@@ -71,6 +71,52 @@ public class DirectorDashboardController extends HttpServlet {
         try {
             int pageSize = 6;
 
+            String globalSearch = request.getParameter("globalSearch");
+            if (globalSearch != null && !globalSearch.trim().isEmpty()) {
+                globalSearch = globalSearch.trim();
+
+                // === GLOBAL SEARCH MODE ===
+                InventoryDAO inventoryDAO = new InventoryDAO();
+                TransactionHistoryDAO txnDAO = new TransactionHistoryDAO();
+                MaterialDAO materialDAO = new MaterialDAO();
+
+                List<Material> globalNewMaterials = materialDAO.getNewMaterialsToday(globalSearch);
+                List<Material> globalUpdatedMaterials = materialDAO.getUpdatedMaterialsToday(globalSearch);
+                List<InventoryAlert> globalAlerts = inventoryDAO.getInventoryAlertsAdvanced(globalSearch, null, null);
+                List<MaterialTransactionHistory> globalTxnList = txnDAO.getTransactions(null, null, globalSearch, null, null, 0, pageSize);
+
+                request.setAttribute("newMaterials", globalNewMaterials);
+                request.setAttribute("updatedMaterials", globalUpdatedMaterials);
+                request.setAttribute("inventoryAlerts", globalAlerts);
+                request.setAttribute("transactionList", globalTxnList);
+
+                request.setAttribute("totalNewPages", 1);
+                request.setAttribute("currentNewPage", 1);
+                request.setAttribute("totalUpdatedPages", 1);
+                request.setAttribute("currentUpdatedPage", 1);
+                request.setAttribute("totalPages", 1);
+                request.setAttribute("currentPage", 1);
+                request.setAttribute("totalTxnPages", 1);
+                request.setAttribute("currentTxnPage", 1);
+
+                request.setAttribute("globalSearch", globalSearch);
+
+                Date today = Date.valueOf(LocalDate.now());
+                Import_noteDAO importDAO = new Import_noteDAO();
+                ExportNoteDAO exportDAO = new ExportNoteDAO();
+                InventoryHistoryDAO usageDAO = new InventoryHistoryDAO();
+                UserDAO userDAO = new UserDAO();
+
+                request.setAttribute("totalMaterials", materialDAO.getTotalMaterialCount());
+                request.setAttribute("importToday", importDAO.getImportToday());
+                request.setAttribute("exportToday", exportDAO.getExportToday());
+                request.setAttribute("totalTxnToday", txnDAO.getTotalTransactionsToday(today));
+                request.setAttribute("materials", materialDAO.getAllMaterials());
+
+                request.getRequestDispatcher("directordashboard.jsp").forward(request, response);
+                return;
+            }
+
             // === ALERT FILTER ===
             String alertSearch = request.getParameter("alertSearch");
             String alertMaterialIdStr = request.getParameter("alertMaterialId");
