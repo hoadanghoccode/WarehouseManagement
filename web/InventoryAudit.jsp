@@ -146,38 +146,22 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body" id="auditModalBody">
-                                <form id="inventoryAuditForm">
-                                    <c:forEach var="item" items="${inventoryList}" varStatus="st">
-                                        <div class="border rounded p-3 mb-3 inventory-item-row">
-                                            <div class="row align-items-center">
-                                                <div class="col-2"><b>ID:</b> ${item.materialId}</div>
-                                                <div class="col-4"><b>Name:</b> ${item.materialName}
-                                                    <c:if test="${not empty item.materialImage}">
-                                                        <img src="${item.materialImage}" alt="Material Image" style="max-width:40px;max-height:40px;margin-left:8px;vertical-align:middle;"/>
-                                                    </c:if>
-                                                </div>
-                                                <div class="col-3">
-                                                    <b>System Quantity:</b>
-                                                    <span class="sys-qty">${item.availableQty}</span>
-                                                </div>
-                                                <div class="col-3">
-                                                    <input type="number" step="0.01" min="0"
-                                                           class="form-control actual-qty-input"
-                                                           placeholder="Enter actual quantity"
-                                                           data-sysqty="${item.availableQty}"
-                                                           name="actualQty_${item.materialId}" required="">
-                                                </div>
-                                            </div>
-                                            <div class="row mt-2 d-none reason-row">
-                                                <div class="col-12">
-                                                    <input type="text" class="form-control reason-input"
-                                                           name="reason_${item.materialId}"
-                                                           placeholder="Enter reason for discrepancy" required="">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </c:forEach>
-                                </form>
+                                <!-- Thêm select lọc category -->
+                                <div class="mb-3">
+                                    <label for="auditCategoryFilter" class="form-label"><b>Filter by Category</b></label>
+                                    <select class="form-select" id="auditCategoryFilter">
+                                        <option value="">All Categories</option>
+                                        <c:forEach var="parent" items="${parentCategories}">
+                                            <optgroup label="${parent.name}">
+                                                <c:forEach var="sub" items="${parent.subCategories}">
+                                                    <option value="${sub.categoryId}">${sub.name}</option>
+                                                </c:forEach>
+                                            </optgroup>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <!-- Bảng vật tư sẽ được load động bằng JS như cũ -->
+                                <div id="auditMaterialTableWrapper"></div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-primary" id="btnSaveAudit">Save Audit</button>
@@ -426,7 +410,7 @@
                         currentAuditId = $(this).data('id');
                         var auditId = $(this).data('id');
                         console.log('auditId ne', auditId);
-                        $('#auditDetailBody').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+                        $('#auditDetailBody').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loadinh...</div>');
                         $.ajax({
                             url: '${pageContext.request.contextPath}/inventoryauditdetail?view=detail&auditId=' + auditId,
                             type: 'GET',
@@ -547,19 +531,21 @@
                     $('#auditModal').modal('show');
                 });
 
-                // When entering actual quantity, check for discrepancy
-                $('#auditModal').on('input', '.actual-qty-input', function () {
-                    var actual = parseFloat($(this).val()) || 0;
-                    var sys = parseFloat($(this).data('sysqty')) || 0;
-                    var $block = $(this).closest('.inventory-item-row');
-                    if (actual !== sys) {
-                        $block.find('.reason-row').removeClass('d-none');
-                        $block.find('.reason-input').attr('required', true);
-                    } else {
-                        $block.find('.reason-row').addClass('d-none');
-                        $block.find('.reason-input').val('').removeAttr('required');
-                    }
-                });
+              // Lắng nghe sự kiện input trên cả 2 loại input số lượng
+$('#auditModal').on('input', '.actual-qty-available-input, .actual-qty-notavailable-input', function () {
+    var $row = $(this).closest('.inventory-item-row');
+    var actual = parseFloat($row.find('.actual-qty-available-input').val()) || 0;
+    var sys = parseFloat($row.find('.sys-qty-available').text()) || 0;
+    var actualNot = parseFloat($row.find('.actual-qty-notavailable-input').val()) || 0;
+    var sysNot = parseFloat($row.find('.sys-qty-notavailable').text()) || 0;
+
+    // Nếu có bất kỳ chênh lệch nào thì hiện lý do
+    if (actual !== sys || actualNot !== sysNot) {
+        $row.find('.reason-input').removeClass('d-none').attr('required', true);
+    } else {
+        $row.find('.reason-input').addClass('d-none').val('').removeAttr('required');
+    }
+});
 
                 // Save audit (collect data, send via ajax, handle on backend)
                 $('#btnSaveAudit').click(function () {
@@ -623,6 +609,9 @@
                         success: function () {
                             showAlert(true, 'Saved successfully!');
                             $('#auditModal').modal('hide');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 600); // Đợi alert/ẩn modal xong rồi reload
                         },
                         error: function () {
                             showAlert(false, 'An error occurred!');
@@ -631,13 +620,40 @@
                 });
             </script>
             <script>
-                $('#btnOpenAuditModal').click(function () {
-                    $('#auditModalBody').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+                function renderCategoryFilter(parentCategories) {
+                    var $select = $('#auditCategoryFilter');
+                    var selected = $select.val(); // Giữ lại giá trị filter hiện tại
+                    $select.empty();
+                    $select.append('<option value="">All Categories</option>');
+                    parentCategories.forEach(function (parent) {
+                        var $optgroup = $('<optgroup>').attr('label', parent.name);
+                        if (parent.subCategories && parent.subCategories.length > 0) {
+                            parent.subCategories.forEach(function (sub) {
+                                var $opt = $('<option>').attr('value', sub.categoryId).text(sub.name);
+                                if (selected == sub.categoryId)
+                                    $opt.prop('selected', true);
+                                $optgroup.append($opt);
+                            });
+                        }
+                        $select.append($optgroup);
+                    });
+                }
+
+                // Sửa lại hàm load vật tư để nhận categoryId
+                function loadAuditMaterialTable(categoryId) {
+                    $('#auditMaterialTableWrapper').html('<div class="text-center text-secondary"><i class="fas fa-spinner fa-spin"></i> Loadinng...</div>');
+                    let url = '${pageContext.request.contextPath}/inventoryaudit?action=listMaterial';
+                    if (categoryId)
+                        url += '&categoryId=' + categoryId;
                     $.ajax({
-                        url: '${pageContext.request.contextPath}/inventoryaudit?action=listMaterial',
+                        url: url,
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
+                            if (data.parentCategories) {
+                                renderCategoryFilter(data.parentCategories);
+                            }
+
                             var html = '<form id="inventoryAuditForm">';
                             html += '<table class="table table-bordered align-middle text-center">';
                             html += '<thead class="table-light">';
@@ -653,7 +669,8 @@
                             html += '<th style="width: 220px;">Reason</th>';
                             html += '</tr>';
                             html += '</thead><tbody>';
-                            data.forEach(function (item, idx) {
+
+                            (data.items || []).forEach(function (item, idx) {
                                 html += '<tr class="inventory-item-row">';
                                 html += '<td>' + item.materialId + '</td>';
                                 html += '<td>';
@@ -665,11 +682,23 @@
                                 html += '<td>' + (item.unitName || '') + '</td>';
                                 html += '<td><span class="sys-qty-available">' + item.availableQty + '</span></td>';
                                 html += '<td>';
-                                html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-available-input" style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;" placeholder="Actual" data-sysqty="' + item.availableQty + '" name="actualAvailable_' + item.materialId + '">';
+                                html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-available-input"'
+                                        + ' style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;"'
+                                        + ' placeholder="Actual"'
+                                        + ' data-sysqty="' + item.availableQty + '"'
+                                        + ' name="actualAvailable_' + item.materialId + '"'
+                                        + ' value="' + item.availableQty + '"'
+                                        + '>';
                                 html += '</td>';
                                 html += '<td><span class="sys-qty-notavailable">' + item.notAvailableQty + '</span></td>';
                                 html += '<td>';
-                                html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-notavailable-input" style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;" placeholder="Actual" data-sysqty="' + item.notAvailableQty + '" name="actualNotAvailable_' + item.materialId + '">';
+                                html += '<input type="number" step="0.01" min="0" class="form-control actual-qty-notavailable-input"'
+                                        + ' style="max-width: 80px; margin: 0 auto; padding: 2px 4px; font-size: 14px;"'
+                                        + ' placeholder="Actual"'
+                                        + ' data-sysqty="' + item.notAvailableQty + '"'
+                                        + ' name="actualNotAvailable_' + item.materialId + '"'
+                                        + ' value="' + item.notAvailableQty + '"'
+                                        + '>';
                                 html += '</td>';
                                 html += '<td>';
                                 html += '<input type="text" class="form-control reason-input d-none" style="min-width: 180px; padding: 2px 6px; font-size: 14px;" name="reason_' + item.materialId + '" placeholder="Enter reason for discrepancy">';
@@ -677,30 +706,27 @@
                                 html += '</tr>';
                             });
 
+
                             html += '</tbody></table></form>';
-                            $('#auditModalBody').html(html);
+                            $('#auditMaterialTableWrapper').html(html);
                         },
+
                         error: function (xhr) {
                             console.log('error', xhr);
-                            $('#auditModalBody').html('<div class="alert alert-danger">Failed to load inventory!</div>');
+                            $('#auditMaterialTableWrapper').html('<div class="alert alert-danger">Failed to load inventory!</div>');
                         }
                     });
+                }
+                // Khi mở modal, load all vật tư
+                $('#btnOpenAuditModal').click(function () {
+                    $('#auditCategoryFilter').val(''); // reset filter
+                    loadAuditMaterialTable();
                     $('#auditModal').modal('show');
                 });
-
-                // Show/hide reason input if actual differs from system (for both available and not available)
-                $('#auditModal').on('input', '.actual-qty-available-input, .actual-qty-notavailable-input', function () {
-                    var $row = $(this).closest('tr');
-                    var sysAvailable = parseFloat($row.find('.sys-qty-available').text()) || 0;
-                    var actualAvailable = parseFloat($row.find('.actual-qty-available-input').val()) || 0;
-                    var sysNotAvailable = parseFloat($row.find('.sys-qty-notavailable').text()) || 0;
-                    var actualNotAvailable = parseFloat($row.find('.actual-qty-notavailable-input').val()) || 0;
-                    var $reason = $row.find('.reason-input');
-                    if (actualAvailable !== sysAvailable || actualNotAvailable !== sysNotAvailable) {
-                        $reason.removeClass('d-none').attr('required', true);
-                    } else {
-                        $reason.addClass('d-none').val('').removeAttr('required');
-                    }
+                // Khi chọn category, load lại vật tư theo category
+                $('#auditModal').on('change', '#auditCategoryFilter', function () {
+                    let cateId = $(this).val();
+                    loadAuditMaterialTable(cateId);
                 });
             </script>
             <script>

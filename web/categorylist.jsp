@@ -158,13 +158,18 @@
                                         <tr>
                                             <th class="col-md-1">#</th>
                                             <th class="col-md-5">Name</th>
-                                            <th class="col-md-2">Status</th>
-                                            <th class="col-md-2">Action</th>
+                                            <%-- Chỉ hiển thị cột Status nếu có quyền --%>
+                                            <c:if test="${perms['Category_DELETE']}">
+                                                <th class="col-md-2">Status</th>
+                                            </c:if>
+                                            <%-- Chỉ hiển thị cột Action nếu có quyền --%>
+                                            <c:if test="${perms['Category_UPDATE']}">
+                                                <th class="col-md-2">Action</th>
+                                            </c:if>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <c:forEach var="category" items="${categoryList}" varStatus="status">
-                                            <!-- Main category row -->
                                             <tr>
                                                 <td><strong>${(page - 1) * pageSize + status.index + 1}</strong></td>
                                                 <td>
@@ -185,16 +190,15 @@
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
-                                                <td>
-                                                    <!-- Switch button -->
-                                                    <c:if test="${perms['Category_DELETE']}"> 
+                                                <%-- Cột Status --%>
+                                                <c:if test="${perms['Category_DELETE']}">
+                                                    <td>
                                                         <form action="categorylist" method="post" style="display:inline;">
                                                             <input type="hidden" name="action" value="updateStatus" />
                                                             <input type="hidden" name="categoryId" value="${category.categoryId}" />
                                                             <input type="hidden" name="page" value="${page}" />
                                                             <input type="hidden" name="search" value="${search}" />
                                                             <input type="hidden" name="statusFilter" value="${param.status}" />
-
                                                             <label class="switch">
                                                                 <input type="checkbox" name="statusParam"
                                                                        onchange="this.form.submit()"
@@ -202,46 +206,39 @@
                                                                 <span class="slider"></span>
                                                             </label>
                                                         </form>
-                                                    </c:if>
-                                                    <c:if test="${!perms['Category_DELETE']}"> 
-
-                                                        <div>No permission</div>
-                                                    </c:if>
-                                                </td>
-
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <c:if test="${perms['Category_UPDATE']}"> 
+                                                    </td>
+                                                </c:if>
+                                                <%-- Cột Action --%>
+                                                <c:if test="${perms['Category_UPDATE']}">
+                                                    <td>
+                                                        <div class="action-buttons">
                                                             <button type="button" class="btn btn-primary" onclick="openUpdateModal('${category.categoryId}', '${category.name}', '${category.parentId}', '${category.status}')">
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
-                                                        </c:if>
-                                                        <c:if test="${!perms['Category_UPDATE']}"> 
-
-                                                            <div>No permission</div>
-                                                        </c:if>
-                                                    <!--   <a href="deletecategory?cid=${category.categoryId}" 
-                                                       class="btn btn-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>-->
-                                                    </div>
-                                                </td>
+                                                        </div>
+                                                    </td>
+                                                </c:if>
                                             </tr>
-
-                                            <!-- Sub-category row with table format -->
+                                            <%-- Sub-category row --%>
                                             <c:if test="${category.subCategoryCount > 0}">
+                                                <%-- Đặt logic tính colspan ngoài <tr> --%>
+                                                <c:set var="colspan" value="2" />
+                                                <c:if test="${perms['Category_DELETE']}">
+                                                    <c:set var="colspan" value="${colspan + 1}" />
+                                                </c:if>
+                                                <c:if test="${perms['Category_UPDATE']}">
+                                                    <c:set var="colspan" value="${colspan + 1}" />
+                                                </c:if>
                                                 <tr class="subcat-row" id="tooltip-${status.index}" style="display: none;">
-                                                    <td colspan="4">
+                                                    <td colspan="${colspan}">
                                                         <div class="subcat-content">
                                                             <div class="subcat-title">
                                                                 <i class="fas fa-list-ul"></i> 
                                                                 Sub-Categories of "${category.name}":
                                                             </div>
-
                                                             <c:choose>
                                                                 <c:when test="${not empty category.subCategories}">
                                                                     <table class="subcat-table">
-
                                                                         <tbody>
                                                                             <c:forEach var="sub" items="${category.subCategories}" varStatus="subStatus">
                                                                                 <tr>
@@ -254,15 +251,15 @@
                                                                                             <span class="material-count" style="font-size: 12px">(${sub.materialCount})</span>
                                                                                         </div>
                                                                                     </td>
-                                                                                    <td style="width: 235px">
-                                                                                        <c:if test="${perms['Category_DELETE']}"> 
+                                                                                    <%-- Cột Status cho sub-category --%>
+                                                                                    <c:if test="${perms['Category_DELETE']}">
+                                                                                        <td style="width: 235px">
                                                                                             <form action="categorylist" method="post" style="display:inline;">
                                                                                                 <input type="hidden" name="action" value="updateStatus" />
                                                                                                 <input type="hidden" name="categoryId" value="${sub.categoryId}" />
                                                                                                 <input type="hidden" name="page" value="${page}" />
                                                                                                 <input type="hidden" name="search" value="${search}" />
                                                                                                 <input type="hidden" name="statusFilter" value="${param.status}" />
-
                                                                                                 <label class="switch">
                                                                                                     <input type="checkbox" name="statusParam"
                                                                                                            onchange="this.form.submit()"
@@ -271,32 +268,18 @@
                                                                                                 </label>
                                                                                             </form>
                                                                                         </c:if>
-                                                                                        <c:if test="${!perms['Category_DELETE']}"> 
-
-                                                                                            <div>No permission</div>
+                                                                                        <%-- Cột Action cho sub-category --%>
+                                                                                        <c:if test="${perms['Category_UPDATE']}">
+                                                                                            <td>
+                                                                                                <div class="action-buttons">
+                                                                                                    <button type="button" class="btn btn-primary" onclick="openUpdateModal('${sub.categoryId}', '${sub.name}', '${sub.parentId.categoryId}', '${sub.status}')">
+                                                                                                        <i class="fas fa-edit"></i>
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            </td>
                                                                                         </c:if>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <div class="action-buttons">
-                                                                                            <c:if test="${perms['Category_UPDATE']}"> 
-                                                                                                <button type="button" class="btn btn-primary" onclick="openUpdateModal('${sub.categoryId}', '${sub.name}', '${sub.parentId.categoryId}', '${sub.status}')">
-                                                                                                    <i class="fas fa-edit"></i>
-                                                                                                </button>
-                                                                                            </c:if>
-
-
-
-                                                                                            <c:if test="${!perms['Category_UPDATE']}"> 
-
-                                                                                                <div>No permission</div>
-                                                                                            </c:if>
-                                            <!--                                                                                    <a href="deletecategory?cid=${sub.categoryId}" class="btn btn-danger">
-                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                </a>-->
-                                                                                        </div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            </c:forEach>
+                                                                                    </tr>
+                                                                                </c:forEach>
                                                                         </tbody>
                                                                     </table>
                                                                 </c:when>

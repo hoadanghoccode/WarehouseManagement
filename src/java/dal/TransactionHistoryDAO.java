@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.sql.Date;
 import java.util.List;
+import model.Material;
 
 /**
  *
@@ -137,48 +138,201 @@ public class TransactionHistoryDAO {
 
     return m;
 }
+   
+   public List<Material> getRecentlyTransacted(Date from, Date to) {
+    List<Material> list = new ArrayList<>();
+
+    String sql = "SELECT m.Material_id, m.Name, MAX(o.Created_at) as LastTransacted " +
+             "FROM Materials m " +
+             "JOIN Order_detail od ON m.Material_id = od.Material_id " +
+             "JOIN Orders o ON o.Order_id = od.Order_id " +
+             "WHERE o.Type IN ('import', 'export', 'exportToRepair') " +
+             "AND DATE(o.Created_at) BETWEEN ? AND ? " +
+             "GROUP BY m.Material_id, m.Name " +
+             "ORDER BY LastTransacted DESC";
+
+    try (Connection conn = new DBContext().getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setDate(1, new java.sql.Date(from.getTime()));
+        ps.setDate(2, new java.sql.Date(to.getTime()));
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Material m = new Material();
+            m.setMaterialId(rs.getInt("Material_id"));
+            m.setName(rs.getString("Name"));
+            list.add(m);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
+   
+   public int getTotalTransactionsToday(Date today) {
+    int total = 0;
+
+    String importSql = "SELECT COUNT(*) AS cnt FROM Import_note WHERE DATE(Imported_at) = ?";
+    String exportSql = "SELECT COUNT(*) AS cnt FROM Export_note WHERE DATE(Exported_at) = ?";
+
+    try (Connection conn = new DBContext().getConnection()) {
+
+        // Count Import
+        try (PreparedStatement ps = conn.prepareStatement(importSql)) {
+            ps.setDate(1, new java.sql.Date(today.getTime()));
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                total += rs.getInt("cnt");
+            }
+        }
+
+        // Count Export
+        try (PreparedStatement ps = conn.prepareStatement(exportSql)) {
+            ps.setDate(1, new java.sql.Date(today.getTime()));
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                total += rs.getInt("cnt");
+            }
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return total;
+}
+   
+   public List<MaterialTransactionHistory> getTransactions(Date fromDate, Date toDate, String searchKeyword,
+                                                        Integer materialIdFilter, Integer qualityIdFilter,
+                                                        int offset, int pageSize) {
+    List<MaterialTransactionHistory> list = new ArrayList<>();
+
+    StringBuilder sql = new StringBuilder("""
+        SELECT 
+            mth.Material_transaction_history_id,
+            mth.Transaction_date,
+            mth.Note,
+            md.Material_id,
+            m.Name AS materialName,
+            m.Unit_id,
+            u.Name AS unitName,
+            md.Quality_id,
+            q.Quality_name AS qualityName,
+            md.Quantity
+        FROM materialtransactionhistory mth
+        LEFT JOIN material_detail md ON mth.Material_detail_id = md.Material_detail_id
+        LEFT JOIN materials m ON md.Material_id = m.Material_id
+        LEFT JOIN units u ON m.Unit_id = u.Unit_id
+        LEFT JOIN quality q ON md.Quality_id = q.Quality_id
+        WHERE 1=1
+    """);
+
+    if (fromDate != null) sql.append(" AND DATE(mth.Transaction_date) >= ? ");
+    if (toDate != null) sql.append(" AND DATE(mth.Transaction_date) <= ? ");
+    if (searchKeyword != null && !searchKeyword.isEmpty()) sql.append(" AND m.Name LIKE ? ");
+    if (materialIdFilter != null) sql.append(" AND md.Material_id = ? ");
+    if (qualityIdFilter != null) sql.append(" AND md.Quality_id = ? ");
+
+    sql.append(" ORDER BY mth.Transaction_date DESC LIMIT ? OFFSET ? ");
+
+    try (Connection conn = new DBContext().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+        int idx = 1;
+        if (fromDate != null) ps.setDate(idx++, fromDate);
+        if (toDate != null) ps.setDate(idx++, toDate);
+        if (searchKeyword != null && !searchKeyword.isEmpty()) ps.setString(idx++, "%" + searchKeyword + "%");
+        if (materialIdFilter != null) ps.setInt(idx++, materialIdFilter);
+        if (qualityIdFilter != null) ps.setInt(idx++, qualityIdFilter);
+        ps.setInt(idx++, pageSize);
+        ps.setInt(idx, offset);
+
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            MaterialTransactionHistory m = new MaterialTransactionHistory();
+            m.setMaterialTransactionHistoryId(rs.getInt("Material_transaction_history_id"));
+            m.setTransactionDate(rs.getDate("Transaction_date"));
+            m.setNote(rs.getString("Note"));
+            m.setMaterialId(rs.getInt("Material_id"));
+            m.setMaterialName(rs.getString("materialName"));
+            m.setUnitId(rs.getInt("Unit_id"));
+            m.setUnitName(rs.getString("unitName"));
+            m.setQualityId(rs.getInt("Quality_id"));
+            m.setQualityName(rs.getString("qualityName"));
+            m.setQuantity(rs.getDouble("Quantity"));
+            list.add(m);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+ public int countTransactions(Date fromDate, Date toDate, String searchKeyword,
+                             Integer materialIdFilter, Integer qualityIdFilter) {
+    StringBuilder sql = new StringBuilder("""
+        SELECT COUNT(*) FROM materialtransactionhistory mth
+        LEFT JOIN material_detail md ON mth.Material_detail_id = md.Material_detail_id
+        LEFT JOIN materials m ON md.Material_id = m.Material_id
+        WHERE 1=1
+    """);
+
+    if (fromDate != null) sql.append(" AND mth.Transaction_date >= ? ");
+    if (toDate != null) sql.append(" AND mth.Transaction_date <= ? ");
+    if (searchKeyword != null && !searchKeyword.isEmpty()) sql.append(" AND m.Name LIKE ? ");
+    if (materialIdFilter != null) sql.append(" AND md.Material_id = ? ");
+    if (qualityIdFilter != null) sql.append(" AND md.Quality_id = ? ");
+
+    try (Connection conn = new DBContext().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+        int idx = 1;
+        if (fromDate != null) ps.setDate(idx++, fromDate);
+        if (toDate != null) ps.setDate(idx++, toDate);
+        if (searchKeyword != null && !searchKeyword.isEmpty()) ps.setString(idx++, "%" + searchKeyword + "%");
+        if (materialIdFilter != null) ps.setInt(idx++, materialIdFilter);
+        if (qualityIdFilter != null) ps.setInt(idx++, qualityIdFilter);
+
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return 0;
+}
     public static void main(String[] args) {
-//        // Chọn khoảng thời gian muốn test
-//        LocalDate fromLocal = LocalDate.of(2025, 6, 30);
-//        LocalDate toLocal = LocalDate.of(2025, 7, 10);
-//
-//        Date fromDate = Date.valueOf(fromLocal);
-//        Date toDate = Date.valueOf(toLocal);
-//
-//        TransactionHistoryDAO dao = new TransactionHistoryDAO();
-//        MaterialTransactionHistory latest = dao.getLatestTransaction(fromDate, toDate);
-//
-//        // Kiểm tra kết quả
-//        if (latest != null) {
-//            System.out.println("✅ Giao dịch mới nhất:");
-//            System.out.println("➤ ID: " + latest.getMaterialTransactionHistoryId());
-//            System.out.println("➤ Ngày giao dịch: " + latest.getTransactionDate());
-//            System.out.println("➤ Vật tư: " + latest.getMaterialName());
-//            System.out.println("➤ SubUnit: " + latest.getUnitName());
-//            System.out.println("➤ Quality: " + latest.getQualityName());
-//            System.out.println("➤ Số lượng: " + latest.getQuantity());
-//            System.out.println("➤ Ghi chú: " + latest.getNote());
-//        } else {
-//            System.out.println("❌ Không có giao dịch nào trong khoảng ngày đã chọn.");
-//        }
-//
-   TransactionHistoryDAO dao = new  TransactionHistoryDAO(); // Hoặc DAO bạn đang dùng để chứa hàm này
-    MaterialTransactionHistory latest = dao.getLatestTransaction();
+  TransactionHistoryDAO dao = new TransactionHistoryDAO();
 
-    if (latest != null) {
-        System.out.println("📦 Latest Transaction:");
-        System.out.println("ID: " + latest.getMaterialTransactionHistoryId());
-        System.out.println("Ngày giao dịch: " + latest.getTransactionDate());
-        System.out.println("Ghi chú: " + latest.getNote());
-        System.out.println("Vật tư: " + latest.getMaterialName() + " (ID: " + latest.getMaterialId() + ")");
-        System.out.println("Đơn vị tính: " + latest.getUnitName() + " (ID: " + latest.getUnitId() + ")");
-        System.out.println("Chất lượng: " + latest.getQualityName() + " (ID: " + latest.getQualityId() + ")");
-        System.out.println("Số lượng: " + latest.getQuantity());
-    } else {
-        System.out.println("❌ Không tìm thấy giao dịch vật tư nào.");
-    }
-    }
-    
+        // Thiết lập dữ liệu kiểm thử
+        Date fromDate = Date.valueOf(LocalDate.of(2025, 7, 1));
+        Date toDate = Date.valueOf(LocalDate.of(2025, 7, 20));
+        String searchKeyword = ""; // thử "" hoặc "Gạch"
+        Integer materialIdFilter = null; // hoặc ví dụ: 1
+        Integer qualityIdFilter = null;  // hoặc ví dụ: 2
+        int offset = 0;
+        int pageSize = 10;
 
+        System.out.println("🔍 Đang kiểm tra transaction list...");
+        List<MaterialTransactionHistory> list = dao.getTransactions(fromDate, toDate, searchKeyword,
+                materialIdFilter, qualityIdFilter, offset, pageSize);
+
+        System.out.println("📌 Tổng số transaction trả về: " + list.size());
+        for (MaterialTransactionHistory m : list) {
+            System.out.println("🧾 ID: " + m.getMaterialTransactionHistoryId()
+                    + " | Date: " + m.getTransactionDate()
+                    + " | Material: " + m.getMaterialName()
+                    + " | Qty: " + m.getQuantity()
+                    + " | Unit: " + m.getUnitName()
+                    + " | Quality: " + m.getQualityName()
+                    + " | Note: " + m.getNote());
+        }
+
+        System.out.println("\n🔢 Đang đếm tổng giao dịch...");
+        int total = dao.countTransactions(fromDate, toDate, searchKeyword,
+                materialIdFilter, qualityIdFilter);
+        System.out.println("🧮 Tổng giao dịch đếm được: " + total);
+    }
 }
 
+ 

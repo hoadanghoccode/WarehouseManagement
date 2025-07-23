@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -420,4 +421,14 @@ public class InventoryHistoryDAO extends DBContext {
         }
         return false;
     }
+   
+    public static void main(String[] args) {
+      LocalDate fromLocal = LocalDate.of(2025, 7, 20);
+        LocalDate toLocal = LocalDate.of(2025, 7, 20);
+
+        java.sql.Date from = java.sql.Date.valueOf(fromLocal);
+        java.sql.Date to = java.sql.Date.valueOf(toLocal);
+
+
 }
+    }
