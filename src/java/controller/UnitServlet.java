@@ -67,7 +67,6 @@ public class UnitServlet extends HttpServlet {
         }
     }
 
-    // List units with pagination and filters
     private void listUnits(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String search = request.getParameter("search");
         String status = request.getParameter("status");
@@ -79,15 +78,12 @@ public class UnitServlet extends HttpServlet {
             page = 1;
         }
 
-        // Fetch units with status filter
         List<Unit> units = unitDAO.getAllUnits(status);
 
-        // Apply search filter
         if (search != null && !search.isEmpty()) {
             units.removeIf(u -> !u.getName().toLowerCase().contains(search.toLowerCase()));
         }
 
-        // Add transaction dependency information for each unit
         List<Map<String, Object>> unitMaps = units.stream().map(unit -> {
             Map<String, Object> unitMap = new HashMap<>();
             unitMap.put("unitId", unit.getUnitId());
@@ -95,11 +91,10 @@ public class UnitServlet extends HttpServlet {
             unitMap.put("status", unit.getStatus());
             unitMap.put("createdAt", unit.getCreatedAt() != null ? unit.getCreatedAt().toString() : "N/A");
             unitMap.put("updatedAt", unit.getUpdatedAt() != null ? unit.getUpdatedAt().toString() : "N/A");
-            unitMap.put("hasDependencies", unitDAO.hasTransactionDependencies(unit.getUnitId()));
+            unitMap.put("isUsedInMaterials", unitDAO.isUnitUsedInMaterials(unit.getUnitId()));
             return unitMap;
         }).collect(Collectors.toList());
 
-        // Pagination
         int totalUnits = unitMaps.size();
         int totalPages = (int) Math.ceil((double) totalUnits / PAGE_SIZE);
         if (page < 1) page = 1;
@@ -108,7 +103,6 @@ public class UnitServlet extends HttpServlet {
         int end = Math.min(start + PAGE_SIZE, totalUnits);
         List<Map<String, Object>> paginatedUnits = unitMaps.subList(start, end);
 
-        // Set attributes for JSP
         request.setAttribute("units", paginatedUnits);
         request.setAttribute("totalUnits", totalUnits);
         request.setAttribute("totalPages", totalPages);
@@ -118,14 +112,12 @@ public class UnitServlet extends HttpServlet {
         request.getRequestDispatcher("/unit.jsp").forward(request, response);
     }
 
-    // Show form for adding a new unit
     private void showAddForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("success", true);
         sendJsonResponse(response, responseMap);
     }
 
-    // Show form for editing a unit
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int unitId;
         try {
@@ -134,9 +126,8 @@ public class UnitServlet extends HttpServlet {
             sendJsonResponse(response, Map.of("success", false, "message", "Invalid unit ID"));
             return;
         }
-        // Check for transaction dependencies
-        if (unitDAO.hasTransactionDependencies(unitId)) {
-            sendJsonResponse(response, Map.of("success", false, "message", "Cannot edit unit: It is used in transactions"));
+        if (unitDAO.isUnitUsedInMaterials(unitId)) {
+            sendJsonResponse(response, Map.of("success", false, "message", "Cannot edit unit: It is used in materials"));
             return;
         }
         Unit unit = unitDAO.getUnitById(unitId);
@@ -150,7 +141,6 @@ public class UnitServlet extends HttpServlet {
         sendJsonResponse(response, responseMap);
     }
 
-    // Add a new unit
     private void addUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String name = request.getParameter("name");
         String status = request.getParameter("status");
@@ -174,7 +164,6 @@ public class UnitServlet extends HttpServlet {
         ));
     }
 
-    // Update an existing unit
     private void updateUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int unitId;
         try {
@@ -183,9 +172,8 @@ public class UnitServlet extends HttpServlet {
             sendJsonResponse(response, Map.of("success", false, "message", "Invalid unit ID"));
             return;
         }
-        // Check for transaction dependencies
-        if (unitDAO.hasTransactionDependencies(unitId)) {
-            sendJsonResponse(response, Map.of("success", false, "message", "Cannot edit unit: It is used in transactions"));
+        if (unitDAO.isUnitUsedInMaterials(unitId)) {
+            sendJsonResponse(response, Map.of("success", false, "message", "Cannot edit unit: It is used in materials"));
             return;
         }
         String name = request.getParameter("name");
@@ -213,7 +201,6 @@ public class UnitServlet extends HttpServlet {
         ));
     }
 
-    // Deactivate a unit
     private void deactivateUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int unitId;
         try {
@@ -222,9 +209,8 @@ public class UnitServlet extends HttpServlet {
             sendJsonResponse(response, Map.of("success", false, "message", "Invalid unit ID"));
             return;
         }
-        // Check for transaction dependencies
-        if (unitDAO.hasTransactionDependencies(unitId)) {
-            sendJsonResponse(response, Map.of("success", false, "message", "Cannot deactivate unit: It is used in transactions"));
+        if (unitDAO.isUnitUsedInMaterials(unitId)) {
+            sendJsonResponse(response, Map.of("success", false, "message", "Cannot deactivate unit: It is used in materials"));
             return;
         }
         boolean isSuccess = unitDAO.deleteUnit(unitId);
@@ -234,7 +220,6 @@ public class UnitServlet extends HttpServlet {
         ));
     }
 
-    // Permanently delete a unit
     private void permanentDeleteUnit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int unitId;
         try {
@@ -243,9 +228,8 @@ public class UnitServlet extends HttpServlet {
             sendJsonResponse(response, Map.of("success", false, "message", "Invalid unit ID"));
             return;
         }
-        // Check for transaction dependencies
-        if (unitDAO.hasTransactionDependencies(unitId)) {
-            sendJsonResponse(response, Map.of("success", false, "message", "Cannot permanently delete unit: It is used in transactions"));
+        if (unitDAO.isUnitUsedInMaterials(unitId)) {
+            sendJsonResponse(response, Map.of("success", false, "message", "Cannot permanently delete unit: It is used in materials"));
             return;
         }
         boolean isSuccess = unitDAO.permanentDeleteUnit(unitId);
@@ -255,7 +239,6 @@ public class UnitServlet extends HttpServlet {
         ));
     }
 
-    // View unit details
     private void viewUnitDetails(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int unitId;
         try {
@@ -281,7 +264,6 @@ public class UnitServlet extends HttpServlet {
         sendJsonResponse(response, responseMap);
     }
 
-    // Send JSON response
     private void sendJsonResponse(HttpServletResponse response, Map<String, Object> responseMap) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
