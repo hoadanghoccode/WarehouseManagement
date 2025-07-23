@@ -24,7 +24,6 @@ import model.InventoryAlert;
 import model.Material;
 import model.MaterialTransactionHistory;
 
-
 /**
  *
  * @author duong
@@ -69,8 +68,54 @@ public class DirectorDashboardController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-    try {
+        try {
             int pageSize = 6;
+
+            String globalSearch = request.getParameter("globalSearch");
+            if (globalSearch != null && !globalSearch.trim().isEmpty()) {
+                globalSearch = globalSearch.trim();
+
+                // === GLOBAL SEARCH MODE ===
+                InventoryDAO inventoryDAO = new InventoryDAO();
+                TransactionHistoryDAO txnDAO = new TransactionHistoryDAO();
+                MaterialDAO materialDAO = new MaterialDAO();
+
+                List<Material> globalNewMaterials = materialDAO.getNewMaterialsToday(globalSearch);
+                List<Material> globalUpdatedMaterials = materialDAO.getUpdatedMaterialsToday(globalSearch);
+                List<InventoryAlert> globalAlerts = inventoryDAO.getInventoryAlertsAdvanced(globalSearch, null, null);
+                List<MaterialTransactionHistory> globalTxnList = txnDAO.getTransactions(null, null, globalSearch, null, null, 0, pageSize);
+
+                request.setAttribute("newMaterials", globalNewMaterials);
+                request.setAttribute("updatedMaterials", globalUpdatedMaterials);
+                request.setAttribute("inventoryAlerts", globalAlerts);
+                request.setAttribute("transactionList", globalTxnList);
+
+                request.setAttribute("totalNewPages", 1);
+                request.setAttribute("currentNewPage", 1);
+                request.setAttribute("totalUpdatedPages", 1);
+                request.setAttribute("currentUpdatedPage", 1);
+                request.setAttribute("totalPages", 1);
+                request.setAttribute("currentPage", 1);
+                request.setAttribute("totalTxnPages", 1);
+                request.setAttribute("currentTxnPage", 1);
+
+                request.setAttribute("globalSearch", globalSearch);
+
+                Date today = Date.valueOf(LocalDate.now());
+                Import_noteDAO importDAO = new Import_noteDAO();
+                ExportNoteDAO exportDAO = new ExportNoteDAO();
+                InventoryHistoryDAO usageDAO = new InventoryHistoryDAO();
+                UserDAO userDAO = new UserDAO();
+
+                request.setAttribute("totalMaterials", materialDAO.getTotalMaterialCount());
+                request.setAttribute("importToday", importDAO.getImportToday());
+                request.setAttribute("exportToday", exportDAO.getExportToday());
+                request.setAttribute("totalTxnToday", txnDAO.getTotalTransactionsToday(today));
+                request.setAttribute("materials", materialDAO.getAllMaterials());
+
+                request.getRequestDispatcher("directordashboard.jsp").forward(request, response);
+                return;
+            }
 
             // === ALERT FILTER ===
             String alertSearch = request.getParameter("alertSearch");
@@ -97,6 +142,8 @@ public class DirectorDashboardController extends HttpServlet {
             Integer txnMaterialId = (txnMaterialIdStr != null && !txnMaterialIdStr.isEmpty()) ? Integer.parseInt(txnMaterialIdStr) : null;
             Date txnFromDate = (txnFromDateStr != null && !txnFromDateStr.isEmpty()) ? Date.valueOf(txnFromDateStr) : null;
             Date txnToDate = (txnToDateStr != null && !txnToDateStr.isEmpty()) ? Date.valueOf(txnToDateStr) : null;
+            System.out.println("From: " + txnFromDate);
+            System.out.println("To  : " + txnToDate);
             TransactionHistoryDAO txnDAO = new TransactionHistoryDAO();
             List<MaterialTransactionHistory> txnList = txnDAO.getTransactions(txnFromDate, txnToDate, txnSearch, txnMaterialId, null,
                     (txnPage - 1) * pageSize, pageSize);
@@ -107,7 +154,6 @@ public class DirectorDashboardController extends HttpServlet {
             String newSearch = request.getParameter("newMaterialSearch");
             String newPageStr = request.getParameter("newPage");
             int newPage = (newPageStr != null) ? Integer.parseInt(newPageStr) : 1;
-         
 
             MaterialDAO materialDAO = new MaterialDAO();
             List<Material> allNewMaterials = materialDAO.getNewMaterialsToday(newSearch);
@@ -120,7 +166,7 @@ public class DirectorDashboardController extends HttpServlet {
             String updatedSearch = request.getParameter("updatedMaterialSearch");
             String updatedPageStr = request.getParameter("updatedPage");
             int updatedPage = (updatedPageStr != null) ? Integer.parseInt(updatedPageStr) : 1;
-          
+
             List<Material> allUpdatedMaterials = materialDAO.getUpdatedMaterialsToday(updatedSearch);
             int totalUpdatedPages = (int) Math.ceil((double) allUpdatedMaterials.size() / pageSize);
             int updatedFromIndex = (updatedPage - 1) * pageSize;
@@ -160,23 +206,20 @@ public class DirectorDashboardController extends HttpServlet {
             request.setAttribute("currentNewPage", newPage);
             request.setAttribute("newMaterialSearch", newSearch);
 
-
             request.setAttribute("updatedMaterials", pagedUpdatedMaterials);
             request.setAttribute("totalUpdatedPages", totalUpdatedPages);
             request.setAttribute("currentUpdatedPage", updatedPage);
             request.setAttribute("updatedMaterialSearch", updatedSearch);
-
 
             request.getRequestDispatcher("directordashboard.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
-            
-        }
-    
-}
 
+        }
+
+    }
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -203,4 +246,3 @@ public class DirectorDashboardController extends HttpServlet {
     }// </editor-fold>
 
 }
-
