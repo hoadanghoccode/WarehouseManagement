@@ -93,34 +93,139 @@
             <div class="container mt-4">
                 <!-- Bootstrap Alert Container -->
                 <div class="bootstrap-alert-container" id="alertContainer"></div>
-                <c:if test="${perms['Department_ADD']}"> 
-                    <div class="row mb-3">                
-                        <div class="col d-flex justify-content-end">
+                <div class="row mb-3">
+                    <div class="col">
+                        <form class="d-flex" method="get" action="department">
+                            <input type="text" class="form-control me-2" name="search" placeholder="Search department..." value="${search}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    <div class="col d-flex justify-content-end">
+                        <c:if test="${perms['Department_ADD']}">
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#departmentModal">
                                 Add Department
                             </button>
-                        </div>
+                        </c:if>
                     </div>
-                </c:if>
-
+                </div>
                 <table class="table table-bordered">
                     <thead class="table-header">
                         <tr>
+                            <th>#</th>
                             <th>Department Name</th>
                             <th>Role Name</th>
-                            <th>Permission</th>
-                            <th>Create</th>
-                            <th>Read</th>
-                            <th>Update</th>
-                            <th>Delete</th>
-                            <th>User Count</th> <!-- Thêm cột này -->
+                            <th>User Count</th>
+                            <th>Description</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="roleTableBody">
-                        <!-- Nơi JavaScript sẽ render dữ liệu -->
+                    <tbody>
+                        <c:forEach var="dept" items="${departmentList}" varStatus="st">
+                            <tr>
+                                <td><strong>${(page-1)*pageSize + st.index + 1}</strong></td>
+                                <td>${dept.departmentName}</td>
+                                <td>${empty dept.roleName ? 'No Role Assigned' : dept.roleName}</td>
+                                <td>${empty dept.userCount ? 0 : dept.userCount}</td>
+                                <td>${dept.description}</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm me-2 view-btn" data-dept-id="${dept.departmentId}" data-bs-toggle="modal" data-bs-target="#viewDepartmentModal"><i class="fas fa-eye text-white"></i></button>
+                                    <button class="btn btn-danger btn-sm delete-btn" data-dept-id="${dept.departmentId}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </c:forEach>
                     </tbody>
                 </table>
+                <!-- Stats info like supplier -->
+                <div class="stats-info mb-2">
+                    <i class="fas fa-info-circle"></i>
+                    <c:choose>
+                        <c:when test="${not empty search}">
+                            Found <strong>${totalDepartments}</strong> for "<strong>${search}</strong>"
+                        </c:when>
+                        <c:otherwise>
+                            Showing <strong>${departmentList.size()}</strong> / <strong>${totalDepartments}</strong> departments
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+                <!-- Pagination (Bootstrap style with arrow icons like supplier) -->
+                <c:if test="${numPages > 1}">
+                    <style>
+                        .pagination .page-item.active .page-link {
+                            background-color: #3f2179 !important;
+                            border-color: #3f2179 !important;
+                            color: #fff !important;
+                        }
+                        .pagination .page-link {
+                            color: #3f2179;
+                            border-radius: 6px !important;
+                            border: 1px solid #e5e5e5;
+                            margin: 0 2px;
+                        }
+                        .pagination .page-item .page-link:hover {
+                            background-color: #ede7f6;
+                            color: #3f2179;
+                        }
+                        .pagination .page-item.disabled .page-link {
+                            color: #ccc;
+                            background: #f8f9fa;
+                            border-color: #e5e5e5;
+                        }
+                    </style>
+                    <div class="d-flex justify-content-center">
+                        <ul class="pagination">
+                            <c:url var="firstUrl" value="/department">
+                                <c:param name="page" value="1"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <c:url var="prevUrl" value="/department">
+                                <c:param name="page" value="${page-1}"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <li class="page-item${page == 1 ? ' disabled' : ''}">
+                                <a class="page-link" href="${firstUrl}" tabindex="-1">&laquo;</a>
+                            </li>
+                            <li class="page-item${page == 1 ? ' disabled' : ''}">
+                                <a class="page-link" href="${prevUrl}" tabindex="-1">&lsaquo;</a>
+                            </li>
+                            <c:forEach begin="1" end="${numPages}" var="i">
+                                <c:url var="pageUrl" value="/department">
+                                    <c:param name="page" value="${i}"/>
+                                    <c:if test="${not empty search}">
+                                        <c:param name="search" value="${search}"/>
+                                    </c:if>
+                                </c:url>
+                                <li class="page-item${i == page ? ' active' : ''}">
+                                    <a class="page-link" href="${pageUrl}">${i}</a>
+                                </li>
+                            </c:forEach>
+                            <c:url var="nextUrl" value="/department">
+                                <c:param name="page" value="${page+1}"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <c:url var="lastUrl" value="/department">
+                                <c:param name="page" value="${numPages}"/>
+                                <c:if test="${not empty search}">
+                                    <c:param name="search" value="${search}"/>
+                                </c:if>
+                            </c:url>
+                            <li class="page-item${page == numPages ? ' disabled' : ''}">
+                                <a class="page-link" href="${nextUrl}">&rsaquo;</a>
+                            </li>
+                            <li class="page-item${page == numPages ? ' disabled' : ''}">
+                                <a class="page-link" href="${lastUrl}">&raquo;</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="page-info text-center mt-2">
+                        Page ${page} of ${numPages} (${totalDepartments} total)
+                    </div>
+                </c:if>
             </div>
 
             <!-- Modal Xác nhận Xoá -->
@@ -434,51 +539,6 @@
                                                             tr.appendChild(tdRole);
                                                         }
 
-                                                        // Cột Permission (tên resource)
-                                                        const tdPermName = document.createElement('td');
-                                                        tdPermName.textContent = perm.resourceName || '';
-                                                        tr.appendChild(tdPermName);
-
-                                                        // Cột Create (canAdd)
-                                                        const tdAdd = document.createElement('td');
-                                                        const cbAdd = document.createElement('input');
-                                                        cbAdd.type = 'checkbox';
-                                                        cbAdd.className = 'form-check-input';
-                                                        cbAdd.disabled = true;     // chỉ hiển thị, không cho sửa trực tiếp ở đây
-                                                        cbAdd.checked = perm.canAdd || false;
-                                                        tdAdd.appendChild(cbAdd);
-                                                        tr.appendChild(tdAdd);
-
-                                                        // Cột Read (canView)
-                                                        const tdView = document.createElement('td');
-                                                        const cbView = document.createElement('input');
-                                                        cbView.type = 'checkbox';
-                                                        cbView.className = 'form-check-input';
-                                                        cbView.disabled = true;
-                                                        cbView.checked = perm.canView || false;
-                                                        tdView.appendChild(cbView);
-                                                        tr.appendChild(tdView);
-
-                                                        // Cột Update (canUpdate)
-                                                        const tdUpdate = document.createElement('td');
-                                                        const cbUpdate = document.createElement('input');
-                                                        cbUpdate.type = 'checkbox';
-                                                        cbUpdate.className = 'form-check-input';
-                                                        cbUpdate.disabled = true;
-                                                        cbUpdate.checked = perm.canUpdate || false;
-                                                        tdUpdate.appendChild(cbUpdate);
-                                                        tr.appendChild(tdUpdate);
-
-                                                        // Cột Delete (canDelete)
-                                                        const tdDelete = document.createElement('td');
-                                                        const cbDelete = document.createElement('input');
-                                                        cbDelete.type = 'checkbox';
-                                                        cbDelete.className = 'form-check-input';
-                                                        cbDelete.disabled = true;
-                                                        cbDelete.checked = perm.canDelete || false;
-                                                        tdDelete.appendChild(cbDelete);
-                                                        tr.appendChild(tdDelete);
-
                                                         // Chỉ dòng đầu tiên (j === 0) mới hiển thị cột User Count và Actions
                                                         if (j === 0) {
                                                             // Thêm cột User Count
@@ -544,24 +604,21 @@
             // 1. Khi modal được show (Bootstrap event), ta gọi API để load JSON lần đầu.
             const departmentModalEl = document.getElementById('departmentModal');
             departmentModalEl.addEventListener('shown.bs.modal', function () {
-                // Nếu chưa fetch lần nào thì mới fetch; nếu đã fetch rồi, ta có thể skip hoặc reload tuỳ nhu cầu.
-                if (rolesData.length === 0) {
-                    fetch('/WarehouseManagement/permissionrole/data')
-                            .then(response => {
-                                if (!response.ok)
-                                    throw new Error('Lỗi khi lấy dữ liệu permissions.');
-                                return response.json();
-                            })
-                            .then(data => {
-                                console.log('data ne', data);
-                                rolesData = data; // lưu vào biến toàn cục
-                                populateRoleDropdown();
-                            })
-                            .catch(err => {
-                                console.error(err);
-                                alert('Không thể tải danh sách role từ server.');
-                            });
-                }
+                // Luôn fetch lại danh sách role mỗi lần mở modal
+                fetch('/WarehouseManagement/permissionrole/data')
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error('Lỗi khi lấy dữ liệu permissions.');
+                        return response.json();
+                    })
+                    .then(data => {
+                        rolesData = data; // lưu vào biến toàn cục
+                        populateRoleDropdown();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Không thể tải danh sách role từ server.');
+                    });
                 // Mỗi lần mở modal, reset form + ẩn ma trận
                 resetDepartmentForm();
             });
@@ -804,21 +861,43 @@
         </script>
         <!--        Xóa phòng ban-->
         <script>
-            // Xử lý sự kiện khi nhấn nút Xóa trong modal confirm
-            document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
-                if (departmentToDeleteId) {
-                    // Chuẩn bị data để gửi đi
-                    const formData = new URLSearchParams();
-                    formData.append('departmentId', departmentToDeleteId);
+            let departmentToDeleteId = null;
 
-                    // Gọi API xóa department
-                    fetch(`/WarehouseManagement/deletedepartment`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                        },
-                        body: formData.toString()
-                    })
+            document.addEventListener('DOMContentLoaded', function () {
+                // Gán sự kiện cho nút delete trong bảng render bằng JSP
+                document.querySelectorAll('.delete-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        departmentToDeleteId = btn.getAttribute('data-dept-id');
+                        const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+                        confirmModal.show();
+                    });
+                });
+
+                // Gán sự kiện cho nút xem chi tiết trong bảng render bằng JSP
+                document.querySelectorAll('.view-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const deptId = btn.getAttribute('data-dept-id');
+                        loadDepartmentDetails(deptId);
+                    });
+                });
+
+                // Gán sự kiện cho nút xác nhận xóa trong modal
+                const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+                if (confirmDeleteBtn) {
+                    confirmDeleteBtn.addEventListener('click', function () {
+                        if (departmentToDeleteId) {
+                            const formData = new URLSearchParams();
+                            formData.append('departmentId', departmentToDeleteId);
+
+                            fetch(`/WarehouseManagement/deletedepartment`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                                },
+                                body: formData.toString()
+                            })
                             .then(response => {
                                 if (!response.ok)
                                     throw new Error('Error while deleting department');
@@ -826,32 +905,28 @@
                             })
                             .then(data => {
                                 if (data.success) {
-                                    // Xóa department khỏi mảng entries
-                                    entries = entries.filter(entry => entry.departmentId !== parseInt(departmentToDeleteId));
-                                    // Render lại bảng
-                                    renderRoleTable();
-                                    // Hiển thị thông báo thành công
+                                    // Xóa department khỏi mảng entries nếu có
+                                    if (typeof entries !== 'undefined' && Array.isArray(entries)) {
+                                        entries = entries.filter(entry => entry.departmentId !== parseInt(departmentToDeleteId));
+                                        if (typeof renderRoleTable === 'function') renderRoleTable();
+                                    }
                                     showAlert(true, 'Department deleted successfully!');
-//                                    alert('Xóa phòng ban thành công!');
                                 } else {
-//                                    alert('Xóa phòng ban thất bại: ' + (data.message || ''));
-                                    showAlert(false, ${data.message});
-
+                                    showAlert(false, data.message);
                                 }
                             })
                             .catch(err => {
-                                console.error('Lỗi:', err);
-                                alert('Có lỗi xảy ra khi xóa phòng ban');
+                                showAlert(false, err.message || 'An error occurred while deleting department');
                             })
                             .finally(() => {
-                                // Đóng modal
                                 const confirmModal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
                                 if (confirmModal) {
                                     confirmModal.hide();
                                 }
-                                // Reset departmentToDeleteId
                                 departmentToDeleteId = null;
                             });
+                        }
+                    });
                 }
             });
         </script>

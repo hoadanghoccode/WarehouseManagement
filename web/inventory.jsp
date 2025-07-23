@@ -440,22 +440,22 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon usable"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value" id="usableItems"><fmt:formatNumber value="${summary.availableQty}" pattern="#,##0.00"/></div>
+                        <div class="stat-value" id="usableItems"><fmt:formatNumber value="${summary.availableQty}" pattern="###"/></div>
                         <div class="stat-label">Usable Materials</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon not-usable"><i class="fas fa-times-circle"></i></div>
-                        <div class="stat-value" id="notUsableItems"><fmt:formatNumber value="${summary.notAvailableQty}" pattern="#,##0.00"/></div>
+                        <div class="stat-value" id="notUsableItems"><fmt:formatNumber value="${summary.notAvailableQty}" pattern="###"/></div>
                         <div class="stat-label">Not Usable Materials</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon import"><i class="fas fa-arrow-up"></i></div>
-                        <div class="stat-value" id="totalImport"><fmt:formatNumber value="${summary.totalImport}" pattern="#,##0.00"/></div>
+                        <div class="stat-value" id="totalImport"><fmt:formatNumber value="${summary.totalImport}" pattern="###"/></div>
                         <div class="stat-label">Total Import</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon export"><i class="fas fa-arrow-down"></i></div>
-                        <div class="stat-value" id="totalExport"><fmt:formatNumber value="${summary.totalExport}" pattern="#,##0.00"/></div>
+                        <div class="stat-value" id="totalExport"><fmt:formatNumber value="${summary.totalExport}" pattern="###"/></div>
                         <div class="stat-label">Total Export</div>
                     </div>
                 </div>
@@ -568,10 +568,10 @@
                                             <td><c:out value="${item.materialName}"/></td>
                                             <td><c:out value="${item.categoryName}"/></td>
                                             <td><c:out value="${item.unitName}"/></td>
-                                            <td><fmt:formatNumber value="${item.availableQty}" pattern="#,##0.00"/></td>
-                                            <td><fmt:formatNumber value="${item.notAvailableQty}" pattern="#,##0.00"/></td>
-                                            <td><fmt:formatNumber value="${item.importQty}" pattern="#,##0.00"/></td>
-                                            <td><fmt:formatNumber value="${item.exportQty}" pattern="#,##0.00"/></td>
+                                            <td><fmt:formatNumber value="${item.availableQty}" pattern="###"/></td>
+                                            <td><fmt:formatNumber value="${item.notAvailableQty}" pattern="###"/></td>
+                                            <td><fmt:formatNumber value="${item.importQty}" pattern="###"/></td>
+                                            <td><fmt:formatNumber value="${item.exportQty}" pattern="###"/></td>
                                             <td>
                                                 <div class="action-buttons">
                                                     <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailModal"

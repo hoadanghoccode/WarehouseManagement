@@ -45,21 +45,21 @@
                 </div>                                
                 <div class="header_right d-flex justify-content-end align-items-center w-100" style="gap: 1rem;">
                     <div class="header_notification_warp d-flex align-items-center" style="position:relative;">
-                        <div class="notification-bell" id="notificationBell">
+                        <!-- <div class="notification-bell" id="notificationBell">
                             <img src="img/icon/bell.svg" alt="">
                             <span class="notification-badge" id="notiCount" style="display:none;">0</span>
-                        </div>
-                        <div class="notification-dropdown" id="notificationDropdown">
+                        </div> -->
+                        <!-- <div class="notification-dropdown" id="notificationDropdown">
                             <div class="notification_Header">
                                 <h4>Notifications</h4>
                             </div>
                             <div class="Notification_body" id="notiList">
-                                <!-- Notification items will be loaded here -->
+                                
                             </div>
                             <div class="notification-footer">
                                 <a href="allnotifications.jsp">See More</a>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="profile_info">
                         <img src="<%= imagePath %>" alt="Profile" class="avatar-img" />
