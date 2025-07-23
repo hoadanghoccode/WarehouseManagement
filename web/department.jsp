@@ -604,24 +604,21 @@
             // 1. Khi modal được show (Bootstrap event), ta gọi API để load JSON lần đầu.
             const departmentModalEl = document.getElementById('departmentModal');
             departmentModalEl.addEventListener('shown.bs.modal', function () {
-                // Nếu chưa fetch lần nào thì mới fetch; nếu đã fetch rồi, ta có thể skip hoặc reload tuỳ nhu cầu.
-                if (rolesData.length === 0) {
-                    fetch('/WarehouseManagement/permissionrole/data')
-                            .then(response => {
-                                if (!response.ok)
-                                    throw new Error('Lỗi khi lấy dữ liệu permissions.');
-                                return response.json();
-                            })
-                            .then(data => {
-                                console.log('data ne', data);
-                                rolesData = data; // lưu vào biến toàn cục
-                                populateRoleDropdown();
-                            })
-                            .catch(err => {
-                                console.error(err);
-                                alert('Không thể tải danh sách role từ server.');
-                            });
-                }
+                // Luôn fetch lại danh sách role mỗi lần mở modal
+                fetch('/WarehouseManagement/permissionrole/data')
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error('Lỗi khi lấy dữ liệu permissions.');
+                        return response.json();
+                    })
+                    .then(data => {
+                        rolesData = data; // lưu vào biến toàn cục
+                        populateRoleDropdown();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Không thể tải danh sách role từ server.');
+                    });
                 // Mỗi lần mở modal, reset form + ẩn ma trận
                 resetDepartmentForm();
             });
@@ -864,21 +861,43 @@
         </script>
         <!--        Xóa phòng ban-->
         <script>
-            // Xử lý sự kiện khi nhấn nút Xóa trong modal confirm
-            document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
-                if (departmentToDeleteId) {
-                    // Chuẩn bị data để gửi đi
-                    const formData = new URLSearchParams();
-                    formData.append('departmentId', departmentToDeleteId);
+            let departmentToDeleteId = null;
 
-                    // Gọi API xóa department
-                    fetch(`/WarehouseManagement/deletedepartment`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                        },
-                        body: formData.toString()
-                    })
+            document.addEventListener('DOMContentLoaded', function () {
+                // Gán sự kiện cho nút delete trong bảng render bằng JSP
+                document.querySelectorAll('.delete-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        departmentToDeleteId = btn.getAttribute('data-dept-id');
+                        const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+                        confirmModal.show();
+                    });
+                });
+
+                // Gán sự kiện cho nút xem chi tiết trong bảng render bằng JSP
+                document.querySelectorAll('.view-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const deptId = btn.getAttribute('data-dept-id');
+                        loadDepartmentDetails(deptId);
+                    });
+                });
+
+                // Gán sự kiện cho nút xác nhận xóa trong modal
+                const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+                if (confirmDeleteBtn) {
+                    confirmDeleteBtn.addEventListener('click', function () {
+                        if (departmentToDeleteId) {
+                            const formData = new URLSearchParams();
+                            formData.append('departmentId', departmentToDeleteId);
+
+                            fetch(`/WarehouseManagement/deletedepartment`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                                },
+                                body: formData.toString()
+                            })
                             .then(response => {
                                 if (!response.ok)
                                     throw new Error('Error while deleting department');
@@ -886,32 +905,28 @@
                             })
                             .then(data => {
                                 if (data.success) {
-                                    // Xóa department khỏi mảng entries
-                                    entries = entries.filter(entry => entry.departmentId !== parseInt(departmentToDeleteId));
-                                    // Render lại bảng
-                                    renderRoleTable();
-                                    // Hiển thị thông báo thành công
+                                    // Xóa department khỏi mảng entries nếu có
+                                    if (typeof entries !== 'undefined' && Array.isArray(entries)) {
+                                        entries = entries.filter(entry => entry.departmentId !== parseInt(departmentToDeleteId));
+                                        if (typeof renderRoleTable === 'function') renderRoleTable();
+                                    }
                                     showAlert(true, 'Department deleted successfully!');
-//                                    alert('Xóa phòng ban thành công!');
                                 } else {
-//                                    alert('Xóa phòng ban thất bại: ' + (data.message || ''));
-                                    showAlert(false, ${data.message});
-
+                                    showAlert(false, data.message);
                                 }
                             })
                             .catch(err => {
-                                console.error('Lỗi:', err);
-                                alert('Có lỗi xảy ra khi xóa phòng ban');
+                                showAlert(false, err.message || 'An error occurred while deleting department');
                             })
                             .finally(() => {
-                                // Đóng modal
                                 const confirmModal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
                                 if (confirmModal) {
                                     confirmModal.hide();
                                 }
-                                // Reset departmentToDeleteId
                                 departmentToDeleteId = null;
                             });
+                        }
+                    });
                 }
             });
         </script>

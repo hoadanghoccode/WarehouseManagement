@@ -81,7 +81,7 @@ public class AuthFilter implements Filter {
                 || uri.equals(contextPath + "/LoginController")
                 || uri.equals(contextPath + "/login")
                 || uri.equals(contextPath + "/indexInventory.jsp")
-                || uri.equals(contextPath + "/403.jsp")                                
+                || uri.equals(contextPath + "/403.jsp")
                 || uri.equals(contextPath + "/adminresetlist")
                 || uri.equals(contextPath + "/resetpassword")
                 || uri.equals(contextPath + "/changepassword")
@@ -173,6 +173,20 @@ public class AuthFilter implements Filter {
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
 
+        //check dashboard
+        if (user != null && uri.startsWith(contextPath + "/directordashboard")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
+            Boolean canViewDashboard = (perms != null) ? perms.get("Dashboard_VIEW") : null;
+
+            if (canViewDashboard == null || !canViewDashboard) {
+                session.invalidate(); 
+               resp.sendRedirect(contextPath + "/403.jsp");
+                return;
+            }
+            // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
+        }
+
         //check permission
         if (user != null && uri.startsWith(contextPath + "/resource")) {
             @SuppressWarnings("unchecked")
@@ -230,7 +244,7 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-        
+
         //check update material
         if (user != null && uri.startsWith(contextPath + "/update-material")) {
             @SuppressWarnings("unchecked")
@@ -244,8 +258,8 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-        
-         //check warehouse
+
+        //check warehouse
         if (user != null && uri.equals(contextPath + "/inventory")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
@@ -299,7 +313,7 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-        
+
         //check update material
         if (user != null && uri.startsWith(contextPath + "/adminresetlist")) {
             @SuppressWarnings("unchecked")
@@ -314,7 +328,7 @@ public class AuthFilter implements Filter {
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
         chain.doFilter(request, response);
-        
+
         //check purchase list
         if (user != null && uri.startsWith(contextPath + "/list-purchase-order")) {
             @SuppressWarnings("unchecked")
@@ -328,7 +342,7 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-        
+
         //check purchase detail
         if (user != null && uri.startsWith(contextPath + "/purchase-order-detail")) {
             @SuppressWarnings("unchecked")
@@ -342,7 +356,7 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-        
+
         //check export
         if (user != null && uri.startsWith(contextPath + "/exportnotelist")) {
             @SuppressWarnings("unchecked")
@@ -356,7 +370,7 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-        
+
         if (user != null && uri.startsWith(contextPath + "/exportnotelist")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
@@ -369,9 +383,8 @@ public class AuthFilter implements Filter {
             }
             // Nếu có quyền VIEW, cho đi tiếp vào Servlet / JSP xử lý
         }
-        
-        
-         //check dashboard
+
+        //check dashboard
         if (user != null && uri.startsWith(contextPath + "/createorder")) {
             @SuppressWarnings("unchecked")
             Map<String, Boolean> perms = (Map<String, Boolean>) session.getAttribute("PERMISSIONS");
