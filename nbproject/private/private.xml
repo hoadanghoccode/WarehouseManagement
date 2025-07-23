@@ -3,18 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/ExportNoteDetail.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/private/private.properties</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/orderdetail.jsp</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/ExportNoteListServlet.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/private/private.xml</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/ExportNoteTransaction.java</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/model/ExportNote.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/project.xml</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/dal/ExportNoteDAO.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/genfiles.properties</file>
             <file>file:/D:/E/SWP391/WarehouseManagement/src/java/controller/OrderDetailController.java</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/build-impl.xml</file>
-            <file>file:/D:/E/SWP391/WarehouseManagement/nbproject/project.properties</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/unit.jsp</file>
+            <file>file:/D:/E/SWP391/WarehouseManagement/web/getExportNote.jsp</file>
         </group>
     </open-files>
 </project-private>

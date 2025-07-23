@@ -304,6 +304,18 @@
             padding: 8px;
         }
 
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 margin-left: 0;
@@ -335,6 +347,11 @@
 
             table.table {
                 min-width: 600px;
+            }
+
+            .custom-alert {
+                width: calc(100% - 40px);
+                right: 20px;
             }
         }
     </style>
@@ -399,12 +416,12 @@
                                                 </button>
                                             </c:if>
                                             <c:if test="${perms['Unit_UPDATE']}">
-                                                <button class="btn btn-primary btn-sm btn-edit-unit" data-id="${unit.unitId}" data-has-dependencies="${unit.hasDependencies}" title="Edit" ${unit.hasDependencies ? 'disabled class="btn-disabled"' : ''}>
+                                                <button class="btn btn-primary btn-sm btn-edit-unit" data-id="${unit.unitId}" data-is-used="${unit.isUsedInMaterials}" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </c:if>
                                             <c:if test="${perms['Unit_DELETE']}">
-                                                <button class="btn btn-danger btn-sm btn-delete" data-id="${unit.unitId}" data-status="${unit.status}" data-has-dependencies="${unit.hasDependencies}" title="${unit.status == 'active' ? 'Deactivate' : 'Permanent Delete'}" ${unit.hasDependencies ? 'disabled class="btn-disabled"' : ''}>
+                                                <button class="btn btn-danger btn-sm btn-delete" data-id="${unit.unitId}" data-status="${unit.status}" data-is-used="${unit.isUsedInMaterials}" title="${unit.status == 'active' ? 'Deactivate' : 'Permanent Delete'}">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </c:if>
@@ -567,17 +584,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Toast thông báo -->
-                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-                    <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header">
-                            <strong class="me-auto">Notification</strong>
-                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body" id="toastMessage"></div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -588,9 +594,65 @@
         $(document).ready(function() {
             const unitModal = new bootstrap.Modal(document.getElementById('unitModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-            const toast = new bootstrap.Toast(document.getElementById('liveToast'));
 
-            // add
+            // Custom alert function
+            function showAlert(status, message) {
+                const existingAlert = document.querySelector('.custom-alert');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert ${status ? 'alert-success' : 'alert-danger'} alert-dismissible fade show custom-alert`;
+                alertDiv.setAttribute('role', 'alert');
+
+                if (status === true) {
+                    alertDiv.style.backgroundColor = '#d1e7dd';
+                    alertDiv.style.color = '#0f5132';
+                    alertDiv.style.border = '1px solid #badbcc';
+                } else {
+                    alertDiv.style.backgroundColor = '#ef4444';
+                    alertDiv.style.color = 'white';
+                    alertDiv.style.border = '1px solid #dc2626';
+                }
+
+                const icon = document.createElement('i');
+                icon.className = `fas ${status ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2`;
+                alertDiv.appendChild(icon);
+
+                const messageText = document.createTextNode(message);
+                alertDiv.appendChild(messageText);
+
+                const closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.className = 'btn-close';
+                closeBtn.setAttribute('data-bs-dismiss', 'alert');
+                closeBtn.setAttribute('aria-label', 'Close');
+                alertDiv.appendChild(closeBtn);
+
+                document.body.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    alertDiv.style.opacity = '1';
+                }, 100);
+
+                setTimeout(() => {
+                    if (alertDiv && document.body.contains(alertDiv)) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => alertDiv.remove(), 150);
+                    }
+                }, 4000);
+            }
+
+            // Auto show alerts based on URL parameters
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('success') || params.has('error')) {
+                const isSuccess = params.has('success');
+                const msg = params.get(isSuccess ? 'success' : 'error');
+                showAlert(isSuccess, msg);
+                history.replaceState(null, '', location.pathname);
+            }
+
             $('.btn-add-unit').click(function() {
                 $('#unitModalLabel').text('Add Unit');
                 $('#saveUnitBtn').data('action', 'add').show();
@@ -607,24 +669,24 @@
                             $('#unitModalBody').html(html);
                         } else {
                             $('#unitModalBody').html('<p class="text-danger">Cannot load add unit form!</p>');
+                            showAlert(false, 'Cannot load add unit form!');
                         }
                     },
                     error: function(xhr, status, error) {
                         let errorMessage = 'Error: Unable to load data. Status: ' + status;
                         if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
                         $('#unitModalBody').html('<p class="text-danger">' + errorMessage + '</p>');
+                        showAlert(false, errorMessage);
                         console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
                 unitModal.show();
             });
 
-            // edit
             $('.btn-edit-unit').click(function() {
-                const hasDependencies = $(this).data('has-dependencies') === true;
-                if (hasDependencies) {
-                    $('#toastMessage').text('Cannot edit unit: It is used in transactions');
-                    toast.show();
+                const isUsed = $(this).data('is-used') === true;
+                if (isUsed) {
+                    showAlert(false, 'Cannot edit unit: It is used in materials');
                     return;
                 }
                 const unitId = $(this).data('id');
@@ -640,13 +702,12 @@
                             let html = '<form id="unitForm">';
                             html += '<input type="hidden" name="id" value="' + unit.unitId + '">';
                             html += '<div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" name="name" value="' + (unit.name || '') + '" required></div>';
-                            html += '<div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status" required><option value="active"' + (unit.status == 'active' ? ' selected' : '') + '>Active</option><option value="inactive"' + (unit.status == 'inactive' ? ' selected' : '') + '>Inactive</option></select></div>';
+                            html += '<div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status" required><option value="active"' + (unit.status === 'active' ? ' selected' : '') + '>Active</option><option value="inactive"' + (unit.status === 'inactive' ? ' selected' : '') + '>Inactive</option></select></div>';
                             html += '</form>';
                             $('#unitModalBody').html(html);
                         } else {
                             $('#unitModalBody').html('<p class="text-danger">' + (data.message || 'Cannot load edit unit form!') + '</p>');
-                            $('#toastMessage').text(data.message || 'Cannot load edit unit form!');
-                            toast.show();
+                            showAlert(false, data.message || 'Cannot load edit unit form!');
                             unitModal.hide();
                         }
                     },
@@ -654,8 +715,7 @@
                         let errorMessage = 'Error: Unable to load data. Status: ' + status;
                         if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
                         $('#unitModalBody').html('<p class="text-danger">' + errorMessage + '</p>');
-                        $('#toastMessage').text(errorMessage);
-                        toast.show();
+                        showAlert(false, errorMessage);
                         unitModal.hide();
                         console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
@@ -663,7 +723,6 @@
                 unitModal.show();
             });
 
-            // view
             $('.view-detail').click(function() {
                 const unitId = $(this).data('id');
                 $('#unitModalLabel').text('View Unit Details');
@@ -677,24 +736,27 @@
                             let unit = data.unit;
                             let html = '<div class="row"><div class="col-md-12"><table class="table detail-table">';
                             html += '<tr><th>Name</th><td>' + (unit.name || 'N/A') + '</td></tr>';
-                            html += '<tr><th>Status</th><td>' + (unit.status == 'active' ? 'Active' : 'Inactive') + '</td></tr>';
+                            html += '<tr><th>Status</th><td>' + (unit.status === 'active' ? 'Active' : 'Inactive') + '</td></tr>';
                             html += '<tr><th>Created At</th><td>' + (unit.createdAt || 'N/A') + '</td></tr>';
                             html += '<tr><th>Updated At</th><td>' + (unit.updatedAt || 'N/A') + '</td></tr>';
                             html += '</table></div></div>';
                             $('#unitModalBody').html(html);
                         } else {
                             $('#unitModalBody').html('<p class="text-danger">Cannot load unit details!</p>');
+                            showAlert(false, 'Cannot load unit details!');
                         }
                     },
                     error: function(xhr, status, error) {
+                        let errorMessage = 'Error: Unable to load data. Status: ' + status;
+                        if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
                         $('#unitModalBody').html('<p class="text-danger">Error loading data</p>');
+                        showAlert(false, errorMessage);
                         console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
                 unitModal.show();
             });
 
-            // Lưu 
             $('#saveUnitBtn').click(function() {
                 const action = $(this).data('action');
                 const unitId = $(this).data('id');
@@ -706,8 +768,7 @@
                     data: formData,
                     dataType: 'json',
                     success: function(data) {
-                        $('#toastMessage').text(data.message);
-                        toast.show();
+                        showAlert(data.success, data.message);
                         if (data.success) {
                             unitModal.hide();
                             setTimeout(() => location.reload(), 1000);
@@ -718,20 +779,17 @@
                     error: function(xhr, status, error) {
                         let errorMessage = 'Error: ' + status;
                         if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
-                        $('#toastMessage').text(errorMessage);
-                        toast.show();
+                        showAlert(false, errorMessage);
                         unitModal.hide();
                         console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
             });
 
-            // Xóa 
             $('.btn-delete').click(function() {
-                const hasDependencies = $(this).data('has-dependencies') === true;
-                if (hasDependencies) {
-                    $('#toastMessage').text('Cannot delete unit: It is used in transactions');
-                    toast.show();
+                const isUsed = $(this).data('is-used') === true;
+                if (isUsed) {
+                    showAlert(false, 'Cannot delete unit: It is used in materials');
                     return;
                 }
                 const unitId = $(this).data('id');
@@ -744,7 +802,6 @@
                 deleteModal.show();
             });
 
-            // Xử lý xác nhận xóa
             $('#confirmDeleteButton').click(function() {
                 const unitId = $(this).data('id');
                 const action = $(this).data('action');
@@ -754,8 +811,7 @@
                     data: { action: action, id: unitId },
                     dataType: 'json',
                     success: function(data) {
-                        $('#toastMessage').text(data.message);
-                        toast.show();
+                        showAlert(data.success, data.message);
                         if (data.success) {
                             deleteModal.hide();
                             setTimeout(() => location.reload(), 1000);
@@ -766,15 +822,13 @@
                     error: function(xhr, status, error) {
                         let errorMessage = 'Error: ' + status;
                         if (xhr.responseText) errorMessage += '. Response: ' + xhr.responseText;
-                        $('#toastMessage').text(errorMessage);
-                        toast.show();
+                        showAlert(false, errorMessage);
                         deleteModal.hide();
                         console.error('Lỗi AJAX: ', status, error, xhr.responseText);
                     }
                 });
             });
 
-            // Xử lý lọc và tìm kiếm với AJAX
             $('#filterForm').on('submit', function(e) {
                 e.preventDefault();
                 var search = $('input[name="search"]').val();
@@ -789,19 +843,6 @@
                     $('div[style="text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;"]').html($(data).find('div[style="text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;"]').html());
                 });
             });
-
-            // Hiển thị toast nếu chuyển hướng với thông báo thành công/lỗi
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('success') || params.has('error')) {
-                const isSuccess = params.has('success');
-                const msg = params.get(isSuccess ? 'success' : 'error');
-                const toastEl = document.getElementById('liveToast');
-                toastEl.classList.remove('text-bg-success', 'text-bg-danger');
-                toastEl.classList.add(isSuccess ? 'text-bg-success' : 'text-bg-danger');
-                document.getElementById('toastMessage').textContent = msg;
-                new bootstrap.Toast(toastEl).show();
-                history.replaceState(null, '', location.pathname);
-            }
         });
     </script>
 </body>
