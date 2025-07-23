@@ -65,11 +65,12 @@
                         <h4>Warehouse Management System</h4>
                         <!-- <small>Secure Login</small> -->
                     </div>
-                    <c:if test="${not empty error}">
+                    <c:if test="${not empty error and error ne 'Please enter email!'}">
                         <div class="alert alert-danger" role="alert">
                             ${error}
                         </div>
                     </c:if>
+
                     <c:if test="${not empty success}">
                         <div class="alert alert-success" role="alert">
                             ${success}
