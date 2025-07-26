@@ -432,14 +432,17 @@
                         if (result.success) {
                             // đóng modal
                             bsModal.hide();
-                            // reload lại trang hoặc chỉ thêm row mới vào bảng
-                            window.location.reload();
+                            // Show success alert and reload page
+                            showAlert(true, 'Role added successfully!');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
                         } else {
-                            alert('Error: ' + (result.message || 'Không thể thêm role'));
+                            showAlert(false, 'Error: ' + (result.message || 'Không thể thêm role'));
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Lỗi kết nối, vui lòng thử lại.');
+                        showAlert(false, 'Lỗi kết nối, vui lòng thử lại.');
                     }
                 });
             });
@@ -488,25 +491,18 @@
 
                         if (result.status === 'ok') {
                             confirmModal.hide();
-                            // Refresh lại dữ liệu
-                            const response = await fetch(`${pageContext.request.contextPath}/permissionrole/data`);
-                            const data = await response.json();
-                            console.log('New data after delete:', data);
-                            window.location.reload();
-                            // … render lại bảng …
+                            // Show success alert and reload page
+                            showAlert(true, 'Role deleted successfully!');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
                         } else {
                             throw new Error(result.msg || 'Lỗi không xác định');
                         }
 
                     } catch (err) {
                         console.error('Error deleting role:', err);
-                        const alertContainer = document.getElementById('alertContainer');
-                        alertContainer.innerHTML = `
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Có lỗi xảy ra khi xóa role: ${err.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
+                        showAlert(false, 'Có lỗi xảy ra khi xóa role: ' + err.message);
                     } finally {
                         roleIdToDelete = null;
                     }

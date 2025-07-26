@@ -452,6 +452,11 @@
                                         // 2) Hàm render bảng
                                         function renderRoleTable() {
                                             const tbody = document.getElementById('roleTableBody');
+                                            if (!tbody) {
+                                                console.warn('Table body element not found');
+                                                return;
+                                            }
+                                            
                                             tbody.innerHTML = ''; // Làm mới nội dung
 
                                             entries.forEach((entry, i) => {
@@ -800,6 +805,11 @@
                                 const modal = bootstrap.Modal.getInstance(departmentModalEl);
                                 modal.hide();
 
+                                // Reload page to update the list
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1500);
+
                                 // Gọi lại API để lấy dữ liệu mới nhất
                                 fetch(`/WarehouseManagement/department/data`)
                                         .then(response => {
@@ -841,8 +851,11 @@
                                                 };
                                             });
 
-                                            // Render lại bảng với dữ liệu mới
-                                            renderRoleTable();
+                                            // Kiểm tra bảng tồn tại trước khi render
+                                            const tableBody = document.getElementById('roleTableBody');
+                                            if (tableBody && typeof renderRoleTable === 'function') {
+                                                renderRoleTable();
+                                            }
                                         })
                                         .catch(err => {
                                             console.error("Lỗi khi fetch dữ liệu mới:", err);
@@ -908,9 +921,18 @@
                                     // Xóa department khỏi mảng entries nếu có
                                     if (typeof entries !== 'undefined' && Array.isArray(entries)) {
                                         entries = entries.filter(entry => entry.departmentId !== parseInt(departmentToDeleteId));
-                                        if (typeof renderRoleTable === 'function') renderRoleTable();
+                                        // Kiểm tra bảng tồn tại trước khi render
+                                        const tableBody = document.getElementById('roleTableBody');
+                                        if (tableBody && typeof renderRoleTable === 'function') {
+                                            renderRoleTable();
+                                        }
                                     }
                                     showAlert(true, 'Department deleted successfully!');
+                                    
+                                    // Reload page to update the list
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 1500);
                                 } else {
                                     showAlert(false, data.message);
                                 }
@@ -1191,8 +1213,11 @@
                                     };
                                 }
 
-                                // Render lại bảng
-                                renderRoleTable();
+                                // Kiểm tra bảng tồn tại trước khi render
+                                const tableBody = document.getElementById('roleTableBody');
+                                if (tableBody && typeof renderRoleTable === 'function') {
+                                    renderRoleTable();
+                                }
 
                                 // Đóng modal
                                 const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewDepartmentModal'));
@@ -1200,6 +1225,11 @@
 
                                 // Hiển thị thông báo thành công
                                 showAlert(true, data.message || 'Department update successful');
+                                
+                                // Reload page to update the list
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1500);
                             } else {
                                 // Nếu có lỗi nhưng không phải lỗi HTTP
                                 showAlert(false, data.message || 'Update failed');
